@@ -2,11 +2,13 @@ import Paddle from './paddle.js';
 import Ball from './ball.js';
 
 class Game {
-    constructor(canvas) {
+    constructor(canvas, p1, p2) {
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
-        this.paddle1 = new Paddle(this.canvas, 1);
-        this.paddle2 = new Paddle(this.canvas, 2);
+        this.P1 = p1;
+        this.P2 = p2;
+        this.P1.paddle = new Paddle(this.canvas, 1);
+        this.P2.paddle = new Paddle(this.canvas, 2);
         this.ball = new Ball(this.canvas);
         this.isRunning = false;
 
@@ -29,6 +31,38 @@ class Game {
         this.loop();
     }
 
+    stop() {
+        this.isRunning = false;
+        console.log('Game stopped'); // Message de débogage
+
+        // Ajout d'un délai avant d'afficher le gagnant
+        setTimeout(() => {
+            this.displayWinner();
+        }, 10);
+    }
+
+    displayWinner() {
+        console.log('Displaying winner'); // Message de débogage
+        // Effacer tout le canvas
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        console.log('Canvas cleared'); // Message de débogage
+
+        this.context.fillStyle = 'red';
+        this.context.font = '100px Arial';
+        this.context.textAlign = 'center';
+        this.context.textBaseline = 'middle';
+
+        let winnerText;
+        if (this.P1.getScore() >= 11) { // Vérification du score pour P1
+            winnerText = 'P1 has WIN!';
+        } else if (this.P2.getScore() >= 11) { // Vérification du score pour P2
+            winnerText = 'P2 has WIN!';
+        }
+
+        console.log(`Winner: ${winnerText}`); // Message de débogage
+        this.context.fillText(winnerText, this.canvas.width / 2, this.canvas.height / 2);
+    }
+
     loop() {
         if (!this.isRunning) return;
 
@@ -38,36 +72,50 @@ class Game {
         requestAnimationFrame(() => this.loop());
     }
 
-    collision(paddle)//si je touche les coins ca ne touche pas
+    checkAsScore()
     {
-        if (paddle.player === 1) {
-            if (this.ball.y >= paddle.topHit && this.ball.y <= paddle.botHit && this.ball.x === paddle.x + paddle.width)
-            {
-                this.ball.hit();
-            }
+        if (this.ball.x <= 0)
+        {
+            this.P2.incrementScore();
+            this.ball.reset();
         }
-        else {
-            if (this.ball.y >= paddle.topHit && this.ball.y <= paddle.botHit && this.ball.x === paddle.x - paddle.width)
-            {
-                this.ball.hit();
-            }
+        if (this.ball.x + this.ball.size >= this.canvas.width)
+        {
+            this.P1.incrementScore();
+            this.ball.reset();
         }
     }
 
     update() {
-        this.paddle1.update(this.keyState);
-        this.paddle2.update(this.keyState);
-        this.ball.update();
+        this.P1.paddle.update(this.keyState);
+        this.P2.paddle.update(this.keyState);
+        this.ball.update(this.P1.paddle, this.P2.paddle);
+        this.checkAsScore();
+        this.checkWinner();
         //faire boucle pour verifier chaque joueur ?
-        this.collision(this.paddle1);
-        this.collision(this.paddle2);
+    }
+
+    checkWinner() {
+        if (this.P1.getScore() >= 11 || this.P2.getScore() >= 11) {
+            this.stop();
+        }
     }
 
     draw() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.paddle1.draw(this.context);
-        this.paddle2.draw(this.context);
+        this.updateScores();
+        this.P1.paddle.draw(this.context);
+        this.P2.paddle.draw(this.context);
         this.ball.draw(this.context);
+    }
+
+    updateScores() {
+        this.context.fillStyle = 'grey';
+        this.context.font = '100px Arial';
+        this.context.textAlign = 'center';
+        this.context.textBaseline = 'middle';
+        this.context.fillText(`${this.P1.getScore()}`, this.canvas.width / 4, this.canvas.height / 2);
+        this.context.fillText(`${this.P2.getScore()}`, (3 * this.canvas.width) / 4, this.canvas.height / 2);
     }
 }
 

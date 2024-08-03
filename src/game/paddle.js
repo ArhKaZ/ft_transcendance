@@ -10,17 +10,10 @@ class Paddle {
             this.x = canvas.width - 20;
         this.y = (canvas.height - this.height) / 2;
         this.speed = 5;
-        this.updateHit();
-    }
-
-    updateHit()
-    {
-        this.topHit = this.y;
-        this.botHit = this.y + this.height;
     }
 
     update(keyState) {
-        if (this.player === 1) {
+        if (this.player === 2) {
             if (keyState && keyState['ArrowUp'] && this.y > 10) {
                 this.y -= this.speed;
             }
@@ -29,7 +22,7 @@ class Paddle {
                 this.y += this.speed;
             }
         }
-        if (this.player === 2) {
+        if (this.player === 1) {
             if (keyState && keyState['q'] && this.y > 10) {
                 this.y -= this.speed;
             }
@@ -38,7 +31,6 @@ class Paddle {
                 this.y += this.speed;
             }
         }
-        this.updateHit();
     }
 
     draw(context) {
