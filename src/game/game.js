@@ -92,7 +92,6 @@ class Game {
         this.ball.update(this.P1.paddle, this.P2.paddle);
         this.checkAsScore();
         this.checkWinner();
-        //faire boucle pour verifier chaque joueur ?
     }
 
     checkWinner() {

@@ -16,7 +16,7 @@ class Ball {
     update(paddle1, paddle2) {
         this.x += this.vx;
         this.y += this.vy;
-        if (this.y <= 0 || this.y + this.size >= this.canvas.height) {
+        if (this.y - this.size <= 0 || this.y + this.size / 2 >= this.canvas.height) {
             this.vy *= -1;
         }
         this.collisionPaddle(paddle1);
@@ -25,9 +25,9 @@ class Ball {
 
     collisionPaddle(paddle)//si je touche les coins ca ne touche pas
     {
-        if (this.x < paddle.x + paddle.width &&
+        if (this.x - this.size < paddle.x + paddle.width &&
             this.x + this.size > paddle.x &&
-            this.y < paddle.y + paddle.height &&
+            this.y - this.size < paddle.y + paddle.height &&
             this.y + this.size > paddle.y) {
 
             const collidePoint = (this.y + this.size / 2) - (paddle.y + paddle.height / 2);
@@ -42,8 +42,10 @@ class Ball {
     }
 
     draw(context) {
+        context.beginPath();
+        context.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
         context.fillStyle = 'white';
-        context.fillRect(this.x, this.y, this.size, this.size);
+        context.fill();
     }
 }
 
