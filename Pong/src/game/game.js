@@ -42,24 +42,19 @@ class Game {
     }
 
     displayWinner() {
-        console.log('Displaying winner'); // Message de débogage
-        // Effacer tout le canvas
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        console.log('Canvas cleared'); // Message de débogage
-
         this.context.fillStyle = 'red';
         this.context.font = '100px Arial';
         this.context.textAlign = 'center';
         this.context.textBaseline = 'middle';
 
         let winnerText;
-        if (this.P1.getScore() >= 11) { // Vérification du score pour P1
+        if (this.P1.getScore() >= 11) {
             winnerText = 'P1 has WIN!';
-        } else if (this.P2.getScore() >= 11) { // Vérification du score pour P2
+        } else if (this.P2.getScore() >= 11) {
             winnerText = 'P2 has WIN!';
         }
 
-        console.log(`Winner: ${winnerText}`); // Message de débogage
         this.context.fillText(winnerText, this.canvas.width / 2, this.canvas.height / 2);
     }
 
@@ -78,7 +73,7 @@ class Game {
         {
             this.P2.incrementScore();
             this.ball.reset();
-        }
+        }x
         if (this.ball.x + this.ball.size >= this.canvas.width)
         {
             this.P1.incrementScore();
