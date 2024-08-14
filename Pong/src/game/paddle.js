@@ -2,8 +2,8 @@ class Paddle {
     constructor(canvas, player) {
         this.canvas = canvas;
         this.player = player;
-        this.width = 10;
-        this.height = 100;
+        this.width = canvas.width * 0.01;
+        this.height = canvas.height * 0.15;
         if (this.player === 1)
             this.x = 10;
         if (this.player === 2)

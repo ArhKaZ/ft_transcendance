@@ -7,6 +7,10 @@ body {
     background-color: #000;
 }
 
+#canvasContainer {
+    display: none;
+}
+
 canvas {
     border: 1px solid #fff;
 }

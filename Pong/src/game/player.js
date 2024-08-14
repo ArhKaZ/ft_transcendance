@@ -1,7 +1,6 @@
 class Player {
-    constructor(nb) {
-        //this.name = prompt("Username for P" + nb);
-        this.name = 'random';
+    constructor(nb, name) {
+        this.name = name;
         this.nb = nb;
         this.paddle = null;
         this.score = 0;

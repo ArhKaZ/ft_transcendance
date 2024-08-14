@@ -1,6 +1,6 @@
 import Paddle from './paddle.js';
 import Ball from './ball.js';
-
+import Impact from './impact.js';
 class Game {
     constructor(canvas, p1, p2) {
         this.canvas = canvas;
@@ -11,7 +11,11 @@ class Game {
         this.P2.paddle = new Paddle(this.canvas, 2);
         this.ball = new Ball(this.canvas);
         this.isRunning = false;
-
+        this.newColorLeft = 0;
+        this.newColorRight = 0;
+        this.leftColor = {r: 0, g: 0, b: 0, a: 0};
+        this.rightColor = {r: 0, g: 0, b: 0, a: 0};
+        this.particles = [];
         this.keyState = {};
         this.bindEvents();
     }
@@ -73,7 +77,7 @@ class Game {
         {
             this.P2.incrementScore();
             this.ball.reset();
-        }x
+        }
         if (this.ball.x + this.ball.size >= this.canvas.width)
         {
             this.P1.incrementScore();
@@ -84,9 +88,19 @@ class Game {
     update() {
         this.P1.paddle.update(this.keyState);
         this.P2.paddle.update(this.keyState);
-        this.ball.update(this.P1.paddle, this.P2.paddle);
+        let res = this.ball.update(this.P1.paddle, this.P2.paddle);
+        switch (res) {
+            case 1:
+                this.newColorLeft = 20;
+                this.createImpact(this.ball.x, this.ball.y);
+                break;
+            case 2:
+                this.newColorRight = 20;
+                this.createImpact(this.ball.x, this.ball.y);
+                break;
+        }
         this.checkAsScore();
-        this.checkWinner();
+        //this.checkWinner();
     }
 
     checkWinner() {
@@ -96,12 +110,56 @@ class Game {
     }
 
     draw() {
+
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        if (this.newColorLeft === 20)
+            this.leftColor = this.newColor();
+
+        if (this.newColorRight === 20)
+            this.rightColor = this.newColor();
+
+        if (this.newColorLeft > 0) {
+            this.context.fillStyle = `rgba(${this.leftColor.r}, ${this.leftColor.g}, ${this.leftColor.b}, ${this.leftColor.a})`;
+            this.context.fillRect(0, 0, this.canvas.width / 2, this.canvas.height);
+            --this.newColorLeft;
+        }
+        else if (this.newColorRight > 0) {
+            this.context.fillStyle = `rgba(${this.rightColor.r}, ${this.rightColor.g}, ${this.rightColor.b}, ${this.rightColor.a})`;
+            this.context.fillRect(this.canvas.width / 2, 0, this.canvas.width / 2, this.canvas.height);
+            --this.newColorRight;
+        }
+
+        this.particles = this.particles.filter(particle => {
+            particle.update();
+            particle.draw();
+            return particle.isAlive();
+        });
+
         this.updateScores();
         this.P1.paddle.draw(this.context);
         this.P2.paddle.draw(this.context);
         this.ball.draw(this.context);
     }
+
+    createImpact(x, y) {
+        for (let i = 0; i < 20; i++) {
+            const size = Math.random() * 5 + 2;
+            const color = {r:Math.random() * 255, g: Math.random() * 255, b : Math.random() * 255};
+            this.particles.push(new Impact(x, y, size, color, this.context));
+        }
+    }
+
+    newColor() {
+
+        let start = 70;
+        let r = start + Math.round(Math.random() * (255 - start));
+        let g = start + Math.round(Math.random() * (255 - start));
+        let b = start + Math.round(Math.random() * (255 - start));
+        let a = 0.7;
+        return {r, g, b, a};
+    }
+
 
     updateScores() {
         this.context.fillStyle = 'grey';

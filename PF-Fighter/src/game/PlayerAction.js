@@ -5,76 +5,136 @@ class PlayerAction {
         this.y = y;
         this.width = 30;
         this.height = 30;
-        this.speed = 10;
-        this.map = new GameMap(1);
+        this.velocityX = 0;
+        this.velocityY = 0;
+        this.isJumping = false;
         this.nb = nb;
+        this.canDash = true;
+        this.maxVelocityX = 5;
     }
 
-    update(keyState, keyStateRepeat) {
+    update(keyState, keyStateDash) {
         if (this.nb === 1)
         {
-            this.moveP1(keyState, keyStateRepeat);
+            this.moveP1(keyState, keyStateDash);
         }
         else if (this.nb === 2) {
-            this.moveP2(keyState, keyStateRepeat); 
+            this.moveP2(keyState, keyStateDash);
         }
     }
 
-    moveP1(keyState, keyStateRepeat) {
+    moveP1(keyState, keyStateDash) {
+        //saut
         if (keyState && keyState['w']) {
-            this.y -= this.speed;
+            if (!this.isJumping) {
+                this.velocityY = -20;
+                this.isJumping = true;
+            }
         }
-        if (keyStateRepeat && keyStateRepeat['w']) {
-            this.y -= this.speed * 2;
-        }
+        //deplacement
         if (keyState && keyState['d']) {
-            this.x += this.speed;
+            if (this.velocityX < this.maxVelocityX) {
+                this.velocityX += 0.3;
+            }
         }
-        if (keyStateRepeat && keyStateRepeat['d']) {
-            this.x += this.speed * 2;
-        }
-        if (keyState && keyState['s']) {
-            this.y += this.speed;
-        }
-        if (keyStateRepeat && keyStateRepeat['s']) {
-            this.y += this.speed * 2;
-        }
+
         if (keyState && keyState['a']) {
-            this.x -= this.speed;
+            if (this.velocityX > -this.maxVelocityX) {
+                this.velocityX -= 0.3;
+            }
         }
-        if (keyStateRepeat && keyStateRepeat['a']) {
-            this.x -= this.speed * 2;
+
+        if (!keyState['a'] && !keyState['d']) {
+            if (this.velocityX > 0) {
+                this.velocityX -= 0.2;
+            } else if (this.velocityX < 0) {
+                this.velocityX += 0.2;
+            }
+        }
+        //dash
+        if (keyStateDash && keyStateDash['d']) {
+            if (this.canDash) {
+                this.velocityX += 16;
+                this.canDash = false;
+            }
+        }
+        if (keyStateDash && keyStateDash['s']) {
+            if (this.canDash) {
+                this.velocityY += 16;
+                this.canDash = false;
+            }
+        }
+        if (keyStateDash && keyStateDash['w']) {
+            if (this.canDash) {
+                this.velocityY -= 16;
+                this.canDash = false;
+            }
+        }
+        else if (keyStateDash && keyStateDash['a']) {
+            if (this.canDash) {
+                this.velocityX -= 16;
+                this.canDash = false;
+            }
         }
     }
 
-    moveP2(keyState, keyStateRepeat) {
+    moveP2(keyState, keyStateDash) {
+        //saut
         if (keyState && keyState['ArrowUp']) {
-            this.y -= this.speed;
+            if (!this.isJumping) {
+                this.velocityY = -20;
+                this.isJumping = true;
+            }
         }
-        if (keyStateRepeat && keyStateRepeat['ArrowUp']) {
-            this.y -= this.speed * 2;
-        }
+        //deplacement
         if (keyState && keyState['ArrowRight']) {
-            this.x += this.speed;
-        }
-        if (keyStateRepeat && keyStateRepeat['ArrowRight']) {
-            this.x += this.speed * 2;
-        }
-        if (keyState && keyState['ArrowDown']) {
-            this.y += this.speed;
-        }
-        if (keyStateRepeat && keyStateRepeat['ArrowDown']) {
-            this.y += this.speed * 2;
+            if (this.velocityX < this.maxVelocityX) {
+                this.velocityX += 0.3;
+            }
         }
         if (keyState && keyState['ArrowLeft']) {
-            this.x -= this.speed;
+            if (this.velocityX > -this.maxVelocityX) {
+                this.velocityX -= 0.3;
+            }
         }
-        if (keyStateRepeat && keyStateRepeat['ArrowLeft']) {
-            this.x -= this.speed * 2;
+
+        if (!keyState['ArrowRight'] && !keyState['ArrowLeft']) {
+            if (this.velocityX > 0) {
+                this.velocityX -= 0.2;
+            } else if (this.velocityX < 0) {
+                this.velocityX += 0.2;
+            }
+        }
+        //dash
+        if (keyStateDash && keyStateDash['ArrowUp']) {
+            if (this.canDash) {
+                this.velocityY = 16;
+                this.canDash = false;
+            }
+        }
+        if (keyStateDash && keyStateDash['ArrowRight']) {
+            if (this.canDash) {
+                this.velocityX += 16;
+                this.canDash = false;
+            }
+        }
+        if (keyStateDash && keyStateDash['ArrowDown']) {
+            if (this.canDash) {
+                this.velocityY = 16;
+                this.canDash = false;
+            }
+        }
+        else if (keyStateDash && keyStateDash['ArrowLeft']) {
+            if (this.canDash) {
+                this.velocityX -= 16;
+                this.canDash = false;
+            }
         }
     }
-    // checkDeath() {
-    //     if (x === map)
+
+    // giveDash()
+    // {
+    //     this.canDash = true;
     // }
 
     draw(ctx) {
