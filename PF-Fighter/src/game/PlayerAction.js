@@ -23,7 +23,7 @@ class PlayerAction {
 
         this.knockbackFrames = 0;
         this.stunFrames = 0;
-
+        this.asHit = false;
     }
 
     update(keyState) {
@@ -124,7 +124,8 @@ class PlayerAction {
                         x: this.x + 1.5,
                         y: this.y - this.height,
                         width: this.width - 3,
-                        height: this.height - 3
+                        height: this.height - 3,
+                        dir: 'up'
                     };
                     break;
                 case 'left':
@@ -132,7 +133,8 @@ class PlayerAction {
                         x: this.x - this.width,
                         y: this.y + 1.5,
                         width: this.width - 3,
-                        height: this.height - 3
+                        height: this.height - 3,
+                        dir: 'left'
                     };
                     break;
                 case 'right':
@@ -140,7 +142,8 @@ class PlayerAction {
                         x: this.x + this.width + 3,
                         y: this.y + 1.5,
                         width: this.width - 3,
-                        height: this.height - 3
+                        height: this.height - 3,
+                        dir: 'right'
                     };
                     break;
                 case 'down':
@@ -148,7 +151,8 @@ class PlayerAction {
                         x: this.x + 1.5,
                         y: this.y + this.height + 3,
                         width: this.width - 3,
-                        height: this.height - 3
+                        height: this.height - 3,
+                        dir: 'down'
                     };
                     break;
             }

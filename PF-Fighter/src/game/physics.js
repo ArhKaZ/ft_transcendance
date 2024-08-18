@@ -49,60 +49,56 @@ class Physic {
     }
 
     collisionHitboxHorizontal(object, vs) {
-        let res = ((vs.x < object.hitbox.x && vs.x + vs.width > object.hitbox.x) ||  // vs chevauche la gauche de hitbox
-            (vs.x === object.hitbox.x && vs.x + vs.width === object.hitbox.width) ||  // vs est aligné en largeur avec hitbox
-            (vs.x > object.hitbox.x && vs.x + vs.width > object.hitbox.x + object.hitbox.width)); // vs dépasse à droite de hitbox
-        //console.log('Horizontal : ', res);
-        return res;
+        return (vs.x < object.hitbox.x && vs.x + vs.width > object.hitbox.x && vs.x + vs.width < object.hitbox.x + object.hitbox.width ||
+            vs.x > object.hitbox.x && vs.x < object.hitbox.x + object.hitbox.width && vs.x + vs.width > object.hitbox.x + object.hitbox.width ||
+            vs.x < object.hitbox.x && vs.x + vs.width > object.hitbox.x && vs.x + vs.width > object.hitbox.x + object.hitbox.width);
     }
 
     collisionHitboxVertical(object, vs) {
-        let res = ((vs.y < object.hitbox.y && vs.y + vs.height > object.hitbox.y) ||  // vs chevauche le haut de hitbox
-            (vs.y === object.hitbox.y && vs.y + vs.height === object.hitbox.height) ||  // vs est aligné en hauteur avec hitbox
-            (vs.y > object.hitbox.y && vs.y + vs.height > object.hitbox.y + object.hitbox.height)); // vs dépasse en bas de hitbox
-        //console.log('Vertical : ', res);
-        return res;
+        return (vs.y < object.hitbox.y && vs.y + vs.height > object.hitbox.y + object.hitbox.height ||
+            vs.y < object.hitbox.y && vs.y + vs.height > object.hitbox.y && vs.y + vs.height < object.hitbox.y ||
+            vs.y > object.hitbox.y && vs.y < object.hitbox.y + object.hitbox.height && vs.y + vs.height > object.hitbox.y + object.hitbox.height);
     }
 
-    vsContainHitbox(object, vs) {
-        console.log("bar x gauche", vs.x < object.hitbox.x);
-        console.log("bar x droite" ,vs.x + vs.width > object.hitbox.x + object.hitbox.width);
-        console.log("bar y haut", vs.y < object.hitbox.y);
-        console.log("bar y bas", vs.y + vs.height > object.hitbox.y + object.hitbox.height);
-    }
-    handleHit(object, vs) { // REVOIR TOUTES LES CONDITIONS FF
+    handleHit(object, vs) {
         if (object.hitbox) {
-            this.vsContainHitbox(object, vs);
-            //hit from left
-            if (vs.x < object.hitbox.x + object.hitbox.width &&  // Le bord gauche de vs est à l'intérieur de hitbox
-                vs.x + vs.width > object.hitbox.x &&             // Le bord droit de vs est à l'intérieur de hitbox
+            if (object.hitbox.dir === 'left' &&
+                vs.x < object.hitbox.x &&
+                vs.x + vs.width > object.hitbox.x &&
+                vs.x + vs.width < object.hitbox.x + object.hitbox.width &&
                 this.collisionHitboxVertical(object, vs)) {
                 this.applyKnockback(vs, 'left', vs.percent);
             }
-            if (vs.x + vs.width > object.hitbox.x &&             // Le bord droit de vs est à l'intérieur de hitbox
-                vs.x < object.hitbox.x + object.hitbox.width &&  // Le bord gauche de vs est à l'intérieur de hitbox
+            else if (object.hitbox.dir === 'right' &&
+                vs.x > object.hitbox.x &&
+                vs.x < object.hitbox.x + object.hitbox.width &&
+                vs.x + vs.width > object.hitbox.x + object.hitbox.width &&
                 this.collisionHitboxVertical(object, vs)) {
-
                 this.applyKnockback(vs, 'right', vs.percent);
             }
             //hit from top
-            if (vs.y < object.hitbox.y + object.hitbox.height &&  // Le bord supérieur de vs est à l'intérieur de hitbox
-                vs.y + vs.height > object.hitbox.y &&             // Le bord inférieur de vs est à l'intérieur de hitbox
-                this.collisionHitboxHorizontal(object, vs)) {
-
+            else if (object.hitbox.dir === 'up' &&
+                vs.y < object.hitbox.y &&
+                vs.y + vs.height > object.hitbox.y &&
+                vs.y + vs.height < object.hitbox.y + object.hitbox.height &&
+                this.collisionHitboxHorizontal(object,vs)) {
+                //object.asHit = true;
                 this.applyKnockback(vs, 'top', vs.percent);
             }
             //hit from bot
-            if (vs.y + vs.height > object.hitbox.y &&             // Le bord inférieur de vs est à l'intérieur de hitbox
-                vs.y < object.hitbox.y + object.hitbox.height &&  // Le bord supérieur de vs est à l'intérieur de hitbox
+            else if (object.hitbox.dir === 'down' &&
+                vs.y > object.hitbox.y &&
+                vs.y < object.hitbox.y + object.hitbox.height &&
+                vs.y + vs.height > object.hitbox.y + object.hitbox.height &&
                 this.collisionHitboxHorizontal(object, vs)) {
-
+                //object.asHit = true;
                 this.applyKnockback(vs, 'bottom', vs.percent);
             }
         }
     }
 
     applyKnockback(object, direction, percent) {
+        console.log('knockback', direction);
         let knockback = (this.baseKnockback + (percent * this.knockbackScaling));
 
         object.knockbackFrames = 20;
@@ -123,6 +119,7 @@ class Physic {
                 object.velocityX = knockback / object.knockbackFrames;
                 break;
         }
+        object.asHit = false;
     }
 
     handleKnockbackAndStun(object) {
@@ -142,14 +139,14 @@ class Physic {
 
             object.x = vs.x - object.width;
             object.velocityX = 0;
-            console.log("hit left");
+           // console.log("hit left");
         }
         else if (object.x < vs.x + vs.width && object.x + object.width > vs.x + vs.width &&
             object.y < vs.y + vs.height && object.y + object.height > vs.y) {
 
             object.x = vs.x + vs.width;
             object.velocityX = 0;
-            console.log("hit right");
+            //console.log("hit right");
         }
         // Vérifier collision en haut TODO NE MARCHE PAS A CAUSE DE LA GRAVITE
         else if (object.y + object.height > vs.y && object.y < vs.y &&
@@ -157,7 +154,7 @@ class Physic {
 
             object.y = vs.y;
             object.velocityY = 0;
-            console.log("hit top");
+            //console.log("hit top");
         }
         // Vérifier collision en bas
         else if (object.y + object.height > vs.y && object.y < vs.y &&
@@ -166,7 +163,7 @@ class Physic {
             object.y = vs.y + vs.height;
             vs.velocityY = 0;
             object.velocityY = 0;
-            console.log("hit bottom");
+            //console.log("hit bottom");
         }
     }
 
