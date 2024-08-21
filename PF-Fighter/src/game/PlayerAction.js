@@ -1,4 +1,5 @@
-import GameMap from './GameMap.js';
+import Animation from "./animation.js";
+
 class PlayerAction {
     constructor(x, y, nb, physics) {
         this.nb = nb;
@@ -9,8 +10,10 @@ class PlayerAction {
         this.height = 30;
         this.velocityX = 0;
         this.velocityY = 0;
+        this.stock = 5;
         this.isJumping = false;
-        this.maxVelocityX = 5;
+        this.isMoving = false;
+        this.maxVelocityX = 2;
         this.physics = physics;
         this.canHit = true;
         this.hitbox = null;
@@ -24,6 +27,12 @@ class PlayerAction {
         this.knockbackFrames = 0;
         this.stunFrames = 0;
         this.asHit = false;
+        this.sprites = new Animation(this.nb);
+        this.look = null;
+        if (nb === 1)
+            this.look = 'right';
+        else
+            this.look = 'left';
     }
 
     update(keyState) {
@@ -37,15 +46,19 @@ class PlayerAction {
                     //MOVE
                     if (keyState['w']) {
                         this.move('up');
+                        this.isMoving = true;
                     }
                     if (keyState['a']) {
                         this.move('left');
+                        this.isMoving = true;
                     }
                     if (keyState['d']) {
                         this.move('right');
+                        this.isMoving = true;
                     }
                     if (!keyState['a'] && !keyState['d']) {
                         this.move('!left!right');
+                        this.isMoving = false;
                     }
                     //ATTACK
                     if (keyState['t'] && this.canAttack(currentTime)) {
@@ -70,15 +83,19 @@ class PlayerAction {
                     //MOVE
                     if (keyState['ArrowUp']) {
                         this.move('up');
+                        this.isMoving = true;
                     }
                     if (keyState['ArrowLeft']) {
                         this.move('left');
+                        this.isMoving = true;
                     }
                     if (keyState['ArrowRight']) {
                         this.move('right');
+                        this.isMoving = true;
                     }
                     if (!keyState['ArrowLeft'] && !keyState['ArrowRight']) {
                         this.move('!left!right');
+                        this.isMoving = false;
                     }
                     //ATTACK
                     if (keyState['p'] && this.canAttack(currentTime)) {
@@ -163,34 +180,40 @@ class PlayerAction {
     move(direction) {
         switch (direction) {
             case 'left':
+                if (!this.isJumping)
+                    this.look = 'left';
                 if (this.velocityX > -this.maxVelocityX) {
-                    this.velocityX -= 0.3;
+                    this.lastDirection = 'left';
+                    this.velocityX -= 0.2;
                 }
                 break;
             case 'right':
+                if (!this.isJumping)
+                    this.look = 'right';
                 if (this.velocityX < this.maxVelocityX) {
-                    this.velocityX += 0.3;
+                    this.lastDirection = 'right';
+                    this.velocityX += 0.2;
                 }
                 break;
             case 'up':
                 if (!this.isJumping) {
-                    this.velocityY = -20;
+                    this.lastDirection = 'up';
+                    this.velocityY = -12;
                     this.isJumping = true;
                 }
                 break;
             case '!left!right':
                 if (this.velocityX > 0) {
-                    this.velocityX -= 0.2;
+                    this.velocityX -= 0.1;
                 } else if (this.velocityX < 0) {
-                    this.velocityX += 0.2;
+                    this.velocityX += 0.1;
                 }
                 break;
         }
     }
 
     draw(ctx) {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        this.sprites.update(ctx, this.x, this.y, this.isMoving, this.isJumping, this.look);
 
         if (this.hitbox) {
             ctx.fillStyle = 'red';

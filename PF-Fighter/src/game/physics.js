@@ -3,6 +3,7 @@ class Physic {
         this.gravity = gravity;
         this.knockbackScaling = 0.1;
         this.baseKnockback = 2;
+        this.collision = new Set();
     }
 
     applyGravity(object) {
@@ -29,23 +30,8 @@ class Physic {
     }
 
     handleCollisionWall(object, canvas) {
-        if (object.y < 0) {
-            object.y = 0;
-            object.velocityY = 0;
-        }
-        if (object.y + object.height > canvas.height) {
-            object.y = canvas.height - object.height;
-            object.velocityY = 0;
-            object.isJumping = false;
-        }
-
-        if (object.x < 0) {
-            object.x = 0;
-            object.velocityX = 0;
-        } else if (object.x + object.width > canvas.width) {
-            object.x = canvas.width - object.width;
-            object.velocityX = 0;
-        }
+        return object.y < 0 || object.y + object.height > canvas.height ||
+            object.x < 0 || object.x + object.width > canvas.width;
     }
 
     collisionHitboxHorizontal(object, vs) {
@@ -82,7 +68,6 @@ class Physic {
                 vs.y + vs.height > object.hitbox.y &&
                 vs.y + vs.height < object.hitbox.y + object.hitbox.height &&
                 this.collisionHitboxHorizontal(object,vs)) {
-                //object.asHit = true;
                 this.applyKnockback(vs, 'top', vs.percent);
             }
             //hit from bot
@@ -91,14 +76,12 @@ class Physic {
                 vs.y < object.hitbox.y + object.hitbox.height &&
                 vs.y + vs.height > object.hitbox.y + object.hitbox.height &&
                 this.collisionHitboxHorizontal(object, vs)) {
-                //object.asHit = true;
                 this.applyKnockback(vs, 'bottom', vs.percent);
             }
         }
     }
 
     applyKnockback(object, direction, percent) {
-        console.log('knockback', direction);
         let knockback = (this.baseKnockback + (percent * this.knockbackScaling));
 
         object.knockbackFrames = 20;
@@ -132,42 +115,97 @@ class Physic {
         }
     }
 
-    handleCollisionPlayer(object, vs) { // TODO changer pour juste mettre juste collision
+    createKeyCollision(obj1, obj2, dirObj, dirCol) {
+        return `${obj1.nb}-${obj2.nb}-${dirObj}-${dirCol}`;
+    }
 
-        if (object.x + object.width > vs.x && object.x < vs.x &&
-            object.y < vs.y + vs.height && object.y + object.height > vs.y) {
+    handleCollisionPlayer(obj1, obj2) {
+        let key, initiator, suffer, direction;
 
-            object.x = vs.x - object.width;
-            object.velocityX = 0;
-           // console.log("hit left");
+        if (obj1.velocityX !== 0 || obj1.velocityY !== 0) {
+            initiator = obj1;
+            suffer = obj2;
+            if (obj1.velocityX > 0)
+                direction = 'right';
+            if (obj1.velocityX < 0)
+                direction = 'left';
+            if (obj1.velocityY < 0)
+                direction = 'up';
+            if (obj1.velocityY > 0)
+                direction = 'down';
         }
-        else if (object.x < vs.x + vs.width && object.x + object.width > vs.x + vs.width &&
-            object.y < vs.y + vs.height && object.y + object.height > vs.y) {
-
-            object.x = vs.x + vs.width;
-            object.velocityX = 0;
-            //console.log("hit right");
+        else if (obj2.velocityX !== 0 || obj2.velocityY !== 0) {
+            initiator = obj2;
+            suffer = obj1;
+            if (obj2.velocityX > 0)
+                direction = 'right';
+            if (obj2.velocityX < 0)
+                direction = 'left';
+            if (obj2.velocityY < 0)
+                direction = 'up';
+            if (obj2.velocityY > 0)
+                direction = 'down';
+        }
+        if (obj1.x + obj1.width > obj2.x && obj1.x < obj2.x &&
+            obj1.y < obj2.y + obj2.height && obj1.y + obj1.height > obj2.y) {
+            key = this.createKeyCollision(initiator, suffer, direction, 'left');
+        }
+        if (obj1.x < obj2.x + obj2.width && obj1.x + obj1.width > obj2.x + obj2.width &&
+            obj1.y < obj2.y + obj2.height && obj1.y + obj1.height > obj2.y) {
+            key = this.createKeyCollision(initiator, suffer, direction, 'right');
         }
         // Vérifier collision en haut TODO NE MARCHE PAS A CAUSE DE LA GRAVITE
-        else if (object.y + object.height > vs.y && object.y < vs.y &&
-            object.x < vs.x + vs.width && object.x + object.width > vs.x ) {
-
-            object.y = vs.y;
-            object.velocityY = 0;
-            //console.log("hit top");
+        if (obj1.y + obj1.height > obj2.y && obj1.y < obj2.y &&
+            obj1.x < obj2.x + obj2.width && obj1.x + obj1.width > obj2.x ) {
+            key = this.createKeyCollision(initiator, suffer, direction, 'top');
         }
         // Vérifier collision en bas
-        else if (object.y + object.height > vs.y && object.y < vs.y &&
-            object.x < vs.x + vs.width && object.x + object.width > vs.x) {
-
-            object.y = vs.y + vs.height;
-            vs.velocityY = 0;
-            object.velocityY = 0;
-            //console.log("hit bottom");
+        if (obj1.y < obj2.y + obj2.height && obj1.y + obj1.height > obj2.y + obj2.height &&
+            obj1.x < obj2.x + obj2.width && obj1.x + obj1.width > obj2.x) {
+            key = this.createKeyCollision(initiator, suffer, direction, 'bot');
+        }
+        if (key && !this.collision.has(key)) {
+            this.collision.add(key);
         }
     }
 
+    resolveCollision(obj1, obj2) {
+        if (this.collision) {
+            this.collision.forEach((key) => {
+                let [initiatorNb, sufferNb, dirObj, dirCol] = key.split('-');
+                let initiator, suffer;
+                if (initiatorNb === 1) {
+                    initiator = obj1;
+                    suffer = obj2;
+                }
+                else {
+                    initiator = obj2;
+                    suffer = obj1;
+                }
 
+                switch (dirCol) {
+                    case 'left':
+                        initiator = suffer.x - initiator.width;
+                        initiator.velocityX = 0;
+                        break;
+                    case 'right':
+                        initiator.x = suffer.x + suffer.width;
+                        initiator.velocityX = 0;
+                        break;
+                    case 'top':
+                        initiator.y = suffer.y - initiator.height;
+                        initiator.velocityY = 0;
+                        break;
+                    case 'bot':
+                        initiator.y = suffer.y + suffer.height;
+                        initiator.velocityY = 0;
+                        break;
+                }
+            });
+
+            this.collision.clear();
+        }
+    }
 }
 
 export default Physic

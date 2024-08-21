@@ -1,9 +1,14 @@
 class GameMap {
     constructor(canvas) {
+        this.canvas = canvas;
         this.x = canvas.width * 0.25;
         this.y = canvas.height * 0.55;
-        this.height = canvas.height * 0.45;
-        this.width = canvas.width * 0.50;
+        this.height = canvas.height * 0.34;
+        this.width = canvas.width * 0.45;
+        this.back = new Image();
+        this.back.src = './assets/Map/city.png';
+        this.stage = new Image();
+        this.stage.src = './assets/Map/stage.png';
     }
 
     handleCollision(object) {
@@ -30,8 +35,8 @@ class GameMap {
     }
 
     draw(ctx) {
-        ctx.fillStyle = 'green';
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.drawImage(this.back, 0, 0, this.canvas.width, this.canvas.height);
+        ctx.drawImage(this.stage, this.x, this.y, this.width, this.height);
     }
 }
 

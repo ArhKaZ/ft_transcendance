@@ -111,7 +111,8 @@ class Game {
 
     draw() {
 
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.context.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         if (this.newColorLeft === 20)
             this.leftColor = this.newColor();
@@ -137,8 +138,10 @@ class Game {
         });
 
         this.updateScores();
+
         this.P1.paddle.draw(this.context);
         this.P2.paddle.draw(this.context);
+
         this.ball.draw(this.context);
     }
 

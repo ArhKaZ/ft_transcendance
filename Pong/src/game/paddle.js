@@ -9,7 +9,7 @@ class Paddle {
         if (this.player === 2)
             this.x = canvas.width - 20;
         this.y = (canvas.height - this.height) / 2;
-        this.speed = 5;
+        this.speed = 3.5;
     }
 
     update(keyState) {
