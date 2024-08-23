@@ -1,38 +1,44 @@
 import Animation from "./animation.js";
+import Hitbox from "./hitbox.js";
+import hitbox from "./hitbox.js";
 
 class PlayerAction {
     constructor(x, y, nb, physics) {
         this.nb = nb;
-
         this.x = x;
-        this.y = y;
-        this.width = 30;
-        this.height = 30;
-        this.velocityX = 0;
-        this.velocityY = 0;
-        this.stock = 5;
-        this.isJumping = false;
-        this.isMoving = false;
-        this.maxVelocityX = 2;
-        this.physics = physics;
-        this.canHit = true;
-        this.hitbox = null;
-        this.hitboxDuration = 20;
-        this.currentHitboxDuration = 0;
-        this.lastAttackTime = 0;
-        this.attackCooldown = 1000;
+        this.y = y - 60;
+        this.width = 128;
+        this.height = 128;
 
-        this.percent = 0;
-
-        this.knockbackFrames = 0;
-        this.stunFrames = 0;
-        this.asHit = false;
+        this.characterX = this.x + 46;
+        this.characterY = this.y + 34;
+        this.characterWidth = 34;
+        this.characterHeight = 60;
         this.sprites = new Animation(this.nb);
         this.look = null;
         if (nb === 1)
             this.look = 'right';
         else
             this.look = 'left';
+
+        this.velocityX = 0;
+        this.velocityY = 0;
+        this.isJumping = false;
+        this.isMoving = false;
+        this.maxVelocityX = 2;
+
+        this.stock = 5;
+        this.physics = physics;
+
+        this.canHit = true;
+        this.hitbox = null;
+        this.lastAttackTime = 0;
+        this.attackCooldown = 1000;
+        this.asHit = false;
+
+        this.percent = 0;
+        this.knockbackFrames = 0;
+        this.stunFrames = 0;
     }
 
     update(keyState) {
@@ -47,6 +53,7 @@ class PlayerAction {
                     if (keyState['w']) {
                         this.move('up');
                         this.isMoving = true;
+                        this.isJumping = true;
                     }
                     if (keyState['a']) {
                         this.move('left');
@@ -84,6 +91,7 @@ class PlayerAction {
                     if (keyState['ArrowUp']) {
                         this.move('up');
                         this.isMoving = true;
+                        this.isJumping = true;
                     }
                     if (keyState['ArrowLeft']) {
                         this.move('left');
@@ -118,11 +126,14 @@ class PlayerAction {
             }
         }
         if (this.hitbox) {
-            this.currentHitboxDuration--;
-            if (this.currentHitboxDuration <= 0) {
-                this.hitbox = null;
+            if (this.hitbox.update() === -1) {
+                delete this.hitbox;
             }
+            else
+                this.hitbox.updateHitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight);
         }
+        this.characterX = this.x + 46;
+        this.characterY = this.y + 34;
     }
 //======================ATTACK========================
     canAttack(currentTime) {
@@ -137,43 +148,51 @@ class PlayerAction {
         if (this.canHit) {
             switch(direction) {
                 case 'up':
-                    this.hitbox = {
-                        x: this.x + 1.5,
-                        y: this.y - this.height,
-                        width: this.width - 3,
-                        height: this.height - 3,
-                        dir: 'up'
-                    };
+                    if (this.isJumping) {
+                        if (this.look === 'right') {
+                            this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'upAirRight');
+                        }
+                        else {
+                            this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'upAirLeft');
+                        }
+                    } else {
+                        this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'upSmash');
+                    }
                     break;
                 case 'left':
-                    this.hitbox = {
-                        x: this.x - this.width,
-                        y: this.y + 1.5,
-                        width: this.width - 3,
-                        height: this.height - 3,
-                        dir: 'left'
-                    };
+                    if (this.isJumping) {
+                        if (this.look === 'right') {
+                            this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'backAirRight');
+                        } else {
+                            this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'forwardAirLeft');
+                        }
+                    } else {
+                        this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'leftSmash');
+                    }
                     break;
                 case 'right':
-                    this.hitbox = {
-                        x: this.x + this.width + 3,
-                        y: this.y + 1.5,
-                        width: this.width - 3,
-                        height: this.height - 3,
-                        dir: 'right'
-                    };
+                    if (this.isJumping) {
+                        if (this.look === 'right') {
+                            this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'forwardAirRight');
+                        } else {
+                            this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'backAirLeft');
+                        }
+                    } else {
+                        this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'rightSmash');
+                    }
                     break;
                 case 'down':
-                    this.hitbox = {
-                        x: this.x + 1.5,
-                        y: this.y + this.height + 3,
-                        width: this.width - 3,
-                        height: this.height - 3,
-                        dir: 'down'
-                    };
+                    if (this.isJumping) {
+                        if (this.look === 'right') {
+                            this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'downAirRight');
+                        } else {
+                            this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'downAirLeft');
+                        }
+                    } else {
+                        this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'downSmash');
+                    }
                     break;
             }
-            this.currentHitboxDuration = this.hitboxDuration;
         }
     }
 //=====================MOVE===========================
@@ -199,7 +218,6 @@ class PlayerAction {
                 if (!this.isJumping) {
                     this.lastDirection = 'up';
                     this.velocityY = -12;
-                    this.isJumping = true;
                 }
                 break;
             case '!left!right':
@@ -213,7 +231,11 @@ class PlayerAction {
     }
 
     draw(ctx) {
-        this.sprites.update(ctx, this.x, this.y, this.isMoving, this.isJumping, this.look);
+        // ctx.fillStyle = 'blue';
+        // ctx.fillRect(this.x, this.y, this.width, this.height);
+        // ctx.fillStyle = 'green';
+        // ctx.fillRect(this.characterX, this.characterY, this.characterWidth, this.characterHeight);
+        this.sprites.update(ctx, this);
 
         if (this.hitbox) {
             ctx.fillStyle = 'red';

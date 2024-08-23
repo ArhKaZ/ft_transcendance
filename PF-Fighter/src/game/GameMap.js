@@ -2,9 +2,12 @@ class GameMap {
     constructor(canvas) {
         this.canvas = canvas;
         this.x = canvas.width * 0.25;
-        this.y = canvas.height * 0.55;
+        this.y = canvas.height * 0.50;
         this.height = canvas.height * 0.34;
         this.width = canvas.width * 0.45;
+        this.groundY = this.y + 30;
+        this.groundX = this.x;
+        this.groundEndX = this.groundX + (this.width - 10);
         this.back = new Image();
         this.back.src = './assets/Map/city.png';
         this.stage = new Image();
@@ -12,24 +15,30 @@ class GameMap {
     }
 
     handleCollision(object) {
-        if (object.y + object.height > this.y &&
-            object.y + object.height <= this.y + 40 && // + 40 a ajuster aide a remonter sur la map
-            object.x + object.width > this.x &&
-            object.x < this.x + this.width) {
-            object.y = this.y - object.height;
+        if (object.characterY + object.characterHeight > this.groundY &&
+            object.characterY < this.groundY &&
+            object.characterX > this.groundX &&
+            object.characterX < this.groundEndX) {
+
+            object.characterY = this.groundY - object.characterHeight;
+            object.y = object.characterY - 34;
             object.velocityY = 0;
             object.isJumping = false;
         }
-        else if (object.y >= this.y &&
-            object.x + object.width > this.x &&
-            object.x < this.x) {
-            object.x = this.x - object.width;
+        else if (object.characterY > this.groundY &&
+            object.characterX + object.characterWidth > this.groundX &&
+            object.characterX < this.groundX) {
+
+            object.characterX = this.groundX - object.characterWidth;
+            object.x = object.characterX - 46;
             object.velocityX = 0;
         }
-        else if (object.y >= this.y &&
-        object.x < this.x + this.width &&
-        object.x + object.width > this.x + this.width) {
-            object.x = this.x + this.width;
+        else if (object.characterY > this.groundY &&
+        object.characterX < this.groundEndX &&
+        object.characterX + object.characterWidth > this.groundEndX) {
+
+            object.characterX = this.groundEndX;
+            object.x = object.characterX - 46;
             object.velocityX = 0;
         }
     }
@@ -37,6 +46,8 @@ class GameMap {
     draw(ctx) {
         ctx.drawImage(this.back, 0, 0, this.canvas.width, this.canvas.height);
         ctx.drawImage(this.stage, this.x, this.y, this.width, this.height);
+        ctx.fillStyle = 'black';
+        ctx.fillRect(this.groundX, this.groundY, this.width, 5);
     }
 }
 

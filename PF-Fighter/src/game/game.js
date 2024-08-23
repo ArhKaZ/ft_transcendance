@@ -9,8 +9,8 @@ class Game {
         this.p2 = P2;
         this.map = new GameMap(this.canvas);
         this.physics = new Physics(0.10);
-        this.p1.cube = new PlayerAction(this.map.x + 5, this.map.y - 40, 1, this.physics);
-        this.p2.cube = new PlayerAction(this.map.x + this.map.width - 30, this.map.y - 40, 2, this.physics);
+        this.p1.cube = new PlayerAction(this.map.groundX, this.map.groundY, 1, this.physics);
+        this.p2.cube = new PlayerAction(this.map.groundEndX - 120, this.map.groundY, 2, this.physics);
         this.isRunning = false;
         this.keyState = {};
         //this.keyStateHit = {};
@@ -19,16 +19,11 @@ class Game {
 
     bindEvents() {
         window.addEventListener('keydown', (event) => {
-            // if (event.shiftKey && !event.repeat) {
-            //     this.keyStateHit[event.key] = true;
-            // } else {
                 this.keyState[event.key] = true;
-            //}
         });
 
         window.addEventListener('keyup', (event) => {
             this.keyState[event.key] = false;
-            //this.keyStateHit[event.key] = false;
         });
     }
 
@@ -57,12 +52,12 @@ class Game {
         obj.velocityY = 0;
         obj.isJumping = false;
         if (obj.nb === 1) {
-            obj.x = this.map.x + 5;
-            obj.y = this.map.y - 40;
+            obj.x = this.map.groundX;
+            obj.y = this.map.groundY - 60;
         }
         else {
-            obj.x = this.map.x + this.map.width - 30;
-            obj.y = this.map.y - 40;
+            obj.x = this.map.groundEndX - 120;
+            obj.y = this.map.groundY - 60;
         }
     }
 
@@ -81,11 +76,6 @@ class Game {
             this.reset(this.p1.cube);
         if (this.physics.handleCollisionWall(this.p2.cube, this.canvas))
             this.reset(this.p2.cube);
-
-        // this.physics.handleCollisionPlayer(this.p1.cube, this.p2.cube);
-        // this.physics.handleCollisionPlayer(this.p2.cube, this.p1.cube);
-
-        //this.physics.resolveCollision(this.p1.cube, this.p2.cube);
 
         this.map.handleCollision(this.p1.cube);
         this.map.handleCollision(this.p2.cube);

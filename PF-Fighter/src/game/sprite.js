@@ -8,9 +8,10 @@ class Sprite {
         this.currentFrame = 0;
         this.frameCount = 0;
         this.animationSpeed = animationSpeed;
+        this.isAnimationComplete = false;
     }
 
-    drawSprite(ctx, canvasX, canvasY, scale = 2) {
+    drawSprite(isAttack, ctx, canvasX, canvasY, scale = 2) {
 
         const scaledWidth = this.frameWidth * scale;
         const scaledHeight = this.frameHeight * scale;
@@ -21,7 +22,18 @@ class Sprite {
             canvasX, canvasY,
             scaledWidth, scaledHeight
         );
-        this.updateFrame();
+        if (!isAttack)
+            this.updateFrame();
+        else
+            this.updateFrameAttack();
+
+        if (this.isAnimationComplete) {
+            this.resetAnimation();
+        }
+    }
+
+    affDurAnim() {
+        console.log(this.totalFrames * this.animationSpeed);
     }
 
     updateFrame() {
@@ -30,6 +42,26 @@ class Sprite {
             this.currentFrame = (this.currentFrame + 1) % this.totalFrames;
             this.frameCount = 0;
         }
+    }
+
+    updateFrameAttack()
+    {
+        this.frameCount++;
+        if (this.frameCount >= this.animationSpeed) {
+            this.currentFrame++;
+            this.frameCount = 0;
+
+            if (this.currentFrame >= this.totalFrames) {
+                this.currentFrame = this.totalFrames - 1;
+                this.isAnimationComplete = true;
+            }
+        }
+    }
+
+    resetAnimation() {
+        this.currentFrame = 0;
+        this.frameCount = 0;
+        this.isAnimationComplete = false;
     }
 }
 

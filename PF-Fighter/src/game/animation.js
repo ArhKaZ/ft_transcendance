@@ -9,29 +9,96 @@ class Animation {
         this.RunRight = new Sprite('assets/Character/WalkRight.png', 8, 40);
         this.JumpLeft = new Sprite('assets/Character/JumpLeft.png', 8, 40);
         this.JumpRight = new Sprite('assets/Character/JumpRight.png', 8, 40);
+        this.BackAirLeft = new Sprite('assets/Character/BackAirLeft.png', 8, 10);
+        this.BackAirRight = new Sprite('assets/Character/BackAirRight.png', 8, 10);
+        this.DownSmashLeft = new Sprite('assets/Character/DownSmashLeft.png', 8, 20);
+        this.DownSmashRight = new Sprite('assets/Character/DownSmashRight.png', 8, 20);
+        this.DownAirLeft = new Sprite('assets/Character/DownAirLeft.png', 8, 10);
+        this.DownAirRight = new Sprite('assets/Character/DownAirRight.png', 8, 10);
+        this.SideSmashLeft = new Sprite('assets/Character/SideSmashLeft.png', 10, 15);
+        this.SideSmashRight = new Sprite('assets/Character/SideSmashRight.png', 10, 15);
+        this.UpAirLeft = new Sprite('assets/Character/UpAirLeft.png', 13, 15);
+        this.UpAirRight = new Sprite('assets/Character/UpAirRight.png', 13, 15);
     }
 
-    update(ctx, x, y, isMoving, isJumping, look) {
-        if (look === 'left') {
-            if (isMoving && !isJumping) {
-                this.RunLeft.drawSprite(ctx, x, y);
-            } else if (isJumping) {
-                this.JumpLeft.drawSprite(ctx, x, y);
-            } else if (!isMoving && !isJumping) {
-                this.IdleLeft.drawSprite(ctx, x, y);
-            }
+    update(ctx, obj) {
+        if (obj.hitbox) {
+            this.drawAttack(ctx, obj);
         }
-        else if (look === 'right') {
-            if (isMoving && !isJumping) {
-                this.RunRight.drawSprite(ctx, x, y);
-            } else if (isJumping) {
-                this.JumpRight.drawSprite(ctx, x, y);
-            } else if (!isMoving && !isJumping) {
-                this.IdleRight.drawSprite(ctx, x, y);
+        else {
+            if (obj.look === 'left') {
+                if (obj.isMoving && !obj.isJumping && obj.hitbox) {
+                    this.RunLeft.drawSprite(false, ctx, obj.x, obj.y);
+                } else if (obj.isJumping && !obj.hitbox) {
+                    this.JumpLeft.drawSprite(false, ctx, obj.x, obj.y);
+                } else if (!obj.isMoving && !obj.isJumping && !obj.hitbox) {
+                    this.IdleLeft.drawSprite(false, ctx, obj.x, obj.y);
+                }
+            } else if (obj.look === 'right') {
+                if (obj.isMoving && !obj.isJumping && !obj.hitbox) {
+                    this.RunRight.drawSprite(false, ctx, obj.x, obj.y);
+                } else if (obj.isJumping && !obj.hitbox) {
+                    this.JumpRight.drawSprite(false, ctx, obj.x, obj.y);
+                } else if (!obj.isMoving && !obj.isJumping && !obj.hitbox) {
+                    this.IdleRight.drawSprite(false, ctx, obj.x, obj.y);
+                }
             }
         }
     }
 
+    drawAttack(ctx, obj) {
+        switch (obj.hitbox.dir) {
+            case 'upAirLeft':
+                this.UpAirLeft.affDurAnim();
+                this.UpAirLeft.drawSprite(true, ctx, obj.x, obj.y);
+                break;
+            case 'upAirRight':
+                this.UpAirRight.affDurAnim();
+                this.UpAirRight.drawSprite(true, ctx, obj.x, obj.y);
+                break;
+            case 'downAirLeft':
+                this.DownAirLeft.affDurAnim();
+                this.DownAirLeft.drawSprite(true, ctx, obj.x, obj.y);
+                break;
+            case 'downAirRight':
+                this.DownAirRight.affDurAnim();
+                this.DownAirRight.drawSprite(true, ctx, obj.x, obj.y);
+                break;
+            case 'backAirLeft':
+                this.BackAirLeft.affDurAnim();
+                this.BackAirLeft.drawSprite(true, ctx, obj.x, obj.y);
+                break;
+            case 'backAirRight':
+                this.BackAirRight.affDurAnim();
+                this.BackAirRight.drawSprite(true, ctx, obj.x, obj.y);
+                break;
+            case 'forwardAirLeft':
+                //fAir
+                break;
+            case 'forwardAirRight':
+                //fAir
+                break;
+            case 'upSmash':
+                //upsmash
+                break;
+            case 'downSmash':
+                if (obj.look === 'right') {
+                    this.DownSmashLeft.affDurAnim();
+                    this.DownSmashRight.drawSprite(true, ctx, obj.x, obj.y);
+                } else {
+                    this.DownSmashLeft.drawSprite(true, ctx, obj.x, obj.y);
+                }
+                break;
+            case 'leftSmash':
+                this.SideSmashLeft.affDurAnim();
+                this.SideSmashLeft.drawSprite(true, ctx, obj.x, obj.y);
+                break;
+            case 'rightSmash':
+                this.SideSmashRight.affDurAnim();
+                this.SideSmashRight.drawSprite(true, ctx, obj.x, obj.y);
+                break;
+        }
+    }
 }
 
 export default Animation;
