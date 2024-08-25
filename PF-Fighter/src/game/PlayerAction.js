@@ -10,10 +10,10 @@ class PlayerAction {
         this.width = 128;
         this.height = 128;
 
-        this.characterX = this.x + 46;
-        this.characterY = this.y + 34;
-        this.characterWidth = 34;
-        this.characterHeight = 60;
+        this.cX = this.x + 46;
+        this.cY = this.y + 34;
+        this.cWidth = 34;
+        this.cHeight = 60;
         this.sprites = new Animation(this.nb);
         this.look = null;
         if (nb === 1)
@@ -130,10 +130,10 @@ class PlayerAction {
                 delete this.hitbox;
             }
             else
-                this.hitbox.updateHitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight);
+                this.hitbox.updateHitbox(this);
         }
-        this.characterX = this.x + 46;
-        this.characterY = this.y + 34;
+        this.cX = this.x + 46;
+        this.cY = this.y + 34;
     }
 //======================ATTACK========================
     canAttack(currentTime) {
@@ -150,46 +150,46 @@ class PlayerAction {
                 case 'up':
                     if (this.isJumping) {
                         if (this.look === 'right') {
-                            this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'upAirRight');
+                            this.hitbox = new Hitbox(this, 'upAirRight');
                         }
                         else {
-                            this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'upAirLeft');
+                            this.hitbox = new Hitbox(this, 'upAirLeft');
                         }
                     } else {
-                        this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'upSmash');
+                        this.hitbox = new Hitbox(this, 'upSmash');
                     }
                     break;
                 case 'left':
                     if (this.isJumping) {
                         if (this.look === 'right') {
-                            this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'backAirRight');
+                            this.hitbox = new Hitbox(this, 'backAirRight');
                         } else {
-                            this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'forwardAirLeft');
+                            this.hitbox = new Hitbox(this, 'forwardAirLeft');
                         }
                     } else {
-                        this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'leftSmash');
+                        this.hitbox = new Hitbox(this, 'leftSmash');
                     }
                     break;
                 case 'right':
                     if (this.isJumping) {
                         if (this.look === 'right') {
-                            this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'forwardAirRight');
+                            this.hitbox = new Hitbox(this, 'forwardAirRight');
                         } else {
-                            this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'backAirLeft');
+                            this.hitbox = new Hitbox(this, 'backAirLeft');
                         }
                     } else {
-                        this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'rightSmash');
+                        this.hitbox = new Hitbox(this, 'rightSmash');
                     }
                     break;
                 case 'down':
                     if (this.isJumping) {
                         if (this.look === 'right') {
-                            this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'downAirRight');
+                            this.hitbox = new Hitbox(this, 'downAirRight');
                         } else {
-                            this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'downAirLeft');
+                            this.hitbox = new Hitbox(this, 'downAirLeft');
                         }
                     } else {
-                        this.hitbox = new Hitbox(this.characterX, this.characterY, this.characterWidth, this.characterHeight, 'downSmash');
+                        this.hitbox = new Hitbox(this, 'downSmash');
                     }
                     break;
             }
@@ -231,10 +231,10 @@ class PlayerAction {
     }
 
     draw(ctx) {
-        // ctx.fillStyle = 'blue';
-        // ctx.fillRect(this.x, this.y, this.width, this.height);
-        // ctx.fillStyle = 'green';
-        // ctx.fillRect(this.characterX, this.characterY, this.characterWidth, this.characterHeight);
+        ctx.fillStyle = 'blue';
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.fillStyle = 'green';
+        ctx.fillRect(this.cX, this.cY, this.cWidth, this.cHeight);
         this.sprites.update(ctx, this);
 
         if (this.hitbox) {

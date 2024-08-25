@@ -15,30 +15,30 @@ class GameMap {
     }
 
     handleCollision(object) {
-        if (object.characterY + object.characterHeight > this.groundY &&
-            object.characterY < this.groundY &&
-            object.characterX > this.groundX &&
-            object.characterX < this.groundEndX) {
+        if (object.cY + object.cHeight > this.groundY &&
+            object.cY < this.groundY &&
+            object.cX > this.groundX &&
+            object.cX < this.groundEndX) {
 
-            object.characterY = this.groundY - object.characterHeight;
-            object.y = object.characterY - 34;
+            object.cY = this.groundY - object.cHeight;
+            object.y = object.cY - 34;
             object.velocityY = 0;
             object.isJumping = false;
         }
-        else if (object.characterY > this.groundY &&
-            object.characterX + object.characterWidth > this.groundX &&
-            object.characterX < this.groundX) {
+        else if (object.cY > this.groundY &&
+            object.cX + object.cWidth > this.groundX &&
+            object.cX < this.groundX) {
 
-            object.characterX = this.groundX - object.characterWidth;
-            object.x = object.characterX - 46;
+            object.cX = this.groundX - object.cWidth;
+            object.x = object.cX - 46;
             object.velocityX = 0;
         }
-        else if (object.characterY > this.groundY &&
-        object.characterX < this.groundEndX &&
-        object.characterX + object.characterWidth > this.groundEndX) {
+        else if (object.cY > this.groundY &&
+        object.cX < this.groundEndX &&
+        object.cX + object.cWidth > this.groundEndX) {
 
-            object.characterX = this.groundEndX;
-            object.x = object.characterX - 46;
+            object.cX = this.groundEndX;
+            object.x = object.cX - 46;
             object.velocityX = 0;
         }
     }

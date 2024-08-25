@@ -1,12 +1,12 @@
 class Hitbox {
-    constructor(cX, cY, cWidth, cHeight, dir) {
+    constructor(obj, dir) {
         this.x = 0;
         this.y = 0;
         this.width = 0;
         this.height = 0;
         this.dir = dir;
         this.currentHitboxDuration = 0;
-        this.updateHitbox(cX, cY, cWidth, cHeight, true);
+        this.updateHitbox(obj, true);
     }
 
     update() {
@@ -16,103 +16,104 @@ class Hitbox {
         }
     }
 
-    updateHitbox(cX, cY, cWidth, cHeight, assign = false) {
+    updateHitbox(obj, assign = false) {
         switch (this.dir) {
             case 'upAirLeft':
-                this.x = cX - (cWidth / 2 - 10);
-                this.y = cY;
+                this.x = obj.cX;
+                this.y = obj.cY + 4;
                 this.width = 10;
-                this.height = 10;
+                this.height = 20;
                 if (assign)
-                    this.currentHitboxDuration = 195;
+                    this.currentHitboxDuration = 120;
                 break;
             case 'upAirRight':
-                this.x = cX - (cWidth / 2 + 10);
-                this.y = cY;
+                this.x = obj.cX + obj.cWidth - 4;
+                this.y = obj.cY + 4;
                 this.width = 10;
-                this.height = 10;
+                this.height = 20;
                 if (assign)
-                    this.currentHitboxDuration = 195;
+                    this.currentHitboxDuration = 120;
                 break;
             case 'downAirLeft':
-                this.x = cX - 10;
-                this.y = cY + (cHeight / 2);
+                this.x = obj.cX - 10;
+                this.y = obj.cY + (obj.cHeight / 2);
                 this.width = 10;
-                this.height = 10;
+                this.height = 30;
                 if (assign)
                     this.currentHitboxDuration = 80;
                 break;
             case 'downAirRight':
-                this.x = cX + cWidth + 10;
-                this.y = cY + (cHeight / 2);
+                this.x = obj.cX + obj.cWidth;
+                this.y = obj.cY + (obj.cHeight / 2);
                 this.width = 10;
-                this.height = 10;
+                this.height = 30;
                 if (assign)
                     this.currentHitboxDuration = 80;
                 break;
             case 'backAirLeft':
-                this.x = cX + cWidth + 10;
-                this.y = cY + (cHeight / 2);
-                this.width = 10;
+                this.x = obj.cX + obj.cWidth - 5;
+                this.y = obj.cY + (obj.cHeight / 2) + 10;
+                this.width = 20;
                 this.height = 10;
                 if (assign)
                     this.currentHitboxDuration = 80;
                 break;
             case 'backAirRight':
-                this.x = cX - 10;
-                this.y = cY + (cHeight / 2);
-                this.width = 10;
+                this.x = obj.cX - 5;
+                this.y = obj.cY + (obj.cHeight / 2) + 10;
+                this.width = 20;
                 this.height = 10;
                 if (assign)
                     this.currentHitboxDuration = 80;
                 break;
             case 'forwardAirLeft':
-                this.x = cX - 5;
-                this.y = cY + (cHeight / 2);
-                this.width = 10;
+                this.x = obj.cX - 10;
+                this.y = obj.cY + (obj.cHeight / 2) + 10;
+                this.width = 15;
                 this.height = 10;
                 if (assign)
-                    this.currentHitboxDuration = 120;
+                    this.currentHitboxDuration = 90;
                 break;
             case 'forwardAirRight':
-                this.x = cX + cWidth + 5;
-                this.y = cY + (cHeight / 2);
-                this.width = 10;
+                this.x = obj.cX + obj.cWidth - 4;
+                this.y = obj.cY + (obj.cHeight / 2) + 10;
+                this.width = 15;
                 this.height = 10;
                 if (assign)
-                    this.currentHitboxDuration = 120;
+                    this.currentHitboxDuration = 90;
                 break;
             case 'upSmash':
-                this.x = cX + cWidth / 2;
-                this.y = cY - 5;
-                this.width = 10;
+                this.x = obj.cX + 3;
+                this.y = obj.cY - 5;
+                this.width = 30;
                 this.height = 10;
                 if (assign)
-                    this.currentHitboxDuration = 120;
+                    this.currentHitboxDuration = 195;
                 break;
             case 'downSmash':
-                this.x = cX;
-                this.y = cY + (cHeight / 4);
-                this.width = 10;
+                this.x = obj.cX - 10;
+                this.y = obj.cY + (obj.cHeight / 2);
+                this.width = 20;
                 this.height = 10;
                 if (assign)
                     this.currentHitboxDuration = 160;
                 break;
             case 'leftSmash':
-                this.x = cX - 5;
-                this.y = cY + (cHeight / 2);
-                this.width = 10;
+                this.x = obj.cX - 8;
+                this.y = obj.cY + (obj.cHeight / 2);
+                this.width = 15;
                 this.height = 10;
                 if (assign)
                     this.currentHitboxDuration = 150;
                 break;
             case 'rightSmash':
-                this.x = cX + cWidth + 5;
-                this.y = cY + (cHeight / 2);
-                this.width = 10;
+                this.x = obj.cX + obj.cWidth - 3;
+                this.y = obj.cY + (obj.cHeight / 2);
+                this.width = 15;
                 this.height = 10;
-                if (assign)
+                if (assign) {
                     this.currentHitboxDuration = 150;
+                }
                 break;
         }
     }

@@ -8,7 +8,7 @@ class Game {
         this.p1 = P1;
         this.p2 = P2;
         this.map = new GameMap(this.canvas);
-        this.physics = new Physics(0.10);
+        this.physics = new Physics(0.1);
         this.p1.cube = new PlayerAction(this.map.groundX, this.map.groundY, 1, this.physics);
         this.p2.cube = new PlayerAction(this.map.groundEndX - 120, this.map.groundY, 2, this.physics);
         this.isRunning = false;
