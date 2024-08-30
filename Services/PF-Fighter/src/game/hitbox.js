@@ -51,31 +51,55 @@ class Hitbox {
                     this.frameEnd = 6;
                 }
                 break;
-            case 'downAirLeft':
+            case 'downAirLeft1':
+                this.x = obj.cX - 10;
+                this.y = obj.cY + (obj.cHeight / 2) - 10;
+                this.width = 10;
+                this.height = 10;
+                this.damage = 20;
+                this.power = 0.3;
+                if (assign) {
+                    this.frameBegin = 6;
+                    this.frameEnd = 7;
+                }
+                break;
+            case 'downAirLeft2':
                 this.x = obj.cX - 10;
                 this.y = obj.cY + (obj.cHeight / 2);
                 this.width = 10;
-                this.height = 30;
+                this.height = 20;
                 this.damage = 20;
-                this.power = 3;
+                this.power = 10;
                 if (assign) {
-                    this.frameBegin = 5;
+                    this.frameBegin = 7;
                     this.frameEnd = 8;
                 }
                 break;
-            case 'downAirRight':
+            case 'downAirRight1':
+                this.x = obj.cX + obj.cWidth;
+                this.y = obj.cY + (obj.cHeight / 2) - 10;
+                this.width = 10;
+                this.height = 10;
+                this.damage = 20;
+                this.power = 1;
+                if (assign) {
+                    this.frameBegin = 6;
+                    this.frameEnd = 7;
+                }
+                break;
+            case 'downAirRight2':
                 this.x = obj.cX + obj.cWidth;
                 this.y = obj.cY + (obj.cHeight / 2);
                 this.width = 10;
-                this.height = 30;
+                this.height = 20;
                 this.damage = 20;
-                this.power = 3;
+                this.power = 10;
                 if (assign) {
-                    this.frameBegin = 5;
+                    this.frameBegin = 7;
                     this.frameEnd = 8;
                 }
                 break;
-            case 'backAirLeft':
+            case 'backAirLeft1':
                 this.x = obj.cX + obj.cWidth - 5;
                 this.y = obj.cY + (obj.cHeight / 2) + 10;
                 this.width = 20;
@@ -87,10 +111,34 @@ class Hitbox {
                     this.frameEnd = 4;
                 }
                 break;
-            case 'backAirRight':
-                this.x = obj.cX - 5;
+            case 'backAirLeft2':
+                this.x = obj.cX + obj.cWidth - 5;
                 this.y = obj.cY + (obj.cHeight / 2) + 10;
                 this.width = 20;
+                this.height = 10;
+                this.damage = 15;
+                this.power = 1.9;
+                if (assign) {
+                    this.frameBegin = 2;
+                    this.frameEnd = 4;
+                }
+                break;
+            case 'backAirRight1':
+                this.x = obj.cX;
+                this.y = obj.cY + (obj.cHeight / 2) - 5;
+                this.width = 10;
+                this.height = 10;
+                this.damage = 15;
+                this.power = 1.9;
+                if (assign) {
+                    this.frameBegin = 2;
+                    this.frameEnd = 4;
+                }
+                break;
+            case 'backAirRight2':
+                this.x = obj.cX + 10;
+                this.y = obj.cY + (obj.cHeight / 2) + 5;
+                this.width = 10;
                 this.height = 10;
                 this.damage = 15;
                 this.power = 1.9;

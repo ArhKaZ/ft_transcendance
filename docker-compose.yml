@@ -1,0 +1,28 @@
+version: '3'
+services:
+  postgresql:
+    container_name: postgresql
+    image: postgres:16.4
+    volumes:
+      - ./postgresql/data:bitnami/postgresql
+
+  nginx:
+    container_name: nginx
+    image: nginx:1.27.1
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/generate_ssl.sh:/docker-entrypoint.d/generate_ssl.sh
+    command: /docker-entrypoint.d/generate_ssl.sh
+
+  pong_game:
+    container_name: pong_game
+    build:
+      context: Services/Pong/
+      dockerfile: Dockerfile
+
+  pixel_paws:
+    container_name: pixel_paws
+    build:
+      context: Services/PF-Fighter/
+      dockerfile: Dockerfile
+

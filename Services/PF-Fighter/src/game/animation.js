@@ -11,13 +11,13 @@ class Animation {
         this.JumpLeft = new Sprite('assets/Character/JumpLeft.png', 8, 40);
         this.JumpRight = new Sprite('assets/Character/JumpRight.png', 8, 40);
         this.BackAirLeft = new Sprite('assets/Character/BackAirLeft.png', 6, 20);
-        this.BackAirRight = new Sprite('assets/Character/BackAirR.png', 6, 20);
+        this.BackAirRight = new Sprite('assets/Character/BackAirR.png', 6, 40);
         this.DownSmashLeft = new Sprite('assets/Character/DownSmashLeft.png', 8, 20);
         this.DownSmashRight = new Sprite('assets/Character/DownSmashRight.png', 8, 20);
-        this.DownAirLeft = new Sprite('assets/Character/DownAirLeft.png', 8, 15);
-        this.DownAirRight = new Sprite('assets/Character/DownAirRight.png', 8, 15);
-        this.SideSmashLeft = new Sprite('assets/Character/SideSmashLeft.png', 10, 60);
-        this.SideSmashRight = new Sprite('assets/Character/SideSmashRight.png', 10, 60);
+        this.DownAirLeft = new Sprite('assets/Character/DownAirLeft.png', 8, 25);
+        this.DownAirRight = new Sprite('assets/Character/DownAirRight.png', 8, 25);
+        this.SideSmashLeft = new Sprite('assets/Character/SideSmashLeft.png', 10, 15);
+        this.SideSmashRight = new Sprite('assets/Character/SideSmashRight.png', 10, 15);
         this.UpAirLeft = new Sprite('assets/Character/UpAirLeft.png', 8, 15);
         this.UpAirRight = new Sprite('assets/Character/UpAirRight.png', 8, 15);
         this.FairLeft = new Sprite('assets/Character/FairLeft.png', 6, 15);
@@ -107,11 +107,19 @@ class Animation {
                     obj.velocityY -= 0.13;
                     currentAnimation = this.UpAirRightPurple;
                     break;
-                case 'downAirLeft':
+                case 'downAirLeft1':
                     // this.DownAirLeftPurple.affDurAnim();
                     currentAnimation = this.DownAirLeftPurple;
                     break;
-                case 'downAirRight':
+                case 'downAirLeft2':
+                    // this.DownAirLeftPurple.affDurAnim();
+                    currentAnimation = this.DownAirLeftPurple;
+                    break;
+                case 'downAirRight1':
+                    // this.DownAirRightPurple.affDurAnim();
+                    currentAnimation = this.DownAirRightPurple;
+                    break;
+                case 'downAirRight2':
                     // this.DownAirRightPurple.affDurAnim();
                     currentAnimation = this.DownAirRightPurple;
                     break;
@@ -153,7 +161,7 @@ class Animation {
                     currentAnimation = this.SideSmashLeftPurple;
                     break;
                 case 'leftSmash2':
-                    currentAnimation = this.SideSmashRightPurple;
+                    currentAnimation = this.SideSmashLeftPurple;
                     break;
                 case 'rightSmash1':
                     //this.SideSmashRightPurple.affDurAnim();
@@ -173,7 +181,7 @@ class Animation {
     drawAttack(ctx, obj) {
         let currentAnimation = null;
         obj.hitboxes.forEach((hitbox) => {
-            console.log(hitbox.dir);
+            //console.log(hitbox.dir);
             switch (hitbox.dir) {
                 case 'upAirLeft':
                     this.UpAirLeft.affDurAnim();
@@ -185,19 +193,33 @@ class Animation {
                     obj.velocityY -= 0.13;
                     currentAnimation = this.UpAirRight;
                     break;
-                case 'downAirLeft':
+                case 'downAirLeft1':
                     this.DownAirLeft.affDurAnim();
                     currentAnimation = this.DownAirLeft;
                     break;
-                case 'downAirRight':
+                case 'downAirLeft2':
+                    this.DownAirLeft.affDurAnim();
+                    currentAnimation = this.DownAirLeft;
+                    break;
+                case 'downAirRight1':
                     //this.DownAirRight.affDurAnim();
                     currentAnimation = this.DownAirRight;
                     break;
-                case 'backAirLeft':
-                    this.BackAirLeft.affDurAnim();
+                case 'downAirRight2':
+                    //this.DownAirRight.affDurAnim();
+                    currentAnimation = this.DownAirRight;
+                    break;
+                case 'backAirLeft1':
                     currentAnimation = this.BackAirLeft;
                     break;
-                case 'backAirRight':
+                case 'backAirLeft2':
+                    currentAnimation = this.BackAirLeft;
+                    break;
+                case 'backAirRight1':
+                    //his.BackAirRight.affDurAnim();
+                    currentAnimation = this.BackAirRight;
+                    break;
+                case 'backAirRight2':
                     //his.BackAirRight.affDurAnim();
                     currentAnimation = this.BackAirRight;
                     break;

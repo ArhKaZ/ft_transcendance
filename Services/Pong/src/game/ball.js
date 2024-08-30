@@ -6,14 +6,13 @@ class Ball {
         this.reset();
     }
 
-    reset() {
+    reset(asScore) {
         this.x = this.canvas.width / 2;
         this.y = this.canvas.height / 2;
 
-        //Vitesse par rapport a la taille du canvas
-        const angle = Math.random() * Math.PI / 2 - Math.PI / 4; // Angle aleatoire
+        const angle = Math.random() * Math.PI / 2 - Math.PI / 4;
 
-        this.vx = this.ballSpeed * Math.cos(angle) *  (Math.random() > 0.5 ? 1 : -1);
+        this.vx = this.ballSpeed * Math.cos(angle) *  (asScore === 'p2' ? 1 : -1);
         this.vy = this.ballSpeed * Math.sin(angle);
     }
 

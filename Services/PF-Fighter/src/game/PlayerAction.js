@@ -52,8 +52,8 @@ class PlayerAction {
                 if (keyState) {
                     //MOVE
                     if (keyState['w']) {
-                        console.log(this.jumpKeyHeld);
-                        console.log(this.nbJump);
+                        //console.log(this.jumpKeyHeld);
+                        //console.log(this.nbJump);
                         if (!this.jumpKeyHeld && this.nbJump > 0) {
                             this.move('up');
                             this.nbJump--;
@@ -178,7 +178,8 @@ class PlayerAction {
                 case 'left':
                     if (this.isJumping) {
                         if (this.look === 'right') {
-                            this.addHitbox(new Hitbox(this, 'backAirRight'));
+                            this.addHitbox(new Hitbox(this, 'backAirRight1'));
+                            this.addHitbox(new Hitbox(this, 'backAirRight2'));
                         } else {
                             this.addHitbox(new Hitbox(this, 'forwardAirLeft'));
                         }
@@ -192,7 +193,8 @@ class PlayerAction {
                         if (this.look === 'right') {
                             this.addHitbox(new Hitbox(this, 'forwardAirRight'));
                         } else {
-                            this.addHitbox(new Hitbox(this, 'backAirLeft'));
+                            this.addHitbox(new Hitbox(this, 'backAirLeft1'));
+                            this.addHitbox(new Hitbox(this, 'backAirLeft2'));
                         }
                     } else {
                         this.addHitbox(new Hitbox(this, 'rightSmash1'));
@@ -202,9 +204,11 @@ class PlayerAction {
                 case 'down':
                     if (this.isJumping) {
                         if (this.look === 'right') {
-                            this.addHitbox(new Hitbox(this, 'downAirRight'));
+                            this.addHitbox(new Hitbox(this, 'downAirRight1'));
+                            this.addHitbox(new Hitbox(this, 'downAirRight2'));
                         } else {
-                            this.addHitbox(new Hitbox(this, 'downAirLeft'));
+                            this.addHitbox(new Hitbox(this, 'downAirLeft1'));
+                            this.addHitbox(new Hitbox(this, 'downAirLeft2'));
                         }
                     } else {
                         this.addHitbox(new Hitbox(this, 'downSmash1'));
@@ -236,7 +240,7 @@ class PlayerAction {
                     break;
                 case 'up':
                     this.lastDirection = 'up';
-                    this.velocityY = -6;
+                    this.velocityY = -1;
                     break;
                 case '!left!right':
                     if (this.velocityX > 0) {

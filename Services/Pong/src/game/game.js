@@ -76,12 +76,12 @@ class Game {
         if (this.ball.x <= 0)
         {
             this.P2.incrementScore();
-            this.ball.reset();
+            this.ball.reset('p2');
         }
         if (this.ball.x + this.ball.size >= this.canvas.width)
         {
             this.P1.incrementScore();
-            this.ball.reset();
+            this.ball.reset('p1');
         }
     }
 
@@ -100,7 +100,7 @@ class Game {
                 break;
         }
         this.checkAsScore();
-        //this.checkWinner();
+        this.checkWinner();
     }
 
     checkWinner() {
@@ -110,7 +110,6 @@ class Game {
     }
 
     draw() {
-
         this.context.fillStyle = 'rgba(0, 0, 0, 0.1)';
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 

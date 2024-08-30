@@ -37,6 +37,10 @@ class Sprite {
         console.log(this.totalFrames * this.animationSpeed);
     }
 
+    animationFinish() {
+        return this.isAnimationComplete;
+    }
+
     updateFrame(isJump) {
         this.frameCount++;
         if (this.frameCount >= this.animationSpeed) {
@@ -63,7 +67,7 @@ class Sprite {
             this.currentFrame++;
             this.frameCount = 0;
 
-            if (this.currentFrame >= this.totalFrames - 1) {
+            if (this.currentFrame >= this.totalFrames) {
                 this.currentFrame = this.totalFrames - 1;
                 this.isAnimationComplete = true;
             }
@@ -72,8 +76,9 @@ class Sprite {
         hitboxes.forEach((hitbox) => {
             hitbox.checkActivation(this.currentFrame);
         });
-
-        this.removeExpiredHitboxes(hitboxes);
+        if (this.isAnimationComplete) {
+            this.removeExpiredHitboxes(hitboxes);
+        }
     }
 
     removeExpiredHitboxes(hitboxes) {

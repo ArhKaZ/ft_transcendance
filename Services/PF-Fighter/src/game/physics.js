@@ -1,13 +1,54 @@
 class Physic {
-    constructor(gravity) {
+    constructor(gravity, map) {
         this.gravity = gravity;
         this.knockbackScaling = 0.1;
         this.baseKnockback = 5;
+        this.gravityAccumulator = 0;
+        this.stage = map;
+        this.highPosition = this.stage.groundY - (this.stage.height * 0.75);
+        this.lowPosition = this.stage.groundY - (this.stage.height * 0.25);
     }
 
     applyGravity(object) {
-
-        object.velocityY += this.gravity;
+        // if (object.hitboxes.length > 0) {
+        //     object.hitboxes.forEach((hitbox) => {
+        //         let gravityMultiplier = 1;
+        //         switch (hitbox.dir) {
+        //             case 'backAirLeft':
+        //                 gravityMultiplier = 0.3;
+        //                 break;
+        //             case 'backAirRight':
+        //                 gravityMultiplier = 0.3;
+        //                 break;
+        //             case 'downAirLeft':
+        //                 gravityMultiplier = 0.3;
+        //                 break;
+        //             case 'downAirRight':
+        //                 gravityMultiplier = 0.3;
+        //                 break;
+        //         }
+        //         object.velocityY += this.gravity * gravityMultiplier;
+        //     });
+        //
+        //  }// else if (object.knockbackFrames > 0) {
+        //     let gravityMultiplier;
+        //
+        //     if (object.cY < this.highPosition) {
+        //         gravityMultiplier = 0.3;
+        //     } else if (object.cY > this.lowPosition) {
+        //         gravityMultiplier = 0.7;
+        //     } else {
+        //         gravityMultiplier = 0.5;
+        //     }
+        //
+        //     object.velocityY += this.gravity * gravityMultiplier;
+        // } else {
+        //     this.gravityAccumulator += this.gravity;
+        //     if (this.gravityAccumulator >= 0.1) {
+        //         object.velocityY += this.gravityAccumulator;
+        //         this.gravityAccumulator = 0;
+        //     }
+        // }
     }
 
     applyMovement(object) {
@@ -71,19 +112,35 @@ class Physic {
                     direction.x = 0.3;
                     direction.y = -1;
                     break;
-                case 'downAirLeft':
+                case 'downAirLeft1':
+                    direction.x = -0.5;
+                    direction.y = -0.2;
+                    break;
+                case 'downAirLeft2':
                     direction.x = -0.2;
                     direction.y = 1;
                     break;
-                case 'downAirRight':
-                    direction.x = 0.2;
-                    direction.y = -1;
+                case 'downAirRight1':
+                    direction.x = 0.5;
+                    direction.y = -0.2;
                     break;
-                case 'backAirLeft':
+                case 'downAirRight2':
+                    direction.x = 0.2;
+                    direction.y = 1;
+                    break;
+                case 'backAirLeft1':
                     direction.x = -1;
                     direction.y = -0.1;
                     break;
-                case 'backAirRight':
+                case 'backAirLeft2':
+                    direction.x = -1;
+                    direction.y = -0.1;
+                    break;
+                case 'backAirRight1':
+                    direction.x = -0.1;
+                    direction.y = 1;
+                    break;
+                case 'backAirRight2':
                     direction.x = -0.1;
                     direction.y = 1;
                     break;
