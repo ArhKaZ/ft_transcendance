@@ -1,0 +1,30 @@
+services:
+  # web:
+  #   image: python:3.10-slim  # Utilise l'image Python officielle
+  #   command: bash -c "pip install -r requirements.txt && python manage.py runserver 0.0.0.0:8000"
+  #   volumes:
+  #     - .:/app
+  #   working_dir: /app
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     - DEBUG=1
+  #   depends_on:
+  #     - db
+
+  db:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=lgabet # cree un user
+      - POSTGRES_PASSWORD=pwd # cree son password
+      - POSTGRES_DB=db_trans # cree une db
+    ports:
+      - '5432:5432'
+    volumes:
+      - db:/root/42/ft_transcendance/Backend/dbVolumes/
+      - ./init_db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  db:
+    driver: local
