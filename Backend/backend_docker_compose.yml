@@ -1,18 +1,25 @@
 services:
-  # web:
-  #   image: python:3.10-slim  # Utilise l'image Python officielle
-  #   command: bash -c "pip install -r requirements.txt && python manage.py runserver 0.0.0.0:8000"
-  #   volumes:
-  #     - .:/app
-  #   working_dir: /app
-  #   ports:
-  #     - "8000:8000"
-  #   environment:
-  #     - DEBUG=1
-  #   depends_on:
-  #     - db
+  web:
+    container_name: django
+    build:
+      context: ./init_django/
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1
+      - POSTGRES_DB=db_trans
+      - POSTGRES_USER=lgabet
+      - POSTGRES_PASSWORD=pwd
+      - POSTGRES_HOST=db
+    depends_on:
+      - db
+    command: ./init_django/script.sh db
 
   db:
+    container_name: db_postgre
     image: postgres:14.1-alpine
     restart: always
     environment:

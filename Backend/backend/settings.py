@@ -85,7 +85,7 @@ DATABASES = {
 
         'PASSWORD': 'pwd',
 
-        'HOST': 'localhost',
+        'HOST': 'db',
 
         'PORT': '5432',
 
