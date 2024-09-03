@@ -1,0 +1,37 @@
+services:
+  web:
+    container_name: django
+    build:
+      context: ./init_django/
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1
+      - POSTGRES_DB=db_trans
+      - POSTGRES_USER=lgabet
+      - POSTGRES_PASSWORD=pwd
+      - POSTGRES_HOST=db
+    depends_on:
+      - db
+    command: ./init_django/script.sh db
+
+  db:
+    container_name: db_postgre
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=lgabet # cree un user
+      - POSTGRES_PASSWORD=pwd # cree son password
+      - POSTGRES_DB=db_trans # cree une db
+    ports:
+      - '5432:5432'
+    volumes:
+      - db:/root/42/ft_transcendance/Backend/dbVolumes/
+      - ./init_db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  db:
+    driver: local
