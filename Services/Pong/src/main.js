@@ -52,7 +52,7 @@ function init() {
     const game = new Game(canvas, P1, P2);
     const context = canvas.getContext('2d');
 
-    startCountdown(context, () => game.start(P1, P2));
+    startCountdown(context, () => game.start());
     window.addEventListener("resize", function() { resizeCanvasGame(game) });
 }
 

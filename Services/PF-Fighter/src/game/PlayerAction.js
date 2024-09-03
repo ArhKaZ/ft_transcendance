@@ -164,15 +164,23 @@ class PlayerAction {
                 case 'up':
                     if (this.isJumping) {
                         if (this.look === 'right' && this.canHitAir) {
-                            this.addHitbox(new Hitbox(this, 'upAirRight'));
+                            this.addHitbox(new Hitbox(this, 'upAirRight1'));
+                            this.addHitbox(new Hitbox(this, 'upAirRight2'));
                             this.canHitAir = false;
                         }
                         else if (this.canHitAir) {
-                            this.addHitbox(new Hitbox(this, 'upAirLeft'));
+                            this.addHitbox(new Hitbox(this, 'upAirLeft1'));
+                            this.addHitbox(new Hitbox(this, 'upAirLeft2'));
                             this.canHitAir = false;
                         }
                     } else {
-                        this.addHitbox(new Hitbox(this, 'upSmash'));
+                        if (this.look === 'right') {
+                            this.addHitbox(new Hitbox(this, 'upSmashRight1'));
+                            this.addHitbox(new Hitbox(this, 'upSmashRight2'));
+                        } else {
+                            this.addHitbox(new Hitbox(this, 'upSmashLeft1'));
+                            this.addHitbox(new Hitbox(this, 'upSmashLeft2'));
+                        }
                     }
                     break;
                 case 'left':
@@ -240,7 +248,7 @@ class PlayerAction {
                     break;
                 case 'up':
                     this.lastDirection = 'up';
-                    this.velocityY = -1;
+                    this.velocityY = -6;
                     break;
                 case '!left!right':
                     if (this.velocityX > 0) {
