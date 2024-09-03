@@ -10,45 +10,57 @@ class Physic {
     }
 
     applyGravity(object) {
-        // if (object.hitboxes.length > 0) {
-        //     object.hitboxes.forEach((hitbox) => {
-        //         let gravityMultiplier = 1;
-        //         switch (hitbox.dir) {
-        //             case 'backAirLeft':
-        //                 gravityMultiplier = 0.3;
-        //                 break;
-        //             case 'backAirRight':
-        //                 gravityMultiplier = 0.3;
-        //                 break;
-        //             case 'downAirLeft':
-        //                 gravityMultiplier = 0.3;
-        //                 break;
-        //             case 'downAirRight':
-        //                 gravityMultiplier = 0.3;
-        //                 break;
-        //         }
-        //         object.velocityY += this.gravity * gravityMultiplier;
-        //     });
-        //
-        //  }// else if (object.knockbackFrames > 0) {
-        //     let gravityMultiplier;
-        //
-        //     if (object.cY < this.highPosition) {
-        //         gravityMultiplier = 0.3;
-        //     } else if (object.cY > this.lowPosition) {
-        //         gravityMultiplier = 0.7;
-        //     } else {
-        //         gravityMultiplier = 0.5;
-        //     }
-        //
-        //     object.velocityY += this.gravity * gravityMultiplier;
-        // } else {
-        //     this.gravityAccumulator += this.gravity;
-        //     if (this.gravityAccumulator >= 0.1) {
-        //         object.velocityY += this.gravityAccumulator;
-        //         this.gravityAccumulator = 0;
-        //     }
-        // }
+        if (object.hitboxes.length > 0) {
+            object.hitboxes.forEach((hitbox) => {
+                let gravityMultiplier = 1;
+                switch (hitbox.dir) {
+                    case 'backAirLeft1':
+                        gravityMultiplier = 0.3;
+                        break;
+                    case 'backAirLeft2':
+                        gravityMultiplier = 0.3;
+                        break;
+                    case 'backAirRight1':
+                        gravityMultiplier = 0.3;
+                        break;
+                    case 'backAirRight2':
+                        gravityMultiplier = 0.3;
+                        break;
+                    case 'downAirLeft1':
+                        gravityMultiplier = 0.3;
+                        break;
+                    case 'downAirLeft2':
+                        gravityMultiplier = 0.3;
+                        break;
+                    case 'downAirRight1':
+                        gravityMultiplier = 0.3;
+                        break;
+                    case 'downAirRight2':
+                        gravityMultiplier = 0.3;
+                        break;
+                }
+                object.velocityY += this.gravity * gravityMultiplier;
+            });
+
+        } else if (object.knockbackFrames > 0) {
+            let gravityMultiplier;
+
+            if (object.cY < this.highPosition) {
+                gravityMultiplier = 0.3;
+            } else if (object.cY > this.lowPosition) {
+                gravityMultiplier = 0.7;
+            } else {
+                gravityMultiplier = 0.5;
+            }
+
+            object.velocityY += this.gravity * gravityMultiplier;
+        } else{
+            this.gravityAccumulator += this.gravity;
+            if (this.gravityAccumulator >= 0.1) {
+                object.velocityY += this.gravityAccumulator;
+                this.gravityAccumulator = 0;
+            }
+        }
     }
 
     applyMovement(object) {
@@ -104,11 +116,19 @@ class Physic {
             object.stunFrames = Math.floor(object.percent * 0.3);
             let direction = {x: 0, y: 0};
             switch (hitbox.dir) {
-                case 'upAirLeft':
+                case 'upAirLeft1':
                     direction.x = -0.3;
                     direction.y = -1;
                     break;
-                case 'upAirRight':
+                case 'upAirLeft2':
+                    direction.x = -0.3;
+                    direction.y = -1;
+                    break;
+                case 'upAirRight1':
+                    direction.x = 0.3;
+                    direction.y = -1;
+                    break;
+                case 'upAirRight2':
                     direction.x = 0.3;
                     direction.y = -1;
                     break;
@@ -129,31 +149,43 @@ class Physic {
                     direction.y = 1;
                     break;
                 case 'backAirLeft1':
-                    direction.x = -1;
-                    direction.y = -0.1;
+                    direction.x = 1;
+                    direction.y = -0.4;
                     break;
                 case 'backAirLeft2':
-                    direction.x = -1;
-                    direction.y = -0.1;
+                    direction.x = 0.5;
+                    direction.y = -0.4;
                     break;
                 case 'backAirRight1':
-                    direction.x = -0.1;
-                    direction.y = 1;
+                    direction.x = -1;
+                    direction.y = -0.4;
                     break;
                 case 'backAirRight2':
-                    direction.x = -0.1;
-                    direction.y = 1;
+                    direction.x = -0.5;
+                    direction.y = -0.4;
                     break;
                 case 'forwardAirLeft':
-                    direction.x = -0.2;
-                    direction.y = -1;
+                    direction.x = -1;
+                    direction.y = 0.2;
                     break;
                 case 'forwardAirRight':
-                    direction.x = -0.2;
-                    direction.y = 1;
+                    direction.x = 1;
+                    direction.y = 0.2;
                     break;
-                case 'upSmash':
-                    direction.x = object.look === 'left' ? -0.8 : 0.8;
+                case 'upSmashLeft1':
+                    direction.x = -0.8;
+                    direction.y = -1;
+                    break;
+                case 'upSmashLeft2':
+                    direction.x = -0.8;
+                    direction.y = -1;
+                    break;
+                case 'upSmashRight1':
+                    direction.x = 0.8;
+                    direction.y = -1;
+                    break;
+                case 'upSmashRight2':
+                    direction.x = 0.8;
                     direction.y = -1;
                     break;
                 case 'downSmash1':
