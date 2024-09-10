@@ -1,5 +1,5 @@
 services:
-  web:
+  django:
     container_name: django
     build:
       context: ./init_django/
