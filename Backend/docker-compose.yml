@@ -15,10 +15,10 @@ services:
       - POSTGRES_PASSWORD=pwd
       - POSTGRES_HOST=db
     depends_on:
-      - db
-    command: ./init_django/script.sh db
+      - db_postgre
+    command: ./init_django/script.sh db_postgre
 
-  db:
+  db_postgre:
     container_name: db_postgre
     image: postgres:14.1-alpine
     restart: always
@@ -29,9 +29,9 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - db:/root/42/ft_transcendance/Backend/dbVolumes/
+      - db_postgre:/root/42/ft_transcendance/Backend/dbVolumes/
       - ./init_db/init.sql:/docker-entrypoint-initdb.d/init.sql
 
 volumes:
-  db:
+  db_postgre:
     driver: local

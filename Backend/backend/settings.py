@@ -40,7 +40,7 @@ INSTALLED_APPS = [
 	'rest_framework',
 	'api',
 	'user',
-	'backend'
+	'backend',
 ]
 
 MIDDLEWARE = [
@@ -89,7 +89,7 @@ DATABASES = {
 
         'PASSWORD': 'pwd',
 
-        'HOST': 'db',
+        'HOST': 'db_postgre',
 
         'PORT': '5432',
 

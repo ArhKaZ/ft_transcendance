@@ -1,4 +1,4 @@
-NAME	=	./backend_docker_compose.yml 
+NAME	=	./docker-compose.yml 
 
 start:
 		clear && docker-compose -f $(NAME) down -v &&  docker-compose -f $(NAME) up --build

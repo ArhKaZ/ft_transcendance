@@ -12,6 +12,8 @@ until python -c "import psycopg2; conn = psycopg2.connect(dbname='$POSTGRES_DB',
   sleep 1
 done
 
+python manage.py makemigrations api # bizarre mais necessaire
+
 python manage.py migrate
 
 >&2 echo "Postgres is up - executing command"
