@@ -1,23 +1,26 @@
 document.getElementById('userForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
-    const name = document.getElementById('name').value;
+	
+    const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     const description = document.getElementById('description').value;
 
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('password', password);
-    formData.append('description', description);
+    const userData = {
+        username: username,
+        password: password,
+        description: description
+    };
 
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
     try {
         const response = await fetch('/api/add_user/', {
             method: 'POST',
-            body: formData,
+            body: JSON.stringify(userData),
             headers: {
-                'X-CSRFToken': csrfToken
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
             }
         });
 

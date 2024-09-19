@@ -3,14 +3,14 @@
 <head>
     <meta charset="utf-8">
     <title>Add a user</title>
-	{% load static %}
+    {% load static %}
 </head>
 <body>
     <h1>Add a new user</h1>
     <form id="userForm">
         {% csrf_token %}
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required><br><br>
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br><br>
 
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required><br><br>
@@ -24,6 +24,6 @@
     <!-- Div for displaying error/success messages -->
     <div id="message"></div>
 
-    <script src="{% static 'user/add_user.js' %}"></script> <!-- The JS file that will handle the request -->
+    <script src="{% static 'user/add_user.js' %}"></script>
 </body>
 </html>
