@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 	'user',
 	'backend',
 	'rest_framework.authtoken',
+	'dj_rest_auth'
 ]
 
 REST_FRAMEWORK = {
@@ -147,3 +148,6 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "api.MyUser"
+
+# LOGIN_URL = '/home/'
+
