@@ -1,4 +1,5 @@
 import uuid
+from .ball import Ball
 
 from django.core.cache import cache
 from django.http import (HttpResponse, JsonResponse)
@@ -42,27 +43,21 @@ def create_or_join_game(request):
 def find_waiting_game():
     for key in cache.iter_keys('game_*'):
         game = cache.get(key)
+        print('find: ', game)
         if game and game['status'] == 'WAITING':
             return game
     return None
 
 
 def get_player(request):
-    print('ici')
     for key in cache.iter_keys('game_*'):
         game = cache.get(key)
-        print("key (repr):", repr(game['game_id']))
-        print("request (repr):", repr(request.GET.get('game_id')))
-        print(game['game_id'] == request.GET.get('game_id'))
         if game and str(game['game_id']) == request.GET.get('game_id'):
-            print("je passe ici")
             if game['player1'] == request.GET.get('session_id'):
-                print('player1')
                 return JsonResponse({
                     'nb_player': 1,
                 })
             elif game['player2'] == request.GET.get('session_id'):
-                print('player2')
                 return JsonResponse({
                     'nb_player': 2,
                 })

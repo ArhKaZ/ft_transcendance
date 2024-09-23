@@ -12,19 +12,51 @@ function generateUUID() {
 
 const session_id = generateUUID();
 
+
+function sendToBack(json) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(json);
+    } else {
+        console.error("Websocket not ready");
+    }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     socket = await createGame();
 
     document.getElementById('buttonStart').addEventListener('click', async () => {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({
+           sendToBack(JSON.stringify({
                     'action': 'ready',
                     'sessionId': session_id
                 }));
-            } else {
-                console.error("WebSocket n'est pas prêt");
-            }
         });
+
+    let movementInvertal = null;
+    window.addEventListener('keydown', (event) => {
+        if (movementInvertal === null) {
+        if (event.key === 'ArrowUp') {
+            console.log('session_id:' ,session_id);
+            sendToBack(JSON.stringify({ 'action': 'move', 'direction': 'up', 'session_id': session_id }));
+            movementInvertal = setInterval(() => {
+                sendToBack(JSON.stringify({ 'action': 'move', 'direction': 'up', 'session_id': session_id }));
+            }, 100);
+        }
+        if (event.key === 'ArrowDown') {
+            sendToBack(JSON.stringify({ 'action': 'move', 'direction': 'down', 'session_id': session_id }));
+            movementInvertal = setInterval(() => {
+                sendToBack(JSON.stringify({ 'action': 'move', 'direction': 'down', 'session_id': session_id }));
+            }, 100);
+        }
+
+        }
+    });
+
+    window.addEventListener('keyup', (event) => {
+        if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+            clearInterval(movementInvertal);
+            movementInvertal = null;
+        }
+    });
 })
 
 async function createGame() {
@@ -33,18 +65,31 @@ async function createGame() {
         const data = await response.json();
         const game_id = data.game_id;
         const socket = new WebSocket(`ws://0.0.0.0:8000/ws/onlinePong/${game_id}/${session_id}`);
-
+        let game = null;
         socket.onopen = function() {
             console.log("WebSocket connecter");
         };
 
-          socket.onmessage = function (e) {
+          socket.onmessage = async function (e) {
             const data = JSON.parse(e.data);
-            const message = data['message'];
-            if (message === 'game_start') {
-                init_game(game_id, session_id);
+            if (data.message === 'game_start') {
+                game = await init_game(game_id, session_id);
+                game.start();
             }
-            console.log("Message reçu:", message);
+            if (data.type === 'ball_position') {
+                if (game) {
+                    game.updateBallPosition(data.x, data.y);
+                }
+            }
+            if (data.type === 'player_move') {
+                if (game) {
+                    const session_id_player = data.session_id;
+                    const response = await fetch(`./api/get_player?game_id=${game_id}&session_id=${session_id_player}`);
+                    const data_player = await response.json();
+                    console.log(data.y);
+                    game.updatePlayerPosition(data_player.nb_player, data.y);
+                }
+            }
         };
 
         socket.onerror = function (error) {
@@ -58,15 +103,6 @@ async function createGame() {
         return socket;
     } catch (error) {
         console.log('Error creating game', error);
-    }
-}
-
-
-function sendMessage(message) {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ 'message': message}));
-    } else {
-        console.error("Websocket not ready");
     }
 }
 
@@ -85,5 +121,6 @@ async function init_game(game_id, session_id) {
         P2 = new Player(2, true);
     }
     const game = new Game(canvas, P1, P2);
-    game.start();
+    return game;
 }
+

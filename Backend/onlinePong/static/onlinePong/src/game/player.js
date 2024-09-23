@@ -18,6 +18,10 @@ class Player {
     getName() {
         return this.name;
     }
+
+    draw(context) {
+        this.paddle.draw(context);
+    }
 }
 
 export default Player;
