@@ -5,3 +5,6 @@ from rest_framework import status
 
 def addPage(request):
     return render(request, "user/add.html")
+
+def loginPage(request):
+    return render(request, "user/login.html")

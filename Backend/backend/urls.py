@@ -23,6 +23,7 @@ urlpatterns = [
 	path('api/', include('api.urls')),
 	path('user/', include('user.urls')),
 	path('home/', views.main),
+	path('logged/', views.logged),
 	# path('dj-rest-auth/', include('dj_rest_auth.urls'))
 ]
  
