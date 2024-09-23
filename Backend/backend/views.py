@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 def main(request):
     return render(request, "backend/home.html")
 
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def logged(request):
     return render(request, "backend/logged.html")

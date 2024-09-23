@@ -7,8 +7,11 @@ from .models import MyUser
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from django.contrib.auth.decorators import login_required
+# from rest_framework.permissions import AllowAny
+# from rest_framework.decorators import permission_classes
 # from django.contrib.auth import get_user_model
 
+# @permission_classes([AllowAny])
 @api_view(['POST'])
 def add_user(request):
     serializer = UserSerializer(data=request.data)

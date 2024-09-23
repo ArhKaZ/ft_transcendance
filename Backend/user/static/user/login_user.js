@@ -1,7 +1,6 @@
 document.getElementById('userForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
-	
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
 
@@ -28,7 +27,15 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
         if (response.ok) {
             try {
                 const data = JSON.parse(responseText);
-                window.location.href = '/logged';
+                
+                // Enregistrer le token dans localStorage
+                localStorage.setItem('authToken', data.token);
+
+                displayMessage('Connexion réussie. Redirection en cours...', 'success');
+
+                // Redirection vers la page protégée
+                await accessLoggedPage();
+
             } catch (parseError) {
                 displayMessage('Erreur de parsing JSON : ' + parseError.message, 'error');
                 console.error('Contenu de la réponse:', responseText);
@@ -42,6 +49,37 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
         console.error('Détails de l\'erreur:', error);
     }
 });
+
+async function accessLoggedPage() {
+    const token = localStorage.getItem('authToken');
+
+    if (!token) {
+        displayMessage('Vous devez être connecté pour accéder à cette page.', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/logged/', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Token ' + token,  // Ajouter le token ici
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Données de la page:', data);
+            // Afficher les données reçues ou rediriger l'utilisateur
+            window.location.href = '/logged'; // Redirection après avoir accédé à la page avec succès
+        } else {
+            displayMessage('Erreur HTTP : ' + response.status + ' ' + response.statusText, 'error');
+        }
+    } catch (error) {
+        displayMessage('Une erreur réseau s\'est produite : ' + error.message, 'error');
+        console.error('Détails de l\'erreur:', error);
+    }
+}
 
 function displayMessage(message, type) {
     const messageDiv = document.getElementById('message');
