@@ -1,6 +1,7 @@
 import math
 import random
 from django.core.cache import cache
+from .player import Player
 
 class Ball:
     def __init__(self, game_id):
@@ -8,7 +9,7 @@ class Ball:
         self.y = 0
         self.vx = 0
         self.vy = 0
-        self.speed = 0.20
+        self.speed = 0.50
         self.game_id = game_id
         self.reset()
 
@@ -23,12 +24,19 @@ class Ball:
         self.x += self.vx
         self.y += self.vy
         self.check_boundaries()
+        self.check_boundaries_player()
 
     def check_boundaries(self):
-        if self.y <= 0 or self.y >= 100:
+        if self.y <= 1 or self.y >= 99:
             self.vy = -self.vy
-        if self.x <= 0 or self.x >= 100:
+        if self.x <= 1 or self.x >= 99:
             self.reset()
+
+    def check_boundaries_player(self):
+        players = Player.get_players_of_game(self.game_id)
+        if self.x <= 4 and players[0]['y'] <= self.y <= players[0]['y'] + 15 or \
+                self.x >= 96 and players[1]['y'] <= self.y <= players[1]['y'] + 15:
+            self.vx = -self.vx
 
     def save_to_cache(self):
         cache.set(f'ball_{self.game_id}_state', {'x': self.x, 'y': self.y, 'vx': self.vx, 'vy': self.vy}, timeout=None)

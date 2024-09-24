@@ -8,7 +8,7 @@ class Paddle {
             this.x = 10;
         if (this.player === 2)
             this.x = canvas.width - 20;
-        this.y = 0;
+        this.y = canvas.height / 2;
     }
 
     assignPos(y) {
@@ -16,6 +16,7 @@ class Paddle {
     }
 
     draw(context) {
+        //console.log('draw: x', this.x, 'y:', this.y);
         context.fillStyle = 'white';
         context.fillRect(this.x, this.y, this.width, this.height);
     }

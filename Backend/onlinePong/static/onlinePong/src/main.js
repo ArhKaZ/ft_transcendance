@@ -1,6 +1,8 @@
 import Game from "../src/game/game.js";
 import Player from "../src/game/player.js";
+
 let socket = null;
+let oldHeight = null;
 
 function generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -66,15 +68,17 @@ async function createGame() {
         const game_id = data.game_id;
         const socket = new WebSocket(`ws://0.0.0.0:8000/ws/onlinePong/${game_id}/${session_id}`);
         let game = null;
+
         socket.onopen = function() {
             console.log("WebSocket connecter");
         };
 
-          socket.onmessage = async function (e) {
+        socket.onmessage = async function (e) {
             const data = JSON.parse(e.data);
             if (data.message === 'game_start') {
                 game = await init_game(game_id, session_id);
                 game.start();
+                resizeCanvasGame(game);
             }
             if (data.type === 'ball_position') {
                 if (game) {
@@ -86,10 +90,19 @@ async function createGame() {
                     const session_id_player = data.session_id;
                     const response = await fetch(`./api/get_player?game_id=${game_id}&session_id=${session_id_player}`);
                     const data_player = await response.json();
-                    console.log(data.y);
                     game.updatePlayerPosition(data_player.nb_player, data.y);
                 }
             }
+            if (data.type === 'game_finish') {
+                game.displayWinner()
+            }
+            if (data.type === 'score_update') {
+                if (game) {
+                    console.log(data.score);
+                    game.updateScores(data.score);
+                }
+            }
+
         };
 
         socket.onerror = function (error) {
@@ -100,6 +113,8 @@ async function createGame() {
             console.log("WebSocket fermé");
         };
 
+        window.addEventListener("resize", function() { resizeCanvasGame(game) });
+
         return socket;
     } catch (error) {
         console.log('Error creating game', error);
@@ -108,11 +123,13 @@ async function createGame() {
 
 async function init_game(game_id, session_id) {
     const canvas = document.getElementById('gameCanvas');
-    const context = canvas.getContext('2d');
     const response = await fetch(`./api/get_player?game_id=${game_id}&session_id=${session_id}`);
     const data = await response.json();
     let P1 = null;
     let P2 = null;
+
+    oldHeight = canvas.height;
+
     if (data.nb_player === 1) {
         P1 = new Player(1, true);
         P2 = new Player(2, false);
@@ -124,3 +141,20 @@ async function init_game(game_id, session_id) {
     return game;
 }
 
+function resizeCanvasGame(game) {
+    const canvas = document.getElementById('gameCanvas');
+
+    canvas.width = window.innerWidth * 0.6;
+    canvas.height = window.innerHeight * 0.8;
+    game.P1.paddle.width = canvas.width * 0.01;
+    game.P1.paddle.height = canvas.height * 0.15;
+    game.P2.paddle.width = canvas.width * 0.01;
+    game.P2.paddle.height = canvas.height * 0.15;
+    game.P2.paddle.x = canvas.width - 20;
+    game.P1.paddle.y = (game.P1.paddle.y / oldHeight) * canvas.height;
+    game.P2.paddle.y = (game.P2.paddle.y / oldHeight) * canvas.height;
+    game.ball.size = canvas.width * 0.01;
+    oldHeight = canvas.height;
+    game.P1.draw(game.context);
+    game.P2.draw(game.context);
+}
