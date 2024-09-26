@@ -1,88 +1,44 @@
-document.getElementById('userForm').addEventListener('submit', async function(event) {
-    event.preventDefault();
-
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-
-    const userData = {
-        username: username,
-        password: password,
-    };
-
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-    try {
-        const response = await fetch('/api/login/', {
-            method: 'POST',
-            body: JSON.stringify(userData),
-            headers: {
-                'X-CSRFToken': csrfToken,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const responseText = await response.text();
-        console.log('Réponse brute du serveur:', responseText);
-
-        if (response.ok) {
-            try {
-                const data = JSON.parse(responseText);
-                
-                // Enregistrer le token dans localStorage
-                localStorage.setItem('authToken', data.token);
-
-                displayMessage('Connexion réussie. Redirection en cours...', 'success');
-
-                // Redirection vers la page protégée
-                await accessLoggedPage();
-
-            } catch (parseError) {
-                displayMessage('Erreur de parsing JSON : ' + parseError.message, 'error');
-                console.error('Contenu de la réponse:', responseText);
-            }
-        } else {
-            displayMessage('Erreur HTTP : ' + response.status + ' ' + response.statusText, 'error');
-            console.error('Contenu de la réponse d\'erreur:', responseText);
-        }
-    } catch (error) {
-        displayMessage('Une erreur réseau s\'est produite : ' + error.message, 'error');
-        console.error('Détails de l\'erreur:', error);
-    }
-});
-
-async function accessLoggedPage() {
-    const token = localStorage.getItem('authToken');
-
-    if (!token) {
-        displayMessage('Vous devez être connecté pour accéder à cette page.', 'error');
-        return;
-    }
-
-    try {
-        const response = await fetch('/logged/', {
-            method: 'GET',
-            headers: {
-                'Authorization': 'Token ' + token,  // Ajouter le token ici
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            console.log('Données de la page:', data);
-            // Afficher les données reçues ou rediriger l'utilisateur
-            window.location.href = '/logged'; // Redirection après avoir accédé à la page avec succès
-        } else {
-            displayMessage('Erreur HTTP : ' + response.status + ' ' + response.statusText, 'error');
-        }
-    } catch (error) {
-        displayMessage('Une erreur réseau s\'est produite : ' + error.message, 'error');
-        console.error('Détails de l\'erreur:', error);
-    }
-}
-
-function displayMessage(message, type) {
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('userForm');
     const messageDiv = document.getElementById('message');
-    messageDiv.innerHTML = message;
-    messageDiv.style.color = type === 'error' ? 'red' : 'green';
-}
+
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault(); // Empêche le rechargement de la page par défaut lors de la soumission du formulaire
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value; // Récupérer le token CSRF
+
+        try {
+            // Effectuer une requête fetch POST vers la vue login_user
+            const response = await fetch('/api/login/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,  // Inclure le token CSRF dans l'en-tête
+                    'Content-Type': 'application/json',  // Indiquer que les données envoyées sont en JSON
+                },
+                body: JSON.stringify({  // Envoyer les données d'authentification
+                    username: username,
+                    password: password,
+                })
+            });
+
+            if (response.ok) {
+                // Si la réponse est réussie, rediriger vers la page protégée
+                messageDiv.innerHTML = '<span style="color: green;">Connexion réussie. Redirection en cours...</span>';
+                setTimeout(() => {
+                    window.location.href = "/logged/";  // Redirection vers la page protégée
+                }, 1000);
+            } else {
+                // Si la réponse échoue, afficher le message d'erreur
+                const data = await response.json();
+                messageDiv.innerHTML = `<span style="color: red;">Erreur : ${data.error || 'Identifiants incorrects.'}</span>`;
+            }
+        } catch (error) {
+            // En cas d'erreur réseau ou autre, afficher un message générique
+            messageDiv.innerHTML = `<span style="color: red;">Une erreur s'est produite lors de la connexion. Veuillez réessayer plus tard.</span>`;
+            console.error('Erreur lors de la requête de connexion :', error);
+        }
+    });
+});

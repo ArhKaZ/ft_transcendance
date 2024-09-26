@@ -18,12 +18,14 @@ from django.contrib import admin
 from django.urls import path, include
 from . import views
 
+app_name = 'backend'
+
 urlpatterns = [
     path('admin/', admin.site.urls),
 	path('api/', include('api.urls')),
 	path('user/', include('user.urls')),
 	path('home/', views.main),
-	path('logged/', views.logged),
+	path('logged/', views.logged, name='logged'),
 	# path('dj-rest-auth/', include('dj_rest_auth.urls'))
 ]
  

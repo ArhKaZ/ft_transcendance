@@ -1,17 +1,14 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .serializers import UserSerializer
 from rest_framework import status
 from .models import MyUser
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
-from django.contrib.auth.decorators import login_required
-# from rest_framework.permissions import AllowAny
-# from rest_framework.decorators import permission_classes
-# from django.contrib.auth import get_user_model
+from django.urls import reverse
+from django.http import HttpResponseRedirect
 
-# @permission_classes([AllowAny])
 @api_view(['POST'])
 def add_user(request):
     serializer = UserSerializer(data=request.data)
@@ -37,20 +34,20 @@ def login_user(request):
     user = authenticate(username=username, password=password)
     
     if user is not None:
-        token, _ = Token.objects.get_or_create(user=user)
-        return Response({
-            "token": token.key,
-            "user": UserSerializer(user).data
-        }, status=status.HTTP_200_OK)
+         token, _ = Token.objects.get_or_create(user=user)
+         response = HttpResponseRedirect(reverse('logged'))
+         response.set_cookie('auth_token', token.key, httponly=True)
+         return response
+    #     # return redirect(reverse('backend:logged'))
+    #     return Response({
+    #         "token": token.key,
+    #         "user": UserSerializer(user).data
+    #     }, status=status.HTTP_200_OK)
     else:
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
-# @login_required
+
 def list_users(request):
     users = MyUser.objects.all()
     return render(request, 'api/list_users.html', {'users': users})
-
-# @api_view(['POST'])
-# def	loginToken(request):
-    
 
