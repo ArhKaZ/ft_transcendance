@@ -93,6 +93,10 @@ CACHES = {
         }
     }
 }
+
+REDIS_HOST = os.getenv('REDIS_HOST', '0.0.0.0')
+REDIS_PORT = os.getenv('REDIS_PORT', 6379)
+REDIS_DB = 1
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 

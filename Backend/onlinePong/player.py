@@ -1,3 +1,5 @@
+import redis
+
 from django.core.cache import cache
 from django.template.context_processors import static
 
@@ -7,8 +9,10 @@ class Player:
         self.y = 50.0
         self.nb = 0
         self.speed = 0.5
+        self.score = 0
         self.game_id = game_id
         self.session_id = session_id
+        self.redis = redis.Redis()
 
     def set_y(self, y):
         self.y = y
@@ -20,11 +24,12 @@ class Player:
             self.y += self.speed
 
     def save_to_cache(self):
-        cache_key = f'player_{self.session_id}_{self.game_id}_pos'
+        cache_key = f'player_{self.session_id}_{self.game_id}'
         cache.set(cache_key, {
             'y': self.y,
             'session_id': self.session_id,
             'game_id': self.game_id,
+            'score': self.score,
         })
 
         player_sessions_key = f'sessions_game_{self.game_id}'
@@ -41,7 +46,7 @@ class Player:
 
         players = []
         for session_id in sessions_ids:
-            cache_key = f'player_{session_id}_{game_id}_pos'
+            cache_key = f'player_{session_id}_{game_id}'
             player = cache.get(cache_key)
             if player:
                 players.append(player)
@@ -50,9 +55,14 @@ class Player:
 
     @staticmethod
     def load_from_cache(session_id, game_id):
-        cache_key = f'player_{session_id}_{game_id}_pos'
+        cache_key = f'player_{session_id}_{game_id}'
         data = cache.get(cache_key)
         if data:
             return data
         else:
             return None
+
+    def add_point(self):
+        self.score += 1
+        self.save_to_cache()
+        self.redis.publish(f"game_update:{self.game_id}", "score_updated")

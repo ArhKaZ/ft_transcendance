@@ -3,6 +3,7 @@ import Player from "../src/game/player.js";
 
 let socket = null;
 let oldHeight = null;
+let asStart = false;
 
 function generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -78,6 +79,7 @@ async function createGame() {
             if (data.message === 'game_start') {
                 game = await init_game(game_id, session_id);
                 game.start();
+                asStart = true;
                 resizeCanvasGame(game);
             }
             if (data.type === 'ball_position') {
@@ -144,17 +146,19 @@ async function init_game(game_id, session_id) {
 function resizeCanvasGame(game) {
     const canvas = document.getElementById('gameCanvas');
 
-    canvas.width = window.innerWidth * 0.6;
-    canvas.height = window.innerHeight * 0.8;
-    game.P1.paddle.width = canvas.width * 0.01;
-    game.P1.paddle.height = canvas.height * 0.15;
-    game.P2.paddle.width = canvas.width * 0.01;
-    game.P2.paddle.height = canvas.height * 0.15;
-    game.P2.paddle.x = canvas.width - 20;
-    game.P1.paddle.y = (game.P1.paddle.y / oldHeight) * canvas.height;
-    game.P2.paddle.y = (game.P2.paddle.y / oldHeight) * canvas.height;
-    game.ball.size = canvas.width * 0.01;
-    oldHeight = canvas.height;
-    game.P1.draw(game.context);
-    game.P2.draw(game.context);
+    if (asStart) {
+        canvas.width = window.innerWidth * 0.6;
+        canvas.height = window.innerHeight * 0.8;
+        game.P1.paddle.width = canvas.width * 0.01;
+        game.P1.paddle.height = canvas.height * 0.15;
+        game.P2.paddle.width = canvas.width * 0.01;
+        game.P2.paddle.height = canvas.height * 0.15;
+        game.P2.paddle.x = canvas.width - 20;
+        game.P1.paddle.y = (game.P1.paddle.y / oldHeight) * canvas.height;
+        game.P2.paddle.y = (game.P2.paddle.y / oldHeight) * canvas.height;
+        game.ball.size = canvas.width * 0.01;
+        oldHeight = canvas.height;
+        game.P1.draw(game.context);
+        game.P2.draw(game.context);
+    }
 }

@@ -11,6 +11,7 @@ class Game {
         this.P2.paddle = new Paddle(this.canvas, 2);
         this.ball = new Ball(this.canvas);
         this.score = [];
+        this.isStart = false;
     }
 
     start() {
@@ -18,6 +19,7 @@ class Game {
         document.getElementById('canvasContainer').style.display = 'block';
         this.P1.draw(this.context);
         this.P2.draw(this.context);
+        this.isStart = true;
     }
 
     updateBallPosition(x, y) {

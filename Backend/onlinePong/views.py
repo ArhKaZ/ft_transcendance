@@ -25,8 +25,7 @@ def create_or_join_game(request):
                 'player2': None,
                 'player1_ready': False,
                 'player2_ready': False,
-                'status': 'WAITING',
-                'score': [0, 0]
+                'status': 'WAITING'
             }
             cache.set(f'game_{game_id}', game, timeout=60 * 30)
 
@@ -45,8 +44,7 @@ def create_or_join_game(request):
         'player1': game['player1'],
         'player2': game['player2'],
         'player1_ready': game['player1_ready'],
-        'player2_ready': game['player2_ready'],
-        'score': game['score']
+        'player2_ready': game['player2_ready']
     })
 
 def find_waiting_game():
