@@ -23,7 +23,9 @@ class Game {
     }
 
     updateBallPosition(x, y) {
+        console.log('2');
         this.ball.assignPos(x, y);
+        console.log('3');
         this.ball.draw(this.context);
         this.P1.draw(this.context);
         this.P2.draw(this.context);

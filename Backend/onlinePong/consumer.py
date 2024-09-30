@@ -1,4 +1,6 @@
 import asyncio
+from asyncio import create_task
+
 import redis
 
 from django.conf import settings
@@ -121,35 +123,36 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def send_ball_position(self):
         while True:
-            ball_state = Ball.load_from_cache(self.game_id)
-            players = Player.get_players_of_game(self.game_id)
-            if not ball_state:
-                ball = Ball(self.game_id, players[0], players[1])
-            else:
-                ball = Ball(self.game_id, players[0], players[1])
-                ball.x = ball_state['x']
-                ball.y = ball_state['y']
-                ball.vx = ball_state['vx']
-                ball.vy = ball_state['vy']
+            try:
+                ball_state = Ball.load_from_cache(self.game_id)
+                players = Player.get_players_of_game(self.game_id)
+                if not ball_state:
+                    ball = Ball(self.game_id, players[0], players[1])
+                else:
+                    ball = Ball(self.game_id, players[0], players[1])
+                    ball.x = ball_state['x']
+                    ball.y = ball_state['y']
+                    ball.vx = ball_state['vx']
+                    ball.vy = ball_state['vy']
 
-            await ball.update_position()
+                await ball.update_position()
+                ball.save_to_cache()
 
-            ball.save_to_cache()
+                await self.channel_layer.group_send(
+                    self.game_group_name,
+                    {
+                        'type': 'ball_position',
+                        'event': 'ball_position',
+                        'x': ball.x,
+                        'y': ball.y,
+                        'message': 'ball_position_send'
+                    }
+                )
+            except Exception as e:
+                print(f'Error in send_ball_position: {e}')
+            finally:
+                await asyncio.sleep(0.02)
 
-            await self.channel_layer.group_send(
-                self.game_group_name,
-                {
-                    'type': 'ball_position',
-                    'event': 'ball_position',
-                    'x': ball.x,
-                    'y': ball.y,
-                    'message': 'ball_position_send'
-                }
-            )
-            await asyncio.sleep(0.02)
-            game = await self.get_game_from_cache(self.game_id)
-            if game['status'] == 'FINISH':
-                break
 
     async def ball_position(self, event):
         type = event['type']
