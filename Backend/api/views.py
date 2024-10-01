@@ -8,6 +8,7 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from django.urls import reverse
 from django.http import HttpResponseRedirect
+from rest_framework_simplejwt.tokens import RefreshToken
 
 @api_view(['POST'])
 def add_user(request):
@@ -34,15 +35,11 @@ def login_user(request):
     user = authenticate(username=username, password=password)
     
     if user is not None:
-         token, _ = Token.objects.get_or_create(user=user)
-         response = HttpResponseRedirect(reverse('logged'))
-         response.set_cookie('auth_token', token.key, httponly=True)
-         return response
-    #     # return redirect(reverse('backend:logged'))
-    #     return Response({
-    #         "token": token.key,
-    #         "user": UserSerializer(user).data
-    #     }, status=status.HTTP_200_OK)
+        refresh = RefreshToken.for_user(user)
+        response = HttpResponseRedirect(reverse('logged'))
+        response.set_cookie('access_token', str(refresh.access_token), httponly=True)
+        response.set_cookie('refresh_token', str(refresh), httponly=True)
+        return response
     else:
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
 

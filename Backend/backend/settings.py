@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,16 +43,30 @@ INSTALLED_APPS = [
 	'user',
 	'backend',
 	'rest_framework.authtoken',
-	'dj_rest_auth'
+	'dj_rest_auth',
+	'rest_framework_simplejwt.token_blacklist'
 ]
 
+# REST_FRAMEWORK = {
+#     "DEFAULT_AUTHENTICATION_CLASSES": [
+#         "rest_framework.authentication.TokenAuthentication",
+#     ],
+# 	# 'DEFAULT_PERMISSION_CLASSES': (
+#     #     'rest_framework.permissions.IsAuthenticated',
+#     # ),
+# }
+
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
-    ],
-	# 'DEFAULT_PERMISSION_CLASSES': (
-    #     'rest_framework.permissions.IsAuthenticated',
-    # ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Durée de vie des tokens d'accès
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # Durée de vie des tokens de rafraîchissement
+    'ROTATE_REFRESH_TOKENS': True,                 # Rafraîchir automatiquement les tokens
+    'BLACKLIST_AFTER_ROTATION': True,              # Permet d'invalider les anciens tokens
 }
 
 MIDDLEWARE = [
