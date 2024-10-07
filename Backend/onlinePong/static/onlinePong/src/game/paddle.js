@@ -16,7 +16,6 @@ class Paddle {
     }
 
     draw(context) {
-        //console.log('draw: x', this.x, 'y:', this.y);
         context.fillStyle = 'white';
         context.fillRect(this.x, this.y, this.width, this.height);
     }

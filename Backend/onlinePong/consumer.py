@@ -1,8 +1,9 @@
 import asyncio
+import aioredis
+
 from asyncio import create_task
 
-import redis
-
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -22,14 +23,10 @@ class PongConsumer(AsyncWebsocketConsumer):
         if not self.game:
             await self.close()
             return
-        print('1')
-        self.redis = redis.Redis(
-            host=settings.REDIS_HOST,
-            port=settings.REDIS_PORT,
-            db=settings.REDIS_DB,
-        )
+
+        self.redis = await aioredis.from_url(f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}')
         self.pubsub = self.redis.pubsub()
-        print('2')
+        await self.pubsub.subscribe(f"game_update:{self.game_id}")
 
         await self.channel_layer.group_add(
             self.game_group_name,
@@ -37,12 +34,16 @@ class PongConsumer(AsyncWebsocketConsumer):
         )
 
         await self.accept()
-        print('3')
         self.listen_task = asyncio.create_task(self._redis_listener())
-        print('4')
 
 
     async def disconnect(self, close_code):
+        if hasattr(self, 'listen_task'):
+            self.listen_task.cancel()
+        if hasattr(self, 'pubsub'):
+            await self.pubsub.unsubscribe(f"game_update:{self.game_id}")
+        if hasattr(self, 'redis'):
+            await self.redis.close()
         await self.channel_layer.group_discard(
             self.game_group_name,
             self.channel_name
@@ -50,11 +51,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        print('btn0')
         if text_data_json['action'] == 'ready':
-            print('btn1')
-            await self.set_player_ready(self.session_id)
-            print('btn2')
+            await self.async_set_player_ready(self.session_id)
             await self.channel_layer.group_send(
                 self.game_group_name,
                 {
@@ -80,38 +78,37 @@ class PongConsumer(AsyncWebsocketConsumer):
     def get_game_from_cache(self, game_id):
         return cache.get(f'game_{game_id}')
 
+    async def async_set_player_ready(self, session_id):
+        player = await self.set_player_ready(session_id)
+        print('ici d\'abord')
+        if player:
+            print('je passe ici')
+            await player.save_to_cache()
+
     @database_sync_to_async
     def set_player_ready(self, session_id):
-        print('bienvenue')
         cache = caches['default']
         cache_key = f'game_{self.game_id}'
-        print('cc')
         with cache.lock(f'{cache_key}_lock'):
             game = cache.get(cache_key)
-
             if not game:
                 return
-
             if game['player1'] == session_id:
                 game['player1_ready'] = True
             elif game['player2'] == session_id:
                 game['player2_ready'] = True
-
             cache.set(cache_key, game, timeout=60*30)
-            print('je passe ici')
             player = Player(session_id, self.game_id)
-            player.save_to_cache()
-            print('ici aussi')
+            return player
 
     async def check_both_ready(self):
-        cache = caches['default']
         cache_key = f'game_{self.game_id}'
 
-        with cache.lock(f'{cache_key}_lock'):
+        async with asyncio.Lock():
             game = await self.get_game_from_cache(self.game_id)
             if game.get('player1_ready') and game.get('player2_ready'):
                 game['status'] = 'IN_PROGRESS'
-                cache.set(f'game_{self.game_id}', game, timeout=60*30)
+                await self.set_game_to_cache(self.game_id, game)
                 await self.channel_layer.group_send(
                     self.game_group_name,
                     {
@@ -121,11 +118,16 @@ class PongConsumer(AsyncWebsocketConsumer):
                 )
                 self.send_ball_task = asyncio.create_task(self.send_ball_position())
 
+
+    async def set_game_to_cache(self, game_id, game_data):
+        cache = caches['default']
+        await sync_to_async(cache.set)(f'game_{game_id}', game_data, timeout=60*30)
+
     async def send_ball_position(self):
         while True:
             try:
-                ball_state = Ball.load_from_cache(self.game_id)
-                players = Player.get_players_of_game(self.game_id)
+                ball_state = await Ball.load_from_cache(self.game_id)
+                players = await Player.get_players_of_game(self.game_id)
                 if not ball_state:
                     ball = Ball(self.game_id, players[0], players[1])
                 else:
@@ -136,7 +138,7 @@ class PongConsumer(AsyncWebsocketConsumer):
                     ball.vy = ball_state['vy']
 
                 await ball.update_position()
-                ball.save_to_cache()
+                await ball.save_to_cache()
 
                 await self.channel_layer.group_send(
                     self.game_group_name,
@@ -165,15 +167,17 @@ class PongConsumer(AsyncWebsocketConsumer):
         }))
 
     async def move_player(self, data):
-        player_state = Player.load_from_cache(data['session_id'], self.game_id)
+        player_state = await Player.load_from_cache(data['session_id'], self.game_id)
+        print(player_state['y'])
         if player_state:
             player = Player(data['session_id'], self.game_id)
             player.y = player_state['y']
+            player.score = player_state['score']
         else:
             player = Player(data['session_id'], self.game_id)
 
         player.move(data['direction'])
-        player.save_to_cache()
+        await player.save_to_cache()
 
         await self.channel_layer.group_send(
             self.game_group_name,
@@ -195,14 +199,6 @@ class PongConsumer(AsyncWebsocketConsumer):
             'session_id': session_id
         }))
 
-    async def game_finish(self, event):
-        type = event['type']
-        message = event['message']
-        await self.send(text_data=json.dumps({
-            'type': type,
-            'message': message
-        }))
-
     async def score_update(self, event):
         type = event['type']
         scores = event['scores']
@@ -212,18 +208,21 @@ class PongConsumer(AsyncWebsocketConsumer):
         }))
 
     async def _redis_listener(self):
-        print(3.1)
-        await asyncio.to_thread(self._listen_for_redis_updates)
-
-    def _listen_for_redis_updates(self):
-        print(3.2)
-        for message in self.pubsub.listen():
-            if message['type'] == 'message':
-                if message['data'] == b"score_updated":
-                    players = Player.get_players_of_game(self.game_id)
-                    scores = [players[0]['score'], players[1]['score']]
-                    asyncio.run_coroutine_threadsafe(self.send_score_update(scores), asyncio.get_running_loop())
-                    print(3.3)
+        try:
+            async for message in self.pubsub.listen():
+                if message['type'] == 'message':
+                    print(message['data'])
+                    if message['data'] == b"score_updated":
+                        players = await Player.get_players_of_game(self.game_id)
+                        print(players[0].score, players[1].score)
+                        scores = [players[0].score, players[1].score]
+                        await self.send_score_update(scores)
+                    elif message['data'].startswith(b"game_finish_"):
+                        winning_session = message['data'].decode().split('_')[-1]
+                        self.send_ball_task.cancel()
+                        await self.send_game_finish(winning_session)
+        except asyncio.CancelledError:
+            pass
 
     async def send_score_update(self, scores):
         await self.channel_layer.group_send(
@@ -233,3 +232,18 @@ class PongConsumer(AsyncWebsocketConsumer):
                 'scores': scores
             }
         )
+
+    async def send_game_finish(self, winning_session):
+        await self.channel_layer.group_send(
+            self.game_group_name,
+            {
+                'type': 'game_finish',
+                'winning_session': winning_session
+            }
+        )
+
+    async def game_finish(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'game_finish',
+            'winning_session': event['winning_session']
+        }))

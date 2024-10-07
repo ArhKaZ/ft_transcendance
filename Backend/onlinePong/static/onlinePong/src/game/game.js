@@ -23,12 +23,15 @@ class Game {
     }
 
     updateBallPosition(x, y) {
-        console.log('2');
         this.ball.assignPos(x, y);
-        console.log('3');
+
+    }
+
+    drawGame() {
         this.ball.draw(this.context);
         this.P1.draw(this.context);
         this.P2.draw(this.context);
+        this.drawScore();
     }
 
     updatePlayerPosition(player, y) {
@@ -44,15 +47,18 @@ class Game {
 
     updateScores(score) {
         this.score = score;
+    }
+
+    drawScore() {
         this.context.fillStyle = 'grey';
         this.context.font = '100px Arial';
         this.context.textAlign = 'center';
         this.context.textBaseline = 'middle';
-        this.context.fillText(`${score[0]}`, this.canvas.width / 4, this.canvas.height / 2);
-        this.context.fillText(`${score[1]}`, (3 * this.canvas.width) / 4, this.canvas.height / 2);
+        this.context.fillText(`${this.score[0]}`, this.canvas.width / 4, this.canvas.height / 2);
+        this.context.fillText(`${this.score[1]}`, (3 * this.canvas.width) / 4, this.canvas.height / 2);
     }
 
-    displayWinner() {
+    displayWinner(winner) {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.fillStyle = 'red';
         this.context.font = '100px Arial';
@@ -60,9 +66,9 @@ class Game {
         this.context.textBaseline = 'middle';
 
         let winnerText;
-        if (this.score[0] === 11) {
+        if (winner === 1) {
             winnerText = 'P1 has WIN!';
-        } else if (this.score[1] === 11) {
+        } else if (winner === 2) {
             winnerText = 'P2 has WIN!';
         }
         this.context.fillText(winnerText, this.canvas.width / 2, this.canvas.height / 2);
