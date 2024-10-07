@@ -7,7 +7,7 @@ services:
     ports:
       - "6379:6379"
 
-  web:
+  django:
     container_name: django
     build:
       context: ./init_django/
@@ -25,11 +25,11 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
-      - db
+      - db_postgre
       - redis
-    command: ./init_django/script.sh db
+    command: ./init_django/script.sh db_postgre
 
-  db:
+  db_postgre:
     container_name: db_postgre
     image: postgres:14.1-alpine
     restart: always
@@ -40,9 +40,9 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - db:/root/42/ft_transcendance/Backend/dbVolumes/
+      - db_postgre:/root/42/ft_transcendance/Backend/dbVolumes/
       - ./init_db/init.sql:/docker-entrypoint-initdb.d/init.sql
 
 volumes:
-  db:
+  db_postgre:
     driver: local

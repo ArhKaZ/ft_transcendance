@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Add a user</title>
+    {% load static %}
+</head>
+<body>
+    <h1>Add a new user</h1>
+    <form id="userForm">
+        {% csrf_token %}
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br><br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br><br>
+
+        <label for="description">Description:</label>
+        <textarea id="description" name="description"></textarea><br><br>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <!-- Div for displaying error/success messages -->
+    <div id="message"></div>
+
+    <script src="{% static 'user/add_user.js' %}"></script>
+</body>
+</html>

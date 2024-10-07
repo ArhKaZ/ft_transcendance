@@ -16,11 +16,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from . import views
 from django.conf.urls.static import static
 from django.conf import settings
+
+app_name = 'backend'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 	path('', include('api.urls')),
     path('onlinePong/', include('onlinePong.urls')),
+	path('api/', include('api.urls')),
+	path('user/', include('user.urls')),
+	path('home/', views.main),
+	path('logged/', views.logged, name='logged'),
+	# path('dj-rest-auth/', include('dj_rest_auth.urls'))
 ]
