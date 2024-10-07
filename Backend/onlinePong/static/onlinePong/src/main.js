@@ -24,7 +24,39 @@ function sendToBack(json) {
     }
 }
 
+async function getUserFromBack() {
+    try {
+        const response = await fetch('logged_get_user/');
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Getting user error");
+        }
+        const data_player = await response.json();
+        console.log(data_player);
+        return data_player
+    } catch (error) {
+        console.log("error when get user : ", error);
+        throw error;
+    }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        await getUserFromBack();
+    } catch (error) {
+        if (error.message.includes("No token") || error.message.includes("Invalid Token")) {
+            alert("You need to connect before play")
+            window.location.href = '/home/';
+        } else {
+            const errorElement = document.getElementById('error-message'); // Voir si je fais ca 
+            if (errorElement) {
+                errorElement.textContent = error.message;
+                errorElement.style.display = 'block';
+            } else {
+                alert(error.message);
+            }
+        }
+    }
     socket = await createGame();
 
     document.getElementById('buttonStart').addEventListener('click', async () => {
