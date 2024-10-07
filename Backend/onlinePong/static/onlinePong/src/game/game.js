@@ -17,6 +17,8 @@ class Game {
     start() {
         document.getElementById('buttonStart').style.display = 'none';
         document.getElementById('canvasContainer').style.display = 'block';
+        document.getElementById('infoP1').innerHTML += `<h1>${this.P1.name}</h1>`;
+        document.getElementById('infoP2').textContent +=`<h1>${this.P2.name}</h1>`;
         this.P1.draw(this.context);
         this.P2.draw(this.context);
         this.isStart = true;
@@ -24,7 +26,6 @@ class Game {
 
     updateBallPosition(x, y) {
         this.ball.assignPos(x, y);
-
     }
 
     drawGame() {

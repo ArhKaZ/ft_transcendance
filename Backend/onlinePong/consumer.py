@@ -16,14 +16,13 @@ class PongConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.ball = None
         self.game_id = self.scope['url_route']['kwargs']['game_id']
-        self.session_id = self.scope['url_route']['kwargs']['session_id']
+        self.player_id = self.scope['url_route']['kwargs']['current_player_id']
         self.game_group_name = f'game_{self.game_id}'
         self.game = await self.get_game_from_cache(self.game_id)
 
         if not self.game:
             await self.close()
             return
-
         self.redis = await aioredis.from_url(f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}')
         self.pubsub = self.redis.pubsub()
         await self.pubsub.subscribe(f"game_update:{self.game_id}")
@@ -52,13 +51,13 @@ class PongConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         if text_data_json['action'] == 'ready':
-            await self.async_set_player_ready(self.session_id)
+            await self.async_set_player_ready(self.player_id)
             await self.channel_layer.group_send(
                 self.game_group_name,
                 {
                     'type': 'game_message',
                     'event': 'game_message',
-                    'message': f'{self.session_id} is ready'
+                    'message': f'{self.player_id} is ready'
                 }
             )
             await self.check_both_ready()
@@ -78,27 +77,25 @@ class PongConsumer(AsyncWebsocketConsumer):
     def get_game_from_cache(self, game_id):
         return cache.get(f'game_{game_id}')
 
-    async def async_set_player_ready(self, session_id):
-        player = await self.set_player_ready(session_id)
-        print('ici d\'abord')
+    async def async_set_player_ready(self, player_id):
+        player = await self.set_player_ready(player_id)
         if player:
-            print('je passe ici')
             await player.save_to_cache()
 
     @database_sync_to_async
-    def set_player_ready(self, session_id):
+    def set_player_ready(self, player_id):
         cache = caches['default']
         cache_key = f'game_{self.game_id}'
         with cache.lock(f'{cache_key}_lock'):
             game = cache.get(cache_key)
             if not game:
                 return
-            if game['player1'] == session_id:
+            if game['player1'] == player_id:
                 game['player1_ready'] = True
-            elif game['player2'] == session_id:
+            elif game['player2'] == player_id:
                 game['player2_ready'] = True
             cache.set(cache_key, game, timeout=60*30)
-            player = Player(session_id, self.game_id)
+            player = Player(player_id, self.game_id)
             return player
 
     async def check_both_ready(self):
@@ -167,14 +164,13 @@ class PongConsumer(AsyncWebsocketConsumer):
         }))
 
     async def move_player(self, data):
-        player_state = await Player.load_from_cache(data['session_id'], self.game_id)
-        print(player_state['y'])
+        player_state = await Player.load_from_cache(data['player_id'], self.game_id)
         if player_state:
-            player = Player(data['session_id'], self.game_id)
+            player = Player(data['player_id'], self.game_id)
             player.y = player_state['y']
             player.score = player_state['score']
         else:
-            player = Player(data['session_id'], self.game_id)
+            player = Player(data['player_id'], self.game_id)
 
         player.move(data['direction'])
         await player.save_to_cache()
@@ -185,18 +181,18 @@ class PongConsumer(AsyncWebsocketConsumer):
                 'type': 'player_move',
                 'event': 'player_move',
                 'y': player.y,
-                'session_id': data['session_id']
+                'player_id': player.player_id
             }
         )
 
     async def player_move(self, event):
         type = event['type']
         y = event['y']
-        session_id = event['session_id']
+        player_id = event['player_id']
         await self.send(text_data=json.dumps({
             'y': y,
             'type': type,
-            'session_id': session_id
+            'player_id': player_id
         }))
 
     async def score_update(self, event):

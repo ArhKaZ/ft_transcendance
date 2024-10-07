@@ -42,7 +42,42 @@ async function getUserFromBack() {
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {
-        await getUserFromBack();
+        const currentPlayer = await getUserFromBack();
+        const player_id = currentPlayer.id;
+        socket = await createGame(currentPlayer);
+
+    document.getElementById('buttonStart').addEventListener('click', async () => {
+           sendToBack(JSON.stringify({
+                    'action': 'ready',
+                    'player_id': player_id,
+                }));
+        });
+
+    let movementInvertal = null;
+    window.addEventListener('keydown', (event) => {
+        if (movementInvertal === null) {
+        if (event.key === 'ArrowUp') {
+            sendToBack(JSON.stringify({ 'action': 'move', 'direction': 'up', 'player_id': player_id }));
+            movementInvertal = setInterval(() => {
+                sendToBack(JSON.stringify({ 'action': 'move', 'direction': 'up', 'player_id': player_id }));
+            }, 10);
+        }
+        if (event.key === 'ArrowDown') {
+            sendToBack(JSON.stringify({ 'action': 'move', 'direction': 'down', 'player_id': player_id }));
+            movementInvertal = setInterval(() => {
+                sendToBack(JSON.stringify({ 'action': 'move', 'direction': 'down', 'player_id': player_id }));
+            }, 10);
+        }
+
+        }
+    });
+
+    window.addEventListener('keyup', (event) => {
+        if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+            clearInterval(movementInvertal);
+            movementInvertal = null;
+        }
+    });
     } catch (error) {
         if (error.message.includes("No token") || error.message.includes("Invalid Token")) {
             alert("You need to connect before play")
@@ -57,49 +92,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         }
     }
-    socket = await createGame();
-
-    document.getElementById('buttonStart').addEventListener('click', async () => {
-           sendToBack(JSON.stringify({
-                    'action': 'ready',
-                    'sessionId': session_id
-                }));
-        });
-
-    let movementInvertal = null;
-    window.addEventListener('keydown', (event) => {
-        if (movementInvertal === null) {
-        if (event.key === 'ArrowUp') {
-            console.log('session_id:' ,session_id);
-            sendToBack(JSON.stringify({ 'action': 'move', 'direction': 'up', 'session_id': session_id }));
-            movementInvertal = setInterval(() => {
-                sendToBack(JSON.stringify({ 'action': 'move', 'direction': 'up', 'session_id': session_id }));
-            }, 10);
-        }
-        if (event.key === 'ArrowDown') {
-            sendToBack(JSON.stringify({ 'action': 'move', 'direction': 'down', 'session_id': session_id }));
-            movementInvertal = setInterval(() => {
-                sendToBack(JSON.stringify({ 'action': 'move', 'direction': 'down', 'session_id': session_id }));
-            }, 10);
-        }
-
-        }
-    });
-
-    window.addEventListener('keyup', (event) => {
-        if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-            clearInterval(movementInvertal);
-            movementInvertal = null;
-        }
-    });
 })
 
-async function createGame() {
+async function createGame(currentPlayer) {
+    const current_player_id = currentPlayer.id;
     try {
-        const response = await fetch(`./api/create_or_join_game?session_id=${session_id}`);
+        const response = await fetch(`./api/create_or_join_game?player_id=${currentPlayer.id}`);
         const data = await response.json();
         const game_id = data.game_id;
-        const socket = new WebSocket(`ws://0.0.0.0:8000/ws/onlinePong/${game_id}/${session_id}`);
+        const socket = new WebSocket(`ws://localhost:8000/ws/onlinePong/${game_id}/${current_player_id}`);
         let game = null;
 
         socket.onopen = function() {
@@ -107,11 +108,11 @@ async function createGame() {
         };
 
         socket.onmessage = async function (e) {
-            game = await handleWebSOnMessage(e, game, game_id, session_id);
+            game = await handleWebSOnMessage(e, game, game_id, current_player_id);
         };
 
         socket.onerror = function (error) {
-            console.error("Erreur WebSocket:", error);
+            console.error("Erreur WebSocket:", error.type);
         };
 
         socket.onclose = function () {
@@ -121,37 +122,33 @@ async function createGame() {
         window.addEventListener("resize", function() { resizeCanvasGame(game) });
 
         return socket;
+
     } catch (error) {
         console.log('Error creating game', error);
     }
 }
 
-async function initGame(game_id, session_id) {
+async function initGame(game_id, player_id) {
     const canvas = document.getElementById('gameCanvas');
-    const response = await fetch(`./api/get_player?game_id=${game_id}&session_id=${session_id}`);
+    const response = await fetch(`./api/get_player?game_id=${game_id}&player_id=${player_id}`);
     const data = await response.json();
-    let P1 = null;
-    let P2 = null;
 
     oldHeight = canvas.height;
 
-    if (data.nb_player === 1) {
-        P1 = new Player(1, true);
-        P2 = new Player(2, false);
-    } else {
-        P1 = new Player(1, false);
-        P2 = new Player(2, true);
-    }
+    const P1 = new Player(data.player_id, data.player_name, data.player_number === 1);
+    const P2 = new Player(data.opponent_id, data.opponent_name, data.player_number === 2);
+
     const game = new Game(canvas, P1, P2);
 
     return game;
 }
 
-async function handleWebSOnMessage(e, game, game_id, session_id) {
+async function handleWebSOnMessage(e, game, game_id, player_id) {
     const data = JSON.parse(e.data);
 
     if (data.message === 'game_start') {
-        game = await initGame(game_id, session_id);
+        console.log('game start')
+        game = await initGame(game_id, player_id);
         game.start();
         asStart = true;
         resizeCanvasGame(game);
@@ -162,9 +159,12 @@ async function handleWebSOnMessage(e, game, game_id, session_id) {
         }
     } if (data.type === 'player_move') {
         if (game) {
-            const sessionIdPlayer = data.session_id;
-            const nbPlayer = getNbPlayer(sessionIdPlayer, game_id);
-            game.updatePlayerPosition(nbPlayer, data.y);
+            const player_id = data.player_id;
+            if (player_id === parseInt(game.P1.id)) {
+                game.updatePlayerPosition(1, data.y);
+            } else if (player_id === parseInt(game.P2.id)) {
+                game.updatePlayerPosition(2, data.y);
+            }
         }
     } if (data.type === 'game_finish') {
         const winnerSession = data.winning_session;
@@ -178,8 +178,8 @@ async function handleWebSOnMessage(e, game, game_id, session_id) {
     return game;
 }
 
-async function getNbPlayer(session_id_player, game_id) {
-    const response = await fetch(`./api/get_player?game_id=${game_id}&session_id=${session_id_player}`);
+async function getNbPlayer(player_id, game_id) {
+    const response = await fetch(`./api/get_player?game_id=${game_id}&player_id=${player_id}`);
     const data_player = await response.json();
     return data_player.nb_player;
 }

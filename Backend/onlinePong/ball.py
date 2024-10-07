@@ -11,8 +11,8 @@ class Ball:
         self.y = 50
         self.speed = 0.50
         self.game_id = game_id
-        self.player1 = Player(player1.session_id, player1.game_id)
-        self.player2 = Player(player2.session_id, player2.game_id)
+        self.player1 = Player(player1.player_id, player1.game_id)
+        self.player2 = Player(player2.player_id, player2.game_id)
         rand = random.choice([1,2])
         angle = random.uniform(-math.pi / 4, math.pi / 4)
         direction = -1 if rand == 1 else 1

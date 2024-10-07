@@ -1,9 +1,9 @@
 class Player {
-    constructor(nb, isMe) {
-        // this.name = name;
-        this.nb = nb;
+    constructor(id, name, isCurrentPlayer) {
+        this.name = name;
+        this.id = id
         this.paddle = null;
-        this.isMe = false;
+        this.isCurrentPlayer = isCurrentPlayer;
     }
 
     incrementScore()
