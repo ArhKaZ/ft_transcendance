@@ -17,12 +17,14 @@ def add_user(request):
         user = serializer.save()
         user.set_password(serializer.validated_data['password'])
         user.save()
-        token, _ = Token.objects.get_or_create(user=user)
+        refresh = RefreshToken.for_user(user)
         return Response({
-            "token": token.key,
+            "access_token": str(refresh.access_token),
+            "refresh_token": str(refresh),
             "user": UserSerializer(user).data
         }, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['POST'])
 def login_user(request):
@@ -37,8 +39,9 @@ def login_user(request):
     if user is not None:
         refresh = RefreshToken.for_user(user)
         response = HttpResponseRedirect(reverse('logged'))
-        response.set_cookie('access_token', str(refresh.access_token), httponly=True)
-        response.set_cookie('refresh_token', str(refresh), httponly=True)
+        response.set_cookie('access_token', str(refresh.access_token), httponly=True, secure=True, samesite='Lax')
+        response.set_cookie('refresh_token', str(refresh), httponly=True, secure=True, samesite='Lax')
+
         return response
     else:
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
