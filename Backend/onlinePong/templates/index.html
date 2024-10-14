@@ -8,12 +8,45 @@
 </head>
 <body>
     <div id="infoP1">
+        <h1 id="p1-username" class="hidden">None</h1>
+             <div id="p1-img" class="svg-container hidden">
+                <svg id="p1-waiting-animation" class='hidden' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="white">
+                    <circle class="bounce-ball" cx="30" cy="50" r="5"></circle>
+                    <circle class="bounce-ball" cx="50" cy="50" r="5"></circle>
+                    <circle class="bounce-ball" cx="70" cy="50" r="5"></circle>
+                </svg>
+                <svg id="p1-joined-animation" class="hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="green">
+                    <rect class="joined-animation" x="40" y="40" width="20" height="20"></rect>
+                    <text x="50%" y="90%" text-anchor="middle" fill="white" font-size="10">Player Ready</text>
+                </svg>
+            </div>
+        <h1 id="p1-status"></h1>
+    </div>
+    <div id="scoreContainer" class="score-container">
+        <span id="scoreP1">0</span>
+        <span id="scoreP2">0</span>
     </div>
     <div id="canvasContainer">
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         <script type="module" src="../static/onlinePong/src/main.js"></script>
     </div>
     <div id="infoP2">
+        <h1 id="p2-username" class="hidden">None</h1>
+            <div id="p2-img"  class="svg-container hidden">
+                <!-- Animation avant que le joueur rejoigne -->
+                <svg id="p2-waiting-animation" class="hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="white">
+                    <circle class="bounce-ball" cx="30" cy="50" r="5"></circle>
+                    <circle class="bounce-ball" cx="50" cy="50" r="5"></circle>
+                    <circle class="bounce-ball" cx="70" cy="50" r="5"></circle>
+                </svg>
+
+                <!-- Animation une fois que le joueur a rejoint -->
+                <svg id="p2-joined-animation" class="hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="green">
+                    <rect class="joined-animation" x="40" y="40" width="20" height="20"></rect>
+                    <text x="50%" y="90%" text-anchor="middle" fill="white" font-size="10">Player Ready</text>
+                </svg>
+            </div>
+        <h1 id="p2-status"></h1>
     </div>
     <button id="buttonStart">Ready!</button>
 </body>

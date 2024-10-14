@@ -6,7 +6,9 @@ from django.http import HttpResponseForbidden, HttpResponseRedirect, JsonRespons
 from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken
+from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
+from api.models import MyUser
 
 def main(request):
     return render(request, "backend/home.html")
@@ -50,5 +52,7 @@ def logged_get_user(request):
         return JsonResponse({"error": str(e)}, status=401)
     except InvalidToken as e:
         return JsonResponse({"error": "Invalid Token"}, status=401)
+    except MyUser.DoesNotExist:
+        return JsonResponse({"error": "User does not exist"}, status=404)
     except Exception as e:
         return JsonResponse({"error": e}, status=500)

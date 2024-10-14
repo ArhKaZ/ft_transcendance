@@ -9,7 +9,7 @@ from backend import settings
 
 class Player:
     def __init__(self, player_id, game_id):
-        self.y = 50.0
+        self.y = 42.5
         self.nb = 0
         self.speed = 0.9
         self.score = 0
@@ -20,10 +20,12 @@ class Player:
         self.y = y
 
     def move(self, direction):
-        if direction == 'up':
-            self.y -= self.speed
-        else:
-            self.y += self.speed
+        if self.y > 0 :
+            if direction == 'up':
+                self.y -= self.speed
+        if self.y + 15 < 100:
+            if direction == 'down':
+                self.y += self.speed
 
     async def save_to_cache(self):
         cache_key = f'player_{self.player_id}_{self.game_id}'
@@ -69,9 +71,11 @@ class Player:
             self.y = player['y']
             self.score = player['score'] + 1
             await self.save_to_cache()
+
             redis = await aioredis.from_url(f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}')
+
             await redis.publish(f"game_update:{self.game_id}", "score_updated")
-            if self.score >= 3:
+            if self.score >= 2:
                 await redis.publish(f"game_update:{self.game_id}", f"game_finish_{self.player_id}")
             await redis.close()
         except aioredis.RedisError as e:

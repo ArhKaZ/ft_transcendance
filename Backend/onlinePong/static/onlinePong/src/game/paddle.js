@@ -5,10 +5,10 @@ class Paddle {
         this.width = canvas.width * 0.01;
         this.height = canvas.height * 0.15;
         if (this.player === 1)
-            this.x = 10;
+            this.x = canvas.width * (1 / 100);
         if (this.player === 2)
-            this.x = canvas.width - 20;
-        this.y = canvas.height / 2;
+            this.x = canvas.width - (canvas.width * (1 / 100) + this.width);
+        this.y = 42.5 * canvas.height / 100;
     }
 
     assignPos(y) {

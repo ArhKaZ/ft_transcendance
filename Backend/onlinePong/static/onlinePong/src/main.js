@@ -3,24 +3,14 @@ import Player from "../src/game/player.js";
 
 let socket = null;
 let oldHeight = null;
-let asStart = false;
+let gameStarted = false;
+let currentPlayerId = null;
 
-function generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random() * 16 | 0,
-            v = c == 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-}
-
-const session_id = generateUUID();
-
-
-function sendToBack(json) {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(json);
+function sendToBack(data) {
+    if (socket?.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(data));
     } else {
-        console.error("Websocket not ready");
+        console.error("WebSocket not ready");
     }
 }
 
@@ -29,13 +19,11 @@ async function getUserFromBack() {
         const response = await fetch('logged_get_user/');
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || "Getting user error");
+            throw new Error(errorData.error || "Error getting user");
         }
-        const data_player = await response.json();
-        console.log(data_player);
-        return data_player
+        return await response.json();
     } catch (error) {
-        console.log("error when get user : ", error);
+        console.error("Error when getting user:", error);
         throw error;
     }
 }
@@ -43,162 +31,280 @@ async function getUserFromBack() {
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         const currentPlayer = await getUserFromBack();
-        const player_id = currentPlayer.id;
+        const playerId = currentPlayer.id;
         socket = await createGame(currentPlayer);
 
-    document.getElementById('buttonStart').addEventListener('click', async () => {
-           sendToBack(JSON.stringify({
-                    'action': 'ready',
-                    'player_id': player_id,
-                }));
+        document.getElementById('buttonStart').addEventListener('click', () => {
+            sendToBack({ action: 'ready', player_id: playerId });
         });
 
-    let movementInvertal = null;
-    window.addEventListener('keydown', (event) => {
-        if (movementInvertal === null) {
-        if (event.key === 'ArrowUp') {
-            sendToBack(JSON.stringify({ 'action': 'move', 'direction': 'up', 'player_id': player_id }));
-            movementInvertal = setInterval(() => {
-                sendToBack(JSON.stringify({ 'action': 'move', 'direction': 'up', 'player_id': player_id }));
-            }, 10);
-        }
-        if (event.key === 'ArrowDown') {
-            sendToBack(JSON.stringify({ 'action': 'move', 'direction': 'down', 'player_id': player_id }));
-            movementInvertal = setInterval(() => {
-                sendToBack(JSON.stringify({ 'action': 'move', 'direction': 'down', 'player_id': player_id }));
-            }, 10);
-        }
+        setupKeyboardControls(playerId);
+    } catch (error) {
+        handleError(error);
+    }
+});
 
+function setupKeyboardControls(playerId) {
+    let movementInterval = null;
+
+    window.addEventListener('keydown', (event) => {
+        if (!movementInterval) {
+            const direction = event.key === 'ArrowUp' ? 'up' : event.key === 'ArrowDown' ? 'down' : null;
+            if (direction) {
+                sendMovement(direction, playerId);
+                movementInterval = setInterval(() => sendMovement(direction, playerId), 10);
+            }
         }
     });
 
     window.addEventListener('keyup', (event) => {
         if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-            clearInterval(movementInvertal);
-            movementInvertal = null;
+            clearInterval(movementInterval);
+            movementInterval = null;
         }
     });
-    } catch (error) {
-        if (error.message.includes("No token") || error.message.includes("Invalid Token")) {
-            alert("You need to connect before play")
-            window.location.href = '/home/';
+}
+
+function sendMovement(direction, playerId) {
+    sendToBack({ action: 'move', direction, player_id: playerId });
+}
+
+function handleError(error) {
+    if (error.message.includes("No token") || error.message.includes("Invalid Token") || error.message.includes("User does not exist")) {
+        alert("You need to connect before playing");
+        window.location.href = '/home/';
+    } else {
+        const errorElement = document.getElementById('error-message');
+        if (errorElement) {
+            errorElement.textContent = error.message;
+            errorElement.style.display = 'block';
         } else {
-            const errorElement = document.getElementById('error-message'); // Voir si je fais ca 
-            if (errorElement) {
-                errorElement.textContent = error.message;
-                errorElement.style.display = 'block';
-            } else {
-                alert(error.message);
-            }
+            alert(error.message);
         }
-    }
-})
-
-async function createGame(currentPlayer) {
-    const current_player_id = currentPlayer.id;
-    try {
-        const response = await fetch(`./api/create_or_join_game?player_id=${currentPlayer.id}`);
-        const data = await response.json();
-        const game_id = data.game_id;
-        const socket = new WebSocket(`ws://localhost:8000/ws/onlinePong/${game_id}/${current_player_id}`);
-        let game = null;
-
-        socket.onopen = function() {
-            console.log("WebSocket connecter");
-        };
-
-        socket.onmessage = async function (e) {
-            game = await handleWebSOnMessage(e, game, game_id, current_player_id);
-        };
-
-        socket.onerror = function (error) {
-            console.error("Erreur WebSocket:", error.type);
-        };
-
-        socket.onclose = function () {
-            console.log("WebSocket fermé");
-        };
-
-        window.addEventListener("resize", function() { resizeCanvasGame(game) });
-
-        return socket;
-
-    } catch (error) {
-        console.log('Error creating game', error);
     }
 }
 
-async function initGame(game_id, player_id) {
+async function updatePlayerStatus(playerId, gameId) {
+    try {
+        const response = await fetch(`./api/get_player?game_id=${gameId}&player_id=${playerId}`);
+        const data = await response.json();
+        const playerNumber = data.player_number;
+        console.log(data);
+        const waitingAnimation = document.getElementById(`p${playerNumber}-waiting-animation`);
+        const joinedAnimation = document.getElementById(`p${playerNumber}-joined-animation`);
+
+        waitingAnimation.classList.add('hidden');
+        joinedAnimation.classList.remove('hidden');
+    } catch (error) {
+        console.error('Error updating player status:', error);
+    }
+}
+
+async function createGame(currentPlayer) {
+    currentPlayerId = currentPlayer.id;
+    const currentPlayerName = currentPlayer.username;
+    try {
+        const response = await fetch(`./api/create_or_join_game?player_id=${currentPlayerId}&player_name=${currentPlayerName}`);
+        const data = await response.json();
+        const gameId = data.game_id;
+        displayWhenConnect(data);
+        return setupWebSocket(gameId, currentPlayerId);
+    } catch (error) {
+        console.error('Error creating game:', error);
+    }
+}
+
+function setupWebSocket(gameId, playerId) {
+    const socket = new WebSocket(`ws://localhost:8000/ws/onlinePong/${gameId}/${playerId}`);
+    let game = null;
+
+    socket.onopen = () => {
+        console.log("WebSocket connected");
+        sendToBack({ action: 'get_players', game_id: gameId });
+    };
+
+    socket.onmessage = async (e) => {
+        game = await handleWebSocketMessage(e, game, gameId, playerId);
+    };
+
+    socket.onerror = (error) => console.error("WebSocket error:", error.type);
+    socket.onclose = () => console.log("WebSocket closed");
+
+    window.addEventListener("resize", () => resizeCanvasGame(game));
+
+    return socket;
+}
+
+function displayWhenConnect(data) {
+    const elements = {
+        player: {
+            username: document.getElementById('p1-username'),
+            img: document.getElementById('p1-img'),
+            waitingAnim: document.getElementById('p1-waiting-animation'),
+            joinedAnim: document.getElementById('p1-joined-animation'),
+        },
+        opponent: {
+            username: document.getElementById('p2-username'),
+            img: document.getElementById('p2-img'),
+            waitingAnim: document.getElementById('p2-waiting-animation'),
+            joinedAnim: document.getElementById('p2-joined-animation'),
+        }
+    };
+
+    const playerData = {
+        name: data.player1_name,
+        isMe: data.player1_is_me,
+        exists: true,
+        isReady: data.player1_ready,
+    }
+
+    const opponentData = {
+        name: data.player2_name,
+        isMe: !data.player1_is_me,
+        exists: !!data.player2_name,
+        isReady: data.player2_ready,
+    }
+
+    updatePlayerDisplay(elements.player, playerData);
+    updatePlayerDisplay(elements.opponent, opponentData);
+}
+
+function updatePlayerDisplay(elements, data) {
+    if (data.isMe || data.exists) {
+        elements.username.innerText = data.name;
+        elements.username.classList.remove('hidden');
+        elements.img.classList.remove('hidden');
+        if (data.isReady)
+            elements.joinedAnim.classList.remove('hidden');
+        else
+            elements.waitingAnim.classList.remove('hidden');
+    }
+}
+
+async function initGame(gameId, playerId) {
     const canvas = document.getElementById('gameCanvas');
-    const response = await fetch(`./api/get_player?game_id=${game_id}&player_id=${player_id}`);
+    const response = await fetch(`./api/get_player?game_id=${gameId}&player_id=${playerId}`);
     const data = await response.json();
 
     oldHeight = canvas.height;
-
-    const P1 = new Player(data.player_id, data.player_name, data.player_number === 1);
-    const P2 = new Player(data.opponent_id, data.opponent_name, data.player_number === 2);
-
-    const game = new Game(canvas, P1, P2);
-
-    return game;
+    const [P1, P2] = createPlayers(data);
+    return new Game(canvas, P1, P2);
 }
 
-async function handleWebSOnMessage(e, game, game_id, player_id) {
+function createPlayers(data) {
+    const mainPlayer = new Player(data.player_id, data.player_name, data.player_number === 1);
+    const opponent = new Player(data.opponent_id, data.opponent_name, data.player_number === 2);
+    return data.player_number === 1 ? [mainPlayer, opponent] : [opponent, mainPlayer];
+}
+
+async function handleWebSocketMessage(e, game, gameId, playerId) {
     const data = JSON.parse(e.data);
 
-    if (data.message === 'game_start') {
-        console.log('game start')
-        game = await initGame(game_id, player_id);
-        game.start();
-        asStart = true;
-        resizeCanvasGame(game);
-    } if (data.type === 'ball_position') {
-        if (game) {
-            game.updateBallPosition(data.x, data.y);
-            game.drawGame();
-        }
-    } if (data.type === 'player_move') {
-        if (game) {
-            const player_id = data.player_id;
-            if (player_id === parseInt(game.P1.id)) {
-                game.updatePlayerPosition(1, data.y);
-            } else if (player_id === parseInt(game.P2.id)) {
-                game.updatePlayerPosition(2, data.y);
+    switch(data.type) {
+        case 'player_connected':
+            displayConnectedPlayer(data.player_id, data.player_name);
+            break;
+        case 'player_ready':
+            updatePlayerStatus(data.player_id, gameId);
+            break;
+        case 'ball_position':
+            if (game) {
+                game.updateBallPosition(data.x, data.y);
+                game.drawGame();
             }
-        }
-    } if (data.type === 'game_finish') {
-        const winnerSession = data.winning_session;
-        const nbPlayer = getNbPlayer(winnerSession, game_id);
-        game.displayWinner(nbPlayer)
-    } if (data.type === 'score_update') {
-        if (game) {
-            game.updateScores(data.score);
-        }
+            break;
+        case 'player_move':
+            if (game) updatePlayerPosition(game, data);
+            break;
+        case 'score_update':
+            if (game) game.updateScores(data.score);
+            break;
+        case 'game_finish':
+            if (game) {
+                handleGameFinish(game, data.winning_session);
+                gameStarted = false;
+                game.stop();
+            }
+            break;
     }
+
+    if (data.message === 'game_start') {
+        game = await initGame(gameId, playerId);
+        game.start();
+        gameStarted = true;
+        resizeCanvasGame(game);
+    }
+
     return game;
 }
 
-async function getNbPlayer(player_id, game_id) {
-    const response = await fetch(`./api/get_player?game_id=${game_id}&player_id=${player_id}`);
-    const data_player = await response.json();
-    return data_player.nb_player;
+function updatePlayerPosition(game, data) {
+    const playerNumber = parseInt(data.player_id) === parseInt(game.P1.id) ? 1 : 2;
+    game.updatePlayerPosition(playerNumber, data.y);
+}
+
+function handleGameFinish(game, winningId) {
+    const winnerName = parseInt(game.P1.id) === parseInt(winningId) ? game.P1.name : game.P2.name;
+    game.displayWinner(winnerName);
+}
+
+function displayConnectedPlayer(playerId, playerName) {
+    const isPlayer1 = parseInt(playerId) === currentPlayerId;
+    const elementId = isPlayer1 ? 'p1' : 'p2';
+    const nameElement = document.getElementById(`${elementId}-username`);
+    const imgElement = document.getElementById(`${elementId}-img`);
+    const waitingAnimElement = document.getElementById(`${elementId}-waiting-animation`);
+    if (nameElement.classList.contains('hidden')) {
+        nameElement.innerText = playerName;
+        nameElement.classList.remove('hidden');
+        imgElement.classList.remove('hidden');
+        waitingAnimElement.classList.remove('hidden');
+    }
 }
 
 function resizeCanvasGame(game) {
+    if (!gameStarted || !game) return;
+
     const canvas = document.getElementById('gameCanvas');
-    if (asStart) {
-        canvas.width = window.innerWidth * 0.6;
-        canvas.height = window.innerHeight * 0.8;
-        game.P1.paddle.width = canvas.width * 0.01;
-        game.P1.paddle.height = canvas.height * 0.15;
-        game.P2.paddle.width = canvas.width * 0.01;
-        game.P2.paddle.height = canvas.height * 0.15;
-        game.P2.paddle.x = canvas.width - 20;
-        game.P1.paddle.y = (game.P1.paddle.y / oldHeight) * canvas.height;
-        game.P2.paddle.y = (game.P2.paddle.y / oldHeight) * canvas.height;
-        game.ball.size = canvas.width * 0.01;
-        oldHeight = canvas.height;
-        game.P1.draw(game.context);
-        game.P2.draw(game.context);
-    }
+    const textInfoP1 = document.getElementById('p1-username');
+    const textInfoP2 = document.getElementById('p2-username');
+
+    canvas.width = window.innerWidth * 0.6;
+    canvas.height = window.innerHeight * 0.8;
+
+    updatePaddleDimensions(game, canvas);
+    updateBallSize(game, canvas);
+    updateFontSizes(game, canvas, textInfoP1, textInfoP2);
+
+    oldHeight = canvas.height;
+
+    game.P1.draw(game.context);
+    game.P2.draw(game.context);
+}
+
+function updatePaddleDimensions(game, canvas) {
+    const paddleWidth = canvas.width * 0.01;
+    const paddleHeight = canvas.height * 0.15;
+
+    game.P1.paddle.width = paddleWidth;
+    game.P1.paddle.height = paddleHeight;
+    game.P2.paddle.width = paddleWidth;
+    game.P2.paddle.height = paddleHeight;
+
+    game.P1.paddle.x = canvas.width * 0.01;
+    game.P2.paddle.x = canvas.width - (canvas.width * 0.01 + game.P2.paddle.width);
+
+    game.P1.paddle.y = (game.P1.paddle.y / oldHeight) * canvas.height;
+    game.P2.paddle.y = (game.P2.paddle.y / oldHeight) * canvas.height;
+}
+
+function updateBallSize(game, canvas) {
+    game.ball.size = Math.min(canvas.width, canvas.height) * 0.01;
+}
+
+function updateFontSizes(game, canvas, textInfoP1, textInfoP2) {
+    game.updateScoreFontSize();
+    const fontSize = Math.min(canvas.width, canvas.height) * 0.05;
+    textInfoP1.style.fontSize = `${fontSize}px`;
+    textInfoP2.style.fontSize = `${fontSize}px`;
 }

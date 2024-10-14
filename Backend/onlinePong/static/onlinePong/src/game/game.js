@@ -10,18 +10,24 @@ class Game {
         this.P1.paddle = new Paddle(this.canvas, 1);
         this.P2.paddle = new Paddle(this.canvas, 2);
         this.ball = new Ball(this.canvas);
-        this.score = [];
+        this.score = [0, 0];
+        this.scoreP1Element = document.getElementById('scoreP1');
+        this.scoreP2Element = document.getElementById('scoreP2');
         this.isStart = false;
     }
 
     start() {
-        document.getElementById('buttonStart').style.display = 'none';
-        document.getElementById('canvasContainer').style.display = 'block';
-        document.getElementById('infoP1').innerHTML += `<h1>${this.P1.name}</h1>`;
-        document.getElementById('infoP2').textContent +=`<h1>${this.P2.name}</h1>`;
+        document.getElementById('buttonStart').classList.add('hidden');
+        document.getElementById('canvasContainer').style.display = 'flex';
+        document.getElementById('scoreContainer').style.display = 'flex';
         this.P1.draw(this.context);
         this.P2.draw(this.context);
+        this.updateScoreFontSize();
         this.isStart = true;
+    }
+
+    stop() {
+        this.isStart = false;
     }
 
     updateBallPosition(x, y) {
@@ -32,7 +38,6 @@ class Game {
         this.ball.draw(this.context);
         this.P1.draw(this.context);
         this.P2.draw(this.context);
-        this.drawScore();
     }
 
     updatePlayerPosition(player, y) {
@@ -48,15 +53,14 @@ class Game {
 
     updateScores(score) {
         this.score = score;
+        this.scoreP1Element.textContent = this.score[0].toString();
+        this.scoreP2Element.textContent = this.score[1].toString();
     }
 
-    drawScore() {
-        this.context.fillStyle = 'grey';
-        this.context.font = '100px Arial';
-        this.context.textAlign = 'center';
-        this.context.textBaseline = 'middle';
-        this.context.fillText(`${this.score[0]}`, this.canvas.width / 4, this.canvas.height / 2);
-        this.context.fillText(`${this.score[1]}`, (3 * this.canvas.width) / 4, this.canvas.height / 2);
+    updateScoreFontSize() {
+        const fontSize = Math.min(this.canvas.width, this.canvas.height) * 0.20;
+        this.scoreP1Element.style.fontSize = `${fontSize}px`;
+        this.scoreP2Element.style.fontSize = `${fontSize}px`;
     }
 
     displayWinner(winner) {
@@ -66,12 +70,16 @@ class Game {
         this.context.textAlign = 'center';
         this.context.textBaseline = 'middle';
 
-        let winnerText;
-        if (winner === 1) {
-            winnerText = 'P1 has WIN!';
-        } else if (winner === 2) {
-            winnerText = 'P2 has WIN!';
-        }
+        const winnerText = `${winner} has win !`;
+
+        const scoreP1Element = document.getElementById('scoreP1');
+        const scoreP2Element = document.getElementById('scoreP2');
+        // const canvasElement = document.getElementById('canvasContainer');
+
+        // canvasElement.style.display = 'none';
+        scoreP1Element.classList.add('hidden');
+        scoreP2Element.classList.add('hidden');
+
         this.context.fillText(winnerText, this.canvas.width / 2, this.canvas.height / 2);
     }
 

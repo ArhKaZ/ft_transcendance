@@ -1,7 +1,7 @@
 class Ball {
     constructor(canvas) {
         this.canvas = canvas;
-        this.size = canvas.width * 0.01;
+        this.size = Math.min(canvas.width, canvas.height) * 0.01;
         this.x = 0;
         this.y = 0;
     }
