@@ -38,12 +38,15 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def notify_player_connected(self):
         player_name = self.game['player1_name'] if self.game['player1'] == self.player_id else self.game['player2_name']
+        print('avatar 2:', self.game['player2_avatar'])
+        player_avatar = self.game['player1_avatar'] if self.game['player1'] == self.player_id else self.game['player2_avatar']
         await self.channel_layer.group_send(
             self.game_group_name,
             {
                 'type': 'player_connected',
                 'player_id': self.player_id,
                 'player_name': player_name,
+                'player_avatar': player_avatar,
             }
         )
 
@@ -147,7 +150,7 @@ class PongConsumer(AsyncWebsocketConsumer):
                 print('Task cancelled')
                 break
             except Exception as e:
-                print(f'Error in send_ball_position: {e}')
+                print(f'Error in send_ball_position with game:{self.game_id}: {e}')
             finally:
                 await asyncio.sleep(0.02)
 

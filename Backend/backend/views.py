@@ -43,10 +43,12 @@ def logged_get_user(request):
 
     try:
         validated_token = jwt_auth.get_validated_token(token_key)  # Valider le token JWT
-        user = jwt_auth.get_user(validated_token)  # Extraire l'utilisateur à partir du token validé
+        user = jwt_auth.get_user(validated_token) # Extraire l'utilisateur à partir du token validé
+        print(user)
         return JsonResponse({
             "id": user.id,
             "username": user.username,
+            "src_avatar": user.avatar.url
         })
     except ValidationError as e:
         return JsonResponse({"error": str(e)}, status=401)

@@ -16,6 +16,7 @@ def create_or_join_game(request):
     cache = caches['default']
     player_id = request.GET.get('player_id')
     player_username = request.GET.get('player_name')
+    player_avatar = request.GET.get('src')
     game = find_waiting_game()
     game_id = None
     p1_is_me = False
@@ -29,8 +30,10 @@ def create_or_join_game(request):
                 'game_id': game_id,
                 'player1': player_id,
                 'player1_name': player_username,
+                'player1_avatar': player_avatar,
                 'player2': None,
                 'player2_name': None,
+                'player2_avatar': None,
                 'player1_ready': False,
                 'player2_ready': False,
                 'status': 'WAITING'
@@ -49,34 +52,21 @@ def create_or_join_game(request):
         with cache.lock(f'{cache_key}_lock', timeout=30):
             game['player2'] = player_id
             game['player2_name'] = player_username
+            game['player2_avatar'] = player_avatar
             game['status'] = 'WAITING_READY'
             cache.set(f'game_{game_id}', game, timeout=60 * 30)
         p2_is_me = True
-    else:
-        game_id = uuid.uuid4()
-        cache_key = f'game_{game_id}'
-        with cache.lock(f'{cache_key}_lock', timeout=30):
-            game = {
-                'game_id': game_id,
-                'player1': player_id,
-                'player1_name': player_username,
-                'player2': None,
-                'player2_name': None,
-                'player1_ready': False,
-                'player2_ready': False,
-                'status': 'WAITING'
-            }
-            cache.set(f'game_{game_id}', game, timeout=60 * 30)
-        p1_is_me = True
 
     return JsonResponse({
         'game_id': game_id,
         'status': game['status'],
         'player1': game['player1'],
         'player1_name': game['player1_name'],
+        'player1_avatar': game['player1_avatar'],
         'player1_is_me': p1_is_me,
         'player2': game['player2'],
         'player2_name': game['player2_name'],
+        'player2_avatar': game['player2_avatar'],
         'player2_is_me': p2_is_me,
         'player1_ready': game['player1_ready'],
         'player2_ready': game['player2_ready']
