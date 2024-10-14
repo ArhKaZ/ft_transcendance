@@ -14,6 +14,10 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 RUN pip list
 
+RUN mkdir -p media/avatars
+
+COPY default.png media/avatars/
+
 COPY . /app
 WORKDIR /app
 

@@ -198,3 +198,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "api.MyUser"
 
 # LOGIN_URL = '/home/'
+
+
+MEDIA_URL ='/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+# Ensure the media directory exists
+MEDIA_ROOT_PATH = Path(MEDIA_ROOT)
+AVATARS_PATH = MEDIA_ROOT_PATH / 'avatars'
+AVATARS_PATH.mkdir(parents=True, exist_ok=True)
