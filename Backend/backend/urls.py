@@ -19,6 +19,7 @@ from django.urls import path, include
 from . import views
 from django.conf.urls.static import static
 from django.conf import settings
+from django.conf.urls.static import static
 
 app_name = 'backend'
 
@@ -33,4 +34,4 @@ urlpatterns = [
 
 	path('onlinePong/logged_get_user/', views.logged_get_user, name='logged_get_user'),
 	# path('dj-rest-auth/', include('dj_rest_auth.urls'))
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

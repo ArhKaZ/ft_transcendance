@@ -5,6 +5,10 @@
 	<title>Transcendence</title>
 </head>
 <body>
+	<div>
+        <p>Debug: Image URL is {{ user.avatar.url }}</p>
+        <img src="{{ user.avatar.url }}" alt="{{ user.username }}'s avatar" style="width: 100px; height: 100px; object-fit: cover;">
+    </div>
 	<p>Bravo {{ user.username }} t'es log !</p>
     <p>Maintenant tu peux jouer</p>
     <a href="http://127.0.0.1:8000/onlinePong/">Pong</a>
