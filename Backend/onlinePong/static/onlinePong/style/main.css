@@ -62,53 +62,76 @@ body {
     display: block;
 }
 
-canvas {
-    border: 1px solid #fff;
-}
-
-#countdown {
-    font-size: 50px;
-    text-align: center;
-    margin-top: 20%;
-    color: white;
-}
-
 .svg-container {
-    width: 50px; /* Taille de l'icône, ajustable */
-    height: 50px;
-    margin: 10px auto;
+    width: 80px;
+    height: 80px;
 }
 
-#p1-waiting-animation, #p2-waiting-animation,
-#p1-joined-animation, #p2-joined-animation {
-    width: 100%;
-    height: 100%;
+.icon {
+    width: 80px;
+    height: 80px;
+    display: block;
+    stroke-width: 5;
+    stroke: #616161;
+    stroke-linecap: round;
+    animation: scale 0.3s ease-in-out 0.9s both;
 }
 
-.bounce-ball {
-    animation: bounce 0.8s infinite ease-in-out;
+.circle {
+    stroke-dasharray: 450;
+    stroke-dashoffset: 450;
+    stroke-width: 5;
+    stroke: #616161;
+    stroke-linecap: round;
+    animation: stroke 0.6s cubic-bezier(0.650, 0.000, 0.450, 1.000) forwards;
 }
 
-.joined-animation {
-    animation: joined 1s ease-out forwards;
+.path {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+    stroke-linecap: round;
+    animation: stroke 0.3s cubic-bezier(0.650, 0.000, 0.450, 1.000) 0.8s forwards;
 }
 
-/* Animation des balles rebondissantes */
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+.check-circle {
+    stroke: #2ECC71;
 }
 
-/* Animation après que le joueur ait rejoint */
-@keyframes joined {
-    0% { opacity: 0; }
-    100% { opacity: 1; transform: scale(1.5); }
+.check-circle .circle {
+    stroke: #2ECC71;
+}
+
+.waiting {
+    animation: rotate 0.4s cubic-bezier(0.650, 0.000, 0.450, 1.000) 1.4s, rotate 0.5s ease-in 0.4s infinite;
+}
+
+.waiting .circle {
+    stroke-dasharray: 320;
+    stroke-dashoffset: 320;
 }
 
 .hidden {
     display: none;
 }
 
-.display {
-    display: block;
+@keyframes stroke {
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes scale {
+    0%, 100% {
+        transform: none;
+    }
+    50% {
+        transform: scale3d(1.1, 1.1, 1);
+    }
+}
+
+@keyframes rotate {
+    100% {
+        transform: rotate(360deg);
+    }
 }

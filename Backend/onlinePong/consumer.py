@@ -48,6 +48,8 @@ class PongConsumer(AsyncWebsocketConsumer):
         )
 
     async def disconnect(self, close_code):
+        print(f"Disconnect player {self.player_id} from game {self.game_id}")
+        await self.handle_disconnect()
         await self.cleanup()
 
     async def cleanup(self):
@@ -59,12 +61,45 @@ class PongConsumer(AsyncWebsocketConsumer):
             await self.redis.close()
         await self.channel_layer.group_discard(self.game_group_name, self.channel_name)
 
+    async def handle_disconnect(self):
+        print(f"Handling disconnect from player {self.player_id} from game {self.game_id}")
+        game = await self.get_game_from_cache(self.game_id)
+        cache_key = f'game_update_{self.game_id}'
+
+        with cache.lock(cache_key):
+            if game['player1'] == self.player_id:
+                if game['player2'] and game['player2_name']:
+                    game['player1_name'] = game['player2_name']
+                    game['player1'] = game['player2']
+                    game['player1_ready'] = game['player2_ready']
+                    game['player2'] = None
+                    game['player2_name'] = None
+                    game['player2_ready'] = False
+                else:
+                    await self.remove_game_from_cache(self.game_id)
+                    print(f"Game {self.game_id} removed from cache")
+                    return
+            elif game['player2'] == self.player_id:
+                game['player2'] = None
+                game['player2_name'] = None
+                game['player2_ready'] = False
+            elif game['player2'] is None and game['player1'] == self.player_id:
+                await self.remove_game_from_cache(self.game_id)
+                print(f"Game {self.game_id} removed from cache")
+                return
+
+            game['status'] = 'WAITING'
+            await self.set_game_to_cache(self.game_id, game)
+
+        print(f"Update game state: {game}")
+        await self.send_players_info(game)
+
+
     async def receive(self, text_data):
         data = json.loads(text_data)
         action = data['action']
 
         actions = {
-            'get_players': self.get_players_info,
             'ready': self.handle_player_ready,
             'move': self.move_player
         }
@@ -226,6 +261,10 @@ class PongConsumer(AsyncWebsocketConsumer):
             cache.set(cache_key, game, timeout=60 * 30)
             return Player(player_id, self.game_id)
 
+    @database_sync_to_async
+    def remove_game_from_cache(self, game_id):
+        cache.delete(f'game_{game_id}')
+
     async def set_game_to_cache(self, game_id, game_data):
         cache = caches['default']
         await sync_to_async(cache.set)(f'game_{game_id}', game_data, timeout=60 * 30)
@@ -269,6 +308,12 @@ class PongConsumer(AsyncWebsocketConsumer):
             'score': event['scores']
         }))
 
+    async def player_disconnected(self, event):
+        await self.send(text_data=json.dumps({
+            'type': event['type'],
+            'player_id': event['player_id']
+        }))
+
     async def game_finish(self, event):
         await self.send(text_data=json.dumps({
             'type': 'game_finish',
@@ -294,14 +339,29 @@ class PongConsumer(AsyncWebsocketConsumer):
             }
         )
 
-    async def get_players_info(self, data):
-        game = await self.get_game_from_cache(self.game_id)
+    async def send_players_info(self, game):
+        print(f"Sending players_info: {game}")
+        await self.channel_layer.group_send(
+            self.game_group_name,
+            {
+                'type': 'players_info',
+                'player1': game['player1'],
+                'player1_name': game['player1_name'],
+                'player1_ready': game['player1_ready'],
+                'player2': game['player2'],
+                'player2_name': game['player2_name'],
+                'player2_ready': game['player2_ready'],
+            }
+        )
+
+    async def players_info(self, event):
+        print(f"Broadcasting players_info: {event}")
         await self.send(text_data=json.dumps({
             'type': 'players_info',
-            'player1': game['player1'],
-            'player1_name': game['player1_name'],
-            'player1_ready': game['player1_ready'],
-            'player2': game['player2'],
-            'player2_name': game['player2_name'],
-            'player2_ready': game['player2_ready'],
+            'player1': event['player1'],
+            'player1_name': event['player1_name'],
+            'player1_ready': event['player1_ready'],
+            'player2': event['player2'],
+            'player2_name': event['player2_name'],
+            'player2_ready': event['player2_ready'],
         }))

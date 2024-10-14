@@ -89,7 +89,6 @@ async function updatePlayerStatus(playerId, gameId) {
         const response = await fetch(`./api/get_player?game_id=${gameId}&player_id=${playerId}`);
         const data = await response.json();
         const playerNumber = data.player_number;
-        console.log(data);
         const waitingAnimation = document.getElementById(`p${playerNumber}-waiting-animation`);
         const joinedAnimation = document.getElementById(`p${playerNumber}-joined-animation`);
 
@@ -120,7 +119,7 @@ function setupWebSocket(gameId, playerId) {
 
     socket.onopen = () => {
         console.log("WebSocket connected");
-        sendToBack({ action: 'get_players', game_id: gameId });
+        // sendToBack({ action: 'get_players', game_id: gameId });
     };
 
     socket.onmessage = async (e) => {
@@ -199,8 +198,12 @@ function createPlayers(data) {
 
 async function handleWebSocketMessage(e, game, gameId, playerId) {
     const data = JSON.parse(e.data);
-
+    console.log(data);
     switch(data.type) {
+        case 'players_info':
+            console.log('hello!');
+            refreshPlayers(data, game);
+            break;
         case 'player_connected':
             displayConnectedPlayer(data.player_id, data.player_name);
             break;
@@ -259,6 +262,52 @@ function displayConnectedPlayer(playerId, playerName) {
         nameElement.classList.remove('hidden');
         imgElement.classList.remove('hidden');
         waitingAnimElement.classList.remove('hidden');
+    }
+}
+
+function refreshPlayers(data, game) {
+    console.log('Refreshing players:', data);
+    const p1Element = document.getElementById('p1-username');
+    const p1WaitingElement = document.getElementById('p1-waiting-animation');
+    const p1JoinedElement = document.getElementById('p1-joined-animation');
+    const p2Element = document.getElementById('p2-username');
+    const p2ImgElement = document.getElementById('p2-img');
+    const p2WaitingElement = document.getElementById('p2-waiting-animation');
+    const p2JoinedElement = document.getElementById('p2-joined-animation');
+
+    // Mise à jour du joueur 1
+    p1Element.innerText = data.player1_name || 'None';
+    p1Element.classList.toggle('hidden', !data.player1_name);
+    p1WaitingElement.classList.toggle('hidden', data.player1_ready);
+    p1JoinedElement.classList.toggle('hidden', !data.player1_ready);
+
+    // Mise à jour du joueur 2
+    p2Element.innerText = data.player2_name || 'None';
+    p2Element.classList.toggle('hidden', !data.player2_name);
+    p2ImgElement.classList.toggle('hidden', !data.player2_name);
+    p2WaitingElement.classList.toggle('hidden', !data.player2_name || data.player2_ready);
+    p2JoinedElement.classList.toggle('hidden', !data.player2_name || !data.player2_ready);
+
+    // Mise à jour des objets du jeu si nécessaire
+    if (game) {
+        if (game.P1 && game.P1.id === data.player1) {
+            game.P1.name = data.player1_name;
+        } else if (game.P2 && game.P2.id === data.player1) {
+            game.P1 = game.P2;
+            game.P1.name = data.player1_name;
+            game.P2 = null;
+        }
+
+        if (data.player2) {
+            if (!game.P2) {
+                game.P2 = new Player(data.player2, data.player2_name, false);
+            } else {
+                game.P2.id = data.player2;
+                game.P2.name = data.player2_name;
+            }
+        } else {
+            game.P2 = null;
+        }
     }
 }
 
