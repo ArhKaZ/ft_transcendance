@@ -1,47 +1,45 @@
 document.getElementById('userForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
-	
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    const description = document.getElementById('description').value;
-
-    const userData = {
-        username: username,
-        password: password,
-        description: description
-    };
+    const formData = new FormData();
+    formData.append('username', document.getElementById('username').value);
+    formData.append('password', document.getElementById('password').value);
+    formData.append('description', document.getElementById('description').value);
+    
+    const avatarInput = document.getElementById('avatar');
+    if (avatarInput.files.length > 0) {
+        formData.append('avatar', avatarInput.files[0]);
+    }
 
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
     try {
         const response = await fetch('/api/add_user/', {
             method: 'POST',
-            body: JSON.stringify(userData),
+            body: formData,
             headers: {
                 'X-CSRFToken': csrfToken,
-                'Content-Type': 'application/json'
             }
         });
 
         const responseText = await response.text();
-        console.log('Réponse brute du serveur:', responseText);
+        console.log('Server response:', responseText);
 
         if (response.ok) {
             try {
                 const data = JSON.parse(responseText);
                 window.location.href = '/home';
             } catch (parseError) {
-                displayMessage('Erreur de parsing JSON : ' + parseError.message, 'error');
-                console.error('Contenu de la réponse:', responseText);
+                displayMessage('JSON parsing error: ' + parseError.message, 'error');
+                console.error('Response content:', responseText);
             }
         } else {
-            displayMessage('Erreur HTTP : ' + response.status + ' ' + response.statusText, 'error');
-            console.error('Contenu de la réponse d\'erreur:', responseText);
+            displayMessage('HTTP error: ' + response.status + ' ' + response.statusText, 'error');
+            console.error('Error response content:', responseText);
         }
     } catch (error) {
-        displayMessage('Une erreur réseau s\'est produite : ' + error.message, 'error');
-        console.error('Détails de l\'erreur:', error);
+        displayMessage('A network error occurred: ' + error.message, 'error');
+        console.error('Error details:', error);
     }
 });
 

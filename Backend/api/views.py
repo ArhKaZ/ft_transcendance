@@ -12,7 +12,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 @api_view(['POST'])
 def add_user(request):
-    serializer = UserSerializer(data=request.data)
+    data = request.data.copy()
+    avatar = request.FILES.get('avatar')
+    if avatar:
+        data['avatar'] = avatar
+
+    serializer = UserSerializer(data=data)
     if serializer.is_valid():
         user = serializer.save()
         user.set_password(serializer.validated_data['password'])

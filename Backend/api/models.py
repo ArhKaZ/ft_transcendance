@@ -1,8 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+
 class MyUser(AbstractUser):
     description = models.TextField(blank=True)
+    avatar = models.ImageField(upload_to='avatars/', default='avatars/default.png')
 
     # Add related_name to avoid clashes
     groups = models.ManyToManyField(
