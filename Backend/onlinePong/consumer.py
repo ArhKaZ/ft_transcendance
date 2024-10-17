@@ -38,17 +38,15 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def notify_player_connected(self):
         player_name = self.game['player1_name'] if self.game['player1'] == self.player_id else self.game['player2_name']
-        print('avatar 2:', self.game['player2_avatar'])
         player_avatar = self.game['player1_avatar'] if self.game['player1'] == self.player_id else self.game['player2_avatar']
-        await self.channel_layer.group_send(
-            self.game_group_name,
-            {
-                'type': 'player_connected',
-                'player_id': self.player_id,
-                'player_name': player_name,
-                'player_avatar': player_avatar,
-            }
-        )
+        message = {
+            'type': 'player_connected',
+            'player_id': self.player_id,
+            'player_name': player_name,
+            'player_avatar': player_avatar,
+        }
+        await self.channel_layer.group_send(self.game_group_name, message)
+        await self.publish_to_redis(message)
 
     async def disconnect(self, close_code):
         print(f"Disconnect player {self.player_id} from game {self.game_id}")
@@ -114,13 +112,12 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def handle_player_ready(self, data):
         await self.async_set_player_ready(self.player_id)
-        await self.channel_layer.group_send(
-            self.game_group_name,
-            {
-                'type': 'player_ready',
-                'player_id': self.player_id,
-            }
-        )
+        message = {
+            'type': 'player_ready',
+            'player_id': self.player_id
+        }
+        await self.channel_layer.group_send(self.game_group_name, message)
+        await self.publish_to_redis(message)
         await self.check_both_ready()
 
     async def check_both_ready(self):
@@ -129,15 +126,13 @@ class PongConsumer(AsyncWebsocketConsumer):
             if game.get('player1_ready') and game.get('player2_ready'):
                 game['status'] = 'IN_PROGRESS'
                 await self.set_game_to_cache(self.game_id, game)
-                await self.channel_layer.group_send(
-                    self.game_group_name,
-                    {
-                        'type': 'game_message',
-                        'message': 'game_start'
-                    }
-                )
+                message = {
+                    'type': 'game_message',
+                    'message': 'game_start'
+                }
+                await self.channel_layer.group_send(self.game_group_name, message)
+                await self.publish_to_redis(message)
                 self.send_ball_task = asyncio.create_task(self.send_ball_position())
-                print('je creer la tache send_ball_task')
 
     async def send_ball_position(self):
         while True:
@@ -166,16 +161,15 @@ class PongConsumer(AsyncWebsocketConsumer):
         return ball
 
     async def broadcast_ball_position(self, ball):
-        await self.channel_layer.group_send(
-            self.game_group_name,
-            {
-                'type': 'ball_position',
-                'event': 'ball_position',
-                'x': ball.x,
-                'y': ball.y,
-                'message': 'ball_position_send'
-            }
-        )
+        message = {
+            'type': 'ball_position',
+            'event': 'ball_position',
+            'x': ball.x,
+            'y': ball.y,
+            'message': 'ball_position_send'
+        }
+        await self.channel_layer.group_send(self.game_group_name, message)
+        await self.publish_to_redis(message)
 
     async def move_player(self, data):
         player = await self.get_or_create_player(data['player_id'])
@@ -194,15 +188,17 @@ class PongConsumer(AsyncWebsocketConsumer):
         return player
 
     async def broadcast_player_move(self, player):
-        await self.channel_layer.group_send(
-            self.game_group_name,
-            {
-                'type': 'player_move',
-                'event': 'player_move',
-                'y': player.y,
-                'player_id': player.player_id
-            }
-        )
+        message = {
+            'type': 'player_move',
+            'event': 'player_move',
+            'y': player.y,
+            'player_id': player.player_id
+        }
+        await self.channel_layer.group_send(self.game_group_name, message)
+        await self.publish_to_redis(message)
+
+    async def publish_to_redis(self, message):
+        await self.redis.publish(f"game_update:{self.game_id}", json.dumps(message))
 
     async def _redis_listener(self):
         try:
@@ -224,12 +220,9 @@ class PongConsumer(AsyncWebsocketConsumer):
         await self.send_score_update(scores)
 
     async def handle_game_finish(self, data):
-        print(f"Received game finish message: {data}")  # Ajoute ce log
         winning_session = data.decode().split('_')[-1]
-        print('je passe ici!')
         if hasattr(self, 'send_ball_task'):
             self.send_ball_task.cancel()
-            print(f"Task status after cancel: {self.send_ball_task.cancelled()}")  # Ajoute ce log
 
         game = await self.get_game_from_cache(self.game_id)
         game['status'] = 'FINISHED'
@@ -274,97 +267,114 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     # WebSocket event handlers
     async def player_connected(self, event):
-        await self.send(text_data=json.dumps({
+        message = {
             'type': 'player_connected',
             'player_id': event['player_id'],
             'player_name': event['player_name'],
-        }))
+            'player_avatar': event['player_avatar'],
+        }
+        await self.send(text_data=json.dumps(message))
+        await self.publish_to_redis(message)
 
     async def player_ready(self, event):
-        await self.send(text_data=json.dumps({
+        message = {
             'type': 'player_ready',
             'player_id': event['player_id'],
-        }))
+        }
+        await self.send(text_data=json.dumps(message))
+        await self.publish_to_redis(message)
 
     async def game_message(self, event):
-        await self.send(text_data=json.dumps({
+        message = {
             'message': event['message']
-        }))
+        }
+        await self.send(text_data=json.dumps(message))
+        await self.publish_to_redis(message)
 
     async def ball_position(self, event):
-        await self.send(text_data=json.dumps({
+        message = {
             'x': event['x'],
             'y': event['y'],
             'type': event['type']
-        }))
+        }
+        await self.send(text_data=json.dumps(message))
+        await self.publish_to_redis(message)
 
     async def player_move(self, event):
-        await self.send(text_data=json.dumps({
+        message = {
             'y': event['y'],
             'type': event['type'],
             'player_id': event['player_id']
-        }))
+        }
+        await self.send(text_data=json.dumps(message))
+        await self.publish_to_redis(message)
 
     async def score_update(self, event):
-        await self.send(text_data=json.dumps({
+        message = {
             'type': event['type'],
             'score': event['scores']
-        }))
+        }
+        await self.send(text_data=json.dumps(message))
+        await self.publish_to_redis(message)
 
     async def player_disconnected(self, event):
-        await self.send(text_data=json.dumps({
+        message = {
             'type': event['type'],
             'player_id': event['player_id']
-        }))
+        }
+        await self.send(text_data=json.dumps(message))
 
     async def game_finish(self, event):
-        await self.send(text_data=json.dumps({
+        message = {
             'type': 'game_finish',
             'winning_session': event['winning_session']
-        }))
+        }
+        await self.send(text_data=json.dumps(message))
+        await self.publish_to_redis(message)
 
     async def send_score_update(self, scores):
-        await self.channel_layer.group_send(
-            self.game_group_name,
-            {
-                'type': 'score_update',
-                'scores': scores
-            }
-        )
+        message = {
+            'type': 'score_update',
+            'scores': scores
+        }
+        await self.channel_layer.group_send(self.game_group_name, message)
+        await self.publish_to_redis(message)
 
     async def send_game_finish(self, winning_session):
-        await self.channel_layer.group_send(
-            self.game_group_name,
-            {
-                'type': 'game_finish',
-                'winning_session': winning_session,
-                'message': 'game_is_over'
-            }
-        )
+        message = {
+            'type': 'game_finish',
+            'winning_session': winning_session,
+            'message': 'game_is_over'
+        }
+        await self.channel_layer.group_send(self.game_group_name, message)
+        await self.publish_to_redis(message)
 
     async def send_players_info(self, game):
-        print(f"Sending players_info: {game}")
-        await self.channel_layer.group_send(
-            self.game_group_name,
-            {
-                'type': 'players_info',
-                'player1': game['player1'],
-                'player1_name': game['player1_name'],
-                'player1_ready': game['player1_ready'],
-                'player2': game['player2'],
-                'player2_name': game['player2_name'],
-                'player2_ready': game['player2_ready'],
-            }
-        )
+        message =  {
+            'type': 'players_info',
+            'player1': game['player1'],
+            'player1_name': game['player1_name'],
+            'player1_ready': game['player1_ready'],
+            'player1_avatar': game['player1_avatar'],
+            'player2': game['player2'],
+            'player2_name': game['player2_name'],
+            'player2_ready': game['player2_ready'],
+            'player2_avatar': game['player2_avatar'],
+        }
+        await self.channel_layer.group_send(self.game_group_name, message)
+        await self.publish_to_redis(message)
 
     async def players_info(self, event):
-        print(f"Broadcasting players_info: {event}")
-        await self.send(text_data=json.dumps({
+        message = {
             'type': 'players_info',
             'player1': event['player1'],
             'player1_name': event['player1_name'],
             'player1_ready': event['player1_ready'],
+            'player1_avatar': event['player1_avatar'],
             'player2': event['player2'],
             'player2_name': event['player2_name'],
             'player2_ready': event['player2_ready'],
-        }))
+            'player2_avatar': event['player2_avatar'],
+        }
+        await self.send(text_data=json.dumps(message))
+        await self.publish_to_redis(message)
