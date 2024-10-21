@@ -191,3 +191,40 @@ def get_player(request):
                 'opponent_name': game['player1_name'],
             })
     return JsonResponse({'error': 'Player not found in game'}, status=404)
+
+def get_all_game(request):
+    cache = caches['default']
+    games = []
+
+    for key in cache.iter_keys('game_*'):
+        game = cache.get(key)
+        if game:
+            games.append({
+                'game_id': game['game_id'],
+                'status': game['status'],
+            })
+    return JsonResponse(games, safe=False)
+
+def get_info_game(request):
+    game_id = request.GET.get('game_id')
+    game = cache.get(f'game_{game_id}')
+    if game:
+        if game['status'] == 'IN_PROGRESS':
+            player1 = cache.get(f'player_{game["player1"]}_{game_id}')
+            player2 = cache.get(f'player_{game["player2"]}_{game_id}')
+            score = [player1['score'], player2['score']]
+            return JsonResponse({
+                'game_id': game['game_id'],
+                'status': game['status'],
+                'player1': game['player1_name'],
+                'player2': game['player2_name'],
+                'score': score,
+            })
+        else:
+            return JsonResponse({
+                'game_id': game['game_id'],
+                'status': game['status'],
+                'player1': game['player1_name'],
+                'player2': game['player2_name'],
+                'score': [0, 0]
+            })
