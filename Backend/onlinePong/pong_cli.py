@@ -23,9 +23,12 @@ def get_all_game():
     response = requests.get(f"{BASE_URL}cli/get_all_game")
     if response.status_code == 200:
         games = response.json()
-        print("All games currently created :")
-        for game in games:
-            print(f"Game : {game['game_id']} is {game['status']}")
+        if not games:
+            print("No games currently created.")
+        else:
+            print("All games currently created :")
+            for game in games:
+                print(f"Game : {game['game_id']} is {game['status']}")
     else :
         print(f'Error getting all games : {response.status_code}')
 
@@ -35,7 +38,7 @@ def main():
         description='Get info from the cache of the Online Pong.'
     )
     parser.add_argument('--allGames', action='store_true', help='Display all games currently created.')
-    parser.add_argument('--InfoGame', action='store_true', help='Display details of a game. Need GID flag')
+    parser.add_argument('--infoGame', action='store_true', help='Display details of a game. Need GID flag')
     parser.add_argument('--GID', type=str, help='ID of the game.')
     args = parser.parse_args()
     if args.allGames:
