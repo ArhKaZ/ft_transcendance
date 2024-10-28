@@ -22,4 +22,4 @@ class MyUser(AbstractUser):
         help_text='Specific permissions for this user.',
         related_name='myuser_set',
         related_query_name='myuser',
-    )
+    ) 

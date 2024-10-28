@@ -56,3 +56,55 @@ def list_users(request):
     users = MyUser.objects.all()
     return render(request, 'api/list_users.html', {'users': users})
 
+from django.http import JsonResponse, HttpResponseForbidden
+from django.shortcuts import get_object_or_404
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.hashers import make_password
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from api.models import MyUser
+from django.db import transaction
+
+@api_view(['PATCH'])
+@parser_classes([MultiPartParser, FormParser])
+def edit_user_api(request):
+    # Get the JWT token from cookies
+    token_key = request.COOKIES.get('access_token')
+    if not token_key:
+        return HttpResponseForbidden("Token not provided.")
+
+    # Validate the token
+    jwt_auth = JWTAuthentication()
+    try:
+        validated_token = jwt_auth.get_validated_token(token_key)
+        user = jwt_auth.get_user(validated_token)
+    except Exception:
+        return HttpResponseForbidden("Invalid token.")
+
+    # Update user fields
+    user = get_object_or_404(MyUser, pk=user.pk)
+
+    try:
+        with transaction.atomic():
+            username = request.POST.get('username')
+            if username:
+                user.username = username
+
+            password = request.POST.get('password')
+            if password:
+                user.password = make_password(password)
+
+            description = request.POST.get('description')
+            if description:
+                user.description = description
+
+            avatar = request.FILES.get('avatar')
+            if avatar:
+                user.avatar = avatar
+
+            user.save()
+
+        return JsonResponse({'status': 'success', 'message': 'User updated successfully'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
