@@ -229,6 +229,8 @@ class PongConsumer(AsyncWebsocketConsumer):
         await self.set_game_to_cache(self.game_id, game)
 
         await self.send_game_finish(winning_session)
+        
+		
 
         await self.cleanup()
 
