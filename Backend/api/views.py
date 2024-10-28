@@ -1,14 +1,16 @@
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import render, redirect
 from .serializers import UserSerializer
 from rest_framework import status
-from .models import MyUser
+from .models import MyUser, MatchHistory
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated
+from .serializers import MatchHistorySerializer
 
 @api_view(['POST'])
 def add_user(request):
@@ -55,6 +57,55 @@ def login_user(request):
 def list_users(request):
     users = MyUser.objects.all()
     return render(request, 'api/list_users.html', {'users': users})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_match(request):
+    data = request.data.copy()
+    data['user'] = request.user.id
+    
+    serializer = MatchHistorySerializer(data=data)
+    if serializer.is_valid():
+        serializer.save(user=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_matches(request):
+    matches = MatchHistory.objects.filter(user=request.user)
+    serializer = MatchHistorySerializer(matches, many=True)
+    return Response(serializer.data)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404

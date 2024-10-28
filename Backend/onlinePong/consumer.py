@@ -231,8 +231,9 @@ class PongConsumer(AsyncWebsocketConsumer):
             opponent_name = game['player2_name']
         elif winning_session == game['player2']:
             opponent_name = game['player1_name']
-        await self.send_game_finish(winning_session, opponent_name)
 
+        await self.send_game_finish(winning_session, opponent_name)
+        
         await self.cleanup()
 
     # Helper methods
@@ -383,3 +384,4 @@ class PongConsumer(AsyncWebsocketConsumer):
         }
         await self.send(text_data=json.dumps(message))
         await self.publish_to_redis(message)
+        

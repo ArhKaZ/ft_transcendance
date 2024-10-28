@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import MyUser
+from .models import MatchHistory
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -14,4 +15,9 @@ class UserSerializer(serializers.ModelSerializer):
             user.set_password(password)  # Hash the password
         user.save()
         return user
+    
+class MatchHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MatchHistory
+        fields = ['id', 'opponent_name', 'date', 'won']
 
