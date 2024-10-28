@@ -1,4 +1,4 @@
-import Player from "./player";
+import Player from "./player.js";
 
 function displayWhenConnect(data) {
     const elements = {
@@ -21,19 +21,19 @@ function displayWhenConnect(data) {
     };
 
     const playerData = {
-        name: data.game.player1_name,
-        isMe: data.p1_is_me,
+        name: data.player1_name,
+        isMe: data.player1_is_me,
         exists: true,
-        isReady: data.game.player1_ready,
-        avatar: data.game.player1_avatar,
+        isReady: data.player1_ready,
+        avatar: data.player1_avatar,
     }
 
     const opponentData = {
-        name: data.game.player2_name,
-        isMe: !data.p1_is_me,
-        exists: !!data.game.player2_name,
-        isReady: data.game.player2_ready,
-        avatar: data.game.player2_avatar,
+        name: data.player2_name,
+        isMe: !data.player1_is_me,
+        exists: !!data.player2_name,
+        isReady: data.player2_ready,
+        avatar: data.player2_avatar,
     }
 
     updatePlayerDisplay(elements.player, playerData);
@@ -127,7 +127,7 @@ function refreshPlayers(data, game) {
 
 async function updatePlayerStatus(playerId, gameId) {
     try {
-        const response = await fetch(`api/get_info_player/?game_id=${gameId}&player_id=${playerId}`);
+        const response = await fetch(`api/get_player/?game_id=${gameId}&player_id=${playerId}`);
         const data = await response.json();
         const playerNumber = data.player_number;
         const waitingAnimation = document.getElementById(`p${playerNumber}-waiting-animation`);

@@ -26,8 +26,6 @@ class PlayerAction {
         this.isJumping = false;
         this.isMoving = false;
         this.maxVelocityX = 2;
-
-
         this.stock = 5;
         this.physics = physics;
 

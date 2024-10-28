@@ -8,11 +8,11 @@ let keyState = {};
 
 function bindEvents() {
     window.addEventListener('keydown', (event) => {
-        this.keyState[event.key] = true;
+        keyState[event.key] = true;
     });
 
     window.addEventListener('keyup', (event) => {
-     this.keyState[event.key] = false;
+        keyState[event.key] = false;
     });
 }
 
