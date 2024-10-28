@@ -19,84 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 def index(request):
-    return render(request, "./index.html")
-
-@csrf_exempt
-@require_http_methods(['POST'])
-def cli_login(request):
-    data = json.loads(request.body)
-    username =  data.get('username')
-    password = data.get('password')
-    user = authenticate(username=username, password=password)
-    if user is not None:
-        refresh = RefreshToken.for_user(user)
-        return JsonResponse({
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-            'user_id': user.id,
-            'username': user.username,
-        })
-    else:
-        return JsonResponse({'error': 'Invalid credentials'}, status=400)
-
-@require_http_methods(['GET'])
-def cli_get_user(request):
-    auth_header = request.META.get('HTTP_AUTHORIZATION')
-    if not auth_header or not auth_header.startswith('Bearer '):
-        return JsonResponse({"error": "No token provided"}, status=403)
-
-    token = auth_header.split(' ')[1]
-    jwt_auth = JWTAuthentication()
-
-    try:
-        validated_token = jwt_auth.get_validated_token(token)
-        user = jwt_auth.get_user(validated_token)
-        return JsonResponse({
-            "id": user.id,
-            "username": user.username,
-            "src_avatar": user.avatar.url if user.avatar else None
-        })
-    except ValidationError as e:
-        return JsonResponse({'error': str(e)}, status=401)
-    except InvalidToken as e:
-        return JsonResponse({'error': "Invalid Token"}, status=401)
-    except MyUser.DoesNotExist:
-        return JsonResponse({'error': "User does not exist"}, status=404)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-@csrf_exempt
-@require_http_methods(['POST'])
-def cli_create_or_join_game(request):
-    auth_header = request.META.get('HTTP_AUTHORIZATION')
-    if not auth_header or not auth_header.startswith('Bearer '):
-        return JsonResponse({"error": "No token provided"}, status=403)
-
-    token = auth_header.split(' ')[1]
-    jwt_auth = JWTAuthentication()
-
-    try:
-        validated_token = jwt_auth.get_validated_token(token)
-        user = jwt_auth.get_user(validated_token)
-
-        fake_request = HttpRequest()
-        fake_request.method = 'GET'
-        fake_request.GET = request.GET.copy()
-
-        fake_request.GET['player_id'] = str(user.id)
-        fake_request.GET['player_name'] = user.username
-        fake_request.GET['src'] = user.avatar.url if user.avatar else None
-
-        response = create_or_join_game(fake_request)
-        return response
-    except ValidationError as e:
-        return JsonResponse({'error': str(e)}, status=401)
-    except InvalidToken as e:
-        return JsonResponse({'error': "Invalid Token"}, status=401)
-    except MyUser.DoesNotExist:
-        return JsonResponse({'error': "User does not exist"}, status=404)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+    return render(request, "./onlinePong/index.html")
 
 def create_or_join_game(request):
     cache = caches['default']
@@ -228,3 +151,80 @@ def get_info_game(request):
                 'player2': game['player2_name'],
                 'score': [0, 0]
             })
+
+# @csrf_exempt
+# @require_http_methods(['POST'])
+# def cli_login(request):
+#     data = json.loads(request.body)
+#     username =  data.get('username')
+#     password = data.get('password')
+#     user = authenticate(username=username, password=password)
+#     if user is not None:
+#         refresh = RefreshToken.for_user(user)
+#         return JsonResponse({
+#             'refresh': str(refresh),
+#             'access': str(refresh.access_token),
+#             'user_id': user.id,
+#             'username': user.username,
+#         })
+#     else:
+#         return JsonResponse({'error': 'Invalid credentials'}, status=400)
+#
+# @require_http_methods(['GET'])
+# def cli_get_user(request):
+#     auth_header = request.META.get('HTTP_AUTHORIZATION')
+#     if not auth_header or not auth_header.startswith('Bearer '):
+#         return JsonResponse({"error": "No token provided"}, status=403)
+#
+#     token = auth_header.split(' ')[1]
+#     jwt_auth = JWTAuthentication()
+#
+#     try:
+#         validated_token = jwt_auth.get_validated_token(token)
+#         user = jwt_auth.get_user(validated_token)
+#         return JsonResponse({
+#             "id": user.id,
+#             "username": user.username,
+#             "src_avatar": user.avatar.url if user.avatar else None
+#         })
+#     except ValidationError as e:
+#         return JsonResponse({'error': str(e)}, status=401)
+#     except InvalidToken as e:
+#         return JsonResponse({'error': "Invalid Token"}, status=401)
+#     except MyUser.DoesNotExist:
+#         return JsonResponse({'error': "User does not exist"}, status=404)
+#     except Exception as e:
+#         return JsonResponse({'error': str(e)}, status=500)
+#
+# @csrf_exempt
+# @require_http_methods(['POST'])
+# def cli_create_or_join_game(request):
+#     auth_header = request.META.get('HTTP_AUTHORIZATION')
+#     if not auth_header or not auth_header.startswith('Bearer '):
+#         return JsonResponse({"error": "No token provided"}, status=403)
+#
+#     token = auth_header.split(' ')[1]
+#     jwt_auth = JWTAuthentication()
+#
+#     try:
+#         validated_token = jwt_auth.get_validated_token(token)
+#         user = jwt_auth.get_user(validated_token)
+#
+#         fake_request = HttpRequest()
+#         fake_request.method = 'GET'
+#         fake_request.GET = request.GET.copy()
+#
+#         fake_request.GET['player_id'] = str(user.id)
+#         fake_request.GET['player_name'] = user.username
+#         fake_request.GET['src'] = user.avatar.url if user.avatar else None
+#
+#         response = create_or_join_game(fake_request)
+#         return response
+#     except ValidationError as e:
+#         return JsonResponse({'error': str(e)}, status=401)
+#     except InvalidToken as e:
+#         return JsonResponse({'error': "Invalid Token"}, status=401)
+#     except MyUser.DoesNotExist:
+#         return JsonResponse({'error': "User does not exist"}, status=404)
+#     except Exception as e:
+#         return JsonResponse({'error': str(e)}, status=500)

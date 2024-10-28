@@ -12,6 +12,8 @@ until python -c "import psycopg2; conn = psycopg2.connect(dbname='$POSTGRES_DB',
   sleep 1
 done
 
+python manage.py collectstatic --noinput
+
 python manage.py makemigrations api # bizarre mais necessaire
 
 python manage.py migrate
@@ -40,5 +42,7 @@ except ObjectDoesNotExist:
 EOF
 
 echo "Super utilisateur créé avec succès !"
+
+
 
 exec python manage.py runserver 0.0.0.0:8000
