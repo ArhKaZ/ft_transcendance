@@ -13,7 +13,6 @@ class GameMap:
         self.back_src = 'city.png'
         self.stage_src = 'stage.png'
         self.game_id = game_id
-        self.save_to_cache()
 
     async def save_to_cache(self):
         cache_key = f'pp_map_{self.game_id}'
@@ -28,3 +27,11 @@ class GameMap:
             'back_src': self.back_src,
             'stage_src': self.stage_src,
         })
+
+    @staticmethod
+    async def get_from_cache(game_id):
+        cache_key = f'pp_map_{game_id}'
+        map = cache.get(cache_key)
+        if map is None:
+            return None
+        return map

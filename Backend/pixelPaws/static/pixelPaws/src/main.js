@@ -125,6 +125,7 @@ async function handleWebSocketMessage(event, game, gameId, playerId) {
             await updatePlayerStatus(data.player_id, gameId);
             break;
         case 'game_start':
+            console.log(data);
             game = createGame(data);
             resizeCanvas();
             game.start();

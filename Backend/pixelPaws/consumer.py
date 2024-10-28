@@ -104,12 +104,20 @@ class PixelPawsConsumer(AsyncWebsocketConsumer):
             game = await self.get_game_from_cache(self.game_id)
             if game.get('player1_ready') and game.get('player2_ready'):
                 game['status'] = 'IN_PROGRESS'
-                map = GameMap(self.game_id) # regarder si existe deja dans cache
                 await self.set_game_to_cache(self.game_id, game)
+                map = await self.create_game()
                 await self.create_players(game)
-                await self.notify_game_start(game)
+                await self.notify_game_start(game, map)
+
+    async def create_game(self):
+        map = await GameMap.get_from_cache(self.game_id)
+        if map is None:
+            map = GameMap(self.game_id)
+            await map.save_to_cache()
+        return map
 
     async def create_players(self, game):
+        #utiliser map +x en fonction du nb player
         player1 = Player(game['player1'], game['game_id'])
         player2 = Player(game['player2'], game['game_id'])
 
@@ -158,7 +166,8 @@ class PixelPawsConsumer(AsyncWebsocketConsumer):
         }
         await self.channel_layer.group_send(self.game_group_name, message)
 
-    async def notify_game_start(self, game):
+    async def notify_game_start(self, game, map):
+        print(type(map))
         message = {
             'type': 'game_start',
             'game_id': str(game['game_id']),
@@ -168,6 +177,14 @@ class PixelPawsConsumer(AsyncWebsocketConsumer):
             'player2_name': game['player2_name'],
             'player1_avatar': game['player1_avatar'],
             'player2_avatar': game['player2_avatar'],
+            'map_x': map.x,
+            'map_y': map.y,
+            'map_height': map.height,
+            'map_width': map.width,
+            'map_ground_y': map.ground_y,
+            'map_ground_x': map.ground_x,
+            'back_src': map.back_src,
+            'stage_src': map.stage_src,
         }
         await self.channel_layer.group_send(self.game_group_name, message)
 
@@ -195,6 +212,14 @@ class PixelPawsConsumer(AsyncWebsocketConsumer):
             'player2_name': event['player2_name'],
             'player1_avatar': event['player1_avatar'],
             'player2_avatar': event['player2_avatar'],
+            'map_x': event['x'],
+            'map_y': event['y'],
+            'map_height': event['height'],
+            'map_width': event['width'],
+            'map_ground_y': event['ground_y'],
+            'map_ground_x': event['ground_x'],
+            'back_src': event['back_src'],
+            'stage_src': event['stage_src'],
         }
         await self.send(text_data=json.dumps(message))
 
