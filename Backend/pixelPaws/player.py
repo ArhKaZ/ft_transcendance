@@ -1,9 +1,9 @@
 from asgiref.sync import sync_to_async
 from django.core.cache import cache
-
+from .game_map import GameMap
 
 class Player:
-    def __init__(self, player_id, game_id):
+    def __init__(self, nb, player_id, game_id):
         self.x = 0
         self.y = 0
         self.speed = 0.8
@@ -11,6 +11,7 @@ class Player:
         self.percent = 0
         self.game_id = game_id
         self.player_id = player_id
+        self.nb = nb
 
     async def save_to_cache(self):
         cache_key = f'pp_player_{self.player_id}_{self.game_id}'
@@ -53,3 +54,11 @@ class Player:
         cache_key = f'pp_player_{player_id}_{game_id}'
         data = await sync_to_async(cache.get)(cache_key)
         return data if data else None
+
+    async def assign_pos_player(self):
+        gamemap = await GameMap.get_from_cache(self.game_id)
+        if self.nb == 1:
+            self.x = gamemap['ground_x'] + 0.1
+        else :
+            self.x = gamemap['ground_x_end'] - 0.1
+        self.y = gamemap['ground_y'] - 0.2

@@ -1,6 +1,6 @@
 import Game from "../src/game/game.js";
 import Player from "../src/game/player.js";
-import {refreshPlayers, updatePlayerStatus, displayConnectedPlayer, displayWhenConnect } from "./game/waitingRoom";
+import {refreshPlayers, updatePlayerStatus, displayConnectedPlayer, displayWhenConnect } from "./game/waitingRoom.js";
 
 let socket = null;
 let oldHeight = null;
@@ -87,6 +87,7 @@ async function createGame(currentPlayer) {
         const response = await fetch(`./api/create_or_join_game?player_id=${currentPlayerId}&player_name=${currentPlayerName}&src=${currentAvatarSrc}`);
         const data = await response.json();
         const gameId = data.game_id;
+        console.log(data);
         displayWhenConnect(data);
         return setupWebSocket(gameId, currentPlayerId);
     } catch (error) {
@@ -116,7 +117,7 @@ function setupWebSocket(gameId, playerId) {
 
 async function initGame(gameId, playerId) {
     const canvas = document.getElementById('gameCanvas');
-    const response = await fetch(`./api/get_player?game_id=${gameId}&player_id=${playerId}`);
+    const response = await fetch(`api/get_player/?game_id=${gameId}&player_id=${playerId}`);
     const data = await response.json();
 
     oldHeight = canvas.height;
@@ -156,13 +157,13 @@ async function handleWebSocketMessage(e, game, gameId, playerId) {
             break;
         case 'game_finish':
             if (game) {
+                console.log(data);
                 handleGameFinish(game, data.winning_session);
                 gameStarted = false;
                 game.stop();
             }
             break;
     }
-
     if (data.message === 'game_start') {
         game = await initGame(gameId, playerId);
         game.start();
@@ -178,6 +179,7 @@ function updatePlayerPosition(game, data) {
 }
 
 function handleGameFinish(game, winningId) {
+    currentPlayerId
     const winnerName = parseInt(game.P1.id) === parseInt(winningId) ? game.P1.name : game.P2.name;
     game.displayWinner(winnerName);
 }
