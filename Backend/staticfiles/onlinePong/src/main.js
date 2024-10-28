@@ -156,7 +156,7 @@ async function handleWebSocketMessage(e, game, gameId, playerId) {
             break;
         case 'game_finish':
             if (game) {
-                handleGameFinish(game, data.winning_session);
+                handleGameFinish(game, data.winning_session, data.opponent_name);
                 gameStarted = false;
                 game.stop();
             }
@@ -177,9 +177,46 @@ function updatePlayerPosition(game, data) {
     game.updatePlayerPosition(playerNumber, data.y);
 }
 
-function handleGameFinish(game, winningId) {
+function handleGameFinish(game, winningId, opponent) {
     const winnerName = parseInt(game.P1.id) === parseInt(winningId) ? game.P1.name : game.P2.name;
     game.displayWinner(winnerName);
+
+
+	if (currentPlayerId === winningId) {
+		// j'ai gagné
+		fetch('/add_match/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': getCookie('csrftoken'), // Si vous utilisez CSRF protection
+			},
+			credentials: 'include',  // Important pour inclure les cookies
+			body: JSON.stringify({
+				'opponent_name': opponent, // Remplacez par le vrai nom de l'adversaire
+				'won': true
+			})
+		})
+		.then(response => response.json())
+		.then(data => console.log('Match enregistré:', data))
+		.catch(error => console.error('Erreur:', error));
+	} else {
+		// j'ai perdu
+		fetch('/add_match/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': getCookie('csrftoken'), // Si vous utilisez CSRF protection
+			},
+			credentials: 'include',  // Important pour inclure les cookies
+			body: JSON.stringify({
+				'opponent_name': opponent, // Remplacez par le vrai nom de l'adversaire
+				'won': false
+			})
+		})
+		.then(response => response.json())
+		.then(data => console.log('Match enregistré:', data))
+		.catch(error => console.error('Erreur:', error));
+	}
 }
 
 function resizeCanvasGame(game) {

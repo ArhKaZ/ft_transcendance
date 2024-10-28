@@ -227,11 +227,13 @@ class PongConsumer(AsyncWebsocketConsumer):
         game = await self.get_game_from_cache(self.game_id)
         game['status'] = 'FINISHED'
         await self.set_game_to_cache(self.game_id, game)
+        if winning_session == game['player1']:
+            opponent_name = game['player2_name']
+        elif winning_session == game['player2']:
+            opponent_name = game['player1_name']
 
-        await self.send_game_finish(winning_session)
+        await self.send_game_finish(winning_session, opponent_name)
         
-		
-
         await self.cleanup()
 
     # Helper methods
@@ -342,11 +344,12 @@ class PongConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(self.game_group_name, message)
         await self.publish_to_redis(message)
 
-    async def send_game_finish(self, winning_session):
+    async def send_game_finish(self, winning_session, opponent_name):
         message = {
             'type': 'game_finish',
             'winning_session': winning_session,
-            'message': 'game_is_over'
+            'message': 'game_is_over',
+            'opponent_name': opponent_name
         }
         await self.channel_layer.group_send(self.game_group_name, message)
         await self.publish_to_redis(message)
