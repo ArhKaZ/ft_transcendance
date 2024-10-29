@@ -8,14 +8,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value; // Récupérer le token CSRF
-
         try {
             // Effectuer une requête fetch POST vers la vue login_user
             const response = await fetch('/api/login/', {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': csrfToken,  // Inclure le token CSRF dans l'en-tête
                     'Content-Type': 'application/json',  // Indiquer que les données envoyées sont en JSON
                 },
                 body: JSON.stringify({  // Envoyer les données d'authentification

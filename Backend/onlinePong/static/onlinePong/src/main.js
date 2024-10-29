@@ -185,11 +185,12 @@ function handleGameFinish(game, winningId, opponent) {
 
 	if (currentPlayerId === winningId) {
 		// j'ai gagné
+		console.log("j'ai gagne");
 		fetch('/api/add_match/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'X-CSRFToken': getCookie('csrftoken'), // Si vous utilisez CSRF protection
+				'Authorization': `Bearer ${localStorage.getItem('access_token')}`, // Si vous utilisez CSRF protection
 			},
 			credentials: 'include',  // Important pour inclure les cookies
 			body: JSON.stringify({
@@ -202,11 +203,12 @@ function handleGameFinish(game, winningId, opponent) {
 		.catch(error => console.error('Erreur:', error));
 	} else {
 		// j'ai perdu
+		console.log("j'ai perdu");
 		fetch('/api/add_match/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'X-CSRFToken': getCookie('csrftoken'), // Si vous utilisez CSRF protection
+				'Authorization': `Bearer ${localStorage.getItem('access_token')}`, // Si vous utilisez CSRF protection
 			},
 			credentials: 'include',  // Important pour inclure les cookies
 			body: JSON.stringify({
