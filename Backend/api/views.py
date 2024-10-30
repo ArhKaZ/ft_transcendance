@@ -37,21 +37,26 @@ def add_user(request):
 def login_user(request):
     username = request.data.get('username')
     password = request.data.get('password')
-    
-    if username is None or password is None:
+
+    if not username or not password:
         return Response({'error': 'Please provide both username and password.'}, status=status.HTTP_400_BAD_REQUEST)
-    
+
     user = authenticate(username=username, password=password)
-    
+
     if user is not None:
         refresh = RefreshToken.for_user(user)
-        response = HttpResponseRedirect(reverse('logged'))
-        response.set_cookie('access_token', str(refresh.access_token), httponly=True, secure=True, samesite='Lax')
-        response.set_cookie('refresh_token', str(refresh), httponly=True, secure=True, samesite='Lax')
-
+        access_token = str(refresh.access_token)
+        refresh_token = str(refresh)
+        response = Response({
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+            'user': UserSerializer(user).data
+        }, status=status.HTTP_200_OK)
+        response.set_cookie('access_token', access_token, httponly=True, secure=True, samesite='Lax')
+        response.set_cookie('refresh_token', refresh_token, httponly=True, secure=True, samesite='Lax')
         return response
     else:
-        return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 def list_users(request):

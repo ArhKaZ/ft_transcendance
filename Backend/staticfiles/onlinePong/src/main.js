@@ -192,7 +192,7 @@ function handleGameFinish(game, winningId, opponent) {
 				'Content-Type': 'application/json',
 				'Authorization': `Bearer ${localStorage.getItem('access_token')}`, // Si vous utilisez CSRF protection
 			},
-			credentials: 'include',  // Important pour inclure les cookies
+			// credentials: 'include',  // Important pour inclure les cookies
 			body: JSON.stringify({
 				'opponent_name': opponent, // Remplacez par le vrai nom de l'adversaire
 				'won': true
@@ -210,7 +210,7 @@ function handleGameFinish(game, winningId, opponent) {
 				'Content-Type': 'application/json',
 				'Authorization': `Bearer ${localStorage.getItem('access_token')}`, // Si vous utilisez CSRF protection
 			},
-			credentials: 'include',  // Important pour inclure les cookies
+			// credentials: 'include',  // Important pour inclure les cookies
 			body: JSON.stringify({
 				'opponent_name': opponent, // Remplacez par le vrai nom de l'adversaire
 				'won': false

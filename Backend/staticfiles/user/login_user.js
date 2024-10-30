@@ -22,6 +22,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (response.ok) {
+				console.log('before');
+				try {
+				  const data = await response.json();
+				  console.log('after');
+				} catch (error) {
+				  console.error('Error:', error);
+				}
+				localStorage.setItem('access_token', data.access_token);
+    			localStorage.setItem('refresh_token', data.refresh_token);
                 // Si la réponse est réussie, rediriger vers la page protégée
                 messageDiv.innerHTML = '<span style="color: green;">Connexion réussie. Redirection en cours...</span>';
                 setTimeout(() => {
