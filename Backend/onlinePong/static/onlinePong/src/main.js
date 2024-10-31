@@ -179,19 +179,22 @@ function updatePlayerPosition(game, data) {
     game.updatePlayerPosition(playerNumber, data.y);
 }
 
+
 function handleGameFinish(game, winningId, opponent) {
     const winnerName = parseInt(game.P1.id) === parseInt(winningId) ? game.P1.name : game.P2.name;
     game.displayWinner(winnerName);
+	console.log('salut');
 
 	if (currentPlayerId === winningId) {
 		// j'ai gagné
+		console.log("j'ai gagne");
 		fetch('/api/add_match/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'X-CSRFToken': getCookie('csrftoken'), // Si vous utilisez CSRF protection
+				'Authorization': `Bearer ${localStorage.getItem('access_token')}`, // Si vous utilisez CSRF protection
 			},
-			credentials: 'include',  // Important pour inclure les cookies
+			// credentials: 'include',  // Important pour inclure les cookies
 			body: JSON.stringify({
 				'opponent_name': opponent, // Remplacez par le vrai nom de l'adversaire
 				'won': true
@@ -202,13 +205,14 @@ function handleGameFinish(game, winningId, opponent) {
 		.catch(error => console.error('Erreur:', error));
 	} else {
 		// j'ai perdu
+		console.log("j'ai perdu");
 		fetch('/api/add_match/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'X-CSRFToken': getCookie('csrftoken'), // Si vous utilisez CSRF protection
+				'Authorization': `Bearer ${localStorage.getItem('access_token')}`, // Si vous utilisez CSRF protection
 			},
-			credentials: 'include',  // Important pour inclure les cookies
+			// credentials: 'include',  // Important pour inclure les cookies
 			body: JSON.stringify({
 				'opponent_name': opponent, // Remplacez par le vrai nom de l'adversaire
 				'won': false

@@ -11,15 +11,10 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
         formData.append('avatar', avatarInput.files[0]);
     }
 
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
     try {
         const response = await fetch('/api/add_user/', {
             method: 'POST',
             body: formData,
-            headers: {
-                'X-CSRFToken': csrfToken,
-            }
         });
 
         const responseText = await response.text();

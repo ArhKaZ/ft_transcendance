@@ -3,15 +3,10 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
 
     const formData = new FormData(this);
 
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
     try {
         const response = await fetch('/api/edit_user_api/', {
             method: 'PATCH',
             body: formData,
-            headers: {
-                'X-CSRFToken': csrfToken,
-            }
         });
 
         const data = await response.json();
