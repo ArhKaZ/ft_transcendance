@@ -20,6 +20,7 @@ class Ball:
         self.vy = self.speed * math.sin(angle)
 
     async def reset(self, player_as_score):
+        print('reset still here')
         self.x = 50
         self.y = 50
         angle = random.uniform(-math.pi / 4, math.pi / 4)
@@ -31,6 +32,7 @@ class Ball:
             await self.player1.add_point()
         else:
             await self.player2.add_point()
+        return
 
     async def update_position(self):
         self.x += self.vx

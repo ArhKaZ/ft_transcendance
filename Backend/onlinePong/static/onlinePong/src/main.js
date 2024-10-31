@@ -145,6 +145,7 @@ async function handleWebSocketMessage(e, game, gameId, playerId) {
             break;
         case 'ball_position':
             if (game) {
+                console.log('here');
                 game.updateBallPosition(data.x, data.y);
                 game.drawGame();
             }
@@ -153,6 +154,7 @@ async function handleWebSocketMessage(e, game, gameId, playerId) {
             if (game) updatePlayerPosition(game, data);
             break;
         case 'score_update':
+            console.log('hello')
             if (game) game.updateScores(data.score);
             break;
         case 'game_finish':
@@ -180,7 +182,6 @@ function updatePlayerPosition(game, data) {
 function handleGameFinish(game, winningId, opponent) {
     const winnerName = parseInt(game.P1.id) === parseInt(winningId) ? game.P1.name : game.P2.name;
     game.displayWinner(winnerName);
-
 
 	if (currentPlayerId === winningId) {
 		// j'ai gagné
