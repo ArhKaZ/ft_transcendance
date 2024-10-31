@@ -84,10 +84,10 @@ class PongConsumer(AsyncWebsocketConsumer):
                 game['player2'] = None
                 game['player2_name'] = None
                 game['player2_ready'] = False
-            elif game['player2'] is None and game['player1'] == self.player_id:
-                await self.remove_game_from_cache(self.game_id)
-                print(f"Game {self.game_id} removed from cache")
-                return
+            # elif game['player2'] is None and game['player1'] == self.player_id:
+            #     await self.remove_game_from_cache(self.game_id)
+            #     print(f"Game {self.game_id} removed from cache")
+            #     return
 
             game['status'] = 'WAITING'
             await self.set_game_to_cache(self.game_id, game)
@@ -211,8 +211,7 @@ class PongConsumer(AsyncWebsocketConsumer):
     async def handle_redis_message(self, data):
         if data == b"score_updated":
             await self.handle_score_update()
-        elif data.startswith(b"game_finish_") and self.game_is_finished == False:
-            self.game_is_finished = True
+        elif data.startswith(b"game_finish_"):
             await self.handle_game_finish(data)
 
     async def handle_score_update(self):

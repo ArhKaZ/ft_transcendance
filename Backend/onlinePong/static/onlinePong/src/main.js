@@ -87,7 +87,6 @@ async function createGame(currentPlayer) {
         const response = await fetch(`./api/create_or_join_game?player_id=${currentPlayerId}&player_name=${currentPlayerName}&src=${currentAvatarSrc}`);
         const data = await response.json();
         const gameId = data.game_id;
-        console.log(data);
         displayWhenConnect(data);
         return setupWebSocket(gameId, currentPlayerId);
     } catch (error) {
@@ -145,17 +144,20 @@ async function handleWebSocketMessage(e, game, gameId, playerId) {
             break;
         case 'ball_position':
             if (game) {
-                console.log('here');
                 game.updateBallPosition(data.x, data.y);
                 game.drawGame();
             }
             break;
         case 'player_move':
-            if (game) updatePlayerPosition(game, data);
+            if (game) {
+                updatePlayerPosition(game, data);
+            }
             break;
         case 'score_update':
-            console.log('hello')
-            if (game) game.updateScores(data.score);
+            console.log(data);
+            if (game) {
+                game.updateScores(data.scores);
+            }
             break;
         case 'game_finish':
             if (game) {
@@ -185,7 +187,8 @@ function handleGameFinish(game, winningId, opponent) {
     game.displayWinner(winnerName);
 	console.log('salut');
 
-	if (currentPlayerId === winningId) {
+    console.log('ids : ', currentPlayerId, winningId);
+	if (currentPlayerId === parseInt(winningId)) {
 		// j'ai gagné
 		console.log("j'ai gagne");
 		fetch('/api/add_match/', {
