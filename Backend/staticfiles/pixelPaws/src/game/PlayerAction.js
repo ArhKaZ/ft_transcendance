@@ -50,8 +50,6 @@ class PlayerAction {
                 if (keyState) {
                     //MOVE
                     if (keyState['w']) {
-                        //console.log(this.jumpKeyHeld);
-                        //console.log(this.nbJump);
                         if (!this.jumpKeyHeld && this.nbJump > 0) {
                             this.move('up');
                             this.nbJump--;
@@ -264,7 +262,7 @@ class PlayerAction {
         // ctx.fillRect(this.x, this.y, this.width, this.height);
         // ctx.fillStyle = 'green';
         // ctx.fillRect(this.cX, this.cY, this.cWidth, this.cHeight);
-        this.sprites.update(ctx, this);
+        //this.sprites.update(ctx, this);
 
         if (this.hitboxes.length > 0) {
             this.hitboxes.forEach((hitbox) => {

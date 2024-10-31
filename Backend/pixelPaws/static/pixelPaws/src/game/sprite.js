@@ -9,27 +9,45 @@ class Sprite {
         this.frameCount = 0;
         this.animationSpeed = animationSpeed;
         this.isAnimationComplete = false;
+
+        // Add loading check
+        this.isLoaded = false;
+        this.sprite.onload = () => {
+            this.isLoaded = true;
+        };
     }
 
     drawSprite(ctx, canvasX, canvasY, isAttack = false, isJump = false, hitboxes = null, scale = 2) {
+        if (!this.isLoaded) return;
 
         const scaledWidth = this.frameWidth * scale;
         const scaledHeight = this.frameHeight * scale;
-        ctx.drawImage(
-            this.sprite,
-            this.currentFrame * this.frameWidth, 0,
-            this.frameWidth, this.frameHeight,
-            canvasX, canvasY,
-            scaledWidth, scaledHeight
-        );
-        if (!isAttack)
-            this.updateFrame(isJump);
-        else
-            this.updateFrameAttack(hitboxes);
 
-
-        if (this.isAnimationComplete) {
-            this.resetAnimation();
+        try {
+            //console.log('1');
+            ctx.drawImage(
+                this.sprite,
+                this.currentFrame * this.frameWidth, 0,
+                this.frameWidth, this.frameHeight,
+                canvasX, canvasY,
+                scaledWidth, scaledHeight
+            );
+            //console.log('2');
+            if (!isAttack) {
+               // console.log(3);
+                this.updateFrame(isJump);
+                //console.log(4);
+            } else {
+                this.updateFrameAttack(hitboxes);
+            }
+           // console.log(5);
+            if (this.isAnimationComplete) {
+                //console.log('end anim');
+                this.resetAnimation();
+            }
+            //console.log(6);
+        } catch (error) {
+            console.error('Error drawing sprite:', error);
         }
     }
 
@@ -42,7 +60,9 @@ class Sprite {
     }
 
     updateFrame(isJump) {
+       // console.log(3.1, "frameCount:", this.frameCount);
         this.frameCount++;
+        //console.log(3.2, "frameCount:", this.frameCount);
         if (this.frameCount >= this.animationSpeed) {
             this.frameCount = 0;
 
@@ -58,6 +78,7 @@ class Sprite {
                 this.currentFrame = (this.currentFrame + 1) % this.totalFrames;
             }
         }
+        //console.log(3.3);
     }
 
     updateFrameAttack(hitboxes)

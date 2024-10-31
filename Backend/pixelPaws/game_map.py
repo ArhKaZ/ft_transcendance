@@ -1,7 +1,7 @@
 from asgiref.sync import sync_to_async
 from django.core.cache import cache
 
-class GameMap:
+class Gamemap:
     def __init__(self, game_id):
         self.x = 25
         self.y = 50

@@ -1,19 +1,19 @@
-class GameMap {
-    constructor(canvas) {
+class Gamemap {
+    constructor(canvas, x, y, height, width, groundY, groundX, backSrc, stageSrc) {
         this.canvas = canvas;
-        this.x = canvas.width * 0.25;
-        this.y = canvas.height * 0.50;
-        this.height = canvas.height * 0.34;
-        this.width = canvas.width * 0.45;
-        this.groundY = this.y + 30;
-        this.groundX = this.x;
+        this.x = x * canvas.width / 100;
+        this.y = y * canvas.height / 100;
+        this.height = height * canvas.height / 100;
+        this.width = width * canvas.width / 100;
+        this.groundY = groundY * canvas.height / 100;
+        this.groundX = groundX * canvas.width / 100;
         this.groundEndX = this.groundX + (this.width - 10);
         this.back = new Image();
         this.assetsPath = window.PIXELPAWS_ASSETS || '/static/pixelPaws/';
         this.getAssetPath = (path) => `${this.assetsPath}assets/Map/${path}`
-        this.back.src = this.getAssetPath('city.png');
+        this.back.src = this.getAssetPath(backSrc);
         this.stage = new Image();
-        this.stage.src = this.getAssetPath('stage.png');
+        this.stage.src = this.getAssetPath(stageSrc);
     }
 
     handleCollision(object) {
@@ -59,4 +59,4 @@ class GameMap {
     }
 }
 
-export default GameMap;
+export default Gamemap;

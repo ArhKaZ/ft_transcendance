@@ -9,27 +9,38 @@ class Sprite {
         this.frameCount = 0;
         this.animationSpeed = animationSpeed;
         this.isAnimationComplete = false;
+
+        this.isLoaded = false;
+        this.sprite.onload = () => {
+            this.isLoaded = true;
+        }
     }
 
     drawSprite(ctx, canvasX, canvasY, isAttack = false, isJump = false, hitboxes = null, scale = 2) {
+        if (!this.isLoaded) return;
 
         const scaledWidth = this.frameWidth * scale;
         const scaledHeight = this.frameHeight * scale;
-        ctx.drawImage(
-            this.sprite,
-            this.currentFrame * this.frameWidth, 0,
-            this.frameWidth, this.frameHeight,
-            canvasX, canvasY,
-            scaledWidth, scaledHeight
-        );
-        if (!isAttack)
-            this.updateFrame(isJump);
-        else
-            this.updateFrameAttack(hitboxes);
 
+        try {
+            ctx.drawImage(
+                this.sprite,
+                this.currentFrame * this.frameWidth, 0,
+                this.frameWidth, this.frameHeight,
+                canvasX, canvasY,
+                scaledWidth, scaledHeight
+            );
 
-        if (this.isAnimationComplete) {
-            this.resetAnimation();
+            if (!isAttack)
+                this.updateFrame(isJump);
+            else
+                this.updateFrameAttack(hitboxes);
+
+            if (this.isAnimationComplete) {
+                this.resetAnimation();
+            }
+        } catch (error) {
+            console.error('Error drawing sprite:', error);
         }
     }
 

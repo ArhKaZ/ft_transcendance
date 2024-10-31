@@ -133,6 +133,10 @@ async function updatePlayerStatus(playerId, gameId) {
         const waitingAnimation = document.getElementById(`p${playerNumber}-waiting-animation`);
         const joinedAnimation = document.getElementById(`p${playerNumber}-joined-animation`);
 
+        if (!joinedAnimation.classList.contains('hidden')) {
+            return;
+        }
+
         waitingAnimation.classList.add('hidden');
         joinedAnimation.classList.remove('hidden');
     } catch (error) {

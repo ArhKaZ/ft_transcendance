@@ -1,16 +1,16 @@
 import PlayerAction from "./PlayerAction.js";
 import Physics from "./physics.js";
-import GameMap from "./GameMap.js";
+import Gamemap from "./gamemap.js";
 class Game {
-    constructor(canvas, P1, P2) {
+    constructor(canvas, P1, P2, gameMap) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
-        this.p1 = P1;
-        this.p2 = P2;
-        this.map = new GameMap(this.canvas);
-        this.physics = new Physics(0.1, this.map);
-        this.p1.cube = new PlayerAction(this.map.groundX, this.map.groundY, 1, this.physics);
-        this.p2.cube = new PlayerAction(this.map.groundEndX - 120, this.map.groundY, 2, this.physics);
+        this.P1 = P1;
+        this.P2 = P2;
+        this.gameMap = gameMap;
+        // this.physics = new Physics(0.1, this.map);
+        // this.p1.cube = new PlayerAction(this.map.groundX, this.map.groundY, 1, this.physics);
+        // this.p2.cube = new PlayerAction(this.map.groundEndX - 120, this.map.groundY, 2, this.physics);
         this.isRunning = false;
         this.keyState = {};
         this.bindEvents();
@@ -32,22 +32,14 @@ class Game {
         this.loop();
     }
 
-    stop() {
-        this.isRunning = false;
-        this.displayWinner();
-    }
-
+    // stop() {
+    //     this.isRunning = false;
+    //     this.displayWinner();
+    // }
+    //
     loop() {
-        if (!this.isRunning) return;
-
-        if (this.p1.cube.stock === 0 || this.p2.cube.stock === 0) {
-            this.stop();
-        }
-        else {
-            this.update();
-            this.draw();
-            requestAnimationFrame(() => this.loop());
-        }
+        this.draw();
+        requestAnimationFrame(() => this.loop());
     }
 
     displayCanvas() {
@@ -79,12 +71,12 @@ class Game {
         obj.isJumping = false;
         obj.percent = 0;
         if (obj.nb === 1) {
-            obj.x = this.map.groundX;
-            obj.y = this.map.groundY - 60;
+            obj.x = this.gameMap.groundX;
+            obj.y = this.gameMap.groundY - 60;
         }
         else {
-            obj.x = this.map.groundEndX - 120;
-            obj.y = this.map.groundY - 60;
+            obj.x = this.gameMap.groundEndX - 120;
+            obj.y = this.gameMap.groundY - 60;
         }
     }
 
@@ -104,8 +96,8 @@ class Game {
         if (this.physics.handleCollisionWall(this.p2.cube, this.canvas))
             this.reset(this.p2.cube);
 
-        this.map.handleCollision(this.p1.cube);
-        this.map.handleCollision(this.p2.cube);
+        this.gameMap.handleCollision(this.p1.cube);
+        this.gameMap.handleCollision(this.p2.cube);
 
         this.physics.handleHit(this.p1.cube, this.p2.cube);
         this.physics.handleHit(this.p2.cube, this.p1.cube);
@@ -114,9 +106,11 @@ class Game {
     draw()
     {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.map.draw(this.ctx);
-        this.p1.cube.draw(this.ctx);
-        this.p2.cube.draw(this.ctx);
+        this.gameMap.draw(this.ctx);
+        this.P1.draw(this.ctx);
+        this.P2.draw(this.ctx);
+        // this.p1.cube.draw(this.ctx);
+        // this.p2.cube.draw(this.ctx);
     }
 
 }

@@ -2,8 +2,7 @@ import Sprite from './sprite.js';
 import Hitbox from './hitbox.js';
 
 class Animation {
-    constructor(nb) {
-        this.nb = nb;
+    constructor() {
         this.assetsPath = window.PIXELPAWS_ASSETS || '/static/pixelPaws/';
 
         this.getAssetPath = (path) => `${this.assetsPath}assets/Character/${path}`;
@@ -60,49 +59,31 @@ class Animation {
     }
 
     update(ctx, obj) {
-        if (obj.hitboxes.length > 0) {
-            if (obj.nb === 1) {
-                this.drawAttack(ctx, obj);
-            }
-            else
-                this.drawAttackPurple(ctx, obj);
+        if (!obj.currentAnimation) return;
+
+        let currentSprite = null;
+
+        switch (obj.currentAnimation) {
+            case 'Idle':
+                currentSprite = obj.look === 'left' ?
+                    (obj.nb === 1 ? this.IdleLeft : this.IdleLeftPurple) :
+                    (obj.nb === 1 ? this.IdleRight : this.IdleRightPurple);
+                break;
+            case 'Run':
+                console.log('je passe ici');
+                currentSprite = obj.look === 'left' ?
+                    (obj.nb === 1 ? this.RunLeft : this.RunLeftPurple) :
+                    (obj.nb === 1 ? this.RunRight : this.RunRightPurple);
+                break;
+            case 'Jump':
+                currentSprite = obj.look === 'left' ?
+                    (obj.nb === 1 ? this.JumpLeft : this.JumpLeftPurple) :
+                    (obj.nb === 1 ? this.JumpRight : this.JumpRightPurple);
+                break;
         }
-        else {
-            if (obj.look === 'left') {
-                if (obj.isMoving && !obj.isJumping && obj.hitboxes.length === 0) {
-                    if (obj.nb === 1)
-                        this.RunLeft.drawSprite(ctx, obj.x, obj.y);
-                    else
-                        this.RunLeftPurple.drawSprite(ctx, obj.x, obj.y);
-                } else if (obj.isJumping && obj.hitboxes.length === 0) {
-                    if (obj.nb === 1)
-                        this.JumpLeft.drawSprite(ctx, obj.x, obj.y, false, true);
-                    else
-                        this.JumpLeftPurple.drawSprite(ctx, obj.x, obj.y, false, true);
-                } else if (!obj.isMoving && !obj.isJumping && obj.hitboxes.length === 0) {
-                    if (obj.nb === 1)
-                        this.IdleLeft.drawSprite(ctx, obj.x, obj.y);
-                    else
-                        this.IdleLeftPurple.drawSprite(ctx, obj.x, obj.y);
-                }
-            } else if (obj.look === 'right') {
-                if (obj.isMoving && !obj.isJumping && obj.hitboxes.length === 0) {
-                    if (obj.nb === 1)
-                        this.RunRight.drawSprite(ctx, obj.x, obj.y);
-                    else
-                        this.RunRightPurple.drawSprite(ctx, obj.x, obj.y);
-                } else if (obj.isJumping && obj.hitboxes.length === 0) {
-                    if (obj.nb === 1)
-                        this.JumpRight.drawSprite(ctx, obj.x, obj.y, false, true);
-                    else
-                        this.JumpRightPurple.drawSprite(ctx, obj.x, obj.y, false, true);
-                } else if (!obj.isMoving && !obj.isJumping && obj.hitboxes.length === 0) {
-                    if (obj.nb === 1)
-                        this.IdleRight.drawSprite(ctx, obj.x, obj.y);
-                    else
-                        this.IdleRightPurple.drawSprite(ctx, obj.x, obj.y);
-                }
-            }
+
+        if (currentSprite) {
+            currentSprite.drawSprite(ctx, obj.x, obj.y);
         }
     }
 

@@ -1,5 +1,6 @@
 import Player from "./game/player.js";
 import Game from "./game/game.js";
+import Gamemap from "./game/gamemap.js";
 import {refreshPlayers, updatePlayerStatus, displayConnectedPlayer, displayWhenConnect } from "./game/waitingRoom.js";
 
 let socket = null;
@@ -87,10 +88,8 @@ async function init() {
 }
 
 function setupWebSocket(gameId, playerId) {
-    console.log('ws1');
     const socket = new WebSocket(`ws://localhost:8000/ws/pixelPaws/${gameId}/${playerId}/`);
     let game = null;
-    console.log('ws2')
     socket.onopen = () => {
         console.log("WEBSOCKET CONNECTED");
     };
@@ -106,9 +105,10 @@ function setupWebSocket(gameId, playerId) {
 
 function createGame(game_data) {
     const canvas = document.getElementById('gameCanvas');
-    const P1 = new Player(1, game_data.player1_name, game_data.player1_id);
-    const P2 = new Player(2, game_data.player2_name, game_data.player2_id);
-    const game = new Game(canvas, P1, P2);
+    const gameMap = new Gamemap(canvas, game_data.map_x, game_data.map_y, game_data.map_height, game_data.map_width, game_data.map_ground_y, game_data.map_ground_x, game_data.back_src, game_data.stage_src);
+    const P1 = new Player(1, canvas, game_data.player1_name, game_data.player1_id, game_data.player1_x, game_data.player1_y, game_data.player1_percent, game_data.player1_lifes);
+    const P2 = new Player(2, canvas, game_data.player2_name, game_data.player2_id, game_data.player2_x, game_data.player2_y, game_data.player2_percent, game_data.player2_lifes);
+    const game = new Game(canvas, P1, P2, gameMap);
     return game;
 }
 
@@ -125,7 +125,6 @@ async function handleWebSocketMessage(event, game, gameId, playerId) {
             await updatePlayerStatus(data.player_id, gameId);
             break;
         case 'game_start':
-            console.log(data);
             game = createGame(data);
             resizeCanvas();
             game.start();
@@ -141,6 +140,15 @@ async function handleWebSocketMessage(event, game, gameId, playerId) {
             }, 20);
 
             break;
+        case 'animation':
+            if (data.player_id === game.P1.id) {
+                game.P1.stopAnimation();
+                game.P1.startAnimation(data, game);
+            }
+            else if (data.player_id === game.P2.id) {
+                game.P2.stopAnimation();
+                game.P2.startAnimation(data, game);
+            }
     }
     return game;
 }
