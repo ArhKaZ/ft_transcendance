@@ -23,12 +23,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (response.ok) {
 				console.log('before');
-				try {
-				  const data = await response.json();
-				  console.log('after');
-				} catch (error) {
-				  console.error('Error:', error);
-				}
+				const data = await response.json();
+				console.log('after');
 				localStorage.setItem('access_token', data.access_token);
     			localStorage.setItem('refresh_token', data.refresh_token);
                 // Si la réponse est réussie, rediriger vers la page protégée

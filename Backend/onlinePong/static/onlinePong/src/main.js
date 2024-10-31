@@ -181,6 +181,7 @@ function updatePlayerPosition(game, data) {
 function handleGameFinish(game, winningId, opponent) {
     const winnerName = parseInt(game.P1.id) === parseInt(winningId) ? game.P1.name : game.P2.name;
     game.displayWinner(winnerName);
+	console.log('salut');
 
 
 	if (currentPlayerId === winningId) {

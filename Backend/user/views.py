@@ -33,6 +33,6 @@ def edit_user(request):
     
     return render(request, "user/edit_user.html", {'user': request.user})
 
-# @permission_classes([IsAuthenticated])
-# def edit_user(request):
-#     return render(request, "user/edit_user.html", {'user': request.user})
+@permission_classes([IsAuthenticated])
+def user_history(request):
+    return render(request, "user/history.html")
