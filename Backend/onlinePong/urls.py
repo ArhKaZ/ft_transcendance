@@ -1,4 +1,6 @@
 from django.urls import path, include
+from requests import delete
+
 from .views import index, create_or_join_game, get_player, get_all_game, get_info_game
 
 urlpatterns = [

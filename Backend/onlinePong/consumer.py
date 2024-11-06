@@ -46,7 +46,6 @@ class PongConsumer(AsyncWebsocketConsumer):
             'player_avatar': player_avatar,
         }
         await self.channel_layer.group_send(self.game_group_name, message)
-        # await self.publish_to_redis(message)
 
     async def disconnect(self, close_code):
         print(f"Disconnect player {self.player_id} from game {self.game_id}")
@@ -116,7 +115,6 @@ class PongConsumer(AsyncWebsocketConsumer):
             'player_id': self.player_id
         }
         await self.channel_layer.group_send(self.game_group_name, message)
-        # await self.publish_to_redis(message)
         await self.check_both_ready()
 
     async def check_both_ready(self):
@@ -125,13 +123,7 @@ class PongConsumer(AsyncWebsocketConsumer):
             if game.get('player1_ready') and game.get('player2_ready'):
                 game['status'] = 'IN_PROGRESS'
                 await self.set_game_to_cache(self.game_id, game)
-                message = {
-                    'type': 'game_message',
-                    'message': 'game_start'
-                }
-                await self.channel_layer.group_send(self.game_group_name, message)
-                # await self.publish_to_redis(message)
-
+                await self.broadcast_game_start(game)
                 self.send_ball_task = asyncio.create_task(self.send_ball_position())
 
     async def send_ball_position(self):
@@ -169,7 +161,6 @@ class PongConsumer(AsyncWebsocketConsumer):
             'message': 'ball_position_send'
         }
         await self.channel_layer.group_send(self.game_group_name, message)
-        # await self.publish_to_redis(message)
 
     async def move_player(self, data):
         player = await self.get_or_create_player(data['player_id'])
@@ -186,19 +177,6 @@ class PongConsumer(AsyncWebsocketConsumer):
         else:
             player = Player(player_id, self.game_id)
         return player
-
-    async def broadcast_player_move(self, player):
-        message = {
-            'type': 'player_move',
-            'event': 'player_move',
-            'y': player.y,
-            'player_id': player.player_id
-        }
-        await self.channel_layer.group_send(self.game_group_name, message)
-        # await self.publish_to_redis(message)
-
-    async def publish_to_redis(self, message):
-        await self.redis.publish(f"game_update:{self.game_id}", json.dumps(message))
 
     async def _redis_listener(self):
         try:
@@ -227,13 +205,14 @@ class PongConsumer(AsyncWebsocketConsumer):
         game = await self.get_game_from_cache(self.game_id)
         game['status'] = 'FINISHED'
         await self.set_game_to_cache(self.game_id, game)
-        if winning_session == game['player1']:
+        if self.player_id == game['player1']:
             opponent_name = game['player2_name']
-        elif winning_session == game['player2']:
+        elif self.player_id == game['player2']:
             opponent_name = game['player1_name']
 
         await self.send_game_finish(winning_session, opponent_name)
-        
+
+        self.remove_game_from_cache(self.game_id)
         await self.cleanup()
 
     # Helper methods
@@ -278,7 +257,27 @@ class PongConsumer(AsyncWebsocketConsumer):
             'player_avatar': event['player_avatar'],
         }
         await self.send(text_data=json.dumps(message))
-        # await self.publish_to_redis(message)
+
+    async def broadcast_player_move(self, player):
+        message = {
+            'type': 'player_move',
+            'event': 'player_move',
+            'y': player.y,
+            'player_id': player.player_id
+        }
+        await self.channel_layer.group_send(self.game_group_name, message)
+
+    async def broadcast_game_start(self, game):
+        p1_is_me = True if self.player_id == game['player1'] else False
+        message = {
+            'type': 'game_start',
+            'main_player_id': game['player1'] if p1_is_me else game['player2'],
+            'opponent_id': game['player2'] if p1_is_me else game['player1'],
+            'main_player_name': game['player1_name'] if p1_is_me else game['player2_name'],
+            'opponent_name': game['player2_name'] if p1_is_me else game['player1_name'],
+            'player_nb': 1 if p1_is_me else 2,
+        }
+        await self.channel_layer.group_send(self.game_group_name, message)
 
     async def player_ready(self, event):
         message = {
@@ -286,14 +285,17 @@ class PongConsumer(AsyncWebsocketConsumer):
             'player_id': event['player_id'],
         }
         await self.send(text_data=json.dumps(message))
-        # await self.publish_to_redis(message)
 
-    async def game_message(self, event):
+    async def game_start(self, event):
         message = {
-            'message': event['message']
+            'type': 'game_start',
+            'main_player_id': event['main_player_id'],
+            'opponent_id': event['opponent_id'],
+            'main_player_name': event['main_player_name'],
+            'opponent_name': event['opponent_name'],
+            'player_nb': event['player_nb'],
         }
         await self.send(text_data=json.dumps(message))
-        # await self.publish_to_redis(message)
 
     async def ball_position(self, event):
         message = {
@@ -302,7 +304,6 @@ class PongConsumer(AsyncWebsocketConsumer):
             'type': event['type']
         }
         await self.send(text_data=json.dumps(message))
-        # await self.publish_to_redis(message)
 
     async def player_move(self, event):
         message = {
@@ -311,7 +312,6 @@ class PongConsumer(AsyncWebsocketConsumer):
             'player_id': event['player_id']
         }
         await self.send(text_data=json.dumps(message))
-        # await self.publish_to_redis(message)
 
     async def score_update(self, event):
         message = {
@@ -319,7 +319,6 @@ class PongConsumer(AsyncWebsocketConsumer):
             'score': event['scores']
         }
         await self.send(text_data=json.dumps(message))
-        # await self.publish_to_redis(message)
 
     async def player_disconnected(self, event):
         message = {
@@ -335,16 +334,12 @@ class PongConsumer(AsyncWebsocketConsumer):
             'winning_session': event['winning_session']
         }
         await self.send(text_data=json.dumps(message))
-        # await self.publish_to_redis(message)
-
     async def send_score_update(self, scores):
         message = {
             'type': 'score_update',
             'scores': scores
         }
         await self.send(text_data=json.dumps(message))
-        # await self.channel_layer.group_send(self.game_group_name, message)
-        # await self.publish_to_redis(message)
 
     async def send_game_finish(self, winning_session, opponent_name):
         message = {
@@ -354,8 +349,6 @@ class PongConsumer(AsyncWebsocketConsumer):
             'message': 'game_is_over'
         }
         await self.send(text_data=json.dumps(message))
-        # await self.channel_layer.group_send(self.game_group_name, message)
-        # await self.publish_to_redis(message)
 
     async def send_players_info(self, game):
         message =  {
@@ -370,7 +363,6 @@ class PongConsumer(AsyncWebsocketConsumer):
             'player2_avatar': game['player2_avatar'],
         }
         await self.channel_layer.group_send(self.game_group_name, message)
-        # await self.publish_to_redis(message)
 
     async def players_info(self, event):
         message = {
@@ -385,5 +377,4 @@ class PongConsumer(AsyncWebsocketConsumer):
             'player2_avatar': event['player2_avatar'],
         }
         await self.send(text_data=json.dumps(message))
-        # await self.publish_to_redis(message)
         

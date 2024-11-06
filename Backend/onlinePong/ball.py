@@ -20,7 +20,6 @@ class Ball:
         self.vy = self.speed * math.sin(angle)
 
     async def reset(self, player_as_score):
-        print('reset still here')
         self.x = 50
         self.y = 50
         angle = random.uniform(-math.pi / 4, math.pi / 4)

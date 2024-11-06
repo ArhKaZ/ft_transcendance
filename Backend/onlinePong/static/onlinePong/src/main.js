@@ -6,6 +6,7 @@ let socket = null;
 let oldHeight = null;
 let gameStarted = false;
 let currentPlayerId = null;
+let currentGame = null;
 
 function sendToBack(data) {
     if (socket?.readyState === WebSocket.OPEN) {
@@ -103,7 +104,7 @@ function setupWebSocket(gameId, playerId) {
     };
 
     socket.onmessage = async (e) => {
-        game = await handleWebSocketMessage(e, game, gameId, playerId);
+        await handleWebSocketMessage(e, gameId);
     };
 
     socket.onerror = (error) => console.error("WebSocket error:", error.type);
@@ -114,27 +115,30 @@ function setupWebSocket(gameId, playerId) {
     return socket;
 }
 
-async function initGame(gameId, playerId) {
+async function initGame(data) {
     const canvas = document.getElementById('gameCanvas');
-    const response = await fetch(`api/get_player/?game_id=${gameId}&player_id=${playerId}`);
-    const data = await response.json();
-
     oldHeight = canvas.height;
     const [P1, P2] = createPlayers(data);
     return new Game(canvas, P1, P2);
 }
 
 function createPlayers(data) {
-    const mainPlayer = new Player(data.player_id, data.player_name, data.player_number === 1);
-    const opponent = new Player(data.opponent_id, data.opponent_name, data.player_number === 2);
+    const main_id = data.main_player_id;
+    const opp_id = data.opponent_id;
+    const main_name = data.main_player_name;
+    const opp_name = data.opponent_name;
+    const player_nb = data.player_nb;
+
+    const mainPlayer = new Player(main_id, main_name);
+    const opponent = new Player(data.opponent_id, data.opponent_name);
     return data.player_number === 1 ? [mainPlayer, opponent] : [opponent, mainPlayer];
 }
 
-async function handleWebSocketMessage(e, game, gameId, playerId) {
+async function handleWebSocketMessage(e, gameId) {
     const data = JSON.parse(e.data);
     switch(data.type) {
         case 'players_info':
-            refreshPlayers(data, game);
+            refreshPlayers(data, currentGame);
             break;
         case 'player_connected':
             displayConnectedPlayer(data.player_id, data.player_name, data.player_avatar, currentPlayerId);
@@ -143,37 +147,35 @@ async function handleWebSocketMessage(e, game, gameId, playerId) {
             await updatePlayerStatus(data.player_id, gameId);
             break;
         case 'ball_position':
-            if (game) {
-                game.updateBallPosition(data.x, data.y);
-                game.drawGame();
+            if (currentGame) {
+                currentGame.updateBallPosition(data.x, data.y);
+                currentGame.drawGame();
             }
             break;
         case 'player_move':
-            if (game) {
-                updatePlayerPosition(game, data);
+            if (currentGame) {
+                updatePlayerPosition(currentGame, data);
             }
             break;
         case 'score_update':
-            console.log(data);
-            if (game) {
-                game.updateScores(data.scores);
+            if (currentGame) {
+                currentGame.updateScores(data.scores);
             }
             break;
         case 'game_finish':
-            if (game) {
-                handleGameFinish(game, data.winning_session, data.opponent_name);
+            if (currentGame) {
+                handleGameFinish(currentGame, data.winning_session, data.opponent_name);
                 gameStarted = false;
-                game.stop();
+                currentGame.stop();
             }
             break;
+        case 'game_start':
+            currentGame = await initGame(data);
+            currentGame.start();
+            gameStarted = true;
+            resizeCanvasGame(currentGame);
+            break;
     }
-    if (data.message === 'game_start') {
-        game = await initGame(gameId, playerId);
-        game.start();
-        gameStarted = true;
-        resizeCanvasGame(game);
-    }
-    return game;
 }
 
 function updatePlayerPosition(game, data) {
@@ -181,50 +183,25 @@ function updatePlayerPosition(game, data) {
     game.updatePlayerPosition(playerNumber, data.y);
 }
 
-
 function handleGameFinish(game, winningId, opponent) {
     const winnerName = parseInt(game.P1.id) === parseInt(winningId) ? game.P1.name : game.P2.name;
     game.displayWinner(winnerName);
-	console.log('salut');
-
-    console.log('ids : ', currentPlayerId, winningId);
-	if (currentPlayerId === parseInt(winningId)) {
-		// j'ai gagné
-		console.log("j'ai gagne");
-		fetch('/api/add_match/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${localStorage.getItem('access_token')}`, // Si vous utilisez CSRF protection
-			},
-			// credentials: 'include',  // Important pour inclure les cookies
-			body: JSON.stringify({
-				'opponent_name': opponent, // Remplacez par le vrai nom de l'adversaire
-				'won': true
-			})
-		})
-		.then(response => response.json())
-		.then(data => console.log('Match enregistré:', data))
-		.catch(error => console.error('Erreur:', error));
-	} else {
-		// j'ai perdu
-		console.log("j'ai perdu");
-		fetch('/api/add_match/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${localStorage.getItem('access_token')}`, // Si vous utilisez CSRF protection
-			},
-			// credentials: 'include',  // Important pour inclure les cookies
-			body: JSON.stringify({
-				'opponent_name': opponent, // Remplacez par le vrai nom de l'adversaire
-				'won': false
-			})
-		})
-		.then(response => response.json())
-		.then(data => console.log('Match enregistré:', data))
-		.catch(error => console.error('Erreur:', error));
-	}
+    const asWin = currentPlayerId === parseInt(winningId);
+    fetch('/api/add_match/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`, // Si vous utilisez CSRF protection
+        },
+        // credentials: 'include',  // Important pour inclure les cookies
+        body: JSON.stringify({
+            'opponent_name': opponent, // Remplacez par le vrai nom de l'adversaire
+            'won': asWin
+        })
+    }).then(response => response.json())
+    .then(data => {
+        console.log('Match enregistrer ', data);
+    }).catch(error => console.error(error));
 }
 
 function resizeCanvasGame(game) {

@@ -87,7 +87,6 @@ async function createGame(currentPlayer) {
         const response = await fetch(`./api/create_or_join_game?player_id=${currentPlayerId}&player_name=${currentPlayerName}&src=${currentAvatarSrc}`);
         const data = await response.json();
         const gameId = data.game_id;
-        console.log(data);
         displayWhenConnect(data);
         return setupWebSocket(gameId, currentPlayerId);
     } catch (error) {
@@ -144,20 +143,24 @@ async function handleWebSocketMessage(e, game, gameId, playerId) {
             await updatePlayerStatus(data.player_id, gameId);
             break;
         case 'ball_position':
+            console.log('ball:', data);
             if (game) {
-                console.log('here');
                 game.updateBallPosition(data.x, data.y);
                 game.drawGame();
             }
             break;
         case 'player_move':
-            if (game) updatePlayerPosition(game, data);
+            if (game) {
+                updatePlayerPosition(game, data);
+            }
             break;
         case 'score_update':
-            if (game) game.updateScores(data.score);
+            console.log(data);
+            if (game) {
+                game.updateScores(data.scores);
+            }
             break;
         case 'game_finish':
-            console.log(data);
             if (game) {
                 handleGameFinish(game, data.winning_session, data.opponent_name);
                 gameStarted = false;
@@ -183,45 +186,25 @@ function handleGameFinish(game, winningId, opponent) {
     const winnerName = parseInt(game.P1.id) === parseInt(winningId) ? game.P1.name : game.P2.name;
     game.displayWinner(winnerName);
 	console.log('salut');
-
-
-	if (currentPlayerId === winningId) {
-		// j'ai gagné
-		console.log("j'ai gagne");
-		fetch('/api/add_match/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${localStorage.getItem('access_token')}`, // Si vous utilisez CSRF protection
-			},
-			// credentials: 'include',  // Important pour inclure les cookies
-			body: JSON.stringify({
-				'opponent_name': opponent, // Remplacez par le vrai nom de l'adversaire
-				'won': true
-			})
-		})
-		.then(response => response.json())
-		.then(data => console.log('Match enregistré:', data))
-		.catch(error => console.error('Erreur:', error));
-	} else {
-		// j'ai perdu
-		console.log("j'ai perdu");
-		fetch('/api/add_match/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${localStorage.getItem('access_token')}`, // Si vous utilisez CSRF protection
-			},
-			// credentials: 'include',  // Important pour inclure les cookies
-			body: JSON.stringify({
-				'opponent_name': opponent, // Remplacez par le vrai nom de l'adversaire
-				'won': false
-			})
-		})
-		.then(response => response.json())
-		.then(data => console.log('Match enregistré:', data))
-		.catch(error => console.error('Erreur:', error));
-	}
+    console.log('ids : ', currentPlayerId, winningId);
+    const asWin = currentPlayerId === parseInt(winningId);
+    console.log("j'ai gagne");
+    fetch('/api/add_match/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`, // Si vous utilisez CSRF protection
+        },
+        // credentials: 'include',  // Important pour inclure les cookies
+        body: JSON.stringify({
+            'opponent_name': opponent, // Remplacez par le vrai nom de l'adversaire
+            'won': asWin
+        })
+    }).then(response => response.json())
+    .then(data => {
+        console.log('Match enregistrer ', data);
+        fetch('/api/delete_game/').catch(error => console.error(error));
+    }).catch(error => console.error(error));
 }
 
 function resizeCanvasGame(game) {

@@ -127,6 +127,7 @@ function refreshPlayers(data, game) {
 
 async function updatePlayerStatus(playerId, gameId) {
     try {
+        console.debug(playerId, gameId);
         const response = await fetch(`api/get_player/?game_id=${gameId}&player_id=${playerId}`);
         const data = await response.json();
         const playerNumber = data.player_number;

@@ -53,6 +53,7 @@ class Game {
 
     updateScores(score) {
         this.score = score;
+        console.log(this.score);
         this.scoreP1Element.textContent = this.score[0].toString();
         this.scoreP2Element.textContent = this.score[1].toString();
     }
