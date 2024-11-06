@@ -1,10 +1,12 @@
 import Player from "./game/player.js";
 import Game from "./game/game.js";
+import GameMap from "./game/GameMap.js";
 import {refreshPlayers, updatePlayerStatus, displayConnectedPlayer, displayWhenConnect } from "./game/waitingRoom.js";
 
 let socket = null;
 let currentPlayerId = null;
 let keyState = {};
+let currentGame = null;
 
 function bindEvents() {
     window.addEventListener('keydown', (event) => {
@@ -87,62 +89,132 @@ async function init() {
 }
 
 function setupWebSocket(gameId, playerId) {
-    console.log('ws1');
     const socket = new WebSocket(`ws://localhost:8000/ws/pixelPaws/${gameId}/${playerId}/`);
-    let game = null;
-    console.log('ws2')
+
     socket.onopen = () => {
         console.log("WEBSOCKET CONNECTED");
     };
 
     socket.onmessage = async (e) => {
-        game = await handleWebSocketMessage(e, game, gameId, playerId);
+        await handleWebSocketMessage(e, gameId, playerId);
     };
 
-    socket.onerror = (error) => console.error("Websocket error:", error);
-    socket.onclose = () => console.log("WEBSOCKET CLOSED");
+    socket.onerror = (error) => {
+        console.error("Websocket error:", error);
+    };
+
+    socket.onclose = () => {
+        console.log("WEBSOCKET CLOSED");
+    };
+
     return socket;
 }
 
 function createGame(game_data) {
     const canvas = document.getElementById('gameCanvas');
-    const P1 = new Player(1, game_data.player1_name, game_data.player1_id);
-    const P2 = new Player(2, game_data.player2_name, game_data.player2_id);
-    const game = new Game(canvas, P1, P2);
-    return game;
+    const gameMap = new GameMap(canvas, game_data.map_x, game_data.map_y, game_data.map_height, game_data.map_width, game_data.map_ground_y, game_data.map_ground_x, game_data.back_src, game_data.stage_src);
+    const P1 = new Player(1, canvas, game_data.player1_name, game_data.player1_id, game_data.player1_x, game_data.player1_y, game_data.player1_percent, game_data.player1_lifes);
+    const P2 = new Player(2, canvas, game_data.player2_name, game_data.player2_id, game_data.player2_x, game_data.player2_y, game_data.player2_percent, game_data.player2_lifes);
+    return new Game(canvas, P1, P2, gameMap);
 }
 
-async function handleWebSocketMessage(event, game, gameId, playerId) {
+async function handleWebSocketMessage(event, gameId, playerId) {
     const data = JSON.parse(event.data);
     switch(data.type) {
         case 'players_info':
-            refreshPlayers(data, game);
+            refreshPlayers(data, currentGame);
             break;
         case 'player_connected':
+            console.log(data);
             displayConnectedPlayer(data.player_id, data.username, data.avatar, currentPlayerId);
             break;
+
         case 'player_ready':
             await updatePlayerStatus(data.player_id, gameId);
             break;
+
+        case 'animation':
+            handleAnimation(data, currentGame);
+            break;
+
         case 'game_start':
-            console.log(data);
-            game = createGame(data);
-            resizeCanvas();
-            game.start();
-            window.addEventListener('resize', resizeCanvas);
-            bindEvents();
-
-            setInterval(() => {
-                sendToBack({
-                    action: 'key_inputs',
-                    playerId: playerId,
-                    inputs: keyState,
-                })
-            }, 20);
-
+            await handleGameStart(data, gameId, playerId);
             break;
     }
-    return game;
+}
+
+async function handleGameStart(data, gameId, playerId) {
+    resizeCanvas();
+    console.log('Initializing game...', {gameId, playerId});
+    currentGame = createGame(data);
+
+    if (!currentGame || !currentGame.P1 || !currentGame.P2) {
+        console.error("Game creation failed", {
+            gameExists: !!currentGame,
+            P1Exists: !!currentGame.P1,
+            P2Exists: !!currentGame.P2
+        });
+        throw new Error('Game creation failed');
+    }
+    console.log('Game created !', {
+        P1: {id: currentGame.P1.id, name: currentGame.P1.name},
+        P2: {id: currentGame.P2.id, name: currentGame.P2.name},
+    });
+
+    currentGame.start();
+    window.addEventListener('resize', resizeCanvas);
+    bindEvents();
+
+    setupGameLoop(currentGame, playerId);
+}
+
+function setupGameLoop(game, playerId) {
+    if (window.gameLoopInterval) {
+        clearInterval(window.gameLoopInterval);
+    }
+
+    window.gameLoopInterval = setInterval(() => {
+        // if (!gameInitialized) {
+        //     console.warn("Game loop running but game not initialized");
+        //     return;
+        // }
+        const currentKeyState = {...keyState};
+        sendToBack({
+            action: 'key_inputs',
+            playerId: playerId,
+            inputs: currentKeyState,
+        });
+    }, 20);
+
+    game.P1.draw(game.ctx);
+    game.P2.draw(game.ctx);
+}
+
+function handleAnimation(data, game) {
+    try {
+        const player = data.player_id === game.P1.id ? game.P1 :
+            data.player_id === game.P2.id ? game.P2 : null;
+
+        if (!player) {
+            console.error('Invalid player ID for animation:', {
+                receivedId: data.player_id,
+                P1Id: game.P1.id,
+                P2Id: game.P2.id
+            });
+            return;
+        }
+
+        player.handlePosOrAnim(data, game);
+
+    } catch (error) {
+        console.error('Animation error:', error, {
+            messageData: data,
+            gameState: {
+                P1Id: game?.P1?.id,
+                P2Id: game?.P2?.id
+            }
+        });
+    }
 }
 
 function resizeCanvas() {
@@ -153,3 +225,28 @@ function resizeCanvas() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+
+// handleGameStart :
+// console.log(`Received message type: ${data.type}`, {
+//     gameExists: !!game,
+//     gameInitialized,
+//     timestamp: new Date().toISOString()
+// });
+//
+// if (data.type === 'game_start' && !gameInitialized) {
+//     await handleGameStart(data, gameId, playerId);
+//
+//     while (messageQueue.length > 0) {
+//         const queuedMessage = messageQueue.shift();
+//         console.log('Processing queued message: ', queuedMessage.type);
+//         await handleGameMessage(queuedMessage, game, gameId, playerId);
+//     }
+//     return game;
+// }
+//
+// if (!gameInitialized && ['animation'].includes(data.type)) {
+//     console.log('Queuing message:', data.type);
+//     messageQueue.push(data);
+//     return game;
+// }

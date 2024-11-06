@@ -4,7 +4,7 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.cache import cache, caches
 from .player import Player
-from .game_map import Gamemap
+from .game_map import GameMap
 from .physics import Physics
 
 
@@ -139,16 +139,16 @@ class PixelPawsConsumer(AsyncWebsocketConsumer):
 
                 async with self._broadcast_lock:
                     await self.notify_game_start(game, map, player1, player2)
-                    await self.notify_animation('Idle', player1)
-                    await self.notify_animation('Idle', player2)
+                    # await self.notify_animation('Idle', player1)
+                    # await self.notify_animation('Idle', player2)
 
     async def create_gamemap(self):
-        map = await Gamemap.get_from_cache(self.game_id)
+        map = await GameMap.get_from_cache(self.game_id)
         if map is None:
-            map = Gamemap(self.game_id)
+            map = GameMap(self.game_id)
             await map.save_to_cache()
             map = None
-            map = await Gamemap.get_from_cache(self.game_id)
+            map = await GameMap.get_from_cache(self.game_id)
         return map
 
     async def create_players(self, game):

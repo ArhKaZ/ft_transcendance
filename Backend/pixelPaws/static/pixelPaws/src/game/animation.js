@@ -60,50 +60,26 @@ class Animation {
     }
 
     update(ctx, obj) {
-        if (obj.hitboxes.length > 0) {
-            if (obj.nb === 1) {
-                this.drawAttack(ctx, obj);
-            }
-            else
-                this.drawAttackPurple(ctx, obj);
+        let spriteToDraw = null;
+
+        if (obj.look === 'left') {
+            if (obj.currentAnimation === 'Run')
+                spriteToDraw = obj.nb === 1 ? this.RunLeft : this.RunLeftPurple;
+            if (obj.currentAnimation === 'Jump')
+                spriteToDraw = obj.nb === 1 ? this.JumpLeft : this.JumpLeftPurple;
+            if (obj.currentAnimation === 'Idle')
+                spriteToDraw = obj.nb === 1 ? this.IdleLeft : this.IdleLeftPurple;
         }
-        else {
-            if (obj.look === 'left') {
-                if (obj.isMoving && !obj.isJumping && obj.hitboxes.length === 0) {
-                    if (obj.nb === 1)
-                        this.RunLeft.drawSprite(ctx, obj.x, obj.y);
-                    else
-                        this.RunLeftPurple.drawSprite(ctx, obj.x, obj.y);
-                } else if (obj.isJumping && obj.hitboxes.length === 0) {
-                    if (obj.nb === 1)
-                        this.JumpLeft.drawSprite(ctx, obj.x, obj.y, false, true);
-                    else
-                        this.JumpLeftPurple.drawSprite(ctx, obj.x, obj.y, false, true);
-                } else if (!obj.isMoving && !obj.isJumping && obj.hitboxes.length === 0) {
-                    if (obj.nb === 1)
-                        this.IdleLeft.drawSprite(ctx, obj.x, obj.y);
-                    else
-                        this.IdleLeftPurple.drawSprite(ctx, obj.x, obj.y);
-                }
-            } else if (obj.look === 'right') {
-                if (obj.isMoving && !obj.isJumping && obj.hitboxes.length === 0) {
-                    if (obj.nb === 1)
-                        this.RunRight.drawSprite(ctx, obj.x, obj.y);
-                    else
-                        this.RunRightPurple.drawSprite(ctx, obj.x, obj.y);
-                } else if (obj.isJumping && obj.hitboxes.length === 0) {
-                    if (obj.nb === 1)
-                        this.JumpRight.drawSprite(ctx, obj.x, obj.y, false, true);
-                    else
-                        this.JumpRightPurple.drawSprite(ctx, obj.x, obj.y, false, true);
-                } else if (!obj.isMoving && !obj.isJumping && obj.hitboxes.length === 0) {
-                    if (obj.nb === 1)
-                        this.IdleRight.drawSprite(ctx, obj.x, obj.y);
-                    else
-                        this.IdleRightPurple.drawSprite(ctx, obj.x, obj.y);
-                }
-            }
+        if (obj.look === 'right') {
+            if (obj.currentAnimation === 'Run')
+                spriteToDraw = obj.nb === 1 ? this.RunRight : this.RunRightPurple;
+            if (obj.currentAnimation === 'Jump')
+                spriteToDraw = obj.nb === 1 ? this.JumpRight : this.JumpRightPurple;
+            if (obj.currentAnimation === 'Idle')
+                spriteToDraw = obj.nb === 1 ? this.IdleRight : this.IdleRightPurple;
         }
+
+        spriteToDraw.drawSprite(ctx, obj.x, obj.y, obj.width, obj.height);
     }
 
     drawAttackPurple(ctx, obj) {

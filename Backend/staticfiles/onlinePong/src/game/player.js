@@ -1,10 +1,8 @@
 class Player {
-    constructor(id, name, isCurrentPlayer, srcAvatar) {
+    constructor(id, name) {
         this.name = name;
         this.id = id
         this.paddle = null;
-        this.isCurrentPlayer = isCurrentPlayer;
-        this.srcAvatar = srcAvatar;
     }
 
     incrementScore()

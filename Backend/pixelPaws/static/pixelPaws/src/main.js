@@ -90,14 +90,13 @@ async function init() {
 
 function setupWebSocket(gameId, playerId) {
     const socket = new WebSocket(`ws://localhost:8000/ws/pixelPaws/${gameId}/${playerId}/`);
-    let game = null;
 
     socket.onopen = () => {
         console.log("WEBSOCKET CONNECTED");
     };
 
     socket.onmessage = async (e) => {
-        game = await handleWebSocketMessage(e, gameId, playerId);
+        await handleWebSocketMessage(e, gameId, playerId);
     };
 
     socket.onerror = (error) => {
@@ -119,13 +118,14 @@ function createGame(game_data) {
     return new Game(canvas, P1, P2, gameMap);
 }
 
-async function handleWebSocketMessage(data, gameId, playerId) {
+async function handleWebSocketMessage(event, gameId, playerId) {
+    const data = JSON.parse(event.data);
     switch(data.type) {
         case 'players_info':
             refreshPlayers(data, currentGame);
             break;
-
         case 'player_connected':
+            console.log(data);
             displayConnectedPlayer(data.player_id, data.username, data.avatar, currentPlayerId);
             break;
 
@@ -142,28 +142,6 @@ async function handleWebSocketMessage(data, gameId, playerId) {
             break;
     }
 }
-
-// async function handleWebSocketMessage(event, gameId, playerId) {
-//     const data = JSON.parse(event.data);
-//
-//     console.log(`Received message type: ${data.type}`, {
-//         gameExists: !!game,
-//         gameInitialized,
-//         timestamp: new Date().toISOString()
-//     });
-//
-//     if (data.type === 'game_start') {
-//
-//     }
-//
-//     if (!gameInitialized && ['animation'].includes(data.type)) {
-//         console.log('Queuing message:', data.type);
-//         messageQueue.push(data);
-//         return game;
-//     }
-//
-//     return await handleGameMessage(data, game, gameId, playerId);
-// }
 
 async function handleGameStart(data, gameId, playerId) {
     resizeCanvas();
@@ -190,8 +168,6 @@ async function handleGameStart(data, gameId, playerId) {
     setupGameLoop(currentGame, playerId);
 }
 
-
-
 function setupGameLoop(game, playerId) {
     if (window.gameLoopInterval) {
         clearInterval(window.gameLoopInterval);
@@ -209,24 +185,12 @@ function setupGameLoop(game, playerId) {
             inputs: currentKeyState,
         });
     }, 20);
+
+    game.P1.draw(game.ctx);
+    game.P2.draw(game.ctx);
 }
 
 function handleAnimation(data, game) {
-    // if (!gameInitialized) {
-    //     console.error('Received animation before game initialization');
-    //     return;
-    // }
-
-    // if (!game || !game.P1 || !game.P2) {
-    //     console.error('Invalid game state during animation:', {
-    //         gameExists: !!game,
-    //         P1Exists: !!game?.P1,
-    //         P2Exists: !!game?.P2,
-    //         timestamp: new Date().toISOString()
-    //     });
-    //     return game;
-    // }
-
     try {
         const player = data.player_id === game.P1.id ? game.P1 :
             data.player_id === game.P2.id ? game.P2 : null;
@@ -240,8 +204,8 @@ function handleAnimation(data, game) {
             return;
         }
 
-        player.stopAnimation();
-        player.startAnimation(data, game);
+        player.handlePosOrAnim(data, game);
+
     } catch (error) {
         console.error('Animation error:', error, {
             messageData: data,
