@@ -113,10 +113,9 @@ function setupWebSocket(gameId, playerId) {
 function createGame(game_data) {
     const backCanvas = document.getElementById('backgroundCanvas');
     const gameCanvas = document.getElementById('gameCanvas');
-    const gameMap = new GameMap(backCanvas, game_data.map_x, game_data.map_y, game_data.map_height, game_data.map_width, game_data.map_ground_y, game_data.map_ground_x, game_data.back_src, game_data.stage_src);
-    const P1 = new Player(1, gameCanvas, game_data.player1_name, game_data.player1_id, game_data.player1_x, game_data.player1_y, game_data.player1_percent, game_data.player1_lifes);
-    const P2 = new Player(2, gameCanvas, game_data.player2_name, game_data.player2_id, game_data.player2_x, game_data.player2_y, game_data.player2_percent, game_data.player2_lifes);
-    return new Game(backCanvas, gameCanvas, P1, P2, gameMap);
+    const P1 = new Player(1, gameCanvas, game_data.player1_name, game_data.player1_id, game_data.player1_lifes);
+    const P2 = new Player(2, gameCanvas, game_data.player2_name, game_data.player2_id, game_data.player2_lifes);
+    return new Game(backCanvas, gameCanvas, P1, P2);
 }
 
 async function handleWebSocketMessage(event, gameId, playerId) {
@@ -140,16 +139,7 @@ async function handleWebSocketMessage(event, gameId, playerId) {
         case 'game_start':
             await handleGameStart(data, gameId, playerId);
             break;
-
-        case 'players_position':
-            updatePlayerPosition(data, currentGame);
-            break;
     }
-}
-
-function updatePlayerPosition(data, game) {
-    game.P1.assignPos(data.player1_x, data.player1_y, game.gameCanvas);
-    game.P2.assignPos(data.player2_x, data.player2_y, game.gameCanvas);
 }
 
 async function handleGameStart(data, gameId, playerId) {
@@ -183,10 +173,6 @@ function setupGameLoop(game, playerId) {
     }
 
     window.gameLoopInterval = setInterval(() => {
-        // if (!gameInitialized) {
-        //     console.warn("Game loop running but game not initialized");
-        //     return;
-        // }
         const currentKeyState = {...keyState};
         sendToBack({
             action: 'key_inputs',
@@ -234,33 +220,6 @@ function resizeCanvas() {
     backCanvas.height = window.innerHeight * 0.8;
     gameCanvas.width = window.innerWidth * 0.8;
     gameCanvas.height = window.innerHeight * 0.8;
-
-    console.log(36 / gameCanvas.width * 100);
 }
 
 document.addEventListener('DOMContentLoaded', init);
-
-
-// handleGameStart :
-// console.log(`Received message type: ${data.type}`, {
-//     gameExists: !!game,
-//     gameInitialized,
-//     timestamp: new Date().toISOString()
-// });
-//
-// if (data.type === 'game_start' && !gameInitialized) {
-//     await handleGameStart(data, gameId, playerId);
-//
-//     while (messageQueue.length > 0) {
-//         const queuedMessage = messageQueue.shift();
-//         console.log('Processing queued message: ', queuedMessage.type);
-//         await handleGameMessage(queuedMessage, game, gameId, playerId);
-//     }
-//     return game;
-// }
-//
-// if (!gameInitialized && ['animation'].includes(data.type)) {
-//     console.log('Queuing message:', data.type);
-//     messageQueue.push(data);
-//     return game;
-// }

@@ -34,7 +34,7 @@ INSTALLED_APPS = [
     'daphne',
     'channels',
     'onlinePong',
-    'pixelPaws',
+    'magicDuel',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

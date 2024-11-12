@@ -32,6 +32,11 @@ class Player {
         return this.name;
     }
 
+    assignPos(x, y, canvas) {
+        this.x = x * canvas.width / 100;
+        this.y = y * canvas.height / 100;
+    }
+
     handlePosOrAnim(data, ctx, canvas) {
         this.x = data.player_x * canvas.width / 100;
         this.y = data.player_y * canvas.height / 100;
@@ -40,12 +45,14 @@ class Player {
         if (newAnim !== this.currentAnimation || newLook !== this.look) {
             this.currentAnimation = newAnim;
             this.look = newLook;
+            // this.draw(ctx, canvas);
         }
     }
 
     draw(ctx, canvas) {
         const animate = () => {
-            this.sprites.update(ctx, this);
+            //ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const speed = this.sprites.update(ctx, this);
             requestAnimationFrame(animate);
         };
 

@@ -32,7 +32,7 @@ urlpatterns = [
 	path('user/', include('user.urls')),
 	path('home/', views.main),
 	path('logged/', views.logged, name='logged'),
-	path('pixelPaws/', include('pixelPaws.urls')),
+	path('magicDuel/', include('magicDuel.urls')),
 	path('onlinePong/logged_get_user/', views.logged_get_user, name='logged_get_user'),
 	path('pixelPaws/logged_get_user/', views.logged_get_user, name='logged_get_user'),
 	# path('dj-rest-auth/', include('dj_rest_auth.urls'))

@@ -18,8 +18,8 @@ class GameMap {
     draw(ctx, canvas) {
         ctx.drawImage(this.back, 0, 0, canvas.width, canvas.height);
         ctx.drawImage(this.stage, this.x, this.y, this.width, this.height);
-        ctx.fillStyle = 'black';
-        ctx.fillRect(this.groundX, this.groundY, this.width, 5);
+        // ctx.fillStyle = 'black';
+        // ctx.fillRect(this.groundX, this.groundY, this.width, 5);
     }
 }
 

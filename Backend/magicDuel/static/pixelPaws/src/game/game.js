@@ -2,17 +2,13 @@ import PlayerAction from "./PlayerAction.js";
 import Physics from "./physics.js";
 import GameMap from "./GameMap.js";
 class Game {
-    constructor(backCanvas, gameCanvas, P1, P2, gameMap) {
+    constructor(backCanvas, gameCanvas, P1, P2) {
         this.backCanvas = backCanvas;
         this.gameCanvas = gameCanvas;
         this.backCtx = backCanvas.getContext("2d");
         this.gameCtx = gameCanvas.getContext('2d');
         this.P1 = P1;
         this.P2 = P2;
-        this.gameMap = gameMap;
-        //this.physics = new Physics(0.1, this.map);
-        // this.p1.cube = new PlayerAction(this.map.groundX, this.map.groundY, 1, this.physics);
-        // this.p2.cube = new PlayerAction(this.map.groundEndX - 120, this.map.groundY, 2, this.physics);
         this.isRunning = false;
         this.keyState = {};
         this.bindEvents();
@@ -31,7 +27,7 @@ class Game {
     start() {
         this.displayCanvas();
         this.isRunning = true;
-        this.gameMap.draw(this.backCtx, this.backCanvas);
+
     }
 
     //
