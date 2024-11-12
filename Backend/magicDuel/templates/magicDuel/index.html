@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixel Paws</title>
+    <title>Magic Duel</title>
     <script>
         window.STATIC_URL = "{% get_static_prefix %}";
         window.MAGICDUEL_ASSETS = "{% static 'magicDuel/' %}"
@@ -31,6 +31,11 @@
     <div id="canvasContainer">
         <canvas id="backgroundCanvas"></canvas>
         <canvas id="gameCanvas"></canvas>
+        <div id="choiceButtons" class="centered-buttons hidden">
+            <button id="btn1" class="btn-old-pc" data-title="Pierre">Pierre</button>
+            <button id="btn2" class="btn-old-pc" data-title="Feuille">Feuille</button>
+            <button id="btn3" class="btn-old-pc" data-title="Ciseaux">Ciseaux</button>
+        </div>
         <script type="module" src="{% static 'magicDuel/src/main.js' %}"></script>
     </div>
     <div id="infoP2">

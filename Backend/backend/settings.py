@@ -189,7 +189,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "pixelPaws/static"),
+    os.path.join(BASE_DIR, "magicDuel/static"),
     os.path.join(BASE_DIR, "onlinePong/static"),
 ]
 

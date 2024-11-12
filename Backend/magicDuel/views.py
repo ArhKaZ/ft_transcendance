@@ -12,7 +12,7 @@ from django.views.decorators.http import require_GET
 # Create your views here.
 
 def index(request):
-    return render(request, './pixelPaws/index.html')
+    return render(request, './magicDuel/index.html')
 
 @csrf_exempt
 def create_or_join_game(request):
