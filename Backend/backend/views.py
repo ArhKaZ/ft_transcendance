@@ -28,8 +28,9 @@ def logged(request):
         request.user = user
     except Exception:
         return HttpResponseRedirect(reverse('login'))  # Rediriger si le token n'est pas valide
-    
-    return render(request, "backend/logged.html", {'user': request.user})
+    friends = user.friends.all()
+        
+    return render(request, "backend/logged.html", {'user': request.user, 'friend': friends})
 
 
 @api_view(['GET'])

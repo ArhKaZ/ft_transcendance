@@ -127,7 +127,8 @@ function refreshPlayers(data, game) {
 
 async function updatePlayerStatus(playerId, gameId) {
     try {
-        const response = await fetch(`api/get_info_player/?game_id=${gameId}&player_id=${playerId}`);
+        console.debug(playerId, gameId);
+        const response = await fetch(`api/get_player/?game_id=${gameId}&player_id=${playerId}`);
         const data = await response.json();
         const playerNumber = data.player_number;
         const waitingAnimation = document.getElementById(`p${playerNumber}-waiting-animation`);

@@ -110,8 +110,6 @@ def get_user_matches(request):
 
 
 
-
-
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods

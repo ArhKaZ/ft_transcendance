@@ -23,6 +23,13 @@ class MyUser(AbstractUser):
         related_name='myuser_set',
         related_query_name='myuser',
     )
+    friends = models.ManyToManyField(
+        'self',
+        symmetrical=True,
+        blank=True,
+        related_name='friends_with',
+        verbose_name="Friends"
+    )
     
 class MatchHistory(models.Model):
     user = models.ForeignKey('MyUser', on_delete=models.CASCADE, related_name="matches")

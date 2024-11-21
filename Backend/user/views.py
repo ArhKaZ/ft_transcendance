@@ -7,6 +7,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.urls import reverse
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
+from rest_framework.exceptions import AuthenticationFailed
 
 
 
@@ -33,6 +34,13 @@ def edit_user(request):
     
     return render(request, "user/edit_user.html", {'user': request.user})
 
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def user_history(request):
-    return render(request, "user/history.html")
+    try:
+        # Si l'utilisateur est authentifié, on affiche la page.
+        return render(request, "user/history.html")
+    except AuthenticationFailed:
+        # Si une exception d'authentification est levée, on redirige.
+        return redirect('loginPage')  # Remplacez 'login' par le nom de votre vue de connexion.
+
