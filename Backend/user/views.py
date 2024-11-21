@@ -34,13 +34,6 @@ def edit_user(request):
     
     return render(request, "user/edit_user.html", {'user': request.user})
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
 def user_history(request):
-    try:
-        # Si l'utilisateur est authentifié, on affiche la page.
-        return render(request, "user/history.html")
-    except AuthenticationFailed:
-        # Si une exception d'authentification est levée, on redirige.
-        return redirect('loginPage')  # Remplacez 'login' par le nom de votre vue de connexion.
+    return render(request, "user/history.html")
 

@@ -10,6 +10,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from api.models import MyUser
 
+
 def main(request):
     return render(request, "backend/home.html")
 
