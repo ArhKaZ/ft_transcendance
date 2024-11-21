@@ -4,7 +4,8 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-    background-color: #000;
+    background-color: black;
+    /*background-color: white;*/
 }
 
 #canvasContainer {
@@ -15,7 +16,7 @@ body {
     height: 70%;
 }
 
-#backgroundCanvas, #gameCanvas {
+#backgroundCanvas, #gameCanvas, #attackCanvas {
     position: absolute;
     top: 0;
     left: 0;
@@ -23,6 +24,7 @@ body {
     height: 100%;
 }
 
+/* Waiting room */
 #infoP1, #infoP2 {
     display: flex;
     width: 15%;
@@ -49,12 +51,16 @@ body {
     text-align: left;
 }
 
-#p1-img, #p2-img {
+#p1-anim, #p2-anim {
     display: none;
 }
 
-#p1-img:not(.hidden), #p2-img:not(.hidden) {
+#p1-anim:not(.hidden), #p2-anim:not(.hidden) {
     display: block;
+}
+
+.hidden {
+    display: none;
 }
 
 .svg-container {
@@ -65,11 +71,15 @@ body {
 .icon {
     width: 40px;
     height: 40px;
-    display: block;
+    display: none;
     stroke-width: 5;
     stroke: #616161;
     stroke-linecap: round;
     animation: scale 0.3s ease-in-out 0.9s both;
+}
+
+.icon:not(.hidden) {
+    display: block;
 }
 
 .circle {
@@ -106,10 +116,6 @@ body {
     stroke-dashoffset: 320;
 }
 
-.hidden {
-    display: none;
-}
-
 @keyframes stroke {
     100% {
         stroke-dashoffset: 0;
@@ -142,62 +148,160 @@ body {
     height: 100%;
 }
 
-.centered-buttons {
-    position: absolute;
-    top: 90%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    gap: 10px;
+/* BUTTONS POWER */
+.magic-button {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #ff7b00, #ff4500); /* Dégradé de feu */
+    border: 3px solid #ffae42; /* Cadre lumineux */
+    border-radius: 12px; /* Coins légèrement arrondis */
+    box-shadow:
+            0 0 20px rgba(255, 120, 0, 0.7), /* Lueur extérieure */
+            inset 0 0 10px rgba(255, 70, 0, 0.6); /* Lueur intérieure */
+    text-align: center;
+    overflow: hidden;
+    cursor: pointer;
+    animation: pulse 2s infinite; /* Animation subtile */
+    color: white;
+    font-size: 16px;
+    outline: none;
+    padding: 0;
 }
 
-.btn-old-pc {
-    background-color: #080808;
-    color: #6b778400;
-    text-align: center;
-    position: relative;
-    width: 120px;
-    height: 60px;
-    text-decoration: none;
-    padding: 10px 20px;
-    display: inline-block;
-    box-shadow: 0px -2px 2px 4px #0d0e0d, 2px 2px 2px 2px #292c2a, 2px -2px 2px 2px #222423, -2px 2px 2px 2px #2b3230;
-    border-radius: 5px;
-    z-index: 1;
-    font-size: 1em;
-    transition: .2s;
-    cursor: pointer;
+.magic-button:hover {
+    transform: scale(1.1); /* Légère mise en avant au survol */
+    box-shadow:
+            0 0 30px rgba(255, 140, 0, 0.9),
+            inset 0 0 15px rgba(255, 90, 0, 0.8);
 }
-.btn-old-pc::after {
-    content: attr(data-title);
-    line-height: 2.6em;
-    display: block;
+
+.element-icon {
+    font-size: 40px;
+    color: #ffffff;
+    text-shadow:
+            0 0 10px #fff,
+            0 0 20px #ff6347,
+            0 0 30px #ff4500; /* Effet lumineux sur l'élément */
+    line-height: 100px;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow:
+                0 0 20px rgba(255, 120, 0, 0.7),
+                inset 0 0 10px rgba(255, 70, 0, 0.6);
+    }
+    50% {
+        box-shadow:
+                0 0 25px rgba(255, 140, 0, 0.9),
+                inset 0 0 12px rgba(255, 90, 0, 0.8);
+    }
+}
+
+/* COUNTDOWN */
+
+.countdown-canvas {
     position: absolute;
-    z-index: -1;
-    background-color: #2a3c44;
-    color: #495f64;
-    text-shadow: 0px 2px 1px #1a2b2c;
-    font-weight: bold;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    border-top: 5px solid #3e5156;
-    border-left: 8px solid #213234;
-    border-right: 8px solid #3c3836;
-    border-bottom: 12px solid #101b1c;
-    border-radius: 6px;
-    opacity: 1;
-    box-shadow: inset 10px -5px 14px #293e44, inset -10px -7px 22px #443f3d;
-    transition: .2s;
 }
-.btn-old-pc:hover::after {
-    opacity: 1;
-    transform: scale(.97);
-    border-top: 8px solid #26363a;
-    border-bottom: 9px solid #101b1c;
-    border-right: 8px solid #2b2725;
-    background-color: #1d323b;
-    color: #35494e;
-    box-shadow: inset 10px 16px 14px #1c1f2066, inset -10px 13px 22px #3a373566;
+
+.countdown-controls {
+    position: fixed;
+    bottom: 20px;
+    z-index: 100;
 }
+
+.countdown-button {
+    padding: 8px 16px;
+    margin: 0 5px;
+    background: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    transition: background-color 0.3s;
+}
+
+.countdown-button:hover {
+    background-color: #f0f0f0;
+}
+
+
+/* HUD ROUND */
+
+.round-numbers {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 24px;
+    text-align: center;
+    z-index: 10;
+}
+
+.timer {
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 20px;
+    text-align: center;
+    z-index: 10;
+}
+
+.countainer-hud {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    align-items: center;
+}
+
+.hud-items {
+    display: none;
+    height: 10%;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.hud-items:not(.hidden) {
+    display: flex;
+}
+
+.player-hud {
+    height: 100%;
+    width: 16%;
+    display: none;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: column;
+}
+
+.player-hud:not(.hidden) {
+    display: flex;
+}
+
+.username {
+    background-color: black;
+    width: 95%;
+    height: 40%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.username h4 {
+    color: white;
+}
+
+.pv {
+    width: 100%;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+

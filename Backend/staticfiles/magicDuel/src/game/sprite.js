@@ -1,20 +1,21 @@
 class Sprite {
-    constructor(src, totalFrames, animationSpeed, width, height) {
+    constructor(src, totalFrames, animationSpeed, width, height, name, isLooping = false) {
+        this.name = name;
         this.sprite = new Image();
         this.sprite.src = src;
         this.totalFrames = totalFrames;
-        this.frameWidth = 18;
-        this.frameHeight = 29;
+        this.frameWidth = width;
+        this.frameHeight = height;
         this.currentFrame = 0;
         this.frameCount = 0;
         this.animationSpeed = animationSpeed;
         this.isAnimationComplete = false;
+        this.isLooping = isLooping;
     }
 
-    drawSprite(ctx, canvasX, canvasY, isAttack = false, isJump = false, hitboxes = null, scale = 2) {
-
-        const sx = this.currentFrame * 231 + 60;
-        const sy = 50;
+    drawSprite(ctx, canvasX, canvasY, scale = 2) {
+        const sx = this.currentFrame * 231;
+        const sy = 0;
         const sWidth = this.frameWidth;
         const sHeight = this.frameHeight;
         const dx = canvasX;
@@ -29,44 +30,26 @@ class Sprite {
             dWidth, dHeight
         );
 
-        if (!isAttack)
-            this.updateFrame(isJump);
-        else
-            this.updateFrameAttack(hitboxes);
-
-
-        if (this.isAnimationComplete) {
-            this.resetAnimation();
-        }
-    }
-
-    affDurAnim() {
-        console.log(this.totalFrames * this.animationSpeed);
-    }
-
-    getAnimationSpeed() {
-        return this.animationSpeed;
+        this.updateFrame();
     }
 
     animationFinish() {
         return this.isAnimationComplete;
     }
 
-    updateFrame(isJump) {
+    updateFrame() {
         this.frameCount++;
         if (this.frameCount >= this.animationSpeed) {
             this.frameCount = 0;
+            this.currentFrame++;
 
-            if (isJump) {
-                if (this.currentFrame === 3) {
-                    this.currentFrame = 4;
-                } else if (this.currentFrame === 4) {
-                    this.currentFrame = 3;
-                } else {
-                    this.currentFrame = 3;
-                }
+            if (this.isLooping) {
+                this.currentFrame = this.currentFrame % this.totalFrames;
             } else {
-                this.currentFrame = (this.currentFrame + 1) % this.totalFrames;
+                if (this.currentFrame >= this.totalFrames) {
+                    this.isAnimationComplete = true;
+                    this.currentFrame = this.totalFrames - 1;
+                }
             }
         }
     }

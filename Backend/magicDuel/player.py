@@ -2,13 +2,14 @@ from asgiref.sync import sync_to_async
 from django.core.cache import cache
 
 class Player:
-    def __init__(self, nb, player_id, game_id, life=3):
+    def __init__(self, nb, player_id, game_id, action = None, life=3):
         self.life = life
         self.game_id = game_id
         self.player_id = player_id
         self.nb = nb
         self.width = 3
         self.height = 7
+        self.action = action
 
     @classmethod
     async def get_players_of_game(cls, game_id):
@@ -21,6 +22,7 @@ class Player:
             if player_data:
                 player = cls(len(players) + 1, player_id, game_id)
                 player.life = player_data['life']
+                player.action = player_data['action']
                 players.append(player)
         return players
 
@@ -30,7 +32,8 @@ class Player:
         if player_cache:
             p_life = player_cache['life']
             p_nb = player_cache['nb']
-            player = Player(p_nb, player_id, game_id, p_life)
+            p_action = player_cache['action']
+            player = Player(p_nb, player_id, game_id, p_action, p_life)
             return player
         else:
             return None
@@ -47,9 +50,9 @@ class Player:
             'life': self.life,
             'player_id': self.player_id,
             'game_id': self.game_id,
-            'look': self.look,
-            'nb': self.nb
-        })
+            'nb': self.nb,
+            'action': self.action
+        }, timeout= 3600)
 
         player_sessions_key = f'pp_sessions_game_{self.game_id}'
         current_sessions = cache.get(player_sessions_key) or []

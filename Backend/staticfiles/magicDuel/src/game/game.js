@@ -1,19 +1,29 @@
 
 class Game {
-    constructor(backCanvas, gameCanvas, P1, P2) {
+    constructor(backCanvas, gameCanvas, attackCanvas, P1, P2) {
         this.backCanvas = backCanvas;
         this.gameCanvas = gameCanvas;
+        this.attackCanvas = attackCanvas;
         this.backCtx = backCanvas.getContext("2d");
         this.gameCtx = gameCanvas.getContext('2d');
+        this.attackCtx = attackCanvas.getContext('2d');
         this.P1 = P1;
         this.P2 = P2;
         this.isRunning = false;
         this.back = new Image();
         this.assetsPath = window.MAGICDUEL_ASSETS;
         this.getAssetPath = (path) => `${this.assetsPath}assets/${path}`;
-        this.back.src = this.getAssetPath('map.png');
+        this.back.src = this.getAssetPath('newMapBig.png');
         this.keyState = {};
         this.bindEvents();
+        this.countdownFinish = false;
+
+        //TEST ANIMATION
+        this.animationFrameId = null;
+        this.lastTimestamp = 0;
+        this.fps = 60;
+        this.frameInterval = 1000 / this.fps;
+
     }
 
     bindEvents() {
@@ -27,106 +37,75 @@ class Game {
     }
 
     start() {
+        console.log('canvas display');
         this.displayCanvas();
         this.isRunning = true;
-        this.backCtx.drawImage(this.back, 0, 0, this.backCanvas.width, this.backCanvas.height);
+        console.log('start finished');
     }
 
-    //
-    // stop() {
-    //     this.isRunning = false;
-    //     this.displayWinner();
-    // }
-    //
-    // loop() {
-    //     if (!this.isRunning) return;
-    //
-    //     if (this.p1.cube.stock === 0 || this.p2.cube.stock === 0) {
-    //         this.stop();
-    //     }
-    //     else {
-    //         this.update();
-    //         this.draw();
-    //         requestAnimationFrame(() => this.loop());
-    //     }
-    // }
-    //
+    stop() {
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+        }
+        this.isRunning = false;
+    }
 
-    drawPlayers() {
-        this.gameCtx.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
-        this.P1.draw(this.gameCanvas);
-        this.P2.draw(this.gameCanvas);
+    playerAttack(playerId) {
+        if (playerId === this.P1.id) {
+            this.P1.playAnimationPlayer('Attack')
+        } else if (playerId === this.P2.id) {
+            this.P2.playAnimationPlayer('Attack');
+        }
+    }
+
+    toggleTimer(show) {
+        const timer = document.getElementById('timer-element');
+        if (show) {
+            timer.classList.remove('hidden');
+        } else {
+            timer.classList.add('hidden');
+        }
+    }
+
+    toggleButtons(show) {
+        const choiceButtons = document.getElementById('choiceButtons');
+        if (show) {
+            choiceButtons.classList.remove('hidden');
+        } else {
+            choiceButtons.classList.add('hidden');
+        }
+    }
+
+    drawMap()
+    {
+        const ctx = this.backCanvas.getContext('2d');
+        ctx.drawImage(this.back, 0, 0, this.backCanvas.width, this.backCanvas.height);
     }
 
     displayCanvas() {
         document.getElementById('buttonStart').classList.add('hidden');
         document.getElementById('canvasContainer').style.display = 'flex';
     }
-    //
-    // displayWinner() {
-    //     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    //     this.ctx.fillStyle = 'red';
-    //     this.ctx.font = '100px Arial';
-    //     this.ctx.textAlign = 'center';
-    //     this.ctx.textBaseline = 'middle';
-    //
-    //     let winnerText;
-    //     if (this.p1.cube.stock === 0) {
-    //         winnerText = 'P2 has WIN!';
-    //     } else if (this.p2.cube.stock === 0) {
-    //         winnerText = 'P1 has WIN!';
-    //     }
-    //
-    //     this.ctx.fillText(winnerText, this.canvas.width / 2, this.canvas.height / 2);
-    // }
-    //
-    // reset(obj) { // TODO temps invisible ?
-    //     obj.stock--;
-    //     obj.velocityY = 0;
-    //     obj.velocityY = 0;
-    //     obj.isJumping = false;
-    //     obj.percent = 0;
-    //     if (obj.nb === 1) {
-    //         obj.x = this.map.groundX;
-    //         obj.y = this.map.groundY - 60;
-    //     }
-    //     else {
-    //         obj.x = this.map.groundEndX - 120;
-    //         obj.y = this.map.groundY - 60;
-    //     }
-    // }
-    //
-    // update() {
-    //
-    //     this.p1.cube.update(this.keyState);
-    //     this.p2.cube.update(this.keyState);
-    //
-    //     this.physics.applyGravity(this.p1.cube);
-    //     this.physics.applyGravity(this.p2.cube);
-    //
-    //     this.physics.applyMovement(this.p1.cube);
-    //     this.physics.applyMovement(this.p2.cube);
-    //
-    //     if (this.physics.handleCollisionWall(this.p1.cube, this.canvas))
-    //         this.reset(this.p1.cube);
-    //     if (this.physics.handleCollisionWall(this.p2.cube, this.canvas))
-    //         this.reset(this.p2.cube);
-    //
-    //     this.map.handleCollision(this.p1.cube);
-    //     this.map.handleCollision(this.p2.cube);
-    //
-    //     this.physics.handleHit(this.p1.cube, this.p2.cube);
-    //     this.physics.handleHit(this.p2.cube, this.p1.cube);
-    // }
-    //
-    // draw()
-    // {
-    //     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    //     this.map.draw(this.ctx);
-    //     this.p1.cube.draw(this.ctx);
-    //     this.p2.cube.draw(this.ctx);
-    // }
 
+    gameLoop(timestamp) {
+        if (!this.lastTimestamp) {
+            this.lastTimestamp = timestamp;
+        }
+
+        const elapsed = timestamp - this.lastTimestamp;
+
+        if (elapsed >= this.frameInterval) {
+            this.gameCtx.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
+            // this.attackCanvas.clearRect(0, 0, this.attackCanvas.width, this.attackCanvas.height);
+
+            this.P1.updateAnimation(this.gameCtx);
+            this.P2.updateAnimation(this.gameCtx);
+
+            this.lastTimestamp = timestamp;
+        }
+
+        this.animationFrameId = requestAnimationFrame(this.gameLoop.bind(this));
+    }
 }
 
 export default Game;

@@ -1,5 +1,6 @@
 class Sprite {
-    constructor(src, totalFrames, animationSpeed, width, height) {
+    constructor(src, totalFrames, animationSpeed, width, height, name, isLooping = false) {
+        this.name = name;
         this.sprite = new Image();
         this.sprite.src = src;
         this.totalFrames = totalFrames;
@@ -9,11 +10,12 @@ class Sprite {
         this.frameCount = 0;
         this.animationSpeed = animationSpeed;
         this.isAnimationComplete = false;
+        this.isLooping = isLooping;
     }
 
     drawSprite(ctx, canvasX, canvasY, scale = 2) {
-        const sx = this.currentFrame * 231 + 60;
-        const sy = 50;
+        const sx = this.currentFrame * 231;
+        const sy = 0;
         const sWidth = this.frameWidth;
         const sHeight = this.frameHeight;
         const dx = canvasX;
@@ -29,18 +31,6 @@ class Sprite {
         );
 
         this.updateFrame();
-
-        if (this.isAnimationComplete) {
-            this.resetAnimation();
-        }
-    }
-
-    affDurAnim() {
-        console.log(this.totalFrames * this.animationSpeed);
-    }
-
-    getAnimationSpeed() {
-        return this.animationSpeed;
     }
 
     animationFinish() {
@@ -51,8 +41,17 @@ class Sprite {
         this.frameCount++;
         if (this.frameCount >= this.animationSpeed) {
             this.frameCount = 0;
-            this.currentFrame = (this.currentFrame + 1) % this.totalFrames;
+            this.currentFrame++;
+
+            if (this.isLooping) {
+                this.currentFrame = this.currentFrame % this.totalFrames;
+            } else {
+                if (this.currentFrame >= this.totalFrames) {
+                    this.isAnimationComplete = true;
+                    this.currentFrame = this.totalFrames - 1;
+                }
             }
+        }
     }
 
     updateFrameAttack(hitboxes)

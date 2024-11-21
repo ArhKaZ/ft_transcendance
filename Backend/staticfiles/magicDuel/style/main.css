@@ -4,18 +4,19 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-    background-color: #000;
+    background-color: black;
 }
 
 #canvasContainer {
     display: none;
+    /*display: flex;*/
     border: white solid 2px;
     position: relative;
     width: 80%;
     height: 70%;
 }
 
-#backgroundCanvas, #gameCanvas {
+#backgroundCanvas, #gameCanvas, #attackCanvas {
     position: absolute;
     top: 0;
     left: 0;
@@ -23,6 +24,7 @@ body {
     height: 100%;
 }
 
+/* Waiting room */
 #infoP1, #infoP2 {
     display: flex;
     width: 15%;
@@ -49,12 +51,16 @@ body {
     text-align: left;
 }
 
-#p1-img, #p2-img {
+#p1-anim, #p2-anim {
     display: none;
 }
 
-#p1-img:not(.hidden), #p2-img:not(.hidden) {
+#p1-anim:not(.hidden), #p2-anim:not(.hidden) {
     display: block;
+}
+
+.hidden {
+    display: none;
 }
 
 .svg-container {
@@ -65,11 +71,15 @@ body {
 .icon {
     width: 40px;
     height: 40px;
-    display: block;
+    display: none;
     stroke-width: 5;
     stroke: #616161;
     stroke-linecap: round;
     animation: scale 0.3s ease-in-out 0.9s both;
+}
+
+.icon:not(.hidden) {
+    display: block;
 }
 
 .circle {
@@ -106,10 +116,6 @@ body {
     stroke-dashoffset: 320;
 }
 
-.hidden {
-    display: none;
-}
-
 @keyframes stroke {
     100% {
         stroke-dashoffset: 0;
@@ -141,3 +147,139 @@ body {
     width: 100%;
     height: 100%;
 }
+
+/* BUTTONS POWER */
+.magic-button {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #ff7b00, #ff4500); /* Dégradé de feu */
+    border: 3px solid #ffae42; /* Cadre lumineux */
+    border-radius: 12px; /* Coins légèrement arrondis */
+    box-shadow:
+            0 0 20px rgba(255, 120, 0, 0.7), /* Lueur extérieure */
+            inset 0 0 10px rgba(255, 70, 0, 0.6); /* Lueur intérieure */
+    text-align: center;
+    overflow: hidden;
+    cursor: pointer;
+    animation: pulse 2s infinite; /* Animation subtile */
+    color: white;
+    font-size: 16px;
+    outline: none;
+    padding: 0;
+}
+
+.magic-button:hover {
+    transform: scale(1.1); /* Légère mise en avant au survol */
+    box-shadow:
+            0 0 30px rgba(255, 140, 0, 0.9),
+            inset 0 0 15px rgba(255, 90, 0, 0.8);
+}
+
+.element-icon {
+    font-size: 40px;
+    color: #ffffff;
+    text-shadow:
+            0 0 10px #fff,
+            0 0 20px #ff6347,
+            0 0 30px #ff4500; /* Effet lumineux sur l'élément */
+    line-height: 100px;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow:
+                0 0 20px rgba(255, 120, 0, 0.7),
+                inset 0 0 10px rgba(255, 70, 0, 0.6);
+    }
+    50% {
+        box-shadow:
+                0 0 25px rgba(255, 140, 0, 0.9),
+                inset 0 0 12px rgba(255, 90, 0, 0.8);
+    }
+}
+
+/* COUNTDOWN */
+
+.countdown-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.countdown-controls {
+    position: fixed;
+    bottom: 20px;
+    z-index: 100;
+}
+
+.countdown-button {
+    padding: 8px 16px;
+    margin: 0 5px;
+    background: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    transition: background-color 0.3s;
+}
+
+.countdown-button:hover {
+    background-color: #f0f0f0;
+}
+
+
+/* HUD ROUND */
+
+.round-numbers {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 24px;
+    text-align: center;
+    z-index: 10;
+}
+
+.timer {
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 20px;
+    text-align: center;
+    z-index: 10;
+}
+
+.player-hud {
+    left: 5%;
+    top: 45%;
+    position: absolute;
+    height: 10%;
+    width: 13%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: column;
+}
+
+.username {
+    background-color: black;
+    width: 95%;
+    height: 40%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.username h4 {
+    color: white;
+}
+
+.pv {
+    width: 95%;
+    height: auto;
+}
+

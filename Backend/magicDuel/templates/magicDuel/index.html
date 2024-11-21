@@ -12,12 +12,13 @@
     <link rel="stylesheet" href="{% static 'magicDuel/style/main.css' %}">
 </head>
 <body>
-    <div id="infoP1">
+    <div id="infoP1" class="hidden">
+<!--    <div id="infoP1">-->
         <h1 id="p1-username" class="hidden">None</h1>
             <div id="p1-avatar" class="avatar hidden">
                 <img id="p1-avatar-img" alt="p1-avatar" src="" />
             </div>
-             <div id="p1-img" class="svg-container hidden">
+             <div id="p1-anim" class="svg-container hidden">
                  <svg id="p1-waiting-animation" class="waiting icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 143.7 143.7">
                      <circle class="circle" fill="none" cx="71.8" cy="71.8" r="67.8"/>
                  </svg>
@@ -31,19 +32,52 @@
     <div id="canvasContainer">
         <canvas id="backgroundCanvas"></canvas>
         <canvas id="gameCanvas"></canvas>
+        <canvas id="attackCanvas"></canvas>
+        <div id="hud-container" class="countainer-hud">
+            <div id="hud-items" class="hud-items hidden">
+                <div id="p1-hud" class="player-hud">
+                    <div id="p1-hud-name" class="username">
+                        <h4 id="p1-hud-name-element"></h4>
+                    </div>
+                    <div id="p1-hud-lifes" class="pv">
+                            <img id="p1-hud-lifes-img" alt="p1-hud-lifes-img" src="" />
+                    </div>
+                </div>
+                <div id="p2-hud" class="player-hud">
+                    <div id="p2-hud-name" class="username">
+                        <h4 id="p2-hud-name-element"></h4>
+                    </div>
+                    <div id="p2-hud-lifes" class="pv">
+                        <img id="p2-hud-lifes-img" alt="p2-hud-lifes-img" src="" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="round-element" class="hidden round-numbers"></div>
+        <div id="timer-element" class="hidden timer"></div>
         <div id="choiceButtons" class="centered-buttons hidden">
-            <button id="btn1" class="btn-old-pc" data-title="Pierre">Pierre</button>
-            <button id="btn2" class="btn-old-pc" data-title="Feuille">Feuille</button>
-            <button id="btn3" class="btn-old-pc" data-title="Ciseaux">Ciseaux</button>
+            <button id='btn1' class="magic-button">
+                <span class="element-icon">🔥</span>
+            </button>
+            <button id='btn2' class="magic-button">
+                <span class="element-icon">🔥</span>
+            </button>
+            <button id='btn3' class="magic-button">
+                <span class="element-icon">🔥</span>
+            </button>
+            <button id='btn4' class="magic-button">
+                <span class="element-icon">🔥</span>
+            </button>
         </div>
         <script type="module" src="{% static 'magicDuel/src/main.js' %}"></script>
     </div>
-    <div id="infoP2">
+    <div id="infoP2" class="hidden">
+<!--    <div id="infoP2">-->
         <h1 id="p2-username" class="hidden">None</h1>
             <div id="p2-avatar" class="avatar hidden">
                 <img id="p2-avatar-img" alt="p2-avatar" src=""/>
             </div>
-            <div id="p2-img"  class="svg-container hidden">
+            <div id="p2-anim" class="svg-container hidden">
                 <svg id="p2-waiting-animation" class="waiting icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 143.7 143.7">
                     <circle class="circle" fill="none" cx="71.8" cy="71.8" r="67.8"/>
                 </svg>

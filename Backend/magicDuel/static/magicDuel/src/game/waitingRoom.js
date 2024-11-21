@@ -4,7 +4,7 @@ function displayWhenConnect(data) {
     const elements = {
         player: {
             username: document.getElementById('p1-username'),
-            img: document.getElementById('p1-img'),
+            img: document.getElementById('p1-anim'),
             waitingAnim: document.getElementById('p1-waiting-animation'),
             joinedAnim: document.getElementById('p1-joined-animation'),
             avatar: document.getElementById('p1-avatar'),
@@ -12,7 +12,7 @@ function displayWhenConnect(data) {
         },
         opponent: {
             username: document.getElementById('p2-username'),
-            img: document.getElementById('p2-img'),
+            img: document.getElementById('p2-anim'),
             waitingAnim: document.getElementById('p2-waiting-animation'),
             joinedAnim: document.getElementById('p2-joined-animation'),
             avatar: document.getElementById('p2-avatar'),
@@ -58,7 +58,7 @@ function displayConnectedPlayer(playerId, playerName, playerAvatar, currentPlaye
     const isPlayer1 = parseInt(playerId) === currentPlayerId;
     const elementId = isPlayer1 ? 'p1' : 'p2';
     const nameElement = document.getElementById(`${elementId}-username`);
-    const imgElement = document.getElementById(`${elementId}-img`);
+    const imgElement = document.getElementById(`${elementId}-anim`);
     const waitingAnimElement = document.getElementById(`${elementId}-waiting-animation`);
     const avatarImgElement = document.getElementById(`${elementId}-avatar-img`);
     const avatarElement = document.getElementById(`${elementId}-avatar`);
@@ -79,7 +79,7 @@ function refreshPlayers(data, game) {
     const p1Avatar = document.getElementById('p1-avatar');
     const p1AvatarImg = document.getElementById('p1-avatar-img');
     const p2Element = document.getElementById('p2-username');
-    const p2ImgElement = document.getElementById('p2-img');
+    const p2ImgElement = document.getElementById('p2-anim');
     const p2WaitingElement = document.getElementById('p2-waiting-animation');
     const p2JoinedElement = document.getElementById('p2-joined-animation');
     const p2Avatar = document.getElementById('p2-avatar');
