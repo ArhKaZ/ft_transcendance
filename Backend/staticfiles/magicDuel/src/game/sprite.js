@@ -14,7 +14,8 @@ class Sprite {
     }
 
     drawSprite(ctx, canvasX, canvasY, scale = 2) {
-        const sx = this.currentFrame * 231;
+
+        const sx = this.currentFrame * this.frameWidth;
         const sy = 0;
         const sWidth = this.frameWidth;
         const sHeight = this.frameHeight;
@@ -54,34 +55,6 @@ class Sprite {
         }
     }
 
-    updateFrameAttack(hitboxes)
-    {
-        this.frameCount++;
-        if (this.frameCount >= this.animationSpeed) {
-            this.currentFrame++;
-            this.frameCount = 0;
-
-            if (this.currentFrame >= this.totalFrames) {
-                this.currentFrame = this.totalFrames - 1;
-                this.isAnimationComplete = true;
-            }
-        }
-
-        hitboxes.forEach((hitbox) => {
-            hitbox.checkActivation(this.currentFrame);
-        });
-        if (this.isAnimationComplete) {
-            this.removeExpiredHitboxes(hitboxes);
-        }
-    }
-
-    removeExpiredHitboxes(hitboxes) {
-        for (let i = hitboxes.length - 1; i >= 0; i--) {
-            if (hitboxes[i].isExpired(this.currentFrame) || this.isAnimationComplete) {
-                hitboxes.splice(i, 1);
-            }
-        }
-    }
 
     resetAnimation() {
         this.currentFrame = 0;

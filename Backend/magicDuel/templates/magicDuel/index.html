@@ -1,4 +1,5 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,8 +13,7 @@
     <link rel="stylesheet" href="{% static 'magicDuel/style/main.css' %}">
 </head>
 <body>
-    <div id="infoP1" class="hidden">
-<!--    <div id="infoP1">-->
+    <div id="infoP1" class="info-player">
         <h1 id="p1-username" class="hidden">None</h1>
             <div id="p1-avatar" class="avatar hidden">
                 <img id="p1-avatar-img" alt="p1-avatar" src="" />
@@ -30,9 +30,9 @@
         <h1 id="p1-status"></h1>
     </div>
     <div id="canvasContainer">
-        <canvas id="backgroundCanvas"></canvas>
-        <canvas id="gameCanvas"></canvas>
-        <canvas id="attackCanvas"></canvas>
+        <canvas id="countdownCanvas" class="allCanvas"></canvas>
+        <canvas id="gameCanvas" class="allCanvas"></canvas>
+        <canvas id="attackCanvas" class="allCanvas"></canvas>
         <div id="hud-container" class="countainer-hud">
             <div id="hud-items" class="hud-items hidden">
                 <div id="p1-hud" class="player-hud">
@@ -40,7 +40,8 @@
                         <h4 id="p1-hud-name-element"></h4>
                     </div>
                     <div id="p1-hud-lifes" class="pv">
-                            <img id="p1-hud-lifes-img" alt="p1-hud-lifes-img" src="" />
+                        <img id="back-life-bar-1" alt="back-life-bar" src="" />
+                        <img id="front-life-1" alt="front-life" src="" />
                     </div>
                 </div>
                 <div id="p2-hud" class="player-hud">
@@ -48,7 +49,8 @@
                         <h4 id="p2-hud-name-element"></h4>
                     </div>
                     <div id="p2-hud-lifes" class="pv">
-                        <img id="p2-hud-lifes-img" alt="p2-hud-lifes-img" src="" />
+                        <img id="back-life-bar-2" alt="back-life-bar" src="" />
+                        <img id="front-life-2" alt="front-life" src="" />
                     </div>
                 </div>
             </div>
@@ -71,8 +73,7 @@
         </div>
         <script type="module" src="{% static 'magicDuel/src/main.js' %}"></script>
     </div>
-    <div id="infoP2" class="hidden">
-<!--    <div id="infoP2">-->
+    <div id="infoP2" class="info-player">
         <h1 id="p2-username" class="hidden">None</h1>
             <div id="p2-avatar" class="avatar hidden">
                 <img id="p2-avatar-img" alt="p2-avatar" src=""/>

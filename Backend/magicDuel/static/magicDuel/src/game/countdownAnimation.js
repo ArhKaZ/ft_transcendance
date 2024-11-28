@@ -23,6 +23,7 @@ class CountdownAnimation {
 
     stopDisplay() {
         this.isAnimating = false;
+        this.canvas.classList.add('hidden');
     }
 
     resizeCanvas() {

@@ -11,6 +11,7 @@ let currentCountdown = null;
 let startTime;
 let totalTime;
 let timerInterval;
+let currentRound = 0;
 
 function bindEvents() {
     const btn1 = document.getElementById("btn1");
@@ -26,6 +27,7 @@ function bindEvents() {
 
 function sendToBack(data) {
     if (socket?.readyState === WebSocket.OPEN) {
+        console.debug('send : ', data);
         socket.send(JSON.stringify(data));
     } else {
         console.error("Websocket not ready");
@@ -53,6 +55,11 @@ function handleError(error) {
     } else {
         alert(error.message);
     }
+}
+
+function handleGameCancel(data) {
+    alert(`Game is cancelled, player ${data.player_id} is gone`); // TODO Faire meilleur erreur
+    window.location.href = '/home';
 }
 
 async function addPlayerToGame(currentPlayer) {
@@ -118,12 +125,12 @@ function setupWebSocket(gameId, playerId) {
 }
 
 function createGame(game_data) {
-    const backCanvas = document.getElementById('backgroundCanvas');
+    // const backCanvas = document.getElementById('mapCanvas');
     const gameCanvas = document.getElementById('gameCanvas');
     const attackCanvas = document.getElementById('attackCanvas');
     const P1 = new Player(1, gameCanvas, game_data.player1_name, game_data.player1_id, game_data.player1_lifes);
     const P2 = new Player(2, gameCanvas, game_data.player2_name, game_data.player2_id, game_data.player2_lifes);
-    return new Game(backCanvas, gameCanvas, attackCanvas, P1, P2);
+    return new Game(gameCanvas, attackCanvas, P1, P2);
 }
 
 async function handleWebSocketMessage(event, gameId, playerId) {
@@ -149,12 +156,11 @@ async function handleWebSocketMessage(event, gameId, playerId) {
             break;
 
         case 'round_count':
-            console.log('got round_count')
             handleStartRound(data);
             break;
 
         case 'round_end':
-            //ajuster timer end
+            handleRoundEnd(data);
             break;
 
         case 'round_interaction':
@@ -170,14 +176,26 @@ async function handleWebSocketMessage(event, gameId, playerId) {
             startTimer(data);
             break;
 
-        // case 'debug':
-        //     console.log(data.from);
-        //     break;
+        case 'looser':
+            console.log('Game finished, id:', data.player_id);
+            break;
+
+        case 'debug':
+            console.log(data.from);
+            break;
+
+        case 'game_cancel':
+            handleGameCancel(data);
+            break;
     }
 }
 
+function handleRoundEnd(data) {
+    clearInterval(timerInterval);
+    currentGame.toggleTimer(false);
+}
+
 function handleGameStart(data, gameId, playerId) {
-    resizeCanvas();
     console.log('Initializing game...', {gameId, playerId});
     currentGame = createGame(data);
 
@@ -195,17 +213,22 @@ function handleGameStart(data, gameId, playerId) {
     });
 
     currentGame.start();
+    resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
-    currentCountdown = new CountdownAnimation('backgroundCanvas');
+    currentCountdown = new CountdownAnimation('countdownCanvas');
 }
 
 async function handleCountdown(countdown) {
     await currentCountdown.displayNumber(countdown);
     if (countdown === 0) {
         currentCountdown.stopDisplay();
-        currentGame.drawMap();
+        currentGame.toggleCanvas(true);
+        currentGame.toggleInfoPlayer(false);
         bindEvents();
+        currentGame.fillUsernames();
+        currentGame.fillLifeBar();
         currentGame.gameLoop(0);
+        currentGame.toggleHudPlayer(true);
     }
 }
 
@@ -215,6 +238,7 @@ function handleClick(choice) {
 }
 
 function handleStartRound(data) {
+    currentRound = data.count;
     const roundE = document.getElementById('round-element');
     roundE.textContent = `Round ${data.count}`;
     roundE.classList.remove('hidden');
@@ -234,13 +258,13 @@ function handleStartRound(data) {
 }
 
 function handleRoundInteraction(data) {
-    if (data.player_id === 0)
-        return;
-        // Afficher egalité
-    const pTakeDmg = currentGame.P1.id === data.player_id ? currentGame.P2 : currentGame.P1;
-    pTakeDmg.playAnimationAttack(data.power);
-    pTakeDmg.playAnimationPlayer('TakeHit');
-    //Animer perte pv
+    if (data.player_id !== 0) {
+        const pTakeDmg = currentGame.P1.id === data.player_id ? currentGame.P2 : currentGame.P1;
+        pTakeDmg.playAnimationAttack(data.power);
+        pTakeDmg.playAnimationPlayer('TakeHit');
+        pTakeDmg.loosePv();
+    }
+    sendToBack({'action': 'finishAnim', 'player_id': currentPlayerId, 'round': currentRound});
 }
 
 function startTimer(data) {
@@ -264,19 +288,23 @@ function updateTimer() {
 }
 
 function resizeCanvas() {
-    const backCanvas = document.getElementById('backgroundCanvas');
     const gameCanvas = document.getElementById('gameCanvas');
     const attackCanvas = document.getElementById('attackCanvas');
+    const newWidth = document.getElementById('canvasContainer').offsetWidth;
+    const newHeight = document.getElementById('canvasContainer').offsetHeight;
 
-    backCanvas.width = window.innerWidth * 0.8;
-    backCanvas.height = window.innerHeight * 0.8;
-    gameCanvas.width = window.innerWidth * 0.8;
-    gameCanvas.height = window.innerHeight * 0.8;
-    attackCanvas.width = window.innerWidth * 0.8;
-    attackCanvas.height = window.innerHeight * 0.8;
+    [gameCanvas, attackCanvas].forEach(canvas => {
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+
+        canvas.style.width = `${newWidth}px`;
+        canvas.style.height = `${newHeight}px`;
+    });
 
     if (currentGame) {
-        currentGame.drawMap(); // Ne marche pas
+        currentGame.updateCanvas(gameCanvas, attackCanvas);
+        currentGame.P1.updatePos(gameCanvas);
+        currentGame.P2.updatePos(gameCanvas);
         // TODO Deplacer joueur + changer taille bouton
     }
 }

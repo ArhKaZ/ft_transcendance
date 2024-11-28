@@ -1,19 +1,21 @@
 
 class Game {
-    constructor(backCanvas, gameCanvas, attackCanvas, P1, P2) {
-        this.backCanvas = backCanvas;
+    constructor(gameCanvas, attackCanvas, P1, P2) {
         this.gameCanvas = gameCanvas;
         this.attackCanvas = attackCanvas;
-        this.backCtx = backCanvas.getContext("2d");
         this.gameCtx = gameCanvas.getContext('2d');
         this.attackCtx = attackCanvas.getContext('2d');
         this.P1 = P1;
         this.P2 = P2;
         this.isRunning = false;
         this.back = new Image();
+        this.backLifeBar = new Image();
+        this.lifeBar = new Image();
         this.assetsPath = window.MAGICDUEL_ASSETS;
         this.getAssetPath = (path) => `${this.assetsPath}assets/${path}`;
         this.back.src = this.getAssetPath('newMapBig.png');
+        this.backLifeBar.src = this.getAssetPath('Hearts/back_life_bar.png');
+        this.lifeBar.src = this.getAssetPath('Hearts/life_bar.png');
         this.keyState = {};
         this.bindEvents();
         this.countdownFinish = false;
@@ -24,6 +26,13 @@ class Game {
         this.fps = 60;
         this.frameInterval = 1000 / this.fps;
 
+    }
+
+    updateCanvas(gameCanvas, attackCanvas) {
+        this.gameCanvas = gameCanvas;
+        this.attackCanvas = attackCanvas;
+        this.gameCtx = gameCanvas.getContext('2d');
+        this.attackCtx = attackCanvas.getContext('2d');
     }
 
     bindEvents() {
@@ -58,6 +67,14 @@ class Game {
         }
     }
 
+    toggleCanvas(show) {
+        const gameCanvas = document.getElementById('gameCanvas');
+        if (show) {
+            gameCanvas.classList.remove('hidden');
+            gameCanvas.style.backgroundImage = 'url(' + this.back.src + ')';
+        }
+    }
+
     toggleTimer(show) {
         const timer = document.getElementById('timer-element');
         if (show) {
@@ -76,10 +93,46 @@ class Game {
         }
     }
 
-    drawMap()
-    {
-        const ctx = this.backCanvas.getContext('2d');
-        ctx.drawImage(this.back, 0, 0, this.backCanvas.width, this.backCanvas.height);
+    toggleInfoPlayer(show) {
+        const infoP1 = document.getElementById('infoP1');
+        const infoP2 = document.getElementById('infoP2');
+
+        if (show) {
+            infoP1.classList.remove('hidden');
+            infoP2.classList.remove('hidden');
+        } else {
+            infoP1.classList.add('hidden');
+            infoP2.classList.add('hidden');
+        }
+    }
+
+    toggleHudPlayer(show) {
+       const huds = document.getElementById('hud-items');
+       if (show) {
+           huds.classList.remove('hidden');
+       } else {
+           huds.classList.add('hidden');
+       }
+    }
+
+    fillUsernames() {
+        if (!this.P1.name || !this.P2.name) {
+            console.error('Error with one of the username');
+        }
+        document.getElementById('p1-hud-name-element').textContent = this.P1.name;
+        document.getElementById('p2-hud-name-element').textContent = this.P2.name;
+    }
+
+    fillLifeBar() {
+        const backLifeBar1 = document.getElementById('back-life-bar-1');
+        const backLifeBar2 = document.getElementById('back-life-bar-2');
+        const frontLife1 = document.getElementById('front-life-1');
+        const frontLife2 = document.getElementById('front-life-2');
+
+        backLifeBar1.src = this.backLifeBar.src;
+        backLifeBar2.src = this.backLifeBar.src;
+        frontLife1.src = this.lifeBar.src;
+        frontLife2.src = this.lifeBar.src;
     }
 
     displayCanvas() {

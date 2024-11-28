@@ -11,6 +11,9 @@ class Player:
         self.height = 7
         self.action = action
 
+    def __repr__(self):
+        return f"Player(id={self.player_id}, nb={self.nb}, life={self.life}, action={self.action})"
+
     @classmethod
     async def get_players_of_game(cls, game_id):
         player_sessions_key = f'pp_sessions_game_{game_id}'
@@ -59,3 +62,18 @@ class Player:
         if self.player_id not in current_sessions:
             current_sessions.append(self.player_id)
             await sync_to_async(cache.set)(player_sessions_key, current_sessions)
+
+    @staticmethod
+    async def reset_action(game_id):
+        players = await Player.get_players_of_game(game_id)
+        if players is None:
+            return
+        if players[0].action is None or players[1].action is None:
+            return
+        for player in players:
+            player.action = None
+            await player.save_to_cache()
+
+    async def lose_life(self):
+        self.life -= 1
+        await self.save_to_cache()

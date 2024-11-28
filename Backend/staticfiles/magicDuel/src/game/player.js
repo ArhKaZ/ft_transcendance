@@ -13,12 +13,21 @@ class Player {
         this.y = canvas.height * 40 / 100;
         this.lifes = lifes;
         this.currentAnimationPlayer = 'Idle';
-        this.currentAnimationAttack = null;
+        this.currentAnimationAttack = 'dark_bolt';
         this.sprites = new Animation();
         this.isAnimatingAttack = false;
         this.isAnimatingPlayer = false;
         this.queuedAnimationPlayer = null;
         this.currentAttackSprite = null;
+    }
+
+    updatePos(canvas) {
+        this.canvas = canvas;
+        if (this.nb === 1) {
+            this.x = canvas.width * 5 / 100;
+        } else
+            this.x = canvas.width * 70 / 100;
+        this.y = canvas.height * 40 / 100;
     }
 
     updateAnimation(ctx) {
@@ -62,6 +71,31 @@ class Player {
     playAnimationAttack(attackName) {
         this.currentAttackSprite = this.sprites.getAttackSprite(attackName);
         this.isAnimatingAttack = true;
+    }
+
+    loosePv() {
+        this.lifes -= 1;
+        const lifeElement = document.getElementById(`front-life-${this.nb}`);
+
+        lifeElement.classList.add('damage');
+        setTimeout(() => {
+            lifeElement.classList.remove('damage');
+        }, 500);
+
+        let newWidth = null;
+
+        switch (this.lifes) {
+            case 0:
+                newWidth = '0%';
+                break;
+            case 1:
+                newWidth = '20%';
+                break;
+            case 2:
+                newWidth = '40%';
+                break;
+        }
+        lifeElement.style.width = newWidth;
     }
 }
 

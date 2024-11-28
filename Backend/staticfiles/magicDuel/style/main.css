@@ -5,6 +5,7 @@ body {
     height: 100vh;
     margin: 0;
     background-color: black;
+    /*background-color: white;*/
 }
 
 #canvasContainer {
@@ -13,20 +14,31 @@ body {
     border: white solid 2px;
     position: relative;
     width: 80%;
-    height: 70%;
+    height: 80%;
 }
 
-#backgroundCanvas, #gameCanvas, #attackCanvas {
+.allCanvas {
     position: absolute;
     top: 0;
     left: 0;
+    margin: 0;
+    padding: 0;
+    display: none;
     width: 100%;
     height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+
+.allCanvas:not(.hidden) {
+    display: block;
 }
 
 /* Waiting room */
-#infoP1, #infoP2 {
-    display: flex;
+.info-player {
+    display: none;
     width: 15%;
     position: absolute;
     top: 50%;
@@ -39,6 +51,10 @@ body {
     text-align: center;
     font-size: 24px;
     height: 30%;
+}
+
+.info-player:not(.hidden) {
+    display: flex;
 }
 
 #infoP1 {
@@ -149,10 +165,24 @@ body {
 }
 
 /* BUTTONS POWER */
+.centered-buttons {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.centered-buttons:not(.hidden) {
+    display: flex;
+}
+
 .magic-button {
     position: relative;
-    width: 100px;
-    height: 100px;
+    width: 6vw;
+    height: 9vh;
     background: linear-gradient(135deg, #ff7b00, #ff4500); /* Dégradé de feu */
     border: 3px solid #ffae42; /* Cadre lumineux */
     border-radius: 12px; /* Coins légèrement arrondis */
@@ -167,6 +197,7 @@ body {
     font-size: 16px;
     outline: none;
     padding: 0;
+    margin: 3%;
 }
 
 .magic-button:hover {
@@ -253,22 +284,54 @@ body {
     z-index: 10;
 }
 
-.player-hud {
-    left: 5%;
-    top: 45%;
-    position: absolute;
-    height: 10%;
-    width: 13%;
+.countainer-hud {
     display: flex;
-    justify-content: space-between;
+    height: 100%;
+    width: 100%;
+    align-items: center;
+}
+
+.hud-items {
+    display: none;
+    height: 10%;
+    width: 100%;
+    /*justify-content: space-between;*/
+}
+
+.hud-items:not(.hidden) {
+    display: flex;
+}
+
+.player-hud {
+    height: 15%;
+    width: 13%;
+    display: none;
+    justify-content: space-around;
     align-items: center;
     flex-direction: column;
+    z-index: 10;
+    position: absolute;
+    top: 40%;
+}
+
+#p1-hud {
+    position: absolute;
+    left: 10%;
+}
+
+#p2-hud {
+    position: absolute;
+    right: 10%;
+}
+
+.player-hud:not(.hidden) {
+    display: flex;
 }
 
 .username {
     background-color: black;
-    width: 95%;
-    height: 40%;
+    width: 100%;
+    height: 30%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -276,10 +339,45 @@ body {
 
 .username h4 {
     color: white;
+    font-size: 2vw;
 }
 
 .pv {
-    width: 95%;
+    width: 100%;
+    height: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    left: 10%;
+    top: 0;
+    overflow: hidden;
+}
+
+#back-life-bar-1, #back-life-bar-2 {
+    width: 75%;
     height: auto;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#front-life-1, #front-life-2 {
+    width: 56%;
+    position: absolute;
+    left: 17%;
+    top: 0;
+    transition: all 800ms cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: left;
+}
+
+.damage {
+    animation: damageShake 0.5s ease-in-out;
+}
+
+@keyframes damageShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
 }
 

@@ -14,7 +14,7 @@ class Sprite {
     }
 
     drawSprite(ctx, canvasX, canvasY, scale = 2) {
-        const sx = this.currentFrame * 231;
+        const sx = this.currentFrame * this.frameWidth;
         const sy = 0;
         const sWidth = this.frameWidth;
         const sHeight = this.frameHeight;
