@@ -61,7 +61,7 @@ class Game {
 
     playerAttack(playerId) {
         if (playerId === this.P1.id) {
-            this.P1.playAnimationPlayer('Attack')
+            this.P1.playAnimationPlayer('Attack');
         } else if (playerId === this.P2.id) {
             this.P2.playAnimationPlayer('Attack');
         }

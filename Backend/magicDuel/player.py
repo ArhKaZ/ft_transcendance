@@ -68,7 +68,7 @@ class Player:
         players = await Player.get_players_of_game(game_id)
         if players is None:
             return
-        if players[0].action is None or players[1].action is None:
+        if players[0].action is None and players[1].action is None:
             return
         for player in players:
             player.action = None

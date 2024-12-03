@@ -23,6 +23,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
         self._both_anim_done = asyncio.Event()
         self._game_state = {}
         self.anim_state = {}
+        self.current_round_count = 0
 
     async def connect(self):
         self.game_id = self.scope['url_route']['kwargs']['game_id']
@@ -221,8 +222,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
             print("Error getting players of the game in game_loop")
             return
 
-        round_count = 0
-
         # Use an event to manage game state
         game_over_event = asyncio.Event()
 
@@ -236,11 +235,9 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
                 await asyncio.sleep(0.5) # Short sleep to prevent tight loop
 
         async def round_manager():
-            nonlocal round_count
             while not game_over_event.is_set():
-                round_count += 1
                 if not self._start_round_task:
-                    self._start_round_task = asyncio.create_task(self.start_round(round_count, players))
+                    self._start_round_task = asyncio.create_task(self.start_round(players))
 
                 # Wait for the next round or game end
                 try:
@@ -257,9 +254,11 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
             round_manager()
         )
 
-    async def start_round(self, count, players):
-        await self.notify_round_count(count)
+    async def start_round(self, players):
+        self.current_round_count += 1
+        await self.notify_round_count(self.current_round_count)
 
+        await asyncio.sleep(3)
         # Create an event to signal round completion
         # self_round_complete_event = asyncio.Event()
         async def wait_for_player_actions():

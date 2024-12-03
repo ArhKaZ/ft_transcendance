@@ -262,7 +262,7 @@ body {
 
 /* HUD ROUND */
 
-.round-numbers {
+.center-div {
     position: absolute;
     top: 50%;
     left: 50%;

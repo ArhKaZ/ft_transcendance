@@ -125,7 +125,6 @@ function setupWebSocket(gameId, playerId) {
 }
 
 function createGame(game_data) {
-    // const backCanvas = document.getElementById('mapCanvas');
     const gameCanvas = document.getElementById('gameCanvas');
     const attackCanvas = document.getElementById('attackCanvas');
     const P1 = new Player(1, gameCanvas, game_data.player1_name, game_data.player1_id, game_data.player1_lifes);
@@ -139,6 +138,7 @@ async function handleWebSocketMessage(event, gameId, playerId) {
         case 'players_info':
             refreshPlayers(data, currentGame);
             break;
+
         case 'player_connected':
             displayConnectedPlayer(data.player_id, data.username, data.avatar, currentPlayerId);
             break;
@@ -172,7 +172,6 @@ async function handleWebSocketMessage(event, gameId, playerId) {
             break;
 
         case 'round_timer':
-            console.log('got round_timer');
             startTimer(data);
             break;
 
@@ -263,6 +262,13 @@ function handleRoundInteraction(data) {
         pTakeDmg.playAnimationAttack(data.power);
         pTakeDmg.playAnimationPlayer('TakeHit');
         pTakeDmg.loosePv();
+    } else {
+        const equE = document.getElementById('equality');
+        equE.textContent = 'Equality';
+        equE.classList.remove('hidden');
+        setTimeout(() => {
+            equE.classList.add('hidden');
+        }, 1500);
     }
     sendToBack({'action': 'finishAnim', 'player_id': currentPlayerId, 'round': currentRound});
 }

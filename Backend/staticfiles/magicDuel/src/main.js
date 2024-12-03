@@ -125,7 +125,6 @@ function setupWebSocket(gameId, playerId) {
 }
 
 function createGame(game_data) {
-    // const backCanvas = document.getElementById('mapCanvas');
     const gameCanvas = document.getElementById('gameCanvas');
     const attackCanvas = document.getElementById('attackCanvas');
     const P1 = new Player(1, gameCanvas, game_data.player1_name, game_data.player1_id, game_data.player1_lifes);
@@ -229,8 +228,6 @@ async function handleCountdown(countdown) {
         currentGame.fillLifeBar();
         currentGame.gameLoop(0);
         currentGame.toggleHudPlayer(true);
-        currentGame.P1.playAnimationAttack('dark_bolt');
-        currentGame.P2.playAnimationAttack('fire_bomb')
     }
 }
 
@@ -265,6 +262,13 @@ function handleRoundInteraction(data) {
         pTakeDmg.playAnimationAttack(data.power);
         pTakeDmg.playAnimationPlayer('TakeHit');
         pTakeDmg.loosePv();
+    } else {
+        const equE = document.getElementById('equality');
+        equE.textContent = 'Equality';
+        equE.classList.remove('hidden');
+        setTimeout(() => {
+            equE.classList.add('hidden');
+        }, 1500);
     }
     sendToBack({'action': 'finishAnim', 'player_id': currentPlayerId, 'round': currentRound});
 }

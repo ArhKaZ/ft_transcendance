@@ -7,10 +7,10 @@ class Player {
         this.id = id;
         this.nb = nb;
         if (nb === 1) {
-            this.x = canvas.width * 5 / 100;
+            this.x = canvas.width * (5 / 100);
         } else
-            this.x = canvas.width * 70 / 100;
-        this.y = canvas.height * 40 / 100;
+            this.x = canvas.width * (70 / 100);
+        this.y = canvas.height * (40 / 100);
         this.lifes = lifes;
         this.currentAnimationPlayer = 'Idle';
         this.currentAnimationAttack = 'dark_bolt';
@@ -24,10 +24,10 @@ class Player {
     updatePos(canvas) {
         this.canvas = canvas;
         if (this.nb === 1) {
-            this.x = canvas.width * 5 / 100;
+            this.x = canvas.width * (5 / 100);
         } else
-            this.x = canvas.width * 70 / 100;
-        this.y = canvas.height * 40 / 100;
+            this.x = canvas.width * (70 / 100);
+        this.y = canvas.height * (40 / 100);
     }
 
     updateAnimation(ctx) {
@@ -35,13 +35,14 @@ class Player {
             if (this.queuedAnimationPlayer) {
                 this.currentAnimationPlayer = this.queuedAnimationPlayer;
                 this.queuedAnimationPlayer = null;
+                this.isAnimatingPlayer = true;
             } else {
                 this.currentAnimationPlayer = 'Idle';
+                this.isAnimatingPlayer = false;
             }
-            this.isAnimatingPlayer = true;
         }
 
-        let  attackSprite = null;
+        let attackSprite = null;
         if (this.currentAttackSprite) {
             attackSprite = this.currentAttackSprite;
 
@@ -61,7 +62,6 @@ class Player {
         }
 
         this.currentAnimationPlayer = animationName;
-
         if (animationName !== 'Idle') {
             this.isAnimatingPlayer = true;
             this.sprites.resetAnimation(animationName);
