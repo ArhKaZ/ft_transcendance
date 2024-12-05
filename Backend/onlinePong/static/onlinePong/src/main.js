@@ -173,7 +173,7 @@ async function handleWebSocketMessage(e, gameId) {
 
         case 'game_finish':
             if (currentGame) {
-                handleGameFinish(currentGame, data.winning_session, data.opponent_name);
+                handleGameFinish(currentGame, data.winning_session);
                 gameStarted = false;
                 currentGame.stop();
             }
@@ -218,6 +218,7 @@ async function handleCountdown(countdown) {
 
 function handleGameFinish(game, winningId, opponent) {
     const winnerName = parseInt(game.P1.id) === parseInt(winningId) ? game.P1.name : game.P2.name;
+    const opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
     game.displayWinner(winnerName);
     const asWin = currentPlayerId === parseInt(winningId);
     fetch('/api/add_match/', {
@@ -228,7 +229,7 @@ function handleGameFinish(game, winningId, opponent) {
         },
         // credentials: 'include',  // Important pour inclure les cookies
         body: JSON.stringify({
-            'opponent_name': opponent, // Remplacez par le vrai nom de l'adversaire
+            'opponent_name': opponentName, // Remplacez par le vrai nom de l'adversaire
             'won': asWin
         })
     }).then(response => response.json())

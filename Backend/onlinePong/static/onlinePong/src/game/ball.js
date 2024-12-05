@@ -12,11 +12,18 @@ class Ball {
     }
 
     draw(context) {
+        context.shadowBlur = 20; // Intensité de l'effet lumineux
+        context.shadowColor = '#8a2be2'; // Couleur violette de l'ombre
+    
+        // Définir la couleur de la balle
+        context.fillStyle = '#8a2be2'; // Couleur violette
         context.clearRect(0,0, this.canvas.width, this.canvas.height);
         context.beginPath();
         context.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
-        context.fillStyle = 'white';
         context.fill();
+
+        context.shadowBlur = 0;
+        context.shadowColor = 'transparent';
     }
 }
 

@@ -10,6 +10,27 @@ body {
 #canvasContainer {
     display: none;
     border: white solid 2px;
+    position: relative;
+    width: 80%;
+    height: 80%;
+}
+
+.allCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    display: none;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.allCanvas:not(.hidden) {
+    display: block;
 }
 
 .score-container {

@@ -231,12 +231,8 @@ class PongConsumer(AsyncWebsocketConsumer):
         game = await self.get_game_from_cache(self.game_id)
         game['status'] = 'FINISHED'
         await self.set_game_to_cache(self.game_id, game)
-        if self.player_id == game['player1']:
-            opponent_name = game['player2_name']
-        elif self.player_id == game['player2']:
-            opponent_name = game['player1_name']
 
-        await self.send_game_finish(winning_session, opponent_name)
+        await self.send_game_finish(winning_session)
 
         self.remove_game_from_cache(self.game_id)
         await self.cleanup()
@@ -384,10 +380,10 @@ class PongConsumer(AsyncWebsocketConsumer):
     async def game_finish(self, event):
         message = {
             'type': 'game_finish',
-            'opponent_name': event['opponent_name'],
             'winning_session': event['winning_session']
         }
         await self.send(text_data=json.dumps(message))
+
     async def send_score_update(self, scores):
         message = {
             'type': 'score_update',
@@ -395,14 +391,14 @@ class PongConsumer(AsyncWebsocketConsumer):
         }
         await self.send(text_data=json.dumps(message))
 
-    async def send_game_finish(self, winning_session, opponent_name):
+    async def send_game_finish(self, winning_session):
         message = {
             'type': 'game_finish',
             'winning_session': winning_session,
-            'opponent_name': opponent_name,
             'message': 'game_is_over'
         }
-        await self.send(text_data=json.dumps(message))
+        await self.channel_layer.group_send(self.game_group_name, message)
+        # await self.send(text_data=json.dumps(message))
 
     async def send_players_info(self, game):
         message =  {
