@@ -7,7 +7,7 @@ class Player {
         this.id = id;
         this.nb = nb;
         if (nb === 1) {
-            this.x = canvas.width * (5 / 100);
+            this.x = canvas.width * (3 / 100);
         } else
             this.x = canvas.width * (70 / 100);
         this.y = canvas.height * (40 / 100);
@@ -24,7 +24,7 @@ class Player {
     updatePos(canvas) {
         this.canvas = canvas;
         if (this.nb === 1) {
-            this.x = canvas.width * (5 / 100);
+            this.x = canvas.width * (3 / 100);
         } else
             this.x = canvas.width * (70 / 100);
         this.y = canvas.height * (40 / 100);

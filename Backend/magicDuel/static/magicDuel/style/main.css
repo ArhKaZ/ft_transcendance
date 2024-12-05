@@ -381,3 +381,58 @@ body {
     75% { transform: translateX(2px); }
 }
 
+
+/* BOOK TUTO */
+
+.top-right {
+    width: 2vw;
+    height: 3vh;
+    position: absolute;
+    right: 2vw;
+    top: 3vh;
+}
+
+/* Couvertures */
+.book-cover {
+    position: absolute;
+    width: 50%;
+    height: 100%;
+    background: #5b3924; /* Une couleur de cuir marron */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+    transform-origin: center;
+    z-index: 2;
+    transition: transform 0.5s ease-in-out;
+  }
+  
+  .front-cover {
+    left: 0;
+    transform: rotateY(0deg);
+    background: url('/static/magicDuel/assets/leather-texture.png') center/cover; /* Texture de cuir */
+  }
+  
+  .back-cover {
+    right: 0;
+    transform: rotateY(-180deg);
+    background: url('/static/magicDuel/assets/leather-texture.png') center/cover; /* Texture de cuir */
+  }
+  
+  /* Contenu du livre */
+  .book-container {
+    position: relative;
+    width: 80%;
+    max-width: 800px;
+    height: 400px;
+    perspective: 1500px;
+    display: flex;
+  }
+  
+  .book {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    transform: scale(0); /* Livre fermé au départ */
+    transform-origin: center;
+    transition: transform 0.5s ease-in-out;
+  }
+  

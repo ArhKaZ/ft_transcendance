@@ -381,3 +381,77 @@ body {
     75% { transform: translateX(2px); }
 }
 
+
+/* BOOK TUTO */
+
+.top-right {
+    width: 2vw;
+    height: 3vh;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+
+.cover {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    background: #3b200c; /* Couleur de base du cuir */
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    border: 2px solid #5d3821; /* Bordures sombres pour l'aspect robuste */
+    z-index: 1;
+  }
+  
+  .cover-left {
+    left: 0;
+    border-right: none;
+    transform-origin: right center;
+  }
+  
+  .cover-right {
+    right: 0;
+    border-left: none;
+    transform-origin: left center;
+  }
+  
+  /* Texture pour l'aspect cuir */
+  .cover::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('path/to/leather-texture.png'); /* Texture de cuir */
+    background-size: cover;
+    mix-blend-mode: overlay; /* Applique un effet naturel */
+    opacity: 0.6;
+  }
+  
+  /* Animation d'ouverture des couvertures */
+  .cover-left,
+  .cover-right {
+    transform: rotateY(0deg);
+    transition: transform 0.5s ease-in-out;
+  }
+  
+  /* Ouverture lors du clic */
+  .book-container.open .cover-left {
+    transform: rotateY(-180deg);
+  }
+  
+  .book-container.open .cover-right {
+    transform: rotateY(180deg);
+  }
+  
+  /* Pages du livre */
+  .book {
+    position: relative;
+    display: flex;
+    width: 80%;
+    transform: scale(0);
+    transform-origin: center;
+    transition: transform 0.5s ease-in-out;
+    z-index: 2; /* Plus haut que les couvertures */
+  }

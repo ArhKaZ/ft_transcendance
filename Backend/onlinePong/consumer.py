@@ -12,6 +12,13 @@ from .player import Player
 
 
 class PongConsumer(AsyncWebsocketConsumer):
+    def __init__(self, *args,  **kwargs):
+        super().__init__(*args, **kwargs)
+        self.listen_task = None
+        self.countdown_task = None
+        self._countdown_done = asyncio.Event()
+        self.send_ball_task = None
+
     async def connect(self):
         self.game_id = self.scope['url_route']['kwargs']['game_id']
         self.player_id = self.scope['url_route']['kwargs']['current_player_id']
@@ -50,6 +57,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         print(f"Disconnect player {self.player_id} from game {self.game_id}")
+        await self.notify_game_cancel(self.player_id)
         await self.handle_disconnect()
         await self.cleanup()
 
@@ -125,7 +133,24 @@ class PongConsumer(AsyncWebsocketConsumer):
                 game['status'] = 'IN_PROGRESS'
                 await self.set_game_to_cache(self.game_id, game)
                 await self.broadcast_game_start(game)
-                self.send_ball_task = asyncio.create_task(self.send_ball_position())
+                if not self.countdown_task:
+                    self._countdown_task = asyncio.create_task(self.run_countdown_sequence())
+                asyncio.create_task(self.launch_game_after_countdown())
+
+    async def launch_game_after_countdown(self):
+        await self._countdown_done.wait()
+        if not self.send_ball_task:
+            self.send_ball_task = asyncio.create_task(self.send_ball_position())
+
+    async def run_countdown_sequence(self):
+        for count in range(3, -1, -1):
+            print('je passe ici')
+            await self.notify_countdown(count)
+            if count > 0:
+                await asyncio.sleep(1)
+            elif count == 0:
+                await asyncio.sleep(2)
+        self._countdown_done.set()
 
     async def send_ball_position(self):
         while True:
@@ -268,6 +293,13 @@ class PongConsumer(AsyncWebsocketConsumer):
         }
         await self.channel_layer.group_send(self.game_group_name, message)
 
+    async def notify_game_cancel(self, player_id):
+        message = {
+            'type': 'game_cancel',
+            'player_id': player_id
+        }
+        await self.channel_layer.group_send(self.game_group_name, message)
+
     async def broadcast_game_start(self, game):
         p1_is_me = True if self.player_id == game['player1'] else False
         message = {
@@ -279,6 +311,27 @@ class PongConsumer(AsyncWebsocketConsumer):
             'player_nb': 1 if p1_is_me else 2,
         }
         await self.channel_layer.group_send(self.game_group_name, message)
+
+    async def game_cancel(self, event):
+        message = {
+            'type': 'game_cancel',
+            'p_id': event['player_id']
+        }
+        await self.send(text_data=json.dumps(message))
+
+    async def notify_countdown(self, countdown):
+        message = {
+            'type': 'countdown',
+            'countdown': countdown,
+        }
+        await self.channel_layer.group_send(self.game_group_name, message)
+
+    async def countdown(self, event): 
+        message = {
+            'type': 'countdown',
+            'countdown': event['countdown'],
+        }
+        await self.send(text_data=json.dumps(message))
 
     async def player_ready(self, event):
         message = {

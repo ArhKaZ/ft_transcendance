@@ -7,7 +7,7 @@ class Player {
         this.id = id;
         this.nb = nb;
         if (nb === 1) {
-            this.x = canvas.width * (5 / 100);
+            this.x = canvas.width * (3 / 100);
         } else
             this.x = canvas.width * (70 / 100);
         this.y = canvas.height * (40 / 100);
@@ -24,7 +24,7 @@ class Player {
     updatePos(canvas) {
         this.canvas = canvas;
         if (this.nb === 1) {
-            this.x = canvas.width * (5 / 100);
+            this.x = canvas.width * (3 / 100);
         } else
             this.x = canvas.width * (70 / 100);
         this.y = canvas.height * (40 / 100);
@@ -43,12 +43,15 @@ class Player {
         }
 
         let attackSprite = null;
+
         if (this.currentAttackSprite) {
             attackSprite = this.currentAttackSprite;
 
             if (this.currentAttackSprite.animationFinish()) {
+                this.currentAttackSprite = null;
                 this.currentAnimationAttack = null;
                 this.isAnimatingAttack = false;
+                this.canvas.getContext('2d').clearRect(0, 0, this.canvas.width, this.canvas.height);
             }
         }
 
@@ -62,6 +65,7 @@ class Player {
         }
 
         this.currentAnimationPlayer = animationName;
+
         if (animationName !== 'Idle') {
             this.isAnimatingPlayer = true;
             this.sprites.resetAnimation(animationName);

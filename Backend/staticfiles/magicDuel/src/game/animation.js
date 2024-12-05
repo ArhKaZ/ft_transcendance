@@ -9,8 +9,8 @@ class Animation {
         //IDLE
         this.IdleLeft = new Sprite(this.getAssetPath('Wizard/Idle.png'), 6, 10, 231, 190, 'idle',true);
         this.AttackLeft = new Sprite(this.getAssetPath('Wizard/Attack1.png'), 8, 10, 231, 190, 'attack');
-        this.TakeHit = new Sprite(this.getAssetPath('Wizard/Hit.png'), 4, 10, 100, 100, 'hit');
-        this.Death = new Sprite(this.getAssetPath('Wizard/Death.png'), 7, 10, 100, 100, 'death');
+        this.TakeHit = new Sprite(this.getAssetPath('Wizard/Hit.png'), 4, 10, 231, 190, 'hit');
+        this.Death = new Sprite(this.getAssetPath('Wizard/Death.png'), 7, 10, 231, 190, 'death');
         // CHANGER DONNER SPRITES :
         this.DarkBolt = new Sprite(this.getAssetPath('Attacks/Dark-Bolt.png'), 11, 10, 64, 88, 'darkBolt');
         this.FireBomb = new Sprite(this.getAssetPath('Attacks/Fire-bomb.png'), 14, 10, 64, 64, 'fireBomb');
@@ -20,7 +20,7 @@ class Animation {
 
     update(ctx, obj, attackSprite = null) {
         let spriteToDraw = null;
-        switch (obj.currentAnimation) {
+        switch (obj.currentAnimationPlayer) {
             case 'Idle':
                 spriteToDraw = this.IdleLeft;
                 break;

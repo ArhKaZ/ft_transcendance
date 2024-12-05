@@ -55,7 +55,28 @@
                 </div>
             </div>
         </div>
-        <div id=""></div>
+        <div class="overlay hidden" id="bookOverlay">
+            <div class="book-container">
+              <!-- Couverture avant -->
+              <div class="book-cover front-cover"></div>
+          
+              <!-- Contenu du livre -->
+              <div class="book">
+                <div class="page left-page" id="leftPage"></div>
+                <div class="page right-page" id="rightPage"></div>
+              </div>
+          
+              <!-- Couverture arrière -->
+              <div class="book-cover back-cover"></div>
+          
+              <!-- Flèches pour tourner les pages -->
+              <button class="arrow left-arrow" id="prevPage">&larr;</button>
+              <button class="arrow right-arrow" id="nextPage">&rarr;</button>
+            </div>
+          </div>
+        <div id="btn-book-element" class="top-right">
+            <button id="openBook">Ouvrir le grimoire</button>
+        </div>
         <div id="round-element" class="hidden center-div"></div>
         <div id="equality" class="hidden center-div"></div>
         <div id="timer-element" class="hidden timer"></div>

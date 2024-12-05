@@ -16,10 +16,14 @@ class Game {
         this.isStart = false;
     }
 
-    start() {
-        document.getElementById('buttonStart').classList.add('hidden');
+    displayCanvas() {
         document.getElementById('canvasContainer').style.display = 'flex';
+        document.getElementById('buttonStart').classList.add('hidden');
+    }
+
+    start() {
         document.getElementById('scoreContainer').style.display = 'flex';
+        document.getElementById('gameCanvas').classList.remove('hidden');
         this.P1.draw(this.context);
         this.P2.draw(this.context);
         this.updateScoreFontSize();

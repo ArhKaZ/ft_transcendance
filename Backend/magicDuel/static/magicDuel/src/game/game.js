@@ -9,13 +9,15 @@ class Game {
         this.P2 = P2;
         this.isRunning = false;
         this.back = new Image();
+        this.plat = new Image();
         this.backLifeBar = new Image();
         this.lifeBar = new Image();
         this.assetsPath = window.MAGICDUEL_ASSETS;
         this.getAssetPath = (path) => `${this.assetsPath}assets/${path}`;
-        this.back.src = this.getAssetPath('newMapBig.png');
+        this.back.src = this.getAssetPath('map/back.png');
         this.backLifeBar.src = this.getAssetPath('Hearts/back_life_bar.png');
         this.lifeBar.src = this.getAssetPath('Hearts/life_bar.png');
+        this.plat.src = this.getAssetPath('map/plat_little.png');
         this.keyState = {};
         this.bindEvents();
         this.countdownFinish = false;
@@ -70,7 +72,7 @@ class Game {
     toggleCanvas(show) {
         const gameCanvas = document.getElementById('gameCanvas');
         if (show) {
-            gameCanvas.classList.remove('hidden');
+            // gameCanvas.classList.remove('hidden'); ??? 
             gameCanvas.style.backgroundImage = 'url(' + this.back.src + ')';
         }
     }
@@ -150,7 +152,9 @@ class Game {
         if (elapsed >= this.frameInterval) {
             this.gameCtx.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
             // this.attackCanvas.clearRect(0, 0, this.attackCanvas.width, this.attackCanvas.height);
-
+            
+            this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (7/100), this.gameCanvas.height * (74/100));
+            this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (76/100), this.gameCanvas.height * (74/100));
             this.P1.updateAnimation(this.gameCtx);
             this.P2.updateAnimation(this.gameCtx);
 

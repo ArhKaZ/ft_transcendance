@@ -1,5 +1,6 @@
 import Game from "../src/game/game.js";
 import Player from "../src/game/player.js";
+import CountdownAnimation from "./game/countdownAnimation.js";
 import {refreshPlayers, updatePlayerStatus, displayConnectedPlayer, displayWhenConnect } from "./game/waitingRoom.js";
 
 let socket = null;
@@ -7,6 +8,7 @@ let oldHeight = null;
 let gameStarted = false;
 let currentPlayerId = null;
 let currentGame = null;
+let currentCountdown = null;
 
 function sendToBack(data) {
     if (socket?.readyState === WebSocket.OPEN) {
@@ -137,31 +139,38 @@ function createPlayers(data) {
 async function handleWebSocketMessage(e, gameId) {
     const data = JSON.parse(e.data);
     switch(data.type) {
+
         case 'players_info':
             refreshPlayers(data, currentGame);
             break;
+
         case 'player_connected':
             displayConnectedPlayer(data.player_id, data.player_name, data.player_avatar, currentPlayerId);
             break;
+
         case 'player_ready':
             await updatePlayerStatus(data.player_id, gameId);
             break;
+
         case 'ball_position':
             if (currentGame) {
                 currentGame.updateBallPosition(data.x, data.y);
                 currentGame.drawGame();
             }
             break;
+
         case 'player_move':
             if (currentGame) {
                 updatePlayerPosition(currentGame, data);
             }
             break;
+
         case 'score_update':
             if (currentGame) {
                 currentGame.updateScores(data.scores);
             }
             break;
+
         case 'game_finish':
             if (currentGame) {
                 handleGameFinish(currentGame, data.winning_session, data.opponent_name);
@@ -169,18 +178,31 @@ async function handleWebSocketMessage(e, gameId) {
                 currentGame.stop();
             }
             break;
+
         case 'game_start':
             currentGame = await initGame(data);
-            currentGame.start();
+            currentGame.displayCanvas();
+            currentCountdown = new CountdownAnimation('countdownCanvas');
             gameStarted = true;
             resizeCanvasGame(currentGame);
             break;
+
+        case 'countdown':
+            await  handleCountdown(data.countdown);
     }
 }
 
 function updatePlayerPosition(game, data) {
     const playerNumber = parseInt(data.player_id) === parseInt(game.P1.id) ? 1 : 2;
     game.updatePlayerPosition(playerNumber, data.y);
+}
+
+async function handleCountdown(countdown) {
+    await currentCountdown.displayNumber(countdown);
+    if (countdown === 0) {
+        currentCountdown.stopDisplay();
+        currentGame.start();
+    }
 }
 
 function handleGameFinish(game, winningId, opponent) {

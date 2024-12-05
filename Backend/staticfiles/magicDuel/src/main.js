@@ -18,11 +18,44 @@ function bindEvents() {
     const btn2 = document.getElementById("btn2");
     const btn3 = document.getElementById("btn3");
     const btn4 = document.getElementById("btn4");
+    const btnBook = document.getElementById('openBook');
+    const bookOverlay = document.getElementById("bookOverlay");
 
     btn1.addEventListener('click', () => handleClick('dark_bolt'));
     btn2.addEventListener('click', () => handleClick('fire_bomb'));
     btn3.addEventListener('click', () => handleClick('lightning'));
     btn4.addEventListener('click', () => handleClick('spark'));
+    btnBook.addEventListener("click", () => handleOpenBook());
+    bookOverlay.addEventListener("click", (e) => handleCloseBook(e));
+}
+
+function handleCloseBook(e) {
+    const bookOverlay = document.getElementById("bookOverlay");
+
+    if (e.target === bookOverlay) {
+        const frontCover = document.querySelector(".front-cover");
+        const backCover = document.querySelector(".back-cover");
+
+        document.querySelector(".book").style.transform = "scale(0)";
+        frontCover.style.transform = "rotateY(0deg)";
+        backCover.style.transform = "rotateY(-180deg)";
+
+        setTimeout(() => {
+            bookOverlay.classList.add("hidden");
+        }, 500);
+    }
+}
+
+function handleOpenBook() {
+    const bookContainer = document.querySelector(".book-container");
+    const bookOverlay = document.getElementById("bookOverlay");
+
+    bookOverlay.classList.remove("hidden");
+
+    setTimeout(() => {
+        bookContainer.classList.add("open");
+        document.querySelector(".book").style.transform = "scale(1)";
+    },  100);
 }
 
 function sendToBack(data) {
@@ -103,7 +136,6 @@ async function init() {
 
 function setupWebSocket(gameId, playerId) {
     const socket = new WebSocket(`ws://localhost:8000/ws/magicDuel/${gameId}/${playerId}/`);
-    console.log('a l aide ');
 
     socket.onopen = () => {
         console.log("WEBSOCKET CONNECTED");
@@ -138,6 +170,7 @@ async function handleWebSocketMessage(event, gameId, playerId) {
         case 'players_info':
             refreshPlayers(data, currentGame);
             break;
+
         case 'player_connected':
             displayConnectedPlayer(data.player_id, data.username, data.avatar, currentPlayerId);
             break;
@@ -171,7 +204,6 @@ async function handleWebSocketMessage(event, gameId, playerId) {
             break;
 
         case 'round_timer':
-            console.log('got round_timer');
             startTimer(data);
             break;
 
@@ -195,22 +227,11 @@ function handleRoundEnd(data) {
 }
 
 function handleGameStart(data, gameId, playerId) {
-    console.log('Initializing game...', {gameId, playerId});
     currentGame = createGame(data);
 
     if (!currentGame || !currentGame.P1 || !currentGame.P2) {
-        console.error("Game creation failed", {
-            gameExists: !!currentGame,
-            P1Exists: !!currentGame.P1,
-            P2Exists: !!currentGame.P2
-        });
         throw new Error('Game creation failed');
     }
-    console.log('Game created !', {
-        P1: {id: currentGame.P1.id, name: currentGame.P1.name},
-        P2: {id: currentGame.P2.id, name: currentGame.P2.name},
-    });
-
     currentGame.start();
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
@@ -316,3 +337,4 @@ function resizeCanvas() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
