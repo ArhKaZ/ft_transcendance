@@ -7,12 +7,49 @@ body {
     background-color: #000;
 }
 
-#canvasContainer {
+.game-area {
     display: none;
-    border: white solid 2px;
     position: relative;
-    width: 80%;
+    width: 70%;
     height: 80%;
+    overflow: hidden;
+}
+
+.game-area::before {
+    content: '';
+    position: absolute;
+    height: 4px;
+    width: 0;
+    background: linear-gradient(to right, #8a2be2, transparent);
+    opacity: 0;
+    transition: none;
+}
+
+.game-area.animate-top::before {
+    top: 0;
+    left: var(--start-position, 50%);
+    transform: translateX(-50%);
+    width: 0;
+    opacity: 1;
+    animation: spread 1s ease-out forwards;
+}
+
+.game-area.animate-bot::before {
+    bottom: 0;
+    left: var(--start-position, 50%);
+    transform: translateX(-50%);
+    width: 0;
+    opacity: 1;
+    animation: spread 1s ease-out forwards;
+}
+
+@keyframes spread {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
 }
 
 .allCanvas {
@@ -33,25 +70,13 @@ body {
     display: block;
 }
 
-.score-container {
-    position: absolute;
-    top: 40%;
-    left: 20%;
-    right: 20%;
-    display: none;
-    justify-content: space-around;
-    align-items: center;
-    color: grey;
-    font-family: Arial, sans-serif;
-    z-index: 10;
-}
 
 #scoreP1, #scoreP2 {
     font-size: 100px;
 }
 
 #infoP1, #infoP2 {
-    display: flex;
+    display: none;
     width: 15%;
     position: absolute;
     top: 50%;
@@ -74,6 +99,10 @@ body {
 #infoP2 {
     right: 2%;
     text-align: left;
+}
+
+#infoP1:not(.hidden), #infoP2:not(.hidden) {
+    display:flex;
 }
 
 #p1-img, #p2-img {
@@ -168,3 +197,72 @@ body {
     width: 100%;
     height: 100%;
 }
+
+/* Styles généraux pour le HUD */
+.player-bar {
+    position: absolute;
+    width: 15%; /* Ajustable selon ton design */
+    height: 150px; /* Taille totale du HUD */
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.6); /* Fond semi-transparent */
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    padding: 10px;
+    font-family: 'VT323', monospace;
+}
+
+/* Positionnement pour le joueur 1 (gauche) */
+#hud-p1 {
+    left: 0;
+    top: 50%; /* Centré verticalement */
+    transform: translate(0, -50%);
+    margin-left: 5%;
+}
+
+/* Positionnement pour le joueur 2 (droite) */
+#hud-p2 {
+    right: 0;
+    top: 50%; /* Centré verticalement */
+    transform: translate(0, -50%);
+    margin-right: 5%;
+}
+
+/* Effets néon pour les noms */
+.player-name {
+    font-size: 1.5rem;
+    color: #00ffff; /* Cyan néon */
+    text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+}
+
+/* Barres lumineuses animées */
+.separator {
+    height: 2px;
+    width: 80%;
+    background: linear-gradient(90deg, #ffff00, #ff00ff);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Effets néon pour les scores */
+.player-score {
+    font-size: 2rem;
+    color: #ffff00; /* Jaune néon */
+    text-shadow: 0 0 5px #ffff00, 0 0 10px #ffff00;
+}
+
+.huds:not(.hidden) {
+    display: flex;
+}
+

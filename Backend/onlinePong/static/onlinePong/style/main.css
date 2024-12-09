@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
 body {
     display: flex;
     justify-content: center;
@@ -7,12 +10,49 @@ body {
     background-color: #000;
 }
 
-#canvasContainer {
+.game-area {
     display: none;
-    border: white solid 2px;
     position: relative;
     width: 70%;
     height: 80%;
+    overflow: hidden;
+}
+
+.game-area::before {
+    content: '';
+    position: absolute;
+    height: 4px;
+    width: 0;
+    background: linear-gradient(to right, #8a2be2, transparent);
+    opacity: 0;
+    transition: none;
+}
+
+.game-area.animate-top::before {
+    top: 0;
+    left: var(--start-position, 50%);
+    transform: translateX(-50%);
+    width: 0;
+    opacity: 1;
+    animation: spread 1s ease-out forwards;
+}
+
+.game-area.animate-bot::before {
+    bottom: 0;
+    left: var(--start-position, 50%);
+    transform: translateX(-50%);
+    width: 0;
+    opacity: 1;
+    animation: spread 1s ease-out forwards;
+}
+
+@keyframes spread {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
 }
 
 .allCanvas {
@@ -33,25 +73,13 @@ body {
     display: block;
 }
 
-.score-container {
-    position: absolute;
-    top: 40%;
-    left: 20%;
-    right: 20%;
-    display: none;
-    justify-content: space-around;
-    align-items: center;
-    color: grey;
-    font-family: Arial, sans-serif;
-    z-index: 10;
-}
 
 #scoreP1, #scoreP2 {
     font-size: 100px;
 }
 
 #infoP1, #infoP2 {
-    display: flex;
+    display: none;
     width: 15%;
     position: absolute;
     top: 50%;
@@ -74,6 +102,10 @@ body {
 #infoP2 {
     right: 2%;
     text-align: left;
+}
+
+#infoP1:not(.hidden), #infoP2:not(.hidden) {
+    display:flex;
 }
 
 #p1-img, #p2-img {
@@ -159,12 +191,203 @@ body {
 }
 
 .avatar {
-    width: 60px;
-    height: 60px;
+    width: 4vw;
+    height: 6vh;
     margin-bottom: 10%;
 }
 
 .avatar img {
     width: 100%;
     height: 100%;
+}
+
+/* Styles généraux pour le HUD */
+.player-bar {
+    position: absolute;
+    width: 8vw; /* Ajustable selon ton design */
+    height: 20vh; /* Taille totale du HUD */
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.6); /* Fond semi-transparent */
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    padding: 10px;
+    font-family: 'VT323', monospace;
+}
+/* Positionnement pour le joueur 1 (gauche) */
+#hud-p1 {
+    left: 0;
+    top: 50%; /* Centré verticalement */
+    transform: translate(0, -50%);
+    margin-left: 5%;
+}
+/* Positionnement pour le joueur 2 (droite) */
+#hud-p2 {
+    right: 0;
+    top: 50%; /* Centré verticalement */
+    transform: translate(0, -50%);
+    margin-right: 5%;
+}
+/* Effets néon pour les noms */
+.player-name {
+    font-size: 2rem;
+    color: #00ffff; /* Cyan néon */
+    text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+}
+/* Barres lumineuses animées */
+.separator {
+    height: 2%;
+    width: 80%;
+    background: linear-gradient(90deg, #ffff00, #ff00ff);
+    animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+    0%, 100% {
+    opacity: 1;
+    }
+    50% {
+    opacity: 0.5;
+}
+}
+
+.player-score {
+    font-size: 3rem;
+    color: #ffff00; 
+    text-shadow: 0 0 5px #ffff00, 0 0 10px #ffff00;
+}
+
+.player-bar:not(.hidden) {
+    display: flex;
+}
+
+#title {
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    transform: translate(-50%, 0);
+    width: 5vw;
+    height: 2vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#title h1 {
+    font-family: "Press Start 2P";
+    color: white;
+}
+
+/* BUTTON READY */
+
+#button-ready {
+    position: relative;
+    display: none;
+    padding: 1em 1.5em;
+    margin: 2em 0;
+    color: #03e9f4;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: 0.5s;
+    letter-spacing: 0.2em;
+    overflow: hidden;
+    font-family: "Press Start 2P";
+    font-size: clamp(1rem, 2vw, 1.5rem);
+    text-align: center;
+}
+
+#button-ready:not(.hidden) {
+    display: inline-block;
+}
+
+#button-ready:hover {
+    background: #03e9f4;
+    color: #050801;
+    box-shadow: 0 0 5px #03e9f4,
+                0 0 25px #03e9f4,
+                0 0 50px #03e9f4,
+                0 0 200px #03e9f4;
+     -webkit-box-reflect:below 1px linear-gradient(transparent, #0005);
+}
+
+#button-ready:nth-child(1){
+    filter: hue-rotate(270deg);
+}
+#button-ready:nth-child(2){
+    filter: hue-rotate(110deg);
+}
+#button-ready span{
+    position: absolute;
+    display: block;
+}
+#button-ready span:nth-child(1){
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg,transparent,#03e9f4);
+    animation: animate1 1s linear infinite;
+}
+@keyframes animate1{
+    0%{
+        left: -100%;
+    }
+    50%,100%{
+        left: 100%;
+    }
+}
+#button-ready span:nth-child(2){
+    top: -100%;
+    right: 0;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg,transparent,#03e9f4);
+    animation: animate2 1s linear infinite;
+    animation-delay: 0.25s;
+}
+@keyframes animate2{
+    0%{
+        top: -100%;
+    }
+    50%,100%{
+        top: 100%;
+    }
+}
+#button-ready span:nth-child(3){
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(270deg,transparent,#03e9f4);
+    animation: animate3 1s linear infinite;
+    animation-delay: 0.50s;
+}
+@keyframes animate3{
+    0%{
+        right: -100%;
+    }
+    50%,100%{
+        right: 100%;
+    }
+}
+
+
+#button-ready span:nth-child(4){
+    bottom: -100%;
+    left: 0;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(360deg,transparent,#03e9f4);
+    animation: animate4 1s linear infinite;
+    animation-delay: 0.75s;
+}
+@keyframes animate4{
+    0%{
+        bottom: -100%;
+    }
+    50%,100%{
+        bottom: 100%;
+    }
 }

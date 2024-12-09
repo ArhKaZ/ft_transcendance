@@ -125,15 +125,14 @@ async function initGame(data) {
 }
 
 function createPlayers(data) {
-    const main_id = data.main_player_id;
-    const opp_id = data.opponent_id;
-    const main_name = data.main_player_name;
-    const opp_name = data.opponent_name;
-    const player_nb = data.player_nb;
+    const p1_id = data.player1_id;
+    const p2_id = data.player2_id;
+    const p1_name = data.player1_name;
+    const p2_name = data.player2_name;
 
-    const mainPlayer = new Player(main_id, main_name);
-    const opponent = new Player(data.opponent_id, data.opponent_name);
-    return data.player_number === 1 ? [mainPlayer, opponent] : [opponent, mainPlayer];
+    const P1 = new Player(p1_id, p1_name);
+    const P2 = new Player(p2_id, p2_name);
+    return [P1, P2];
 }
 
 async function handleWebSocketMessage(e, gameId) {
@@ -155,7 +154,7 @@ async function handleWebSocketMessage(e, gameId) {
         case 'ball_position':
             if (currentGame) {
                 currentGame.updateBallPosition(data.x, data.y);
-                currentGame.drawGame();
+                currentGame.drawGame(data.bound_wall, data.bound_player);
             }
             break;
 
@@ -173,7 +172,7 @@ async function handleWebSocketMessage(e, gameId) {
 
         case 'game_finish':
             if (currentGame) {
-                handleGameFinish(currentGame, data.winning_session, data.opponent_name);
+                handleGameFinish(currentGame, data.winning_session);
                 gameStarted = false;
                 currentGame.stop();
             }
@@ -188,9 +187,20 @@ async function handleWebSocketMessage(e, gameId) {
             break;
 
         case 'countdown':
-            await  handleCountdown(data.countdown);
+            await handleCountdown(data.countdown);
+            break;
+
+        case 'game_cancel':
+            handleGameCancel(data);
+            break;
     }
 }
+
+function handleGameCancel(data) {
+    alert(`Game is cancelled, player ${data.player_id} is gone`); // TODO Faire meilleur erreur
+    window.location.href = '/logged';
+}
+
 
 function updatePlayerPosition(game, data) {
     const playerNumber = parseInt(data.player_id) === parseInt(game.P1.id) ? 1 : 2;
@@ -207,6 +217,7 @@ async function handleCountdown(countdown) {
 
 function handleGameFinish(game, winningId, opponent) {
     const winnerName = parseInt(game.P1.id) === parseInt(winningId) ? game.P1.name : game.P2.name;
+    const opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
     game.displayWinner(winnerName);
     const asWin = currentPlayerId === parseInt(winningId);
     fetch('/api/add_match/', {
@@ -217,7 +228,7 @@ function handleGameFinish(game, winningId, opponent) {
         },
         // credentials: 'include',  // Important pour inclure les cookies
         body: JSON.stringify({
-            'opponent_name': opponent, // Remplacez par le vrai nom de l'adversaire
+            'opponent_name': opponentName, // Remplacez par le vrai nom de l'adversaire
             'won': asWin
         })
     }).then(response => response.json())
@@ -229,16 +240,18 @@ function handleGameFinish(game, winningId, opponent) {
 function resizeCanvasGame(game) {
     if (!gameStarted || !game) return;
 
+    const canvasCount = document.getElementById('countdownCanvas');
     const canvas = document.getElementById('gameCanvas');
-    const textInfoP1 = document.getElementById('p1-username');
-    const textInfoP2 = document.getElementById('p2-username');
 
     canvas.width = window.innerWidth * 0.6;
     canvas.height = window.innerHeight * 0.8;
+    canvasCount.width = window.innerWidth * 0.6;
+    canvasCount.height = window.innerHeight * 0.8;
 
+    
     updatePaddleDimensions(game, canvas);
-    updateBallSize(game, canvas);
-    updateFontSizes(game, canvas, textInfoP1, textInfoP2);
+    // game.updateScoreFontSize();
+    game.ball.size = Math.min(canvas.width, canvas.height) * 0.01;
 
     oldHeight = canvas.height;
 
@@ -260,15 +273,4 @@ function updatePaddleDimensions(game, canvas) {
 
     game.P1.paddle.y = (game.P1.paddle.y / oldHeight) * canvas.height;
     game.P2.paddle.y = (game.P2.paddle.y / oldHeight) * canvas.height;
-}
-
-function updateBallSize(game, canvas) {
-    game.ball.size = Math.min(canvas.width, canvas.height) * 0.01;
-}
-
-function updateFontSizes(game, canvas, textInfoP1, textInfoP2) {
-    game.updateScoreFontSize();
-    const fontSize = Math.min(canvas.width, canvas.height) * 0.05;
-    textInfoP1.style.fontSize = `${fontSize}px`;
-    textInfoP2.style.fontSize = `${fontSize}px`;
 }

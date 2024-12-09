@@ -2,8 +2,8 @@ class Ball {
     constructor(canvas) {
         this.canvas = canvas;
         this.size = Math.min(canvas.width, canvas.height) * 0.01;
-        this.x = 0;
-        this.y = 0;
+        this.x = canvas.width / 2;
+        this.y = canvas.height / 2;
     }
 
     assignPos(x, y) {
@@ -11,12 +11,19 @@ class Ball {
         this.y = y * this.canvas.height / 100;
     }
 
+    getPos() {
+        return this.x, this.y;
+    }
+
     draw(context) {
-        context.clearRect(0,0, this.canvas.width, this.canvas.height);
+        context.shadowBlur = 20; 
+        context.shadowColor = '#8a2be2'; 
+        context.fillStyle = '#8a2be2';
         context.beginPath();
         context.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
-        context.fillStyle = 'white';
         context.fill();
+        context.shadowBlur = 0;
+        context.shadowColor = 'transparent';
     }
 }
 
