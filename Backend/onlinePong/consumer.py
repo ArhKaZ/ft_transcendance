@@ -235,15 +235,16 @@ class PongConsumer(AsyncWebsocketConsumer):
             return
 
     async def handle_redis_message(self, data):
-        if data == b"score_updated":
-            await self.handle_score_update()
+        if data.startswith(b"score_updated_"):
+            await self.handle_score_update(data)
         elif data.startswith(b"game_finish_"):
             await self.handle_game_finish(data)
 
-    async def handle_score_update(self):
+    async def handle_score_update(self, data):
+        p_as_score = data.decode().split('_')[-1]
         players = await Player.get_players_of_game(self.game_id)
         scores = [players[0].score, players[1].score]
-        await self.send_score_update(scores)
+        await self.send_score_update(scores, p_as_score)
 
     async def handle_game_finish(self, data):
         winning_session = data.decode().split('_')[-1]
@@ -405,10 +406,11 @@ class PongConsumer(AsyncWebsocketConsumer):
         }
         await self.send(text_data=json.dumps(message))
 
-    async def send_score_update(self, scores):
+    async def send_score_update(self, scores, p_id):
         message = {
             'type': 'score_update',
-            'scores': scores
+            'scores': scores,
+            'player_id': p_id,
         }
         await self.send(text_data=json.dumps(message))
 

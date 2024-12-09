@@ -72,7 +72,6 @@ class Game {
     toggleCanvas(show) {
         const gameCanvas = document.getElementById('gameCanvas');
         if (show) {
-            // gameCanvas.classList.remove('hidden'); ??? 
             gameCanvas.style.backgroundImage = 'url(' + this.back.src + ')';
         }
     }

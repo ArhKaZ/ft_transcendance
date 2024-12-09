@@ -38,7 +38,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
         async with self._broadcast_lock:
-            print('j\'envoie player connected ')
             await self.notify_player_connected()
 
     async def initialize_game(self):

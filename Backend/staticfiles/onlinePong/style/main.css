@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
 body {
     display: flex;
     justify-content: center;
@@ -188,8 +191,8 @@ body {
 }
 
 .avatar {
-    width: 60px;
-    height: 60px;
+    width: 4vw;
+    height: 6vh;
     margin-bottom: 10%;
 }
 
@@ -201,8 +204,8 @@ body {
 /* Styles généraux pour le HUD */
 .player-bar {
     position: absolute;
-    width: 15%; /* Ajustable selon ton design */
-    height: 150px; /* Taille totale du HUD */
+    width: 8vw; /* Ajustable selon ton design */
+    height: 20vh; /* Taille totale du HUD */
     display: none;
     flex-direction: column;
     align-items: center;
@@ -214,7 +217,6 @@ body {
     padding: 10px;
     font-family: 'VT323', monospace;
 }
-
 /* Positionnement pour le joueur 1 (gauche) */
 #hud-p1 {
     left: 0;
@@ -222,7 +224,6 @@ body {
     transform: translate(0, -50%);
     margin-left: 5%;
 }
-
 /* Positionnement pour le joueur 2 (droite) */
 #hud-p2 {
     right: 0;
@@ -230,39 +231,195 @@ body {
     transform: translate(0, -50%);
     margin-right: 5%;
 }
-
 /* Effets néon pour les noms */
 .player-name {
-    font-size: 1.5rem;
+    font-size: 2rem;
     color: #00ffff; /* Cyan néon */
     text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
 }
-
 /* Barres lumineuses animées */
 .separator {
-    height: 2px;
+    height: 2%;
     width: 80%;
     background: linear-gradient(90deg, #ffff00, #ff00ff);
     animation: pulse 1.5s infinite;
 }
-
 @keyframes pulse {
     0%, 100% {
-        opacity: 1;
+    opacity: 1;
     }
     50% {
-        opacity: 0.5;
-    }
+    opacity: 0.5;
+}
 }
 
-/* Effets néon pour les scores */
 .player-score {
-    font-size: 2rem;
-    color: #ffff00; /* Jaune néon */
+    font-size: 3rem;
+    color: #ffff00; 
     text-shadow: 0 0 5px #ffff00, 0 0 10px #ffff00;
 }
 
-.huds:not(.hidden) {
+.player-bar:not(.hidden) {
     display: flex;
 }
 
+#title {
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    transform: translate(-50%, 0);
+    width: 5vw;
+    height: 2vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#title h1 {
+    font-family: "Press Start 2P";
+    color: white;
+}
+
+/* BUTTON READY */
+
+#button-ready {
+    position: relative;
+    display: none;
+    padding: 1em 1.5em;
+    margin: 2em 0;
+    color: #03e9f4;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: 0.5s;
+    letter-spacing: 0.2em;
+    overflow: hidden;
+    font-family: "Press Start 2P";
+    font-size: clamp(1rem, 2vw, 1.5rem);
+    text-align: center;
+}
+
+#button-ready:not(.hidden) {
+    display: inline-block;
+}
+
+#button-ready:hover {
+    background: #03e9f4;
+    color: #050801;
+    box-shadow: 0 0 5px #03e9f4,
+                0 0 25px #03e9f4,
+                0 0 50px #03e9f4,
+                0 0 200px #03e9f4;
+     -webkit-box-reflect:below 1px linear-gradient(transparent, #0005);
+}
+
+#button-ready:nth-child(1){
+    filter: hue-rotate(270deg);
+}
+#button-ready:nth-child(2){
+    filter: hue-rotate(110deg);
+}
+#button-ready span{
+    position: absolute;
+    display: block;
+}
+#button-ready span:nth-child(1){
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg,transparent,#03e9f4);
+    animation: animate1 1s linear infinite;
+}
+@keyframes animate1{
+    0%{
+        left: -100%;
+    }
+    50%,100%{
+        left: 100%;
+    }
+}
+#button-ready span:nth-child(2){
+    top: -100%;
+    right: 0;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg,transparent,#03e9f4);
+    animation: animate2 1s linear infinite;
+    animation-delay: 0.25s;
+}
+@keyframes animate2{
+    0%{
+        top: -100%;
+    }
+    50%,100%{
+        top: 100%;
+    }
+}
+#button-ready span:nth-child(3){
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(270deg,transparent,#03e9f4);
+    animation: animate3 1s linear infinite;
+    animation-delay: 0.50s;
+}
+@keyframes animate3{
+    0%{
+        right: -100%;
+    }
+    50%,100%{
+        right: 100%;
+    }
+}
+
+
+#button-ready span:nth-child(4){
+    bottom: -100%;
+    left: 0;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(360deg,transparent,#03e9f4);
+    animation: animate4 1s linear infinite;
+    animation-delay: 0.75s;
+}
+@keyframes animate4{
+    0%{
+        bottom: -100%;
+    }
+    50%,100%{
+        bottom: 100%;
+    }
+}
+
+/* EFFECT PLAYER AS SCORE */
+.spark-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 999;
+}
+
+.spark {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background-color: #ff00ff;
+    border-radius: 50%;
+    opacity: 0.8;
+    animation: spark-animation 0.5s forwards;
+}
+
+@keyframes spark-animation {
+    0% {
+        transform: translate(0,0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--move-x), var(--move-y) scale(2));
+        opacity: 0;
+    }
+}

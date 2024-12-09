@@ -1,6 +1,7 @@
 import Paddle from './paddle.js';
 import Ball from './ball.js';
-import Impact from './impact.js';
+import { createNeonExplosion } from './spark.js';
+
 class Game {
     constructor(canvas, p1, p2) {
         this.canvas = canvas;
@@ -103,8 +104,10 @@ class Game {
         }
     }
 
-    updateScores(score) {
-        this.score = score;
+    updateScores(data) {
+        const side = data.player_id === this.P1.id ? 'right' : 'left'; 
+        createNeonExplosion(side);
+        this.score = data.scores;
         this.scoreP1Element.textContent = this.score[0].toString();
         this.scoreP2Element.textContent = this.score[1].toString();
     }
@@ -115,7 +118,7 @@ class Game {
         const nameP1 = document.getElementById('p1-hud-name');
         const nameP2 = document.getElementById('p2-hud-name');
     
-        const fontSizeP1 = Math.min(hudP1.offsetWidth, hudP1.offsetHeight) * 1.2; // Nom
+        const fontSizeP1 = Math.min(hudP1.offsetWidth, hudP1.offsetHeight) * 1.2;
         const fontSizeP2 = Math.min(hudP2.offsetWidth, hudP2.offsetHeight) * 1.2;
     
         nameP1.style.fontSize = `${fontSizeP1}px`;

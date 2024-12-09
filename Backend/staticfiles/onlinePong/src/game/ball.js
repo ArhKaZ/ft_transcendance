@@ -2,8 +2,8 @@ class Ball {
     constructor(canvas) {
         this.canvas = canvas;
         this.size = Math.min(canvas.width, canvas.height) * 0.01;
-        this.x = canvas.width / 2;
-        this.y = canvas.height / 2;
+        this.x = 50 * this.canvas.width / 100;
+        this.y = 50 * this.canvas.height / 100;
     }
 
     assignPos(x, y) {

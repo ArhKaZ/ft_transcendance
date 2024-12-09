@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const playerId = currentPlayer.id;
         socket = await createGame(currentPlayer);
 
-        document.getElementById('buttonStart').addEventListener('click', () => {
+        document.getElementById('button-ready').addEventListener('click', () => {
             sendToBack({ action: 'ready', player_id: playerId });
         });
 
@@ -166,7 +166,7 @@ async function handleWebSocketMessage(e, gameId) {
 
         case 'score_update':
             if (currentGame) {
-                currentGame.updateScores(data.scores);
+                currentGame.updateScores(data);
             }
             break;
 
@@ -247,10 +247,13 @@ function resizeCanvasGame(game) {
     canvas.height = window.innerHeight * 0.8;
     canvasCount.width = window.innerWidth * 0.6;
     canvasCount.height = window.innerHeight * 0.8;
-
     
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    const scale = Math.min(canvas.width / canvas.offsetWidth, canvas.height / canvas.offsetHeight);
+    ctx.scale(scale, scale);
+
     updatePaddleDimensions(game, canvas);
-    // game.updateScoreFontSize();
     game.ball.size = Math.min(canvas.width, canvas.height) * 0.01;
 
     oldHeight = canvas.height;

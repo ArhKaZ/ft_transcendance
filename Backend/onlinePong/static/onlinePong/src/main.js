@@ -165,8 +165,9 @@ async function handleWebSocketMessage(e, gameId) {
             break;
 
         case 'score_update':
+            console.log('cc');
             if (currentGame) {
-                currentGame.updateScores(data.scores);
+                currentGame.updateScores(data);
             }
             break;
 
