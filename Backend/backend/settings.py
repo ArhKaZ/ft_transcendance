@@ -47,30 +47,17 @@ INSTALLED_APPS = [
 	'backend',
 	'rest_framework.authtoken',
 	'dj_rest_auth',
-	'rest_framework_simplejwt.token_blacklist'
 ]
-
-# REST_FRAMEWORK = {
-#     "DEFAULT_AUTHENTICATION_CLASSES": [
-#         "rest_framework.authentication.TokenAuthentication",
-#     ],
-# 	# 'DEFAULT_PERMISSION_CLASSES': (
-#     #     'rest_framework.permissions.IsAuthenticated',
-#     # ),
-# }
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        "rest_framework.authentication.TokenAuthentication",
     ),
+	"DEFAULT_PERMISSION_CLASSES": [
+		"rest_framework.permissions.IsAuthenticated",
+	]
 }
 
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Durée de vie des tokens d'accès
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # Durée de vie des tokens de rafraîchissement
-    'ROTATE_REFRESH_TOKENS': True,                 # Rafraîchir automatiquement les tokens
-    'BLACKLIST_AFTER_ROTATION': True,              # Permet d'invalider les anciens tokens
-}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -80,7 +67,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-	'backend.middleware.JWTAuthRedirectMiddleware'
+	# 'backend.middleware.JWTAuthRedirectMiddleware'
 
 ]
 

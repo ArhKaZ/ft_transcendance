@@ -11,6 +11,11 @@ from django.http import HttpResponseRedirect
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from .serializers import MatchHistorySerializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authtoken.models import Token
+from rest_framework.authentication import TokenAuthentication
+from django.contrib.auth import get_user_model
+from rest_framework.permissions import AllowAny
 
 @api_view(['POST'])
 def add_user(request):
@@ -24,39 +29,40 @@ def add_user(request):
         user = serializer.save()
         user.set_password(serializer.validated_data['password'])
         user.save()
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            "access_token": str(refresh.access_token),
-            "refresh_token": str(refresh),
-            "user": UserSerializer(user).data
-        }, status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def login_user(request):
+    # authentication_classes = [TokenAuthentication]
+    # User = get_user_model()
+    # if request.user.is_autheticated:
+    #     return Response(
+	# 		{ 'error': 'You are already logged in' }, status=status.HTTP_400_BAD_REQUEST
+	# 	)
     username = request.data.get('username')
     password = request.data.get('password')
-
     if not username or not password:
         return Response({'error': 'Please provide both username and password.'}, status=status.HTTP_400_BAD_REQUEST)
-
     user = authenticate(username=username, password=password)
-
     if user is not None:
-        refresh = RefreshToken.for_user(user)
-        access_token = str(refresh.access_token)
-        refresh_token = str(refresh)
-        response = Response({
-            'access_token': access_token,
-            'refresh_token': refresh_token,
-            'user': UserSerializer(user).data
-        }, status=status.HTTP_200_OK)
-        response.set_cookie('access_token', access_token, httponly=True, secure=True, samesite='Lax')
-        response.set_cookie('refresh_token', refresh_token, httponly=True, secure=True, samesite='Lax')
+        token, created = Token.objects.get_or_create(user=user)
+        if not created:
+            token.delete()
+            token = Token.objects.create(user=user)
+        response = Response({'detail': 'Success', 'token_key': token.key} , status=status.HTTP_200_OK)
         return response
     else:
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+
+
+
+
+
+
 
 
 def list_users(request):

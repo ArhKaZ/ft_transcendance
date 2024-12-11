@@ -6,7 +6,7 @@ async function fetchHistory() {
 			method: 'GET',
 			headers: {
 				'Content-type' : 'application/json',
-				'Authorization' : `Bearer ${localStorage.getItem('access_token')}`,
+				'Authorization' : `Token ${sessionStorage.getItem('token_key')}`,
 			}
 		});
 		
