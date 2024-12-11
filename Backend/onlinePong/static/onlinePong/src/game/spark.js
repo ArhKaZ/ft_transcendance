@@ -21,7 +21,6 @@ class NeonParticle {
     }
 
     draw(ctx) {
-        // Effet de lueur néon
         const gradient = ctx.createRadialGradient(
             this.x, this.y, 0,
             this.x, this.y, this.radius * 2
@@ -38,57 +37,69 @@ class NeonParticle {
     }
 }
 
-export function createNeonExplosion(side) {
+export function createNeonExplosion(side, ball_y) {
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Position de départ selon le côté
-    const x = side === 'left' ? 50 : canvas.width - 50;
-    const y = canvas.height / 2;
-    
-    // Couleurs néon disponibles (format RGB)
+    const x = side === 'left' ? 0 : canvas.width;
+    const y = ball_y;
+
     const colors = [
-        '255, 0, 128', // Rose néon
-        '0, 255, 255', // Cyan néon
-        '255, 255, 0', // Jaune néon
-        '0, 255, 128'  // Vert néon
+        '234, 170, 231',
+        '140, 40, 136', 
+        '90, 15, 87',
+        '175, 114, 175',
+        '156, 81, 156',
     ];
     
     const particles = [];
     const particleCount = 100;
 
-    // Création des particules
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+
     for (let i = 0; i < particleCount; i++) {
         const angle = (Math.random() * Math.PI * 2);
-        const speed = Math.random() * 8 + 2;
+        const speed = Math.random() * 4 + 2;
         const color = colors[Math.floor(Math.random() * colors.length)];
         particles.push(new NeonParticle(x, y, angle, speed, color));
     }
 
-    // Fonction d'animation
-    function animate() {
-        // Appliquer un effet de traînée
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    let animationFrameId = null;
 
-        // Mettre à jour et dessiner les particules
+    function cleanUp() {
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+        }
+        tempCanvas.remove();
+    }
+
+    function animate() {
+        tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+
         for (let i = particles.length - 1; i >= 0; i--) {
             const particle = particles[i];
             particle.update();
-            particle.draw(ctx);
-
-            // Supprimer les particules mortes
-            if (particle.life <= 0) {
+            if (particle.life > 0) {
+                particle.draw(ctx);
+            } else {
                 particles.splice(i, 1);
             }
         }
 
-        // Continuer l'animation s'il reste des particules
+        ctx.save();
+        ctx.globalCompistionOperation = 'lighter';
+        ctx.drawImage(tempCanvas, 0, 0);
+        ctx.restore();
+
         if (particles.length > 0) {
             requestAnimationFrame(animate);
+        } else {
+            cleanUp();
         }
     }
-
-    // Démarrer l'animation
+    
     animate();
 }

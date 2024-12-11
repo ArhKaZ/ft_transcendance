@@ -129,9 +129,11 @@ function createPlayers(data) {
     const p2_id = data.player2_id;
     const p1_name = data.player1_name;
     const p2_name = data.player2_name;
+    const p1_avatar = data.player1_avatar;
+    const p2_avatar = data.player2_avatar;
 
-    const P1 = new Player(p1_id, p1_name);
-    const P2 = new Player(p2_id, p2_name);
+    const P1 = new Player(p1_id, p1_name, p1_avatar);
+    const P2 = new Player(p2_id, p2_name, p2_avatar);
     return [P1, P2];
 }
 
@@ -165,7 +167,6 @@ async function handleWebSocketMessage(e, gameId) {
             break;
 
         case 'score_update':
-            console.log('cc');
             if (currentGame) {
                 currentGame.updateScores(data);
             }
@@ -202,7 +203,6 @@ function handleGameCancel(data) {
     window.location.href = '/logged';
 }
 
-
 function updatePlayerPosition(game, data) {
     const playerNumber = parseInt(data.player_id) === parseInt(game.P1.id) ? 1 : 2;
     game.updatePlayerPosition(playerNumber, data.y);
@@ -219,7 +219,9 @@ async function handleCountdown(countdown) {
 function handleGameFinish(game, winningId, opponent) {
     const winnerName = parseInt(game.P1.id) === parseInt(winningId) ? game.P1.name : game.P2.name;
     const opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
-    game.displayWinner(winnerName);
+    setTimeout(() => {
+        game.displayWinner(winnerName);
+    }, 500);
     const asWin = currentPlayerId === parseInt(winningId);
     fetch('/api/add_match/', {
         method: 'POST',
@@ -259,8 +261,8 @@ function resizeCanvasGame(game) {
 
     oldHeight = canvas.height;
 
-    game.P1.draw(game.context);
-    game.P2.draw(game.context);
+    game.P1.draw(game.context, game.colorP1);
+    game.P2.draw(game.context, game.colorP2);
 }
 
 function updatePaddleDimensions(game, canvas) {

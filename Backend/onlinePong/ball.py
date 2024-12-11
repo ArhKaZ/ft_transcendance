@@ -9,7 +9,7 @@ class Ball:
     def __init__(self, game_id, player1, player2):
         self.x = 50
         self.y = 50
-        self.speed = 0.50
+        self.speed = 0.58
         self.game_id = game_id
         self.player1 = Player(player1.player_id, player1.game_id)
         self.player2 = Player(player2.player_id, player2.game_id)

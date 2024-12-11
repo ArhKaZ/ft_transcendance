@@ -15,6 +15,11 @@ class Ball {
         return this.x, this.y;
     }
 
+    setInMiddle(canvas) {
+        this.x = 50 * canvas.width / 100;
+        this.y = 50 * canvas.height / 100;
+    }
+
     draw(context) {
         context.shadowBlur = 20; 
         context.shadowColor = '#8a2be2'; 

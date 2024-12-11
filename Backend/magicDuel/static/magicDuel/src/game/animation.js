@@ -3,7 +3,7 @@ import Sprite from './sprite.js';
 class Animation {
     constructor(nb) {
         this.nb = nb;
-        this.assetsPath = window.MAGICDUEL_ASSETS
+        this.assetsPath = window.MAGICDUEL_ASSETS;
 
         this.getAssetPath = (path) => `${this.assetsPath}assets/${path}`;
         //IDLE

@@ -20,6 +20,8 @@ class PongConsumer(AsyncWebsocketConsumer):
         self.send_ball_task = None
         self.ball_reset_event = asyncio.Event()
         self.ball_reset_event.set()
+        self.can_move = asyncio.Event()
+        self.can_move.set()
 
     async def connect(self):
         self.game_id = self.scope['url_route']['kwargs']['game_id']
@@ -94,10 +96,10 @@ class PongConsumer(AsyncWebsocketConsumer):
                 game['player2'] = None
                 game['player2_name'] = None
                 game['player2_ready'] = False
-            # elif game['player2'] is None and game['player1'] == self.player_id:
-            #     await self.remove_game_from_cache(self.game_id)
-            #     print(f"Game {self.game_id} removed from cache")
-            #     return
+            elif game['player2'] is None and game['player1'] == self.player_id:
+                await self.remove_game_from_cache(self.game_id)
+                print(f"Game {self.game_id} removed from cache")
+                return
 
             game['status'] = 'WAITING'
             await self.set_game_to_cache(self.game_id, game)
@@ -135,9 +137,16 @@ class PongConsumer(AsyncWebsocketConsumer):
                 game['status'] = 'IN_PROGRESS'
                 await self.set_game_to_cache(self.game_id, game)
                 await self.broadcast_game_start(game)
+                await self.set_can_move_in_cache(False)
                 if not self.countdown_task:
                     self._countdown_task = asyncio.create_task(self.run_countdown_sequence())
                 asyncio.create_task(self.launch_game_after_countdown())
+
+    async def set_can_move_in_cache(self, value):
+        await sync_to_async(cache.set)(f'can_move_{self.game_id}', value)
+
+    async def get_can_move_in_cache(self):
+        return await sync_to_async(cache.get)(f'can_move_{self.game_id}')
 
     async def launch_game_after_countdown(self):
         await self._countdown_done.wait()
@@ -151,6 +160,7 @@ class PongConsumer(AsyncWebsocketConsumer):
                 await asyncio.sleep(1)
             elif count == 0:
                 await asyncio.sleep(2)
+        await self.set_can_move_in_cache(True)
         self._countdown_done.set()
 
     async def send_ball_position(self):
@@ -182,7 +192,9 @@ class PongConsumer(AsyncWebsocketConsumer):
                 await asyncio.sleep(0.02)
 
     async def reset_delay(self):
-        await asyncio.sleep(2)
+        await self.set_can_move_in_cache(False)
+        await asyncio.sleep(1)
+        await self.set_can_move_in_cache(True)
         self.ball_reset_event.set()
 
     async def get_or_create_ball(self):
@@ -211,6 +223,9 @@ class PongConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(self.game_group_name, message)
 
     async def move_player(self, data):
+        is_set = await self.get_can_move_in_cache()
+        if not is_set:
+            return
         player = await self.get_or_create_player(data['player_id'])
         player.move(data['direction'])
         await player.save_to_cache()
@@ -238,6 +253,7 @@ class PongConsumer(AsyncWebsocketConsumer):
         if data.startswith(b"score_updated_"):
             await self.handle_score_update(data)
         elif data.startswith(b"game_finish_"):
+            await self.set_can_move_in_cache(False)
             await self.handle_game_finish(data)
 
     async def handle_score_update(self, data):
@@ -326,6 +342,8 @@ class PongConsumer(AsyncWebsocketConsumer):
             'player1_name': game['player1_name'],
             'player2_id': game['player2'],
             'player2_name': game['player2_name'],
+            'player1_avatar': game['player1_avatar'],
+            'player2_avatar': game['player2_avatar'],
         }
         await self.channel_layer.group_send(self.game_group_name, message)
 
@@ -364,6 +382,8 @@ class PongConsumer(AsyncWebsocketConsumer):
             'player1_name': event['player1_name'],
             'player2_id':  event['player2_id'],
             'player2_name': event['player2_name'],
+            'player1_avatar': event['player1_avatar'],
+            'player2_avatar': event['player2_avatar'],
         }
         await self.send(text_data=json.dumps(message))
 

@@ -56,7 +56,7 @@ class Game {
 
     drawPlayers() {
         this.gameCtx.clearRect(0, 0, this.backCanvas.width, this.backCanvas.height);
-        this.P1.draw(this.gameCanvas);
+        this.P1.draw(this.gameCanvas, );
         this.P2.draw(this.gameCanvas);
     }
 
