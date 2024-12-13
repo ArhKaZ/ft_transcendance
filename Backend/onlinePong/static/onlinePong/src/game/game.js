@@ -189,7 +189,7 @@ class Game {
         }, duration);
     }
 
-    displayWinner(loser) {
+    displayWinner(winner) {
         
         const endElement = document.getElementById('end-container');
         const gameCanvas = document.getElementById('gameCanvas');
@@ -198,13 +198,12 @@ class Game {
         const p1NameElement = document.getElementById('end-name-p1');
         const p2NameElement = document.getElementById('end-name-p2');
 
-        if (this.P1.id === loser) {
+        if (this.P1.id === winner) {
             document.getElementById('crown-img-p1').classList.remove('hidden');
         } else {
             document.getElementById('crown-img-p2').classList.remove('hidden');
         }
         
-
         p1ImgElement.src = this.P1.img;
         p2ImgElement.src = this.P2.img;
         p1NameElement.textContent = this.P1.name;
@@ -212,7 +211,6 @@ class Game {
         gameCanvas.classList.add('hidden');
         endElement.classList.remove('hidden');
     }
-
 }
 
 export default Game;

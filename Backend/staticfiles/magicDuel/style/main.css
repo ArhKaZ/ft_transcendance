@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
 body {
     display: flex;
     justify-content: center;
@@ -43,14 +45,22 @@ body {
     position: absolute;
     top: 50%;
     align-items: center;
-    justify-content: center;
+    justify-content: space-evenly;
     flex-direction: column;
     transform: translateY(-50%);
     border: solid 3px white;
     color: white;
     text-align: center;
-    font-size: 24px;
     height: 30%;
+    font-family: "Press Start 2P";
+}
+
+.info-player span {
+    font-size: 1.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 80%;
 }
 
 .info-player:not(.hidden) {
@@ -154,14 +164,14 @@ body {
 }
 
 .avatar {
-    width: 60px;
-    height: 60px;
-    margin-bottom: 10%;
+    width: 4vw;
+    height: 9vh;
 }
 
 .avatar img {
     width: 100%;
     height: 100%;
+    object-fit: contain;
 }
 
 /* BUTTONS POWER */
@@ -179,42 +189,126 @@ body {
     display: flex;
 }
 
-.magic-button {
+.magic-button-base {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
     position: relative;
-    width: 6vw;
-    height: 9vh;
-    background: linear-gradient(135deg, #ff7b00, #ff4500); /* Dégradé de feu */
-    border: 3px solid #ffae42; /* Cadre lumineux */
-    border-radius: 12px; /* Coins légèrement arrondis */
-    box-shadow:
-            0 0 20px rgba(255, 120, 0, 0.7), /* Lueur extérieure */
-            inset 0 0 10px rgba(255, 70, 0, 0.6); /* Lueur intérieure */
+    width: 8vw;
+    height: 10vh;
+    border-radius: 12px;
     text-align: center;
     overflow: hidden;
     cursor: pointer;
-    animation: pulse 2s infinite; /* Animation subtile */
     color: white;
-    font-size: 16px;
     outline: none;
     padding: 0;
     margin: 3%;
 }
 
-.magic-button:hover {
+/* Bouton Violet (Énergie) */
+.btn-purple {
+    background: linear-gradient(135deg, #9932CC, #800080);
+    border: 3px solid #BA55D3;
+    box-shadow:
+        0 0 20px rgba(153, 50, 204, 0.7),
+        inset 0 0 10px rgba(128, 0, 128, 0.6);
+    animation: purplePulse 2s infinite;
+}
+
+@keyframes purplePulse {
+    0% { box-shadow: 0 0 20px rgba(153, 50, 204, 0.7), inset 0 0 10px rgba(128, 0, 128, 0.6); }
+    50% { box-shadow: 0 0 30px rgba(153, 50, 204, 0.9), inset 0 0 15px rgba(128, 0, 128, 0.8); }
+    100% { box-shadow: 0 0 20px rgba(153, 50, 204, 0.7), inset 0 0 10px rgba(128, 0, 128, 0.6); }
+}
+
+.btn-purple:hover {
     transform: scale(1.1); /* Légère mise en avant au survol */
     box-shadow:
-            0 0 30px rgba(255, 140, 0, 0.9),
-            inset 0 0 15px rgba(255, 90, 0, 0.8);
+        0 0 20px rgba(153, 50, 204, 0.7),
+        inset 0 0 10px rgba(128, 0, 128, 0.6);
+}
+
+/* Bouton Orange (Explosion) */
+.btn-fire {
+    background: linear-gradient(135deg, #ff7b00, #ff4500);
+    border: 3px solid #ffae42;
+    box-shadow:
+        0 0 20px rgba(255, 120, 0, 0.7),
+        inset 0 0 10px rgba(255, 70, 0, 0.6);
+    animation: firePulse 2s infinite;
+}
+
+@keyframes firePulse {
+    0% { box-shadow: 0 0 20px rgba(255, 120, 0, 0.7), inset 0 0 10px rgba(255, 70, 0, 0.6); }
+    50% { box-shadow: 0 0 30px rgba(255, 120, 0, 0.9), inset 0 0 15px rgba(255, 70, 0, 0.8); }
+    100% { box-shadow: 0 0 20px rgba(255, 120, 0, 0.7), inset 0 0 10px rgba(255, 70, 0, 0.6); }
+}
+
+.btn-fire:hover {
+    transform: scale(1.1); /* Légère mise en avant au survol */
+    box-shadow:
+        0 0 20px rgba(255, 120, 0, 0.7),
+        inset 0 0 10px rgba(255, 70, 0, 0.6);
+}
+
+/* Bouton Jaune-Bleu (Spirale) */
+.btn-lightning {
+    background: linear-gradient(135deg, #FFD700, #1E90FF);
+    border: 3px solid #FFC125;
+    box-shadow:
+        0 0 20px rgba(255, 215, 0, 0.7),
+        inset 0 0 10px rgba(30, 144, 255, 0.6);
+    animation: lightningPulse 2s infinite;
+}
+
+@keyframes lightningPulse {
+    0% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.7), inset 0 0 10px rgba(30, 144, 255, 0.6); }
+    50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.9), inset 0 0 15px rgba(30, 144, 255, 0.8); }
+    100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.7), inset 0 0 10px rgba(30, 144, 255, 0.6); }
+}
+
+.btn-lightning:hover {
+    transform: scale(1.1); /* Légère mise en avant au survol */
+    box-shadow:
+        0 0 20px rgba(255, 215, 0, 0.7),
+        inset 0 0 10px rgba(30, 144, 255, 0.6);
+}
+
+
+/* Bouton Bleu (Cercle) */
+.btn-circle {
+    background: linear-gradient(135deg, #1E90FF, #0000CD);
+    border: 3px solid #00BFFF;
+    box-shadow:
+        0 0 20px rgba(30, 144, 255, 0.7),
+        inset 0 0 10px rgba(0, 0, 205, 0.6);
+    animation: circlePulse 2s infinite;
+}
+
+@keyframes circlePulse {
+    0% { box-shadow: 0 0 20px rgba(30, 144, 255, 0.7), inset 0 0 10px rgba(0, 0, 205, 0.6); }
+    50% { box-shadow: 0 0 30px rgba(30, 144, 255, 0.9), inset 0 0 15px rgba(0, 0, 205, 0.8); }
+    100% { box-shadow: 0 0 20px rgba(30, 144, 255, 0.7), inset 0 0 10px rgba(0, 0, 205, 0.6); }
+}
+
+.btn-circle:hover {
+    transform: scale(1.1); /* Légère mise en avant au survol */
+    box-shadow:
+        0 0 20px rgba(30, 144, 255, 0.7),
+        inset 0 0 10px rgba(0, 0, 205, 0.6);
 }
 
 .element-icon {
-    font-size: 40px;
-    color: #ffffff;
-    text-shadow:
-            0 0 10px #fff,
-            0 0 20px #ff6347,
-            0 0 30px #ff4500; /* Effet lumineux sur l'élément */
-    line-height: 100px;
+    width: 40%;
+    height: 50%;
+    object-fit: contain;
+}
+
+.power-name {
+    font-size: 1rem;
+    font-family: "VT323";
 }
 
 @keyframes pulse {
@@ -271,6 +365,8 @@ body {
     font-size: 24px;
     text-align: center;
     z-index: 10;
+    font-size: 2rem;
+    font-family: 'Press Start 2P';
 }
 
 .timer {
@@ -279,9 +375,10 @@ body {
     left: 50%;
     transform: translateX(-50%);
     color: white;
-    font-size: 20px;
+    font-size: 2rem;
     text-align: center;
     z-index: 10;
+    font-family: 'Press Start 2P';
 }
 
 .countainer-hud {
@@ -298,29 +395,39 @@ body {
     /*justify-content: space-between;*/
 }
 
+.hud-items span {
+    font-size: 2em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 90%;
+    color: white;
+    font-family: "VT323";
+}
+
 .hud-items:not(.hidden) {
     display: flex;
 }
 
 .player-hud {
     height: 15%;
-    width: 13%;
+    width: 20%;
     display: none;
-    justify-content: space-around;
+    justify-content: space-evenly;
     align-items: center;
     flex-direction: column;
     z-index: 10;
     position: absolute;
     top: 40%;
+    border: white solid 3px;
+    object-fit: contain;
 }
 
 #p1-hud {
-    position: absolute;
     left: 10%;
 }
 
 #p2-hud {
-    position: absolute;
     right: 10%;
 }
 
@@ -347,11 +454,13 @@ body {
     height: 50%;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-evenly;
+    flex-direction: row;
     position: relative;
     left: 10%;
     top: 0;
     overflow: hidden;
+    object-fit: contain;
 }
 
 #back-life-bar-1, #back-life-bar-2 {
@@ -363,7 +472,8 @@ body {
 }
 
 #front-life-1, #front-life-2 {
-    width: 56%;
+    width: 65%;
+    height: 90%;
     position: absolute;
     left: 17%;
     top: 0;
@@ -388,70 +498,266 @@ body {
     width: 2vw;
     height: 3vh;
     position: absolute;
-    right: 0;
-    bottom: 0;
+    right: 2vw;
+    top: 3vh;
 }
 
-.cover {
+/* Couvertures */
+.book-cover {
     position: absolute;
-    top: 0;
     width: 50%;
     height: 100%;
-    background: #3b200c; /* Couleur de base du cuir */
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-    border: 2px solid #5d3821; /* Bordures sombres pour l'aspect robuste */
-    z-index: 1;
+    background: #5b3924; /* Une couleur de cuir marron */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+    transform-origin: center;
+    z-index: 2;
+    transition: transform 0.5s ease-in-out;
   }
   
-  .cover-left {
+  .front-cover {
     left: 0;
-    border-right: none;
-    transform-origin: right center;
+    transform: rotateY(0deg);
+    background: url('/static/magicDuel/assets/leather-texture.png') center/cover; /* Texture de cuir */
   }
   
-  .cover-right {
+  .back-cover {
     right: 0;
-    border-left: none;
-    transform-origin: left center;
+    transform: rotateY(-180deg);
+    background: url('/static/magicDuel/assets/leather-texture.png') center/cover; /* Texture de cuir */
   }
   
-  /* Texture pour l'aspect cuir */
-  .cover::before {
-    content: "";
+  /* Contenu du livre */
+  .book-container {
+    position: relative;
+    width: 80%;
+    max-width: 800px;
+    height: 400px;
+    perspective: 1500px;
+    display: flex;
+  }
+  
+  .book {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    transform: scale(0); /* Livre fermé au départ */
+    transform-origin: center;
+    transition: transform 0.5s ease-in-out;
+  }
+  
+/* TOP TITLE */
+
+#title {
     position: absolute;
+    top: 5%;
+    left: 50%;
+    transform: translate(-50%, 0);
+    width: 5vw;
+    height: 2vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#title h1 {
+    font-family: "Press Start 2P";
+    color: white;
+    margin: 2%;
+}
+
+/* BUTTONS */
+
+.buttonNeon {
+    position: relative;
+    display: none;
+    padding: 1em 1.5em;
+    margin: 2em 0;
+    color: #03e9f4;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: 0.5s;
+    letter-spacing: 0.2em;
+    overflow: hidden;
+    font-family: "Press Start 2P";
+    text-align: center;
+}
+
+#button-ready {
+    font-size: clamp(1rem, 2vw, 1.5rem);
+}
+
+#button-home {
+    font-size: clamp(0.5rem, 1vw, 1rem);
+}
+
+#button-ready:not(.hidden) {
+    display: inline-block;
+}
+
+#button-home:not(.hidden) {
+    display: inline-block;
+}
+
+.buttonNeon:hover {
+    background: #03e9f4;
+    color: #050801;
+    box-shadow: 0 0 5px #03e9f4,
+                0 0 25px #03e9f4,
+                0 0 50px #03e9f4,
+                0 0 200px #03e9f4;
+     -webkit-box-reflect:below 1px linear-gradient(transparent, #0005);
+}
+
+.buttonNeon:nth-child(1){
+    filter: hue-rotate(270deg);
+}
+.buttonNeon:nth-child(2){
+    filter: hue-rotate(110deg);
+}
+
+.buttonNeon span {
+    position: absolute;
+    display: block;
+}
+ 
+.buttonNeon span:nth-child(1){
     top: 0;
     left: 0;
     width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg,transparent,#03e9f4);
+    animation: animate1 1s linear infinite;
+}
+@keyframes animate1{
+    0%{
+        left: -100%;
+    }
+    50%,100%{
+        left: 100%;
+    }
+}
+.buttonNeon span:nth-child(2){
+    top: -100%;
+    right: 0;
+    width: 2px;
     height: 100%;
-    background: url('path/to/leather-texture.png'); /* Texture de cuir */
-    background-size: cover;
-    mix-blend-mode: overlay; /* Applique un effet naturel */
-    opacity: 0.6;
-  }
-  
-  /* Animation d'ouverture des couvertures */
-  .cover-left,
-  .cover-right {
-    transform: rotateY(0deg);
-    transition: transform 0.5s ease-in-out;
-  }
-  
-  /* Ouverture lors du clic */
-  .book-container.open .cover-left {
-    transform: rotateY(-180deg);
-  }
-  
-  .book-container.open .cover-right {
-    transform: rotateY(180deg);
-  }
-  
-  /* Pages du livre */
-  .book {
-    position: relative;
+    background: linear-gradient(180deg,transparent,#03e9f4);
+    animation: animate2 1s linear infinite;
+    animation-delay: 0.25s;
+}
+@keyframes animate2{
+    0%{
+        top: -100%;
+    }
+    50%,100%{
+        top: 100%;
+    }
+}
+.buttonNeon span:nth-child(3){
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(270deg,transparent,#03e9f4);
+    animation: animate3 1s linear infinite;
+    animation-delay: 0.50s;
+}
+@keyframes animate3{
+    0%{
+        right: -100%;
+    }
+    50%,100%{
+        right: 100%;
+    }
+}
+
+
+.buttonNeon span:nth-child(4){
+    bottom: -100%;
+    left: 0;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(360deg,transparent,#03e9f4);
+    animation: animate4 1s linear infinite;
+    animation-delay: 0.75s;
+}
+@keyframes animate4{
+    0%{
+        bottom: -100%;
+    }
+    50%,100%{
+        bottom: 100%;
+    }
+}
+
+/* END DISPLAY */
+.end-container {
+    width: 90%;
+    height: 90%;
+    align-items: center;
+    justify-content: space-between;
+    position: absolute;
+    display: none;
+    border: #03e9f4 solid 1rem;
+    z-index: 5;
+}
+
+.end-container:not(.hidden) {
     display: flex;
-    width: 80%;
-    transform: scale(0);
-    transform-origin: center;
-    transition: transform 0.5s ease-in-out;
-    z-index: 2; /* Plus haut que les couvertures */
-  }
+}
+
+.end-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    width: 35%;
+    height: 90%;
+}
+
+.end-img {
+    width: 30%;
+    height: 30%;
+    object-fit: contain;
+}
+
+.end-name  {
+    width: 90%;
+    height: 20%;
+    text-align: center;
+    font-size: 2em;
+    color: white;
+    font-family: "Press Start 2P";
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 90%;
+}
+
+.crown {
+    position: absolute;
+    width: 8%;
+    height: 8%;
+    animation: swing 4s linear infinite;
+    top: 12%;
+    object-fit: cover;
+}
+
+@keyframes swing {
+    0% {
+        transform: translateX(0) translateX(0);
+    }
+    25% {
+        transform: translateX(0) translateX(50px); 
+    }
+    50% {
+        transform: translateX(0) translateX(0);
+    }
+    75% {
+        transform: translateX(0) translateX(-50px); 
+    }
+    100% {
+        transform: translateX(0) translateX(0);
+    }
+}

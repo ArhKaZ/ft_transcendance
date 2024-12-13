@@ -1,13 +1,14 @@
 import Animation from "./animation.js";
 
 class Player {
-    constructor(nb, canvas, name, id, lifes) {
+    constructor(nb, canvas, name, id, img, lifes) {
         this.canvas = canvas;
         this.name = name;
         this.id = id;
         this.nb = nb;
+        this.img = img
         if (nb === 1) {
-            this.x = canvas.width * (3 / 100);
+            this.x = canvas.width * (1 / 100);
         } else
             this.x = canvas.width * (70 / 100);
         this.y = canvas.height * (40 / 100);

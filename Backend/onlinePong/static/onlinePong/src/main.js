@@ -216,11 +216,10 @@ async function handleCountdown(countdown) {
     }
 }
 
-function handleGameFinish(game, winningId, opponent) {
-    const winnerName = parseInt(game.P1.id) === parseInt(winningId) ? game.P1.name : game.P2.name;
+function handleGameFinish(game, winningId) {
     const opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
     setTimeout(() => {
-        game.displayWinner(winnerName);
+        game.displayWinner(winningId);
     }, 500);
     const asWin = currentPlayerId === parseInt(winningId);
     fetch('/api/add_match/', {

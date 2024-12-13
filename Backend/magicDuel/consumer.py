@@ -118,10 +118,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
         if player_id in ready_state:
             ready_state[player_id] = True
             cache.set(game_key, ready_state)
-            print(f"player {player_id} is ready for a new round")
-
+        
         if all(ready_state.values()):
-            print(f"all players are ready for a new round")
             self._both_anim_done.set()
 
     async def handle_player_attack(self, data):
@@ -255,6 +253,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
     async def start_round(self, players):
         self.current_round_count += 1
+        print(self.current_round_count)
         await self.notify_round_count(self.current_round_count)
 
         await asyncio.sleep(3)
@@ -428,7 +427,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(self.game_group_name, message)
 
     async def notify_round_interaction(self, p_id, power):
-        print('send round interaction')
         message = {
             'type': 'round_interaction',
             'player_id': p_id,
@@ -457,7 +455,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(self.game_group_name, message)
 
     async def notify_player_connected(self):
-        print('dans la function')
         is_player_1 = self.game['player1'] == self.player_id
         username = self.game['player1_name'] if is_player_1 else self.game['player2_name']
         avatar = self.game['player1_avatar'] if is_player_1 else self.game['player2_avatar']
@@ -553,7 +550,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
             'player_id': event['player_id'],
             'power': event['power'],
         }
-        print('send twice messages')
         await self.send(text_data=json.dumps(message))
 
     async def round_count(self, event):

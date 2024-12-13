@@ -126,7 +126,7 @@ async function init() {
         const playerId = currentPlayer.id;
         socket = await addPlayerToGame(currentPlayer);
 
-        document.getElementById('buttonStart').addEventListener('click', () => {
+        document.getElementById('button-ready').addEventListener('click', () => {
             sendToBack({ action: 'ready', player_id: playerId})
         });
     } catch (error) {
@@ -159,8 +159,8 @@ function setupWebSocket(gameId, playerId) {
 function createGame(game_data) {
     const gameCanvas = document.getElementById('gameCanvas');
     const attackCanvas = document.getElementById('attackCanvas');
-    const P1 = new Player(1, gameCanvas, game_data.player1_name, game_data.player1_id, game_data.player1_lifes);
-    const P2 = new Player(2, gameCanvas, game_data.player2_name, game_data.player2_id, game_data.player2_lifes);
+    const P1 = new Player(1, gameCanvas, game_data.player1_name, game_data.player1_id, game_data.player1_avatar, game_data.player1_lifes);
+    const P2 = new Player(2, gameCanvas, game_data.player2_name, game_data.player2_id, game_data.player2_avatar, game_data.player2_lifes);
     return new Game(gameCanvas, attackCanvas, P1, P2);
 }
 
@@ -180,7 +180,7 @@ async function handleWebSocketMessage(event, gameId, playerId) {
             break;
 
         case 'game_start':
-            handleGameStart(data, gameId, playerId);
+            handleGameStart(data);
             break;
 
         case 'countdown':
@@ -208,7 +208,7 @@ async function handleWebSocketMessage(event, gameId, playerId) {
             break;
 
         case 'looser':
-            console.log('Game finished, id:', data.player_id);
+            handleGameFinish(data);
             break;
 
         case 'debug':
@@ -224,9 +224,10 @@ async function handleWebSocketMessage(event, gameId, playerId) {
 function handleRoundEnd(data) {
     clearInterval(timerInterval);
     currentGame.toggleTimer(false);
+    document.getElementById('choiceButtons').classList.add('hidden');
 }
 
-function handleGameStart(data, gameId, playerId) {
+function handleGameStart(data) {
     currentGame = createGame(data);
 
     if (!currentGame || !currentGame.P1 || !currentGame.P2) {
@@ -246,10 +247,15 @@ async function handleCountdown(countdown) {
         currentGame.toggleInfoPlayer(false);
         bindEvents();
         currentGame.fillUsernames();
-        currentGame.fillLifeBar();
         currentGame.gameLoop(0);
         currentGame.toggleHudPlayer(true);
     }
+}
+
+function handleGameFinish(data) {
+    setTimeout(() => {
+        currentGame.displayWinner(loser);
+    }, 500);
 }
 
 function handleClick(choice) {
@@ -332,7 +338,6 @@ function resizeCanvas() {
         currentGame.updateCanvas(gameCanvas, attackCanvas);
         currentGame.P1.updatePos(gameCanvas);
         currentGame.P2.updatePos(gameCanvas);
-        // TODO Deplacer joueur + changer taille bouton
     }
 }
 

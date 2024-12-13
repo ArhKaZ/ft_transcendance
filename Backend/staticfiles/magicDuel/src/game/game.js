@@ -48,10 +48,8 @@ class Game {
     }
 
     start() {
-        console.log('canvas display');
         this.displayCanvas();
         this.isRunning = true;
-        console.log('start finished');
     }
 
     stop() {
@@ -137,8 +135,30 @@ class Game {
     }
 
     displayCanvas() {
-        document.getElementById('buttonStart').classList.add('hidden');
+        document.getElementById('button-ready').classList.add('hidden');
         document.getElementById('canvasContainer').style.display = 'flex';
+    }
+
+    displayWinner(winner) {
+        const endElement = document.getElementById('end-container');
+        const gameCanvas = document.getElementById('gameCanvas');
+        const p1ImgElement = document.getElementById('end-img-p1');
+        const p2ImgElement = document.getElementById('end-img-p2');
+        const p1NameElement = document.getElementById('end-name-p1');
+        const p2NameElement = document.getElementById('end-name-p2');
+
+        if (this.P1.id === winner) {
+            document.getElementById('crown-img-p1').classList.remove('hidden');
+        } else {
+            document.getElementById('crown-img-p2').classList.remove('hidden');
+        }
+        
+        p1ImgElement.src = this.P1.img;
+        p2ImgElement.src = this.P2.img;
+        p1NameElement.textContent = this.P1.name;
+        p2NameElement.textContent = this.P2.name;
+        gameCanvas.classList.add('hidden');
+        endElement.classList.remove('hidden');
     }
 
     gameLoop(timestamp) {
@@ -150,10 +170,9 @@ class Game {
 
         if (elapsed >= this.frameInterval) {
             this.gameCtx.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
-            // this.attackCanvas.clearRect(0, 0, this.attackCanvas.width, this.attackCanvas.height);
             
-            this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (7/100), this.gameCanvas.height * (74/100));
-            this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (76/100), this.gameCanvas.height * (74/100));
+            this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (3/100), this.gameCanvas.height * (72/100));
+            this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (76/100), this.gameCanvas.height * (72/100));
             this.P1.updateAnimation(this.gameCtx);
             this.P2.updateAnimation(this.gameCtx);
 
