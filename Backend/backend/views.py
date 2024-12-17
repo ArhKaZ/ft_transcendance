@@ -13,6 +13,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from rest_framework.authentication import TokenAuthentication
 
+def index(request):
+	return render(request, 'build/index.html')
 
 def main(request):
     return render(request, "backend/home.html")
