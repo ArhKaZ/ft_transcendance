@@ -47,6 +47,7 @@ INSTALLED_APPS = [
 	'backend',
 	'rest_framework.authtoken',
 	'dj_rest_auth',
+	'spa',
 ]
 
 REST_FRAMEWORK = {
@@ -180,6 +181,8 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "pixelPaws/static"),
     os.path.join(BASE_DIR, "onlinePong/static"),
+	os.path.join(BASE_DIR, "spa/static"),
+	os.path.join(BASE_DIR, "spa/templates"),
 ]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
