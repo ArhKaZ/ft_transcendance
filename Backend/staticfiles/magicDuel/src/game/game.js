@@ -10,13 +10,9 @@ class Game {
         this.isRunning = false;
         this.back = new Image();
         this.plat = new Image();
-        this.backLifeBar = new Image();
-        this.lifeBar = new Image();
         this.assetsPath = window.MAGICDUEL_ASSETS;
         this.getAssetPath = (path) => `${this.assetsPath}assets/${path}`;
         this.back.src = this.getAssetPath('map/back.png');
-        this.backLifeBar.src = this.getAssetPath('Hearts/back_life_bar.png');
-        this.lifeBar.src = this.getAssetPath('Hearts/life_bar.png');
         this.plat.src = this.getAssetPath('map/plat_little.png');
         this.keyState = {};
         this.bindEvents();
@@ -122,18 +118,6 @@ class Game {
         document.getElementById('p2-hud-name-element').textContent = this.P2.name;
     }
 
-    fillLifeBar() {
-        const backLifeBar1 = document.getElementById('back-life-bar-1');
-        const backLifeBar2 = document.getElementById('back-life-bar-2');
-        const frontLife1 = document.getElementById('front-life-1');
-        const frontLife2 = document.getElementById('front-life-2');
-
-        backLifeBar1.src = this.backLifeBar.src;
-        backLifeBar2.src = this.backLifeBar.src;
-        frontLife1.src = this.lifeBar.src;
-        frontLife2.src = this.lifeBar.src;
-    }
-
     displayCanvas() {
         document.getElementById('button-ready').classList.add('hidden');
         document.getElementById('canvasContainer').style.display = 'flex';
@@ -170,8 +154,8 @@ class Game {
 
         if (elapsed >= this.frameInterval) {
             this.gameCtx.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
-            
-            this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (3/100), this.gameCanvas.height * (72/100));
+
+            this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (3/100), this.gameCanvas.height * (72/100)); // Rajouter parametres ?
             this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (76/100), this.gameCanvas.height * (72/100));
             this.P1.updateAnimation(this.gameCtx);
             this.P2.updateAnimation(this.gameCtx);

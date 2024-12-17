@@ -154,8 +154,8 @@ class Game {
 
         if (elapsed >= this.frameInterval) {
             this.gameCtx.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
-            
-            this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (3/100), this.gameCanvas.height * (72/100));
+
+            this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (3/100), this.gameCanvas.height * (72/100)); // Rajouter parametres ?
             this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (76/100), this.gameCanvas.height * (72/100));
             this.P1.updateAnimation(this.gameCtx);
             this.P2.updateAnimation(this.gameCtx);

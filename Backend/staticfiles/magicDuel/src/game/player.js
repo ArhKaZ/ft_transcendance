@@ -10,7 +10,7 @@ class Player {
         if (nb === 1) {
             this.x = canvas.width * (1 / 100);
         } else
-            this.x = canvas.width * (70 / 100);
+            this.x = canvas.width * (72 / 100);
         this.y = canvas.height * (40 / 100);
         this.lifes = lifes;
         this.currentAnimationPlayer = 'Idle';
@@ -25,9 +25,9 @@ class Player {
     updatePos(canvas) {
         this.canvas = canvas;
         if (this.nb === 1) {
-            this.x = canvas.width * (3 / 100);
+            this.x = canvas.width * (1 / 100);
         } else
-            this.x = canvas.width * (70 / 100);
+            this.x = canvas.width * (72 / 100);
         this.y = canvas.height * (40 / 100);
     }
 
@@ -80,27 +80,20 @@ class Player {
 
     loosePv() {
         this.lifes -= 1;
-        const lifeElement = document.getElementById(`front-life-${this.nb}`);
-
-        lifeElement.classList.add('damage');
-        setTimeout(() => {
-            lifeElement.classList.remove('damage');
-        }, 500);
-
-        let newWidth = null;
-
+        let nb_heart = 0;
         switch (this.lifes) {
             case 0:
-                newWidth = '0%';
+                nb_heart = 1;
                 break;
             case 1:
-                newWidth = '20%';
+                nb_heart = 2;
                 break;
             case 2:
-                newWidth = '40%';
+                nb_heart = 3;
                 break;
         }
-        lifeElement.style.width = newWidth;
+        document.getElementById(`p${this.nb}-full-heart-${nb_heart}`).classList.add('hidden');
+        document.getElementById(`p${this.nb}-empty-heart-${nb_heart}`).classList.remove('hidden');
     }
 }
 

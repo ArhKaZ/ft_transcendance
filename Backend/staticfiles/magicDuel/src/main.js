@@ -247,7 +247,6 @@ async function handleCountdown(countdown) {
         currentGame.toggleInfoPlayer(false);
         bindEvents();
         currentGame.fillUsernames();
-        currentGame.fillLifeBar();
         currentGame.gameLoop(0);
         currentGame.toggleHudPlayer(true);
     }
