@@ -18,6 +18,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def add_user(request):
     data = request.data.copy()
     avatar = request.FILES.get('avatar')
