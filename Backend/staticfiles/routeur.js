@@ -1,14 +1,26 @@
 class Router {
     constructor(routes) {
+        // Prevent multiple router instances
+        if (window.routerInstance) {
+            return window.routerInstance;
+        }
+
         this.routes = routes;
         this.rootElement = document.getElementById('app');
         
+        // Only add event listeners if this is the first instance
         window.addEventListener('popstate', this.handleLocation.bind(this));
         this.initLinks();
+
+        // Store the instance globally
+        window.routerInstance = this;
     }
 
     initLinks() {
-        document.addEventListener('click', (e) => {
+        // Remove previous event listeners to prevent multiple bindings
+        document.removeEventListener('click', this.linkHandler);
+        
+        this.linkHandler = (e) => {
             const link = e.target.closest('a');
             if (link) {
                 const href = link.getAttribute('href');
@@ -17,7 +29,9 @@ class Router {
                     this.navigateTo(href);
                 }
             }
-        });
+        };
+        
+        document.addEventListener('click', this.linkHandler);
     }
 
     navigateTo(url) {
@@ -36,12 +50,10 @@ class Router {
         }
 
         try {
-            // Charger le HTML
             const content = await route();
-			console.log(content);
+            console.log(content);
             this.rootElement.innerHTML = content;
 
-            // Exécuter les scripts si nécessaire
             this.executeScripts(this.rootElement);
         } catch (error) {
             console.error('Erreur de chargement de la page', error);
@@ -49,32 +61,43 @@ class Router {
         }
     }
 
-    // Méthode pour exécuter les scripts dans le HTML chargé
     executeScripts(container) {
         container.querySelectorAll('script').forEach(oldScript => {
             const newScript = document.createElement('script');
             
-            // Copier les attributs
             Array.from(oldScript.attributes).forEach(attr => {
                 newScript.setAttribute(attr.name, attr.value);
             });
 
-            // Copier le contenu
             newScript.textContent = oldScript.textContent;
             
-            // Remplacer l'ancien script
             oldScript.parentNode.replaceChild(newScript, oldScript);
         });
     }
 
     init() {
-        this.handleLocation();
+        // Only handle location if this is the first instance
+        if (!window.routerInitialized) {
+            this.handleLocation();
+            window.routerInitialized = true;
+        }
     }
 }
 
 // Définition des routes avec des fichiers HTML
 const routes = {
-    '/home': () => fetch('/static/backend/home.html').then(response => response.text()),
+    '/home/': async () => {
+        try {
+            const response = await fetch('/static/home.html');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.text();
+        } catch (error) {
+            console.error("Error loading /home/:", error);
+            return "<h1>Error loading page</h1>";
+        }
+    },
     '/404': () => '<h1>Page Non Trouvée</h1>'
 };
 

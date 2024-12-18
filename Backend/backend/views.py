@@ -14,7 +14,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authentication import TokenAuthentication
 
 def index(request):
-	return render(request, 'spa/index.html')
+	return render(request, 'index.html')
 
 def main(request):
     return render(request, "backend/home.html")

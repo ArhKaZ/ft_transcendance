@@ -77,7 +77,7 @@ ROOT_URLCONF = 'backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'spa', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -181,8 +181,10 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "pixelPaws/static"),
     os.path.join(BASE_DIR, "onlinePong/static"),
-	os.path.join(BASE_DIR, "spa/static"),
-	os.path.join(BASE_DIR, "spa/templates"),
+	os.path.join(BASE_DIR, "spa/www/js"),
+	os.path.join(BASE_DIR, "spa/www/html"),
+	# os.path.join(BASE_DIR, "spa/static"),
+	# os.path.join(BASE_DIR, "spa/templates"),
 ]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
