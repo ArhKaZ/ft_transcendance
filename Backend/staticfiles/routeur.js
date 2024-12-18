@@ -86,18 +86,46 @@ class Router {
 
 // Définition des routes avec des fichiers HTML
 const routes = {
-    '/home/': async () => {
-        try {
-            const response = await fetch('/static/home.html');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return await response.text();
-        } catch (error) {
-            console.error("Error loading /home/:", error);
-            return "<h1>Error loading page</h1>";
-        }
-    },
+	'/home/': async () => {
+    	const response = await fetch('/static/home.html');
+    	return await response.text();
+	},
+	'/onlinePong/': async () => {
+    	const response = await fetch('/static/onlinePong/index.html');
+    	return await response.text();
+	},
+	'/pixelPaws/': async () => {
+    	const response = await fetch('/static/pixelPaws/index.html');
+    	return await response.text();
+	},
+	'/logged/': async () => {
+    	const response = await fetch('/static/user/logged.html');
+    	return await response.text();
+	},
+	'/user/add/': async () => {
+    	const response = await fetch('/static/user/add.html');
+    	return await response.text();
+	},
+	'/user/edit/': async () => {
+    	const response = await fetch('/static/user/edit.html');
+    	return await response.text();
+	},
+	'/user/edit_user/': async () => {
+    	const response = await fetch('/static/user/edit_user.html');
+    	return await response.text();
+	},
+	'/user/history/': async () => {
+    	const response = await fetch('/static/user/history.html');
+    	return await response.text();
+	},
+	'/user/invite/': async () => {
+    	const response = await fetch('/static/user/invite.html');
+    	return await response.text();
+	},
+	'/user/login/': async () => {
+		const response = await fetch('/static/user/login.html');
+		return await response.text();
+	},
     '/404': () => '<h1>Page Non Trouvée</h1>'
 };
 

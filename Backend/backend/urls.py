@@ -44,3 +44,4 @@ urlpatterns = [
 	path('api/', include('api.urls')),
 	re_path(r'^.*', views.index),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+  
