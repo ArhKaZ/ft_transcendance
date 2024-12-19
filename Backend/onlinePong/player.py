@@ -23,10 +23,10 @@ class Player:
         self.y = y
 
     def move(self, direction):
-        if self.y > 0.1 :
+        if self.y > 0.5 :
             if direction == 'up':
                 self.y -= self.speed
-        if self.y + 15 < 99.9:
+        if self.y + 15 < 99.5:
             if direction == 'down':
                 self.y += self.speed
 
@@ -77,7 +77,7 @@ class Player:
 
             redis = await aioredis.from_url(f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}')
             await redis.publish(f"game_update:{self.game_id}", f"score_updated_{self.player_id}")
-            if self.score >= 11:
+            if self.score >= 2:
                 await redis.publish(f"game_update:{self.game_id}", f"game_finish_{self.player_id}")
             await redis.close()
         except aioredis.RedisError as e:

@@ -392,7 +392,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 	async def handle_game_finish(self, data):
 		winning_session = data.decode().split('_')[-1]
-		if hasattr(self, 'send_ball_task'):
+		if hasattr(self, 'send_ball_task') and self.send_ball_task is not None:
 			self.send_ball_task.cancel()
 
 		self.game.status = 'FINISHED'

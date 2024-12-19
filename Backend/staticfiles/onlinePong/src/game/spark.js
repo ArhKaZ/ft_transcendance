@@ -48,8 +48,8 @@ export function createNeonExplosion(side, ball_y) {
         '234, 170, 231',
         '140, 40, 136', 
         '90, 15, 87',
-        '207, 201, 207',
         '175, 114, 175',
+        '156, 81, 156',
     ];
     
     const particles = [];
