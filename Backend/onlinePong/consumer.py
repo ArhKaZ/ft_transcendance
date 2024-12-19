@@ -1,14 +1,17 @@
 import asyncio
 import json
 import aioredis
+import uuid
 
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.cache import cache, caches
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from .ball import Ball
 from .player import Player
+from .game import Game
 
 
 class PongConsumer(AsyncWebsocketConsumer):
@@ -22,48 +25,46 @@ class PongConsumer(AsyncWebsocketConsumer):
         self.ball_reset_event.set()
         self.can_move = asyncio.Event()
         self.can_move.set()
+        self.game = None
+        self.game_id = None
 
     async def connect(self):
-        self.game_id = self.scope['url_route']['kwargs']['game_id']
-        self.player_id = self.scope['url_route']['kwargs']['current_player_id']
-        self.game_group_name = f'game_{self.game_id}'
-        self.game_is_finished = False
-        if not await self.initialize_game():
-            await self.close()
-            return
+        self.player_id = self.scope['url_route']['kwargs']['player_id']
 
-        await self.channel_layer.group_add(self.game_group_name, self.channel_name)
+        previous_channel = cache.get(f"player_{self.player_id}_channel")
+        if previous_channel:
+            await self.channel_layer.group_discard("onlinePong_players", previous_channel)
+
+        cache.set(f"player_{self.player_id}_channel", self.channel_name)
+
+        await self.channel_layer.group_add("onlinePong_players", self.channel_name)
         await self.accept()
 
-        self.listen_task = asyncio.create_task(self._redis_listener())
-        await self.notify_player_connected()
+        # query_string = self.scope["query_string"].decode()
+        # token = self.get_token_from_query(query_string)
 
-    async def initialize_game(self):
-        self.game = await self.get_game_from_cache(self.game_id)
-        if not self.game:
-            return False
+        # if not token:
+        #     await self.close()
+        #     print("Error no token")
+        #     return
 
-        self.redis = await aioredis.from_url(f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}')
-        self.pubsub = self.redis.pubsub()
-        await self.pubsub.subscribe(f"game_update:{self.game_id}")
-        return True
+        # user = await self.get_user_from_token(token)
 
-    async def notify_player_connected(self):
-        player_name = self.game['player1_name'] if self.game['player1'] == self.player_id else self.game['player2_name']
-        player_avatar = self.game['player1_avatar'] if self.game['player1'] == self.player_id else self.game['player2_avatar']
-        message = {
-            'type': 'player_connected',
-            'player_id': self.player_id,
-            'player_name': player_name,
-            'player_avatar': player_avatar,
-        }
-        await self.channel_layer.group_send(self.game_group_name, message)
+        # if not user or str(user.id) != user.id:
+        #     await self.close()
+        #     print('Error with user auth')
+        #     return
+        
+        # self.user = user
+        # print(self.user)
+        # self.player_id = player_id
 
+    # Disconnect functions
     async def disconnect(self, close_code):
         print(f"Disconnect player {self.player_id} from game {self.game_id}")
         await self.notify_game_cancel(self.player_id)
-        await self.handle_disconnect()
         await self.cleanup()
+        await self.handle_disconnect()
 
     async def cleanup(self):
         if hasattr(self, 'listen_task'):
@@ -72,40 +73,20 @@ class PongConsumer(AsyncWebsocketConsumer):
             await self.pubsub.unsubscribe(f"game_update:{self.game_id}")
         if hasattr(self, 'redis'):
             await self.redis.close()
-        await self.channel_layer.group_discard(self.game_group_name, self.channel_name)
+        await self.channel_layer.group_discard(self.game.group_name, self.channel_name)
 
     async def handle_disconnect(self):
         print(f"Handling disconnect from player {self.player_id} from game {self.game_id}")
-        game = await self.get_game_from_cache(self.game_id)
-        cache_key = f'game_update_{self.game_id}'
 
-        with cache.lock(cache_key):
-            if game['player1'] == self.player_id:
-                if game['player2'] and game['player2_name']:
-                    game['player1_name'] = game['player2_name']
-                    game['player1'] = game['player2']
-                    game['player1_ready'] = game['player2_ready']
-                    game['player2'] = None
-                    game['player2_name'] = None
-                    game['player2_ready'] = False
-                else:
-                    await self.remove_game_from_cache(self.game_id)
-                    print(f"Game {self.game_id} removed from cache")
-                    return
-            elif game['player2'] == self.player_id:
-                game['player2'] = None
-                game['player2_name'] = None
-                game['player2_ready'] = False
-            elif game['player2'] is None and game['player1'] == self.player_id:
-                await self.remove_game_from_cache(self.game_id)
-                print(f"Game {self.game_id} removed from cache")
-                return
+        await self.remove_game_from_cache(False)
+        print(f"Game {self.game_id} removed from cache")
+        return
 
-            game['status'] = 'WAITING'
-            await self.set_game_to_cache(self.game_id, game)
-
-        print(f"Update game state: {game}")
-        await self.send_players_info(game)
+    async def initialize_listener(self):
+        self.redis = await aioredis.from_url(f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}')
+        self.pubsub = self.redis.pubsub()
+        await self.pubsub.subscribe(f"game_update:{self.game_id}")
+        return True
 
 
     async def receive(self, text_data):
@@ -114,33 +95,103 @@ class PongConsumer(AsyncWebsocketConsumer):
 
         actions = {
             'ready': self.handle_player_ready,
-            'move': self.move_player
+            'move': self.move_player,
+            'search': self.set_player_search,
         }
 
         handler = actions.get(action)
         if handler:
             await handler(data)
 
+
+# GAME INIT
+    async def set_player_search(self, data):
+        key = 'waiting_onlinePong_players'
+
+        current_waiting_players = cache.get(key) or []
+
+        player_info = {
+                'id': self.player_id,
+                'username': data['player_name'],
+                'avatar': data['player_avatar'],
+        }
+
+        if not any(player['id'] == self.player_id for player in current_waiting_players):
+            current_waiting_players.append(player_info)
+            await sync_to_async(cache.set)(key, current_waiting_players)
+
+
+        await self.waiting_for_opponent()
+        # await self.send(text_data=json.dumps({
+        #     "action": "search", 
+        #     "message": "add to waiting room"
+        # }))
+        
+        opponent_info = await self.find_oppenent()
+        if opponent_info is not None:
+            await self.create_game(player_info, opponent_info)
+
+    async def find_oppenent(self):
+        key = 'waiting_onlinePong_players'
+
+        current_waiting_players = cache.get(key) or []
+
+        current_waiting_players  = list(
+            filter(lambda player: player['id'] != self.player_id, current_waiting_players)
+        )
+
+        if current_waiting_players:
+            opponent_info = current_waiting_players.pop(0)
+            await sync_to_async(cache.set)(key, current_waiting_players)
+
+            return opponent_info
+        else:
+            return None
+
+    async def create_game(self, player_info, opponent_info):
+        self.game = Game(player_info, opponent_info)
+        await self.game.save_to_cache()
+        self.game_id = self.game.get_game_id()
+        opponent_channel_name = cache.get(f"player_{opponent_info['id']}_channel")
+        await self.channel_layer.group_add(self.game.group_name, self.channel_name)
+
+        if opponent_channel_name:
+            await self.channel_layer.group_add(self.game.group_name, opponent_channel_name)
+
+        if not await self.initialize_listener():
+            await self.close()
+            return
+        self.listen_task = asyncio.create_task(self._redis_listener())
+        await self.send_players_info(self.game.to_dict())
+
+# READY 
     async def handle_player_ready(self, data):
-        await self.async_set_player_ready(self.player_id)
+        if self.game_id is None:
+            self.game_id = data['game_id']
+            self.game = await Game.get_game_from_cache(self.game_id)
+            if not await self.initialize_listener():
+                await self.close()
+                return
+            self.listen_task = asyncio.create_task(self._redis_listener())
+        await self.async_set_player_ready()
         message = {
             'type': 'player_ready',
             'player_id': self.player_id
         }
-        await self.channel_layer.group_send(self.game_group_name, message)
+        await self.channel_layer.group_send(self.game.group_name, message)
         await self.check_both_ready()
 
     async def check_both_ready(self):
         async with asyncio.Lock():
-            game = await self.get_game_from_cache(self.game_id)
-            if game.get('player1_ready') and game.get('player2_ready'):
-                game['status'] = 'IN_PROGRESS'
-                await self.set_game_to_cache(self.game_id, game)
-                await self.broadcast_game_start(game)
+            if self.game.both_players_ready():
+                self.game.status = 'IN_PROGRESS'
+                await self.game.save_to_cache()
+                await self.notify_game_start(self.game.to_dict())
                 await self.set_can_move_in_cache(False)
                 if not self.countdown_task:
                     self._countdown_task = asyncio.create_task(self.run_countdown_sequence())
                 asyncio.create_task(self.launch_game_after_countdown())
+
 
     async def set_can_move_in_cache(self, value):
         await sync_to_async(cache.set)(f'can_move_{self.game_id}', value)
@@ -180,7 +231,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 
                 bound_wall, bound_player = await ball.update_position()
                 await ball.save_to_cache()
-                await self.broadcast_ball_position(ball, bound_wall, bound_player)
+                await self.notify_ball_position(ball, bound_wall, bound_player)
             except asyncio.CancelledError:
                 print('Task cancelled')
                 break
@@ -212,7 +263,7 @@ class PongConsumer(AsyncWebsocketConsumer):
         ball.is_resetting = ball_state.get('is_resetting', False)
         return ball
 
-    async def broadcast_ball_position(self, ball, bound_wall, bound_player):
+    async def notify_ball_position(self, ball, bound_wall, bound_player):
         message = {
             'type': 'ball_position',
             'x': ball.x,
@@ -220,7 +271,7 @@ class PongConsumer(AsyncWebsocketConsumer):
             'bound_wall': bound_wall, 
             'bound_player': bound_player,
         }
-        await self.channel_layer.group_send(self.game_group_name, message)
+        await self.channel_layer.group_send(self.game.group_name, message)
 
     async def move_player(self, data):
         is_set = await self.get_can_move_in_cache()
@@ -229,7 +280,7 @@ class PongConsumer(AsyncWebsocketConsumer):
         player = await self.get_or_create_player(data['player_id'])
         player.move(data['direction'])
         await player.save_to_cache()
-        await self.broadcast_player_move(player)
+        await self.notify_player_move(player)
 
     async def get_or_create_player(self, player_id):
         player_state = await Player.load_from_cache(player_id, self.game_id)
@@ -250,6 +301,7 @@ class PongConsumer(AsyncWebsocketConsumer):
             return
 
     async def handle_redis_message(self, data):
+        print("score update data:", data)
         if data.startswith(b"score_updated_"):
             await self.handle_score_update(data)
         elif data.startswith(b"game_finish_"):
@@ -257,23 +309,32 @@ class PongConsumer(AsyncWebsocketConsumer):
             await self.handle_game_finish(data)
 
     async def handle_score_update(self, data):
+        print('update score function')
         p_as_score = data.decode().split('_')[-1]
         players = await Player.get_players_of_game(self.game_id)
-        scores = [players[0].score, players[1].score]
-        await self.send_score_update(scores, p_as_score)
+        scores = []
+        if players[0].id == self.game.p1_id:
+            scores[0] = players[0].score
+        if players[1].id == self.game.p1_id:
+            scores[0] = players[1].score
+        if players[0].id == self.game.p2_id:
+            scores[1] = players[0].score
+        if players[1].id == self.game.p2_id:
+            scores[1] = players[1].score
+        print("score:", scores)
+        await self.notify_score_update(scores, p_as_score)
 
     async def handle_game_finish(self, data):
         winning_session = data.decode().split('_')[-1]
         if hasattr(self, 'send_ball_task'):
             self.send_ball_task.cancel()
 
-        game = await self.get_game_from_cache(self.game_id)
-        game['status'] = 'FINISHED'
-        await self.set_game_to_cache(self.game_id, game)
+        self.game.status = 'FINISHED'
+        await self.game.save_to_cache()
 
         await self.send_game_finish(winning_session)
 
-        self.remove_game_from_cache(self.game_id)
+        await self.remove_game_from_cache(True)
         await self.cleanup()
 
     # Helper methods
@@ -281,71 +342,58 @@ class PongConsumer(AsyncWebsocketConsumer):
     def get_game_from_cache(self, game_id):
         return cache.get(f'game_{game_id}')
 
-    async def async_set_player_ready(self, player_id):
-        player = await self.set_player_ready(player_id)
+    async def async_set_player_ready(self):
+        player = await self.set_player_ready()
         if player:
             await player.save_to_cache()
 
-    @database_sync_to_async
-    def set_player_ready(self, player_id):
-        cache = caches['default']
-        cache_key = f'game_{self.game_id}'
-        with cache.lock(f'{cache_key}_lock'):
-            game = cache.get(cache_key)
-            if not game:
-                return None
-            if game['player1'] == player_id:
-                game['player1_ready'] = True
-            elif game['player2'] == player_id:
-                game['player2_ready'] = True
-            cache.set(cache_key, game, timeout=60 * 30)
-            return Player(player_id, self.game_id)
+    async def set_player_ready(self): 
+        await self.game.set_a_player_ready(self.player_id)
+        return Player(self.player_id, self.game_id)
 
     @database_sync_to_async
-    def remove_game_from_cache(self, game_id):
-        cache.delete(f'game_{game_id}')
+    def remove_game_from_cache(self, game_finished):
+        data = {
+            'player_name': self.game.p1_username if self.player_id == self.game.p1_id else self.game.p2_username,
+            'player_avatar': self.game.p1_avatar if self.player_id == self.game.p1_id else self.game.p2_avatar
+        }
+        self.game.remove_from_cache()
+        self.game = None
+        self.game_id = None
+        if not game_finished:
+            self.set_player_search(data)
 
     async def set_game_to_cache(self, game_id, game_data):
         cache = caches['default']
         await sync_to_async(cache.set)(f'game_{game_id}', game_data, timeout=60 * 30)
 
-    # WebSocket event handlers
-    async def player_connected(self, event):
-        message = {
-            'type': 'player_connected',
-            'player_id': event['player_id'],
-            'player_name': event['player_name'],
-            'player_avatar': event['player_avatar'],
-        }
-        await self.send(text_data=json.dumps(message))
-
-    async def broadcast_player_move(self, player):
+    async def notify_player_move(self, player):
         message = {
             'type': 'player_move',
             'event': 'player_move',
             'y': player.y,
             'player_id': player.player_id
         }
-        await self.channel_layer.group_send(self.game_group_name, message)
+        await self.channel_layer.group_send(self.game.group_name, message)
 
     async def notify_game_cancel(self, player_id):
         message = {
             'type': 'game_cancel',
             'player_id': player_id
         }
-        await self.channel_layer.group_send(self.game_group_name, message)
+        await self.channel_layer.group_send(self.game.group_name, message)
 
-    async def broadcast_game_start(self, game):
+    async def notify_game_start(self, game):
         message = {
             'type': 'game_start',
-            'player1_id': game['player1'],
-            'player1_name': game['player1_name'],
-            'player2_id': game['player2'],
-            'player2_name': game['player2_name'],
-            'player1_avatar': game['player1_avatar'],
-            'player2_avatar': game['player2_avatar'],
+            'player1_id': game['p1_id'],
+            'player1_name': game['p1_username'],
+            'player2_id': game['p2_id'],
+            'player2_name': game['p2_username'],
+            'player1_avatar': game['p1_avatar'],
+            'player2_avatar': game['p2_avatar'],
         }
-        await self.channel_layer.group_send(self.game_group_name, message)
+        await self.channel_layer.group_send(self.game.group_name, message)
 
     async def game_cancel(self, event):
         message = {
@@ -359,7 +407,7 @@ class PongConsumer(AsyncWebsocketConsumer):
             'type': 'countdown',
             'countdown': countdown,
         }
-        await self.channel_layer.group_send(self.game_group_name, message)
+        await self.channel_layer.group_send(self.game.group_name, message)
 
     async def countdown(self, event): 
         message = {
@@ -405,12 +453,6 @@ class PongConsumer(AsyncWebsocketConsumer):
         }
         await self.send(text_data=json.dumps(message))
 
-    async def score_update(self, event):
-        message = {
-            'type': event['type'],
-            'score': event['scores']
-        }
-        await self.send(text_data=json.dumps(message))
 
     async def player_disconnected(self, event):
         message = {
@@ -426,11 +468,21 @@ class PongConsumer(AsyncWebsocketConsumer):
         }
         await self.send(text_data=json.dumps(message))
 
-    async def send_score_update(self, scores, p_id):
+    async def notify_score_update(self, scores, p_id):
+        print(scores)
         message = {
             'type': 'score_update',
             'scores': scores,
             'player_id': p_id,
+        }
+        await self.send(text_data=json.dumps(message))
+        # await self.channel_layer.group_send(self.game.group_name, message)
+
+    async def score_update(self, event):
+        message = {
+            'type': event['type'],
+            'score': event['scores'],
+            'player_id': event['player_id']
         }
         await self.send(text_data=json.dumps(message))
 
@@ -440,26 +492,28 @@ class PongConsumer(AsyncWebsocketConsumer):
             'winning_session': winning_session,
             'message': 'game_is_over'
         }
-        await self.channel_layer.group_send(self.game_group_name, message)
+        await self.channel_layer.group_send(self.game.group_name, message)
         # await self.send(text_data=json.dumps(message))
 
     async def send_players_info(self, game):
         message =  {
             'type': 'players_info',
-            'player1': game['player1'],
-            'player1_name': game['player1_name'],
-            'player1_ready': game['player1_ready'],
-            'player1_avatar': game['player1_avatar'],
-            'player2': game['player2'],
-            'player2_name': game['player2_name'],
-            'player2_ready': game['player2_ready'],
-            'player2_avatar': game['player2_avatar'],
+            'game_id': str(game['id']),
+            'player1': game['p1_id'],
+            'player1_name': game['p1_username'],
+            'player1_ready': game['p1_ready'],
+            'player1_avatar': game['p1_avatar'],
+            'player2': game['p2_id'],
+            'player2_name': game['p2_username'],
+            'player2_ready': game['p2_ready'],
+            'player2_avatar': game['p2_avatar'],
         }
-        await self.channel_layer.group_send(self.game_group_name, message)
+        await self.channel_layer.group_send(self.game.group_name, message)
 
     async def players_info(self, event):
         message = {
             'type': 'players_info',
+            'game_id': event['game_id'],
             'player1': event['player1'],
             'player1_name': event['player1_name'],
             'player1_ready': event['player1_ready'],
@@ -470,4 +524,10 @@ class PongConsumer(AsyncWebsocketConsumer):
             'player2_avatar': event['player2_avatar'],
         }
         await self.send(text_data=json.dumps(message))
-        
+
+    async def waiting_for_opponent(self):
+        message = {
+            'type': 'waiting',
+            'message': 'You\'r waiting for an opponent'
+        }
+        await self.send(text_data=json.dumps(message))

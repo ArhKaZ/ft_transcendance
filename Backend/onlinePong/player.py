@@ -16,6 +16,9 @@ class Player:
         self.game_id = game_id
         self.player_id = player_id
 
+    def __repr__(self):
+        return f"Player(id={self.player_id}, nb={self.nb}, y={self.y}, score={self.score})"
+
     def set_y(self, y):
         self.y = y
 
@@ -67,14 +70,20 @@ class Player:
 
     async def add_point(self):
         try:
+            print("add point")
             player = await self.load_from_cache(self.player_id, self.game_id)
+            print('after, player:', player)
             self.y = player['y']
+            print('after2')
             self.score = player['score'] + 1
+            print('after3')
             await self.save_to_cache()
+            print('after4')
 
             redis = await aioredis.from_url(f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}')
-
+            print('after5')
             await redis.publish(f"game_update:{self.game_id}", f"score_updated_{self.player_id}")
+            print('after6')
             if self.score >= 2:
                 await redis.publish(f"game_update:{self.game_id}", f"game_finish_{self.player_id}")
             await redis.close()

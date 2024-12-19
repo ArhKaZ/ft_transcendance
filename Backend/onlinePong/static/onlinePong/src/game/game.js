@@ -107,7 +107,9 @@ class Game {
     }
 
     updateScores(data) {
+        console.log('p_id:', data.player_id, 'game ids :', this.P1.id, this.P1.name, this.P2.id, this.P2.name);
         const side = data.player_id === this.P1.id ? 'right' : 'left'; 
+        console.log('side : ', side);
         createNeonExplosion(side, this.ball.y);
         this.score = data.scores;
         this.scoreP1Element.textContent = this.score[0].toString();

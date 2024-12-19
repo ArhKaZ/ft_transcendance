@@ -8,7 +8,23 @@
     <link rel="stylesheet" href="{% static 'onlinePong/style/main.css' %}">
 </head>
 <body>
-    <div id="infoP1" class="info">
+    <div id="info-main-player" class="info">
+        <span id="mp-username" class="">None</span>
+        <div id="mp-avatar" class="avatar">
+            <img id="mp-avatar-img" alt="p1-avatar" src="" />
+        </div>
+        <div id="mp-img" class="svg-container">
+            <svg id="mp-waiting-animation" class="waiting icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 143.7 143.7">
+                <circle class="circle" fill="none" cx="71.8" cy="71.8" r="67.8"/>
+            </svg>
+            <svg id="mp-joined-animation" class="check-circle icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 143.7 143.7">
+                <circle class="circle" fill="none" cx="71.8" cy="71.8" r="67.8"/>
+                <path class="path" fill="none" d="M36.8,73.3l21.5,21.5c0.6,0.6,1.5,0.6,2.1,0l46.4-46.4"/>
+            </svg>
+        </div>
+    </div>
+    <!-- Player 1 Waiting Room when got a game -->
+    <div id="infoP1" class="info hidden">
         <span id="p1-username" class="hidden">None</span>
         <div id="p1-avatar" class="avatar hidden">
             <img id="p1-avatar-img" alt="p1-avatar" src="" />
@@ -23,6 +39,7 @@
             </svg>
         </div>
     </div>
+    <!-- P1 HUD IN GAME -->
     <div id="hud-p1" class="player-bar hidden">
         <h1 id="p1-hud-name" class="player-name">Player 1</h1>
         <div class="separator"></div>
@@ -31,6 +48,7 @@
     <div id="title">
         <h1>Neon Pong</h1>
     </div>
+    <!-- GAME DISPLAY -->
     <div id="sparks-container" class="sparks-container"></div>
     <div id="canvasContainer" class="game-area">
         <div id="end-container" class="end-container hidden">
@@ -58,7 +76,8 @@
         <canvas id="countdownCanvas" class="allCanvas"></canvas>
         <script type="module" src="{% static 'onlinePong/src/main.js' %}"></script>
     </div>
-    <div id="infoP2" class="info">
+    <!-- P2 Waiting Room when got a game -->
+    <div id="infoP2" class="info hidden">
         <span id="p2-username" class="hidden">None</span>
         <div id="p2-avatar" class="avatar hidden">
             <img id="p2-avatar-img" alt="p2-avatar" src=""/>
@@ -73,13 +92,13 @@
             </svg>
         </div>
     </div>
+    <!-- P2 HUD IN GAME -->
     <div id="hud-p2" class="player-bar hidden">
         <h1 id="p2-hud-name" class="player-name">Player 2</h1>
         <div class="separator"></div>
         <h1 id="p2-score" class="player-score">0</h1>
     </div>
-    </div>
-    <a id="button-ready" class="buttonNeon" href="#">
+    <a id="button-ready" class="buttonNeon hidden" href="#">
         <span></span>
         <span></span>
         <span></span>

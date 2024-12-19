@@ -1,7 +1,7 @@
 import Game from "../src/game/game.js";
 import Player from "../src/game/player.js";
 import CountdownAnimation from "./game/countdownAnimation.js";
-import {refreshPlayers, updatePlayerStatus, displayConnectedPlayer, displayWhenConnect } from "./game/waitingRoom.js";
+import {creationGameDisplay, updatePlayerStatus, displayWhenLoad } from "./game/waitingRoom.js";
 
 let socket = null;
 let oldHeight = null;
@@ -9,6 +9,7 @@ let gameStarted = false;
 let currentPlayerId = null;
 let currentGame = null;
 let currentCountdown = null;
+let currentGameId = null;
 
 function sendToBack(data) {
     if (socket?.readyState === WebSocket.OPEN) {
@@ -32,21 +33,60 @@ async function getUserFromBack() {
     }
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-    try {
-        const currentPlayer = await getUserFromBack();
-        const playerId = currentPlayer.id;
-        socket = await createGame(currentPlayer);
+document.addEventListener("DOMContentLoaded", async () => init());
+    
+async function init() {
+    // const token = getCookie('access_token');
 
-        document.getElementById('button-ready').addEventListener('click', () => {
-            sendToBack({ action: 'ready', player_id: playerId });
+    // if (!token) {
+    //     console.error("NO TOKEN FOUND");
+    //     // handleError();
+    //     return; 
+    // }
+
+    const user = await getUserFromBack();
+
+    displayWhenLoad(user);
+    
+    socket = setupWebSocket(user);
+}
+
+// function getCookie(name) {
+//     const value = `; ${document.cookie}`;
+//     print(value);
+//     const parts = value.split(`; ${name}=`);
+//     print(parts);
+//     if (parts.lenght === 2) return parts.pop().split(';').shift();
+// }
+
+function setupWebSocket(user) {
+    currentPlayerId = user.id;
+    const id = user.id.toString();
+    const socket = new WebSocket(`ws://localhost:8000/ws/onlinePong/${id}/`);
+    let game = null;
+
+    socket.onopen = () => {
+        console.log("WebSocket connected");
+        sendToBack({
+            action: 'search', 
+            player_id: user.id, 
+            player_name: user.username, 
+            player_avatar: user.src_avatar
         });
+    };
 
-        setupKeyboardControls(playerId);
-    } catch (error) {
-        handleError(error);
-    }
-});
+    socket.onmessage = async (e) => {
+        await handleWebSocketMessage(e);
+    };
+
+    socket.onerror = (error) => console.error("WebSocket error:", error.type);
+    socket.onclose = () => console.log("WebSocket closed");
+
+    window.addEventListener("resize", () => resizeCanvasGame(game));
+
+    return socket;
+}
+
 
 function setupKeyboardControls(playerId) {
     let movementInterval = null;
@@ -82,40 +122,6 @@ function handleError(error) {
     }
 }
 
-async function createGame(currentPlayer) {
-    currentPlayerId = currentPlayer.id;
-    const currentPlayerName = currentPlayer.username;
-    const currentAvatarSrc = currentPlayer.src_avatar;
-    try {
-        const response = await fetch(`./api/create_or_join_game?player_id=${currentPlayerId}&player_name=${currentPlayerName}&src=${currentAvatarSrc}`);
-        const data = await response.json();
-        const gameId = data.game_id;
-        displayWhenConnect(data);
-        return setupWebSocket(gameId, currentPlayerId);
-    } catch (error) {
-        console.error('Error creating game:', error);
-    }
-}
-
-function setupWebSocket(gameId, playerId) {
-    const socket = new WebSocket(`ws://localhost:8000/ws/onlinePong/${gameId}/${playerId}/`);
-    let game = null;
-
-    socket.onopen = () => {
-        console.log("WebSocket connected");
-    };
-
-    socket.onmessage = async (e) => {
-        await handleWebSocketMessage(e, gameId);
-    };
-
-    socket.onerror = (error) => console.error("WebSocket error:", error.type);
-    socket.onclose = () => console.log("WebSocket closed");
-
-    window.addEventListener("resize", () => resizeCanvasGame(game));
-
-    return socket;
-}
 
 async function initGame(data) {
     const canvas = document.getElementById('gameCanvas');
@@ -137,20 +143,20 @@ function createPlayers(data) {
     return [P1, P2];
 }
 
-async function handleWebSocketMessage(e, gameId) {
+async function handleWebSocketMessage(e) {
     const data = JSON.parse(e.data);
     switch(data.type) {
 
         case 'players_info':
-            refreshPlayers(data, currentGame);
-            break;
-
-        case 'player_connected':
-            displayConnectedPlayer(data.player_id, data.player_name, data.player_avatar, currentPlayerId);
+            currentGameId = data.game_id;
+            creationGameDisplay(data, currentGame);
+            document.getElementById('button-ready').addEventListener('click', () => {
+                sendToBack({action: 'ready', game_id: currentGameId})
+            })
             break;
 
         case 'player_ready':
-            await updatePlayerStatus(data.player_id, gameId);
+            await updatePlayerStatus(data.player_id, currentGameId);
             break;
 
         case 'ball_position':
@@ -167,6 +173,7 @@ async function handleWebSocketMessage(e, gameId) {
             break;
 
         case 'score_update':
+            console.log('score  update');
             if (currentGame) {
                 currentGame.updateScores(data);
             }
@@ -211,6 +218,7 @@ function updatePlayerPosition(game, data) {
 async function handleCountdown(countdown) {
     await currentCountdown.displayNumber(countdown);
     if (countdown === 0) {
+        setupKeyboardControls(currentPlayerId);
         currentCountdown.stopDisplay();
         currentGame.start();
     }

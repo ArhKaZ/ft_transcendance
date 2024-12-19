@@ -20,6 +20,9 @@ class Ball:
         self.vy = self.speed * math.sin(angle)
         self.is_resetting = False
 
+    def __repr__(self):
+        return f"Ball(x:{self.x}, y:{self.y})"
+
     async def reset(self, player_as_score):
         self.is_resetting = True
         self.x = 50
@@ -61,7 +64,7 @@ class Ball:
                 self.x >= 97 and players[1].y <= self.y <= players[1].y + 16:
             if self.x <= 3 and players[0].y <= self.y <= players[0].y + 16:
                 colission_point = (self.y + 1) - (players[0].y + 8)
-            if self.x >= 95 and players[1].y <= self.y <= players[1].y + 16:
+            elif self.x >= 95 and players[1].y <= self.y <= players[1].y + 16:
                 colission_point = (self.y + 1) - (players[1].y + 8)
             normalized_point = colission_point / 8
             max_bounce_angle = math.pi / 4
@@ -72,7 +75,8 @@ class Ball:
             if abs(normalized_point) > 0.9:
                 self.vy *= 0.5
             return True
-        return False
+        else:
+            return False
 
     @sync_to_async
     def save_to_cache(self):
