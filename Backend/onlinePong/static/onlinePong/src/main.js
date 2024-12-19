@@ -150,6 +150,7 @@ async function handleWebSocketMessage(e) {
         case 'players_info':
             currentGameId = data.game_id;
             creationGameDisplay(data, currentGame);
+            sendToBack({action: 'findGame', game_id: currentGameId})
             document.getElementById('button-ready').addEventListener('click', () => {
                 sendToBack({action: 'ready', game_id: currentGameId})
             })
@@ -173,7 +174,6 @@ async function handleWebSocketMessage(e) {
             break;
 
         case 'score_update':
-            console.log('score  update');
             if (currentGame) {
                 currentGame.updateScores(data);
             }
@@ -202,6 +202,13 @@ async function handleWebSocketMessage(e) {
         case 'game_cancel':
             handleGameCancel(data);
             break;
+
+        case 'error':
+            alert('Error : '+ data.message);
+            setTimeout(() => {
+                window.location.href = '/logged';
+            }, 300);
+            //Faire redirection ?
     }
 }
 

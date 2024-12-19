@@ -11,8 +11,8 @@ class Ball:
         self.y = 50
         self.speed = 0.58
         self.game_id = game_id
-        self.player1 = Player(player1.player_id, player1.game_id)
-        self.player2 = Player(player2.player_id, player2.game_id)
+        self.player1 = Player(player1['player_id'], self.game_id)
+        self.player2 = Player(player2['player_id'], self.game_id)
         rand = random.choice([1,2])
         angle = random.uniform(-math.pi / 4, math.pi / 4)
         direction = -1 if rand == 1 else 1
@@ -59,13 +59,15 @@ class Ball:
         return False
 
     async def check_boundaries_player(self):
-        players = await Player.get_players_of_game(self.game_id)
-        if self.x <= 3 and players[0].y <= self.y <= players[0].y + 16 or \
-                self.x >= 97 and players[1].y <= self.y <= players[1].y + 16:
-            if self.x <= 3 and players[0].y <= self.y <= players[0].y + 16:
-                colission_point = (self.y + 1) - (players[0].y + 8)
-            elif self.x >= 95 and players[1].y <= self.y <= players[1].y + 16:
-                colission_point = (self.y + 1) - (players[1].y + 8)
+        player1_data = await Player.load_from_cache(self.player1.player_id, self.player1.game_id)
+        player2_data = await Player.load_from_cache(self.player2.player_id, self.player2.game_id)
+        if self.x <= 3 and player1_data['y'] <= self.y <= player1_data['y'] + 16 or \
+                self.x >= 97 and player2_data['y'] <= self.y <= player2_data['y'] + 16:
+            if self.x <= 3 and player1_data['y'] <= self.y <= player1_data['y'] + 16:
+                colission_point = (self.y + 1) - (player1_data['y'] + 8)
+            elif self.x >= 95 and player2_data['y'] <= self.y <= player2_data['y'] + 16:
+                colission_point = (self.y + 1) - (player2_data['y'] + 8)
+            print('players data:', player1_data, player2_data)
             normalized_point = colission_point / 8
             max_bounce_angle = math.pi / 4
             bounce_angle = normalized_point * max_bounce_angle
