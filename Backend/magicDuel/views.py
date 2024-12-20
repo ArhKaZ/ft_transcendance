@@ -96,22 +96,22 @@ def get_info_player(request):
     game_id = request.GET.get('game_id')
     player_id = request.GET.get('player_id')
 
-    game = cache.get(f'pp_game_{game_id}')
+    game = cache.get(f'wizard_duel_game_{game_id}')
     if game:
-        if str(game['player1']) == player_id:
+        if str(game['p1_id']) == player_id:
             return JsonResponse({
                 'player_number': 1,
                 'player_id': player_id,
-                'player_name': game['player1_name'],
-                'opponent_id': game['player2'],
-                'opponent_name': game['player2_name'],
+                'player_name': game['p1_username'],
+                'opponent_id': game['p2_id'],
+                'opponent_name': game['p2_username'],
             })
-        elif str(game['player2']) == player_id:
+        elif str(game['p2_id']) == player_id:
             return JsonResponse({
                 'player_number': 2,
                 'player_id': player_id,
-                'player_name': game['player2_name'],
-                'opponent_id': game['player1'],
-                'opponent_name': game['player1_name'],
+                'player_name': game['p2_username'],
+                'opponent_id': game['p1_id'],
+                'opponent_name': game['p1_username'],
             })
     return JsonResponse({'error': 'Player not found in the game'}, status=404)

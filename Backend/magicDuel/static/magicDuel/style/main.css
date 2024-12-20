@@ -77,6 +77,12 @@ body {
     text-align: left;
 }
 
+#info-main-player {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
 #p1-anim, #p2-anim {
     display: none;
 }

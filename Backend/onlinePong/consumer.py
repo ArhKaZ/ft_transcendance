@@ -115,6 +115,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 						await self.redis.close()
 					except Exception as e:
 						print(f"Error closing Redis connection : {e}")
+
 				if self.game and hasattr(self.game, 'group_name'):		
 					await self.channel_layer.group_discard(self.game.group_name, self.channel_name)
 
@@ -133,7 +134,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 			return True
 		except Exception as e:
 			print(f"Failed to initialize Redis Listener : {e}")
-
 
 	async def receive(self, text_data):
 		data = json.loads(text_data)
@@ -310,13 +310,12 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 	async def get_or_create_ball(self):
 		ball_state = await Ball.load_from_cache(self.game_id)
-		player1_data = await Player.load_from_cache(self.game.p1_id, self.game.game_id)
-		player2_data = await Player.load_from_cache(self.game.p2_id, self.game.game_id)
+		players_data = self.game.get_players_of_game()
 
 		if not ball_state:
-			return Ball(self.game_id, player1_data, player2_data)
+			return Ball(self.game_id, players_data[0], players_data[1])
 
-		ball = Ball(self.game_id, player1_data, player2_data)
+		ball = Ball(self.game_id, players_data[0], players_data[1])
 		ball.x = ball_state['x']
 		ball.y = ball_state['y']
 		ball.vx = ball_state['vx']

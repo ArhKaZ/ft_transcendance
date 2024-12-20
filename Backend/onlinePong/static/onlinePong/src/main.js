@@ -36,14 +36,6 @@ async function getUserFromBack() {
 document.addEventListener("DOMContentLoaded", async () => init());
     
 async function init() {
-    // const token = getCookie('access_token');
-
-    // if (!token) {
-    //     console.error("NO TOKEN FOUND");
-    //     // handleError();
-    //     return; 
-    // }
-
     const user = await getUserFromBack();
 
     displayWhenLoad(user);
@@ -208,7 +200,6 @@ async function handleWebSocketMessage(e) {
             setTimeout(() => {
                 window.location.href = '/logged';
             }, 300);
-            //Faire redirection ?
     }
 }
 

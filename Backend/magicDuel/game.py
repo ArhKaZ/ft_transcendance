@@ -2,6 +2,7 @@ from django.core.cache import cache
 from asgiref.sync import sync_to_async
 from .player import Player
 
+
 class Game:
 	def __init__(self, player_info, opponent_info, game_id):
 		self.game_id = game_id
@@ -14,10 +15,10 @@ class Game:
 		self.p1_ready = False
 		self.p2_ready = False
 		self.status = "WAITING"
-		self.group_name = f"game_pong_{self.game_id}"
+		self.group_name = f"wizard_duel_game_{self.game_id}"
 
 	async def save_to_cache(self):
-		cache_key = f'game_pong_{self.game_id}'
+		cache_key = f'wizard_duel_game_{self.game_id}'
 		await sync_to_async(cache.set)(cache_key, self.to_dict())
 
 	def to_dict(self):
@@ -48,17 +49,21 @@ class Game:
 
 	async def set_a_player_ready(self, player_id):
 		new_game = await self.get_game_from_cache(self.game_id)
+		nb = 0
 		self.p1_ready = new_game.p1_ready
 		self.p2_ready = new_game.p2_ready
 		if player_id == self.p1_id:
 			self.p1_ready = True 
+			nb = 1
 		else:
 			self.p2_ready = True
+			nb = 2
 		await self.save_to_cache()
+		return nb
 	
 	@classmethod
 	async def get_game_from_cache(cls, game_id):
-		game = cache.get(f"game_pong_{game_id}")
+		game = cache.get(f"wizard_duel_game_{game_id}")
 		
 		player_info= {
 			'id': game['p1_id'],
@@ -80,9 +85,3 @@ class Game:
 		game_instance.group_name = game['group_name']
 
 		return game_instance
-
-
-	async def get_players_of_game(self):
-		player1_data = await Player.load_from_cache(self.game.p1_id, self.game.game_id)
-		player2_data = await Player.load_from_cache(self.game.p2_id, self.game.game_id)
-		return [player1_data, player2_data]

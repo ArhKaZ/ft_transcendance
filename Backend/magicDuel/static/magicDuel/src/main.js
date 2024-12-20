@@ -1,7 +1,7 @@
 import Player from "./game/player.js";
 import Game from "./game/game.js";
 import CountdownAnimation from "./game/countdownAnimation.js";
-import {refreshPlayers, updatePlayerStatus, displayConnectedPlayer, displayWhenConnect } from "./game/waitingRoom.js";
+import {creationGameDisplay, updatePlayerStatus, displayWhenLoad } from "./game/waitingRoom.js";
 
 let socket = null;
 let currentPlayerId = null;
@@ -12,6 +12,7 @@ let startTime;
 let totalTime;
 let timerInterval;
 let currentRound = 0;
+let currentGameId = null;
 
 function bindEvents() {
     const btn1 = document.getElementById("btn1");
@@ -95,54 +96,34 @@ function handleGameCancel(data) {
     window.location.href = '/home';
 }
 
-async function addPlayerToGame(currentPlayer) {
-    currentPlayerId = currentPlayer.id;
-    const playerData = {
-        player_id: currentPlayer.id,
-        username: currentPlayer.username,
-        avatar: currentPlayer.src_avatar,
-    };
-    try {
-        const response = await fetch ('api/create_or_join_game/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(playerData),
-        });
-
-        const gameState = await response.json();
-        const gameId = gameState.game.game_id;
-        displayWhenConnect(gameState);
-        return setupWebSocket(gameId, currentPlayer.id);
-    } catch (error) {
-        console.log(error);
-    }
-}
-
 async function init() {
     try {
-        const currentPlayer = await getUserFromBack();
-        const playerId = currentPlayer.id;
-        socket = await addPlayerToGame(currentPlayer);
-
-        document.getElementById('button-ready').addEventListener('click', () => {
-            sendToBack({ action: 'ready', player_id: playerId})
-        });
+        const user = await getUserFromBack();
+        displayWhenLoad(user);
+        socket = setupWebSocket(user);
     } catch (error) {
         handleError(error);
     }
 }
 
-function setupWebSocket(gameId, playerId) {
-    const socket = new WebSocket(`ws://localhost:8000/ws/magicDuel/${gameId}/${playerId}/`);
+function setupWebSocket(user) {
+    currentPlayerId = user.id;
+    const id = user.id.toString()
+    const socket = new WebSocket(`ws://localhost:8000/ws/magicDuel/${id}/`);
+    let game = null;
 
     socket.onopen = () => {
         console.log("WEBSOCKET CONNECTED");
-    };
+        sendToBack({
+            action: 'search',
+            player_id: user.id,
+            player_name: user.username,
+            player_avatar: user.src_avatar
+        });
+    }
 
     socket.onmessage = async (e) => {
-        await handleWebSocketMessage(e, gameId, playerId);
+        await handleWebSocketMessage(e);
     };
 
     socket.onerror = (error) => {
@@ -164,19 +145,22 @@ function createGame(game_data) {
     return new Game(gameCanvas, attackCanvas, P1, P2);
 }
 
-async function handleWebSocketMessage(event, gameId, playerId) {
+async function handleWebSocketMessage(event) {
     const data = JSON.parse(event.data);
     switch(data.type) {
-        case 'players_info':
-            refreshPlayers(data, currentGame);
-            break;
 
-        case 'player_connected':
-            displayConnectedPlayer(data.player_id, data.username, data.avatar, currentPlayerId);
+        case 'players_info':
+            console.log(data)
+            currentGameId = data.game_id;
+            creationGameDisplay(data, currentGame);
+            sendToBack({action: 'findGame', game_id: currentGameId})
+            document.getElementById('button-ready').addEventListener('click', () => {
+                sendToBack({action: 'ready', game_id: currentGameId})
+            })
             break;
 
         case 'player_ready':
-            await updatePlayerStatus(data.player_id, gameId);
+            await updatePlayerStatus(data.player_id, currentGameId);
             break;
 
         case 'game_start':
@@ -218,6 +202,12 @@ async function handleWebSocketMessage(event, gameId, playerId) {
         case 'game_cancel':
             handleGameCancel(data);
             break;
+
+        case 'error':
+            alert('Error : ' + data.message);
+            setTimeout(() => {
+                window.location.href = '/logged';
+            }, 300);
     }
 }
 
