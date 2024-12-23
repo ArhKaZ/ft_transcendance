@@ -55,7 +55,8 @@ class Player {
                 this.canvas.getContext('2d').clearRect(0, 0, this.canvas.width, this.canvas.height);
             }
         }
-
+        if (this.currentAnimationPlayer != 'Idle')
+            console.log(this.currentAnimationPlayer);
         this.sprites.update(ctx, this, attackSprite);
     }
 
@@ -68,6 +69,7 @@ class Player {
         this.currentAnimationPlayer = animationName;
 
         if (animationName !== 'Idle') {
+            console.log(animationName);
             this.isAnimatingPlayer = true;
             this.sprites.resetAnimation(animationName);
         }

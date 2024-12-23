@@ -147,6 +147,7 @@ function createGame(game_data) {
 
 async function handleWebSocketMessage(event) {
     const data = JSON.parse(event.data);
+    console.log(data);
     switch(data.type) {
 
         case 'players_info':
@@ -176,6 +177,7 @@ async function handleWebSocketMessage(event) {
             break;
 
         case 'round_end':
+            console.log('j\'ai round end');
             handleRoundEnd(data);
             break;
 
@@ -184,7 +186,7 @@ async function handleWebSocketMessage(event) {
             break;
 
         case 'player_attack':
-            currentGame.playerAttack(data.player_id);
+            currentGame.getPlayer(data.player_id).playAnimationPlayer('Attack');
             break;
 
         case 'round_timer':

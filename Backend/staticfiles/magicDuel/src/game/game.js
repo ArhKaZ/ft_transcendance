@@ -55,13 +55,6 @@ class Game {
         this.isRunning = false;
     }
 
-    playerAttack(playerId) {
-        if (playerId === this.P1.id) {
-            this.P1.playAnimationPlayer('Attack');
-        } else if (playerId === this.P2.id) {
-            this.P2.playAnimationPlayer('Attack');
-        }
-    }
 
     toggleCanvas(show) {
         const gameCanvas = document.getElementById('gameCanvas');
@@ -123,6 +116,13 @@ class Game {
         document.getElementById('canvasContainer').style.display = 'flex';
     }
 
+    getPlayer(playerId) {
+        if (playerId == this.P1.id)
+            return this.P1;
+        else if (playerId == this.P2.id)
+            return this.P2;
+    }
+
     displayWinner(winner) {
         const endElement = document.getElementById('end-container');
         const gameCanvas = document.getElementById('gameCanvas');
@@ -155,7 +155,7 @@ class Game {
         if (elapsed >= this.frameInterval) {
             this.gameCtx.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
 
-            this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (3/100), this.gameCanvas.height * (72/100)); // Rajouter parametres ?
+            this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (3/100), this.gameCanvas.height * (72/100));
             this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (76/100), this.gameCanvas.height * (72/100));
             this.P1.updateAnimation(this.gameCtx);
             this.P2.updateAnimation(this.gameCtx);
