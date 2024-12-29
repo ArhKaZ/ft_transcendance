@@ -14,19 +14,13 @@ class Player:
     def __repr__(self):
         return f"Player(id={self.player_id}, nb={self.nb}, life={self.life}, action={self.action})"
 
-    @classmethod
-    async def get_players_of_game(cls, game_id):
-        player_sessions_key = f'pp_sessions_game_{game_id}'
-        players_ids = await sync_to_async(cache.get)(player_sessions_key) or []
+    @staticmethod
+    async def get_players_of_game(p1_id, p2_id, game_id):
         players = []
-        for player_id in players_ids:
-            cache_key = f'pp_player_{player_id}_{game_id}'
-            player_data = await sync_to_async(cache.get)(cache_key)
-            if player_data:
-                player = cls(len(players) + 1, player_id, game_id)
-                player.life = player_data['life']
-                player.action = player_data['action']
-                players.append(player)
+        p1 = await Player.create_player_from_cache(p1_id, game_id)
+        p2 = await Player.create_player_from_cache(p2_id, game_id)
+        players.append(p1)
+        players.append(p2)
         return players
 
     @staticmethod
@@ -43,12 +37,12 @@ class Player:
 
     @staticmethod
     async def load_from_cache(player_id, game_id):
-        cache_key = f'pp_player_{player_id}_{game_id}'
+        cache_key = f'wizard_duel_player_{player_id}_{game_id}'
         data = await sync_to_async(cache.get)(cache_key)
         return data if data else None
 
     async def save_to_cache(self):
-        cache_key = f'pp_player_{self.player_id}_{self.game_id}'
+        cache_key = f'wizard_duel_player_{self.player_id}_{self.game_id}'
         await sync_to_async(cache.set)(cache_key, {
             'life': self.life,
             'player_id': self.player_id,
@@ -57,15 +51,18 @@ class Player:
             'action': self.action
         }, timeout= 3600)
 
-        player_sessions_key = f'pp_sessions_game_{self.game_id}'
-        current_sessions = cache.get(player_sessions_key) or []
-        if self.player_id not in current_sessions:
-            current_sessions.append(self.player_id)
-            await sync_to_async(cache.set)(player_sessions_key, current_sessions)
+        # player_sessions_key = f'wizard_duel_sessions_game_{self.game_id}'
+        # current_sessions = cache.get(player_sessions_key) or []
+        # if self.player_id not in current_sessions:
+        #     current_sessions.append(self.player_id)
+        #     await sync_to_async(cache.set)(player_sessions_key, current_sessions)
+
+    def delete_from_cache(self):
+        cache.delete(f'wizard_duel_player_{self.player_id}_{self.game_id}')
 
     @staticmethod
-    async def reset_action(game_id):
-        players = await Player.get_players_of_game(game_id)
+    async def reset_action(p1_id, p2_id, game_id):
+        players = await Player.get_players_of_game(p1_id, p2_id, game_id)
         if players is None:
             return
         if players[0].action is None and players[1].action is None:
@@ -77,3 +74,4 @@ class Player:
     async def lose_life(self):
         self.life -= 1
         await self.save_to_cache()
+        print(self.life)

@@ -85,3 +85,15 @@ class Game:
 		game_instance.group_name = game['group_name']
 
 		return game_instance
+	
+	def delete_player(self, nb):
+		if nb == 1:
+			self.p1_id = None
+			self.p1_avatar = None
+			self.p1_username = None
+			self.p1_ready = False
+		elif nb == 2:
+			self.p2_id = None
+			self.p2_avatar = None
+			self.p2_username = None
+			self.p2_ready = False

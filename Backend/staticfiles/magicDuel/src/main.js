@@ -217,6 +217,8 @@ function handleRoundEnd(data) {
     clearInterval(timerInterval);
     currentGame.toggleTimer(false);
     document.getElementById('choiceButtons').classList.add('hidden');
+    console.log(document.getElementById('choiceButtons').classList);
+
 }
 
 function handleGameStart(data) {
@@ -246,7 +248,7 @@ async function handleCountdown(countdown) {
 
 function handleGameFinish(data) {
     setTimeout(() => {
-        currentGame.displayWinner(loser);
+        currentGame.displayWinner(data.player_id);
     }, 500);
 }
 

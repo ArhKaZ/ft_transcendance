@@ -21,7 +21,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		self._game_loop_task = None
 		self._start_round_task = None
 		self._round_complete_event = asyncio.Event()
-		self._
+		# self._cleanup_round = False
 		self._countdown_done = asyncio.Event()
 		self._both_anim_done = asyncio.Event()
 		self._game_state = {}
@@ -35,6 +35,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		self.round_time = 5
 		self.p1_as_attack = asyncio.Event()
 		self.p2_as_attack = asyncio.Event()
+		self.monitor_task = None
+		self.round_task = None
 
 	async def connect(self):
 		self.player_id = self.scope['url_route']['kwargs']['player_id']	
@@ -63,6 +65,15 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			self.is_cleaning_up = True
 			
 			try:
+				player = await Player.create_player_from_cache(self.player_id, self.game_id)
+				if player is not None:
+					print(f'delete player {player.player_id} from cache')
+					player.delete_from_cache()
+					if self.game.p1_id == self.player_id:
+						self.game.delete_player(1)
+					elif self.game.p2_id == self.player_id:
+						self.game.delete_player(2)
+
 				if self._countdown_task and not self._countdown_task.done():
 					self._countdown_task.cancel()
 					try:
@@ -77,6 +88,20 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 					except asyncio.CancelledError:
 						pass
 
+				if self.monitor_task and not self.monitor_task.done():
+					self.monitor_task.cancel()
+					try:
+						await self.monitor_task
+					except asyncio.CancelledError:
+						pass
+
+				if self.round_task and not self.round_task.done():
+					self.round_task.cancel()
+					try:
+						await self.round_task
+					except asyncio.CancelledError:
+						pass
+
 				if self._start_round_task and not self._start_round_task.done():
 					self._start_round_task.cancel()
 					try:
@@ -87,8 +112,9 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				if  self.game and hasattr(self.game, 'group_name'):
 					await self.channel_layer.group_discard(self.game.group_name, self.channel_name)
 
-				print(f"Game {self.game_id} removed from cache")
-				await self.remove_game_from_cache(game_finished)
+				if self.game.p1_id is None and self.game.p2_id is None:
+					print(f"Game {self.game_id} removed from cache")
+					await self.remove_game_from_cache(game_finished)
 			except Exception as e:
 				print(f"Error during cleanup: {e}")
 			finally:
@@ -195,16 +221,17 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			self._both_anim_done.set()
 
 	async def handle_player_attack(self, data):
-		if data == self.game.p1_id:
+		if str(data['player_id']) == self.game.p1_id:
 			self.p1_as_attack.set()
-		elif data == self.game.p2_id:
+		elif str(data['player_id']) == self.game.p2_id:
 			self.p2_as_attack.set()
 		else:
 			print("Error: Wrong id in handle_player_attack")
 			return #TODO Bien gerer cette erreur
-		
+		print('je passe bien ici')
 		player = await Player.create_player_from_cache(data['player_id'], self.game_id)
 		if not player:
+			print('no player in handle player attack')
 			return
 		player.action = data['choice']
 		await player.save_to_cache()
@@ -270,7 +297,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 	async def game_loop(self):
 		try:
-			players = await Player.get_players_of_game(self.game_id)
+			players = await Player.get_players_of_game(self.game.p1_id, self.game.p2_id, self.game_id)
 			if players is None:
 				print("Error getting players of the game in game_loop")
 				return
@@ -278,120 +305,126 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			# Use an event to manage game state
 			game_over_event = asyncio.Event()
 
-			monitor_task  = asyncio.create_task(self.monitor_game_state(game_over_event, players))
-			round_task = asyncio.create_task(self.round_manager(game_over_event, players))
+			self.monitor_task  = asyncio.create_task(self.monitor_game_state(game_over_event))
+			self.round_task = asyncio.create_task(self.round_manager(game_over_event))
 
 			asyncio.gather(
-				monitor_task,
-				round_task,
+				self.monitor_task,
+				self.round_task,
 			)
 		except Exception as e:
 			print(f"Error in game_loop {e}")
 		finally:
-			if not self.game_cancel_event.is_set():
-				await self.cleanup(True) #TODO A TESTER
+			if self.game_cancel_event.is_set():
+				print('je passe ici pour cleanUp')
+				await self.cleanup(True)
 
-
-	async def monitor_game_state(self, game_over_event, players):
+	async def monitor_game_state(self, game_over_event):
 		try:
 			while not game_over_event.is_set():
-				current_players = await Player.get_players_of_game(self.game_id)
+				current_players = await Player.get_players_of_game(self.game.p1_id, self.game.p2_id, self.game_id)
+				self.game = await Game.get_game_from_cache(self.game_id)
+				if self.game.status == 'CANCELLED':
+					await self.cleanup(False)
+					return
 				if current_players is None:
 					game_over_event.set()
 					break
-
-				if players[0].life <= 0 or players[1].life <= 0:
+				if current_players[0].life <= 0 or current_players[1].life <= 0:
+					print('game is over no more lifes')
 					game_over_event.set()
 					await self.notify_looser(current_players)
 					break
-
-				await asyncio.sleep(0.5) # Short sleep to prevent tight loop
+				try:
+					await asyncio.sleep(0.5) # Short sleep to prevent tight loop
+				except asyncio.CancelledError:
+					return
+		except asyncio.CancelledError:
+			print('Game cancel, cleanup launch')
+			await self.cleanup(False)
+			return
 		except Exception as e:
 			print(f"Error in monitor_game_state: {e}")
 			game_over_event.set()
 
-	async def round_manager(self, game_over_event, players):
+	async def round_manager(self, game_over_event):
 		try: 
 			while not game_over_event.is_set():
 				try:
 					await asyncio.wait_for(
-						self.execute_round(players),
-						timeout=6
+						self.execute_round(),
+						timeout=self.round_time + 10
 					)
-
 					await asyncio.sleep(1)
 				except asyncio.TimeoutError:
 					print('Round timeout - start new round')
 					await self.cleanup_round()
+				except asyncio.CancelledError:
+					print('Round cancel, cleanup launch')
+					# await self.cleanup(False)
+					return
 				except Exception as e:
 					print(f"Error in round : {e}")
 					await self.cleanup_round()
+
 		except Exception as e:
 			print(f"Error in round_manager: {e}")
 
-	async def execute_round(self, players):
+	async def execute_round(self):
 		self.current_round_count += 1
 		print(self.current_round_count)
+		players = await Player.get_players_of_game(self.game.p1_id, self.game.p2_id, self.game_id)
 		await self.notify_round_count(self.current_round_count)
 		await asyncio.sleep(3)
-
-		await self.notify_round_timer(self.round_time)
 		try:
 			await asyncio.wait_for(
 				self.manage_round_time(players),
-				timeout= self.round_time
+				timeout= self.round_time + 5
 			)
-			# TODO Faire une gestion comme  ceci  : 
-				# - Quand le timer ce fini ou qu'on a un timeout, on check si les joueurs on attackes
-				# - Si un ou deux on jouer, on resout les pouvoirs. 
-				# - Sinon egality
-				# - dans les deux cas, on reset et clear
 			await self.notify_round_end()
 			result, update_players = await self.check_winner_round()
-			if result is not None:
+			if result is not None and not self.game_cancel_event.is_set():
 				winner_id, power = await self.apply_power(update_players[0], update_players[1], result)
 				await self.notify_round_interaction(winner_id, power)
-				await asyncio.wait_for(self._both_anim_done.wait(), timeout=5) 
+				try:
+					await asyncio.wait_for(self._both_anim_done.wait(), timeout=5) 
+				except asyncio.TimeoutError:
+					print("Animation completed timeout error")
+					self._both_anim_done.set()
+				finally:
+					await self.cleanup_round()
+					await asyncio.sleep(0.5)
 		except asyncio.TimeoutError:
 				print('Round timeout - ')
 				self._round_complete_event.set() # TODO : Rajouter un flag pour dire que c'est egaliter
 
-		# if self.game_cancel_event.is_set():
-		# 	return
-		# Check and resolve round
-			# try:
+	async def cleanup_round(self):
+		await Player.reset_action(self.game.p1_id, self.game.p2_id, self.game_id)
+		self._round_complete_event.clear()
+		self._both_anim_done.clear()
+		self._start_round_task = None
 
-			# except asyncio.TimeoutError:
-			# 	print("Animation completed timeout error")
-			# 	self._both_anim_done.set()
-			# finally:
-			# 	print('je passe enfin ici')
-			# 	await Player.reset_action(self.game_id)
-			# 	print('je reset')
-			# 	self._round_complete_event.clear()
-			# 	print('bad clear')
-			# 	self._both_anim_done.clear()
-			# 	print('free_round_task')
-			# 	self._start_round_task = None
-			# 	await asyncio.sleep(0.5)
-
-	async def manage_round_time(self, player):
+	async def  manage_round_time(self, player):
+		start_time = time.time()
+		await self.notify_round_timer(start_time)
 		remaining_time = 0
 		while not self._round_complete_event.is_set():
-			elapsed_time = time.time() - self.round_time
+			elapsed_time = time.time() - start_time
+			# print(self.round_time, elapsed_time)
 			remaining_time =  max(self.round_time - elapsed_time, 0)
-
+			# print(remaining_time)
 			if remaining_time <= 0:
-				break
-			
-			if self.p1_as_attack.is_set() and self.p2_as_attack.is_set():
-				print('both player played')
+				print('break remaining time: ', remaining_time)
+				self._round_complete_event.set()
 				break
 
 			await asyncio.sleep(0.1)
 
 	async def check_winner_round(self):
-		players = await Player.get_players_of_game(self.game_id)
+		if self.game_cancel_event.is_set() or self.game.status == 'CANCELLED':
+			return
+		players = await Player.get_players_of_game(self.game.p1_id, self.game.p2_id, self.game_id)
+		print(players)
 		if players is None:
 			print("Error getting players of the game in check_winner_round")
 			return
@@ -440,6 +473,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		id_winner = 0
 		action = None
 
+		print('apply_power: result:', result)
 		if result == 1:
 			await p2.lose_life()
 			id_winner = p1.player_id
@@ -464,6 +498,9 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		await sync_to_async(cache.set)(f'wizard_duel_game_{game_id}', game, timeout=60*30)
 
 	async def notify_game_cancel(self, p_id):
+		self.game.status = 'CANCELLED'
+		await self.game.save_to_cache()
+		self.game_cancel_event.set()
 		message = {
 			'type': 'game_cancel',
 			'player_id': p_id, # Mettre le pseudo du joueur ?
@@ -481,7 +518,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		message = {
 			'type': 'round_timer',
 			'start_time': start_time,
-			'total_time': 20
+			'total_time': self.round_time
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
 
