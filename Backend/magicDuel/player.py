@@ -19,6 +19,8 @@ class Player:
         players = []
         p1 = await Player.create_player_from_cache(p1_id, game_id)
         p2 = await Player.create_player_from_cache(p2_id, game_id)
+        if p1 is None or p2 is None:
+            return None
         players.append(p1)
         players.append(p2)
         return players

@@ -373,16 +373,21 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def execute_round(self):
 		self.current_round_count += 1
 		print(self.current_round_count)
-		players = await Player.get_players_of_game(self.game.p1_id, self.game.p2_id, self.game_id)
 		await self.notify_round_count(self.current_round_count)
 		await asyncio.sleep(3)
 		try:
-			await asyncio.wait_for(
-				self.manage_round_time(players),
-				timeout= self.round_time + 5
+			self.time_task = asyncio.create_task(self.manage_round_time())
+			self.action_task = asyncio.create_task(self.manage_players_actions())
+
+			asyncio.gather(
+				self.time_task,
+				self.action_task,
 			)
+
+			await asyncio.wait_for(self._round_complete_event.wait(), timeout=self.round_time + 5)
 			await self.notify_round_end()
 			result, update_players = await self.check_winner_round()
+			await asyncio.sleep(1)
 			if result is not None and not self.game_cancel_event.is_set():
 				winner_id, power = await self.apply_power(update_players[0], update_players[1], result)
 				await self.notify_round_interaction(winner_id, power)
@@ -393,7 +398,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 					self._both_anim_done.set()
 				finally:
 					await self.cleanup_round()
-					await asyncio.sleep(0.5)
+					await asyncio.sleep(1)
 		except asyncio.TimeoutError:
 				print('Round timeout - ')
 				self._round_complete_event.set() # TODO : Rajouter un flag pour dire que c'est egaliter
@@ -403,16 +408,16 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		self._round_complete_event.clear()
 		self._both_anim_done.clear()
 		self._start_round_task = None
+		self.time_task = None
+		self.action_task = None
 
-	async def  manage_round_time(self, player):
+	async def  manage_round_time(self):
 		start_time = time.time()
 		await self.notify_round_timer(start_time)
 		remaining_time = 0
 		while not self._round_complete_event.is_set():
 			elapsed_time = time.time() - start_time
-			# print(self.round_time, elapsed_time)
 			remaining_time =  max(self.round_time - elapsed_time, 0)
-			# print(remaining_time)
 			if remaining_time <= 0:
 				print('break remaining time: ', remaining_time)
 				self._round_complete_event.set()
@@ -420,11 +425,23 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 			await asyncio.sleep(0.1)
 
+	async def manage_players_actions(self):
+		while not self._round_complete_event.is_set():
+			players = await self.game.get_players()
+			if players is None:
+				print('Error get players in manage_players_actions')
+				return
+			if players[0].action and players[1].action:
+				print('break both players played')
+				self._round_complete_event.set()
+				break
+
+			await asyncio.sleep(0.5)
+
 	async def check_winner_round(self):
 		if self.game_cancel_event.is_set() or self.game.status == 'CANCELLED':
 			return
-		players = await Player.get_players_of_game(self.game.p1_id, self.game.p2_id, self.game_id)
-		print(players)
+		players = await self.game.get_players()
 		if players is None:
 			print("Error getting players of the game in check_winner_round")
 			return

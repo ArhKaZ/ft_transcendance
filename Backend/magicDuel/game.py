@@ -97,3 +97,6 @@ class Game:
 			self.p2_avatar = None
 			self.p2_username = None
 			self.p2_ready = False
+
+	async def get_players(self):
+		return await Player.get_players_of_game(self.p1_id, self.p2_id, self.game_id)
