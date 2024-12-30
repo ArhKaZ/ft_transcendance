@@ -118,7 +118,8 @@ function setupWebSocket(user) {
             action: 'search',
             player_id: user.id,
             player_name: user.username,
-            player_avatar: user.src_avatar
+            player_avatar: user.src_avatar,
+            player_lp: user.ligue_points
         });
     }
 

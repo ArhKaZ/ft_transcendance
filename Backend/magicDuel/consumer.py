@@ -156,17 +156,16 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			'id':  self.player_id,
 			'username': data['player_name'],
 			'avatar': data['player_avatar'],
+			'ligue_points': data['player_lp'],
+			'timestamp': time.time()
 		}
 
-		print(current_waiting_players)
 		if not any(player['id'] == self.player_id for player in current_waiting_players):
-			print("player info:", player_info)
 			current_waiting_players.append(player_info)
 			await sync_to_async(cache.set)(key, current_waiting_players)
 
-		opponent_info  = await self.find_opponent()
+		opponent_info  = await self.find_opponent(data['player_lp'])
 		if opponent_info:
-			print(opponent_info)
 			self.game_id = str(uuid.uuid4())
 			await sync_to_async(cache.set)(f"player_current_game_{self.player_id}", self.game_id, timeout=3600)
 			await sync_to_async(cache.set)(f"player_current_game_{opponent_info['id']}", self.game_id, timeout=3600)
@@ -183,22 +182,44 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		else:
 			pass
 
-	async def find_opponent(self):
+	async def find_opponent(self, player_points):
 		key = 'waiting_wizard_duel_players'
 
 		current_waiting_players = cache.get(key) or []
 
-		current_waiting_players = list(
-			filter(lambda player: player['id'] != self.player_id, current_waiting_players)
+		potiential_opponents = [
+			player for player in current_waiting_players
+			if player['id'] != self.player_id
+		]
+
+		if not potiential_opponents:
+			return None
+
+		current_time = time.time()
+
+		def get_range_points(time):
+			if time < 30:
+				return 100
+			elif time < 60:
+				return 200
+			elif time < 90:
+				return 300
+			return float('inf')
+
+		potiential_opponents.sort(
+			key=lambda x: abs(x['ligue_points'] - player_points)
 		)
 
-		if current_waiting_players:
-			opponent_info = current_waiting_players.pop(0)
-			await sync_to_async(cache.set)(key, current_waiting_players)
+		for opponent in potiential_opponents:
+			wait_time = current_time - opponent['timestamp']
+			range = get_range_points(wait_time)
 
-			return opponent_info
-		else:
-			return None
+			if abs(opponent['ligue_points'] - player_points) <= range:
+				current_waiting_players.remove(opponent)
+				await sync_to_async(cache.set)(key, current_waiting_players)
+				return opponent
+			
+		return None
 		
 	async def handle_find_game(self, data):
 		if self.game is None:

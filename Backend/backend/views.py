@@ -47,7 +47,8 @@ def logged_get_user(request):
         return JsonResponse({
             "id": user.id,
             "username": user.username,
-            "src_avatar": user.avatar.url
+            "src_avatar": user.avatar.url, 
+            "ligue_points": user.ligue_points
         })
     except ValidationError as e:
         return JsonResponse({"error": str(e)}, status=401)

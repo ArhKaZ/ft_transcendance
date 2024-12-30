@@ -77,10 +77,33 @@ body {
     text-align: left;
 }
 
-#info-main-player {
+.info-main-player {
+    display: none;
+    width: 30%;
+    position: absolute;
+    top: 50%;
+    align-items: center;
+    justify-content: space-evenly;
+    flex-direction: column;
+    color: white;
+    text-align: center;
+    height: 50%;
+    font-family: "Press Start 2P";
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+}
+
+.info-main-player span {
+    font-size: 1.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 80%;
+}
+
+.info-main-player:not(.hidden) {
+    display: flex;
 }
 
 #p1-anim, #p2-anim {
