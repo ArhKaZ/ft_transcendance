@@ -13,19 +13,7 @@ class Sprite {
         this.isLooping = isLooping;
     }
 
-    drawSprite(ctx, canvasX, canvasY, scale = 2) {
-        // const screenWidth = window.innerWidth;
-        // let scale = 0;
-
-        // if (screenWidth >= 1920) {
-        //     scale =  2;
-        // } else if (screenWidth >= 1280) {
-        //     scale =  1.5;
-        // } else {
-        //     scale = 1;
-        // }
-        // console.log(scale);
-
+    drawSprite(ctx, canvasX, canvasY, scale) {
         const sx = this.currentFrame * this.frameWidth;
         const sy = 0;
         const sWidth = this.frameWidth;
@@ -62,35 +50,6 @@ class Sprite {
                     this.isAnimationComplete = true;
                     this.currentFrame = this.totalFrames - 1;
                 }
-            }
-        }
-    }
-
-    updateFrameAttack(hitboxes)
-    {
-        this.frameCount++;
-        if (this.frameCount >= this.animationSpeed) {
-            this.currentFrame++;
-            this.frameCount = 0;
-
-            if (this.currentFrame >= this.totalFrames) {
-                this.currentFrame = this.totalFrames - 1;
-                this.isAnimationComplete = true;
-            }
-        }
-
-        hitboxes.forEach((hitbox) => {
-            hitbox.checkActivation(this.currentFrame);
-        });
-        if (this.isAnimationComplete) {
-            this.removeExpiredHitboxes(hitboxes);
-        }
-    }
-
-    removeExpiredHitboxes(hitboxes) {
-        for (let i = hitboxes.length - 1; i >= 0; i--) {
-            if (hitboxes[i].isExpired(this.currentFrame) || this.isAnimationComplete) {
-                hitboxes.splice(i, 1);
             }
         }
     }

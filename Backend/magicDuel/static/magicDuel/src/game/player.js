@@ -69,7 +69,6 @@ class Player {
         this.currentAnimationPlayer = animationName;
 
         if (animationName !== 'Idle') {
-            console.log(animationName);
             this.isAnimatingPlayer = true;
             this.sprites.resetAnimation(animationName);
         }

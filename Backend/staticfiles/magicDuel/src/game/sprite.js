@@ -2,6 +2,7 @@ class Sprite {
     constructor(src, totalFrames, animationSpeed, width, height, name, isLooping = false) {
         this.name = name;
         this.sprite = new Image();
+        console.log(this.sprite);
         this.sprite.src = src;
         this.totalFrames = totalFrames;
         this.frameWidth = width;
@@ -14,18 +15,6 @@ class Sprite {
     }
 
     drawSprite(ctx, canvasX, canvasY, scale = 2) {
-        // const screenWidth = window.innerWidth;
-        // let scale = 0;
-
-        // if (screenWidth >= 1920) {
-        //     scale =  2;
-        // } else if (screenWidth >= 1280) {
-        //     scale =  1.5;
-        // } else {
-        //     scale = 1;
-        // }
-        // console.log(scale);
-
         const sx = this.currentFrame * this.frameWidth;
         const sy = 0;
         const sWidth = this.frameWidth;

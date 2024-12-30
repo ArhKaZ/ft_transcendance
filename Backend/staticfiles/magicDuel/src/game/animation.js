@@ -12,10 +12,10 @@ class Animation {
         this.TakeHit = new Sprite(this.getAssetPath('Wizard/Hit.png'), 4, 10, 231, 190, 'hit');
         this.Death = new Sprite(this.getAssetPath('Wizard/Death.png'), 7, 10, 231, 190, 'death');
         // CHANGER DONNER SPRITES :
-        this.DarkBolt = new Sprite(this.getAssetPath('Attacks/Dark-Bolt.png'), 11, 10, 67, 92, 'darkBolt');
-        this.FireBomb = new Sprite(this.getAssetPath('Attacks/Fire-bomb.png'), 14, 10, 64, 64, 'fireBomb');
-        this.Lightning = new Sprite(this.getAssetPath('Attacks/Lightning.png'), 10, 10, 64, 128, 'lightning');
-        this.Spark = new Sprite(this.getAssetPath('Attacks/spark.png'), 7 , 10, 32, 32, 'spark');
+        this.DarkBolt = new Sprite(this.getAssetPath('Attacks/Dark-Bolt.png'), 11, 10, 67, 92, 'darkBolt', true);
+        this.FireBomb = new Sprite(this.getAssetPath('Attacks/Fire-bomb.png'), 14, 10, 67, 67, 'fireBomb', true);
+        this.Lightning = new Sprite(this.getAssetPath('Attacks/Lightning1.png'), 10, 10, 46, 92, 'lightning', true);
+        this.Spark = new Sprite(this.getAssetPath('Attacks/spark.png'), 7 , 10, 67, 67, 'spark', true);
     }
 
     update(ctx, obj, attackSprite = null) {

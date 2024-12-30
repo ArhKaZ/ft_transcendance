@@ -139,7 +139,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 
 	async def handle_player_search(self, data):
-		print('hello!')
 		player_game_key = f"player_current_game_{self.player_id}"
 		current_game = await sync_to_async(cache.get)(player_game_key)
 
@@ -149,7 +148,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				'message': 'Already in a game'
 			}))
 			return
-		print('je passe ici ')
 		key = 'waiting_wizard_duel_players'
 
 		current_waiting_players = cache.get(key) or []
@@ -361,6 +359,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 					await self.cleanup_round()
 				except asyncio.CancelledError:
 					print('Round cancel, cleanup launch')
+					self.game_cancel_event.set()
 					# await self.cleanup(False)
 					return
 				except Exception as e:
