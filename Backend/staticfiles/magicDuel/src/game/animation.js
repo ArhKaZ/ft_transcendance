@@ -4,7 +4,7 @@ class Animation {
     constructor(nb) {
         this.nb = nb;
         this.assetsPath = window.MAGICDUEL_ASSETS;
-
+        this.scale = 2;
         this.getAssetPath = (path) => `${this.assetsPath}assets/${path}`;
         //IDLE
         this.IdleLeft = new Sprite(this.getAssetPath('Wizard/Idle.png'), 6, 10, 231, 190, 'idle',true);
@@ -12,10 +12,10 @@ class Animation {
         this.TakeHit = new Sprite(this.getAssetPath('Wizard/Hit.png'), 4, 10, 231, 190, 'hit');
         this.Death = new Sprite(this.getAssetPath('Wizard/Death.png'), 7, 10, 231, 190, 'death');
         // CHANGER DONNER SPRITES :
-        this.DarkBolt = new Sprite(this.getAssetPath('Attacks/Dark-Bolt.png'), 11, 10, 67, 92, 'darkBolt', true);
-        this.FireBomb = new Sprite(this.getAssetPath('Attacks/Fire-bomb.png'), 14, 10, 67, 67, 'fireBomb', true);
-        this.Lightning = new Sprite(this.getAssetPath('Attacks/Lightning1.png'), 10, 10, 46, 92, 'lightning', true);
-        this.Spark = new Sprite(this.getAssetPath('Attacks/spark.png'), 7 , 10, 67, 67, 'spark', true);
+        this.DarkBolt = new Sprite(this.getAssetPath('Attacks/Dark-Bolt.png'), 11, 10, 67, 92, 'darkBolt');
+        this.FireBomb = new Sprite(this.getAssetPath('Attacks/Fire-bomb.png'), 14, 10, 67, 67, 'fireBomb');
+        this.Lightning = new Sprite(this.getAssetPath('Attacks/Lightning1.png'), 10, 10, 46, 92, 'lightning');
+        this.Spark = new Sprite(this.getAssetPath('Attacks/spark.png'), 7 , 10, 67, 67, 'spark');
     }
 
     update(ctx, obj, attackSprite = null) {
@@ -38,13 +38,13 @@ class Animation {
         }
 
         if (spriteToDraw) {
-            spriteToDraw.drawSprite(ctx, obj.x, obj.y)
+            spriteToDraw.drawSprite(ctx, obj.x, obj.y, this.scale)
         }
 
         if (attackSprite) {
-            const attackX = obj.x + obj.canvas.width * 10/100;
-            const attackY = obj.y + obj.canvas.height * 15/100;
-            attackSprite.drawSprite(ctx, attackX, attackY);
+            const attackX = (obj.x + (this.IdleLeft.frameWidth * this.scale) / 2) - (attackSprite.frameWidth * this.scale) / 2;
+            const attackY = (obj.y + (this.IdleLeft.frameHeight * this.scale) / 2) - (attackSprite.frameHeight * this.scale) / 2;
+            attackSprite.drawSprite(ctx, attackX, attackY, this.scale);
         }
     }
 

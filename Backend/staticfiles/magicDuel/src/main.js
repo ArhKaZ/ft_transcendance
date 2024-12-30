@@ -281,8 +281,10 @@ function handleRoundInteraction(data) {
     if (data.player_id !== 0) {
         const pTakeDmg = currentGame.P1.id === data.player_id ? currentGame.P2 : currentGame.P1;
         pTakeDmg.playAnimationAttack(data.power);
-        pTakeDmg.playAnimationPlayer('TakeHit');
-        pTakeDmg.loosePv();
+        setTimeout(() => {
+            pTakeDmg.playAnimationPlayer('TakeHit');
+            pTakeDmg.loosePv();
+        }, 1000);
     } else {
         const equE = document.getElementById('equality');
         equE.textContent = 'Equality';
