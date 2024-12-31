@@ -20,5 +20,5 @@ class UserSerializer(serializers.ModelSerializer):
 class MatchHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = MatchHistory
-        fields = ['id', 'opponent_name', 'date', 'won']
+        fields = ['id', 'type', 'opponent_name', 'date', 'won']
 

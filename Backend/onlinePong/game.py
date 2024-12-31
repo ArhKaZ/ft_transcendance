@@ -83,6 +83,6 @@ class Game:
 
 
 	async def get_players_of_game(self):
-		player1_data = await Player.load_from_cache(self.game.p1_id, self.game.game_id)
-		player2_data = await Player.load_from_cache(self.game.p2_id, self.game.game_id)
+		player1_data = await Player.load_from_cache(self.p1_id, self.game_id)
+		player2_data = await Player.load_from_cache(self.p2_id, self.game_id)
 		return [player1_data, player2_data]

@@ -14,7 +14,7 @@ async function fetchHistory() {
 			console.log("get history call worked");
 			const data =  await response.json();
 			const historyHtml = data.map(item => `
-				<p>Opponent: ${item.opponent_name}, Date: ${item.date}, Won: ${item.won ? "Yes" : "No"}</p>
+				<p>Type: ${item.type} ,Opponent: ${item.opponent_name}, Date: ${item.date}, Won: ${item.won ? "Yes" : "No"}</p>
 			`).join('');
 			divHistory.innerHTML = historyHtml;
 		} else {

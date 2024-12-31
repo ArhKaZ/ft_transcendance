@@ -297,7 +297,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 				break
 			except Exception as e:
 				print(f'Error in send_ball_position with game:{self.game_id}: {e}')
-				self.cleanup(False)
+				await self.cleanup(False)
 				return
 			finally:
 				await asyncio.sleep(0.02)
@@ -310,7 +310,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 	async def get_or_create_ball(self):
 		ball_state = await Ball.load_from_cache(self.game_id)
-		players_data = self.game.get_players_of_game()
+		players_data = await self.game.get_players_of_game()
 
 		if not ball_state:
 			return Ball(self.game_id, players_data[0], players_data[1])
@@ -555,8 +555,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 			'winning_session': winning_session,
 			'message': 'game_is_over'
 		}
-		await self.channel_layer.group_send(self.game.group_name, message)
-		# await self.send(text_data=json.dumps(message))
+		# await self.channel_layer.group_send(self.game.group_name, message)
+		await self.send(text_data=json.dumps(message))
 
 	async def send_players_info(self, game):
 		message =  {

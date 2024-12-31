@@ -27,6 +27,7 @@ class MyUser(AbstractUser):
 class MatchHistory(models.Model):
     user = models.ForeignKey('MyUser', on_delete=models.CASCADE, related_name="matches")
     opponent_name = models.CharField(max_length=100)
+    type = models.CharField(max_length=20, default=None)
     date = models.DateField(auto_now_add=True)  # Corrigé auto_now_ad -> auto_now_add
     won = models.BooleanField()
 

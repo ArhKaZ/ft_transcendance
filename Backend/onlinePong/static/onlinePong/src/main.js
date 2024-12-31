@@ -43,14 +43,6 @@ async function init() {
     socket = setupWebSocket(user);
 }
 
-// function getCookie(name) {
-//     const value = `; ${document.cookie}`;
-//     print(value);
-//     const parts = value.split(`; ${name}=`);
-//     print(parts);
-//     if (parts.lenght === 2) return parts.pop().split(';').shift();
-// }
-
 function setupWebSocket(user) {
     currentPlayerId = user.id;
     const id = user.id.toString();
@@ -222,7 +214,7 @@ async function handleCountdown(countdown) {
     }
 }
 
-function handleGameFinish(game, winningId) {
+function handleGameFinish(game, winningId) { // extraire function pour call api
     const opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
     setTimeout(() => {
         game.displayWinner(winningId);
@@ -236,6 +228,7 @@ function handleGameFinish(game, winningId) {
         },
         // credentials: 'include',  // Important pour inclure les cookies
         body: JSON.stringify({
+            'type': 'Pong',
             'opponent_name': opponentName, // Remplacez par le vrai nom de l'adversaire
             'won': asWin
         })
