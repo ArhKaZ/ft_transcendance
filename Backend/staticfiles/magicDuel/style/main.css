@@ -13,7 +13,6 @@ body {
 #canvasContainer {
     display: none;
     /*display: flex;*/
-    border: white solid 2px;
     position: relative;
     width: 80%;
     height: 80%;

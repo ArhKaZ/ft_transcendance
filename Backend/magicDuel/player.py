@@ -2,7 +2,7 @@ from asgiref.sync import sync_to_async
 from django.core.cache import cache
 
 class Player:
-    def __init__(self, nb, player_id, game_id, action = None, life=3):
+    def __init__(self, nb, player_id, game_id, action = None, life=1):
         self.life = life
         self.game_id = game_id
         self.player_id = player_id
