@@ -126,6 +126,7 @@ const routes = {
 		const response = await fetch('/static/user/login.html');
 		return await response.text();
 	},
+    // '/user/invite/': () => '<h1>ERROR</h1>',
     '/404': () => '<h1>Page Non Trouvée</h1>'
 };
 

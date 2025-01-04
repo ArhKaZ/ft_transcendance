@@ -16,9 +16,6 @@ from rest_framework.authentication import TokenAuthentication
 def index(request):
 	return render(request, 'index.html')
 
-def main(request):
-    return render(request, "backend/home.html")
-
 @api_view(['GET'])
 def logged(request):
     authentication_classes = [TokenAuthentication]

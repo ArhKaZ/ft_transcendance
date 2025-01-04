@@ -3,11 +3,10 @@
 <head>
     <meta charset="utf-8">
     <title>Login</title>
-    {% load static %}
 </head>
-<body></body>
-    <form id="userForm">
-        {% csrf_token %}
+<body>
+    <form id="userForm" method="POST">
+		{% csrf_token %}
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required><br><br>
 
@@ -20,6 +19,6 @@
     <!-- Div for displaying error/success messages -->
     <div id="message"></div>
 
-    <script src="{% static 'user/login_user.js' %}"></script>
+    <script src="/static/user/login_user.js"></script>
 </body>
 </html>

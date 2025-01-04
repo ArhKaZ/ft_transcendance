@@ -1,24 +1,27 @@
+import { getCSRFToken } from '/utils.js';
+
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('userForm');
     const messageDiv = document.getElementById('message');
-
+    
     form.addEventListener('submit', async function(event) {
-        event.preventDefault(); // Empêche le rechargement de la page par défaut lors de la soumission du formulaire
-
+        event.preventDefault();
+        
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
-
+        
         try {
-            // Effectuer une requête fetch POST vers la vue login_user
             const response = await fetch('/api/login/', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',  // Indiquer que les données envoyées sont en JSON
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
                 },
-                body: JSON.stringify({  // Envoyer les données d'authentification
+                body: JSON.stringify({
                     username: username,
                     password: password,
-                })
+                }),
+                credentials: 'include',
             });
 
             if (response.ok) {
@@ -28,9 +31,10 @@ document.addEventListener('DOMContentLoaded', function() {
 				sessionStorage.setItem('token_key', data.token_key);
                 // Si la réponse est réussie, rediriger vers la page protégée
                 messageDiv.innerHTML = '<span style="color: green;">Connexion réussie. Redirection en cours...</span>';
-                setTimeout(() => {
-                    window.location.href = "/logged/";  // Redirection vers la page protégée
-                }, 1000);
+                // setTimeout(() => {
+                //     window.location.href = "/logged/";  // Redirection vers la page protégée
+                // }, 1000);
+				// ca c'est sur c'est a changer
             } else {
                 // Si la réponse échoue, afficher le message d'erreur
                 const data = await response.json();

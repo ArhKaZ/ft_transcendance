@@ -8,14 +8,12 @@ from django.urls import reverse
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from rest_framework.exceptions import AuthenticationFailed
+from django.views.decorators.csrf import csrf_exempt
 
 
 
 def addPage(request):
     return render(request, "user/add.html")
-
-def loginPage(request):
-    return render(request, "user/login.html")
 
 def edit_user(request):
     token_key = request.COOKIES.get('access_token')  # Récupérer le token JWT du cookie

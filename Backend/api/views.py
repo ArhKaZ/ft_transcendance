@@ -16,6 +16,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authentication import TokenAuthentication
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -37,12 +38,6 @@ def add_user(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_user(request):
-    # authentication_classes = [TokenAuthentication]
-    # User = get_user_model()
-    # if request.user.is_autheticated:
-    #     return Response(
-	# 		{ 'error': 'You are already logged in' }, status=status.HTTP_400_BAD_REQUEST
-	# 	)
     username = request.data.get('username')
     password = request.data.get('password')
     if not username or not password:
