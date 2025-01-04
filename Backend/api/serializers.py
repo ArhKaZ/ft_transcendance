@@ -21,3 +21,7 @@ class MatchHistorySerializer(serializers.ModelSerializer):
         model = MatchHistory
         fields = ['id', 'opponent_name', 'date', 'won']
 
+class UserInfoSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = MyUser
+		fields = ['username', 'description', 'avatar']

@@ -17,6 +17,7 @@ from rest_framework.authentication import TokenAuthentication
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny
 from django.views.decorators.csrf import ensure_csrf_cookie
+from .serializers import UserInfoSerializer
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -54,13 +55,6 @@ def login_user(request):
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
     
 
-
-
-
-
-
-
-
 def list_users(request):
     users = MyUser.objects.all()
     return render(request, 'api/list_users.html', {'users': users})
@@ -84,6 +78,14 @@ def get_user_matches(request):
     serializer = MatchHistorySerializer(matches, many=True)
     return Response(serializer.data)
 
+@api_view(['GET'])
+def get_my_info(request):
+	user = request.user
+	serializer = UserInfoSerializer(user)
+	if user:
+		return Response(serializer.data)
+	else:
+		return Response({'error': 'User not found or not connected'}, status=status.HTTP_404_NOT_FOUND)
 
 
 
