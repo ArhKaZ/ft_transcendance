@@ -46,7 +46,7 @@ async function init() {
 function setupWebSocket(user) {
     currentPlayerId = user.id;
     const id = user.id.toString();
-    const socket = new WebSocket(`ws://localhost:8000/ws/onlinePong/${id}/`);
+    const socket = new WebSocket(`wss://localhost:8000/ws/onlinePong/${id}/`);
     let game = null;
 
     socket.onopen = () => {

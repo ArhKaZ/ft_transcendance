@@ -6,7 +6,7 @@ import argparse
 import os
 
 BASE_URL = "http://localhost:8000/onlinePong/api/"
-WS_URL = "ws://localhost:8000/ws/onlinePong"
+WS_URL = "wss://localhost:8000/ws/onlinePong"
 
 def get_info_game(game_id):
     response = requests.get(f"{BASE_URL}cli/get_info_game?game_id={game_id}")
