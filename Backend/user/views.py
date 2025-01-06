@@ -7,14 +7,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.urls import reverse
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
-
-
-
-def addPage(request):
-    return render(request, "user/add.html")
-
-def loginPage(request):
-    return render(request, "user/login.html")
+from rest_framework.exceptions import AuthenticationFailed
+from django.views.decorators.csrf import csrf_exempt
 
 def edit_user(request):
     token_key = request.COOKIES.get('access_token')  # Récupérer le token JWT du cookie
@@ -33,6 +27,3 @@ def edit_user(request):
     
     return render(request, "user/edit_user.html", {'user': request.user})
 
-@permission_classes([IsAuthenticated])
-def user_history(request):
-    return render(request, "user/history.html")

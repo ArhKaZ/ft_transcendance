@@ -11,8 +11,16 @@ from django.http import HttpResponseRedirect
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from .serializers import MatchHistorySerializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authtoken.models import Token
+from rest_framework.authentication import TokenAuthentication
+from django.contrib.auth import get_user_model
+from rest_framework.permissions import AllowAny
+from django.views.decorators.csrf import ensure_csrf_cookie
+from .serializers import UserInfoSerializer
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def add_user(request):
     data = request.data.copy()
     avatar = request.FILES.get('avatar')
@@ -24,40 +32,28 @@ def add_user(request):
         user = serializer.save()
         user.set_password(serializer.validated_data['password'])
         user.save()
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            "access_token": str(refresh.access_token),
-            "refresh_token": str(refresh),
-            "user": UserSerializer(user).data
-        }, status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def login_user(request):
     username = request.data.get('username')
     password = request.data.get('password')
-
     if not username or not password:
         return Response({'error': 'Please provide both username and password.'}, status=status.HTTP_400_BAD_REQUEST)
-
     user = authenticate(username=username, password=password)
-
     if user is not None:
-        refresh = RefreshToken.for_user(user)
-        access_token = str(refresh.access_token)
-        refresh_token = str(refresh)
-        response = Response({
-            'access_token': access_token,
-            'refresh_token': refresh_token,
-            'user': UserSerializer(user).data
-        }, status=status.HTTP_200_OK)
-        response.set_cookie('access_token', access_token, httponly=True, secure=True, samesite='Lax')
-        response.set_cookie('refresh_token', refresh_token, httponly=True, secure=True, samesite='Lax')
+        token, created = Token.objects.get_or_create(user=user)
+        if not created:
+            token.delete()
+            token = Token.objects.create(user=user)
+        response = Response({'detail': 'Success', 'token_key': token.key} , status=status.HTTP_200_OK)
         return response
     else:
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-
+    
 
 def list_users(request):
     users = MyUser.objects.all()
@@ -83,90 +79,66 @@ def add_match(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_user_matches(request):
+def get_history(request):
     matches = MatchHistory.objects.filter(user=request.user)
     serializer = MatchHistorySerializer(matches, many=True)
     return Response(serializer.data)
 
+@api_view(['GET'])
+def get_my_info(request):
+	user = request.user
+	serializer = UserInfoSerializer(user)
+	if user:
+		return Response(serializer.data)
+	else:
+		return Response({'error': 'User not found or not connected'}, status=status.HTTP_404_NOT_FOUND)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-from django.http import JsonResponse, HttpResponseForbidden
-from django.shortcuts import get_object_or_404
-from django.views.decorators.http import require_http_methods
-from django.contrib.auth.hashers import make_password
-from rest_framework.decorators import api_view, parser_classes
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from api.models import MyUser
-from django.db import transaction
+@api_view(['POST'])
+def logout_user(request):
+    # Delete the token
+    request.user.auth_token.delete()
+    return Response({'message': 'Logged out successfully'})
 
 @api_view(['PATCH'])
-@parser_classes([MultiPartParser, FormParser])
+@permission_classes([IsAuthenticated])
 def edit_user_api(request):
-    # Get the JWT token from cookies
-    token_key = request.COOKIES.get('access_token')
-    if not token_key:
-        return HttpResponseForbidden("Token not provided.")
-
-    # Validate the token
-    jwt_auth = JWTAuthentication()
-    try:
-        validated_token = jwt_auth.get_validated_token(token_key)
-        user = jwt_auth.get_user(validated_token)
-    except Exception:
-        return HttpResponseForbidden("Invalid token.")
-
-    # Update user fields
-    user = get_object_or_404(MyUser, pk=user.pk)
-
-    try:
-        with transaction.atomic():
-            username = request.POST.get('username')
-            if username:
-                user.username = username
-
-            password = request.POST.get('password')
-            if password:
-                user.password = make_password(password)
-
-            description = request.POST.get('description')
-            if description:
-                user.description = description
-
-            avatar = request.FILES.get('avatar')
-            if avatar:
-                user.avatar = avatar
-
-            user.save()
-
-        return JsonResponse({'status': 'success', 'message': 'User updated successfully'})
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    user = request.user
+    data = {}
+    
+    # Only include fields that were actually sent
+    if request.data.get('username'):
+        data['username'] = request.data['username']
+    
+    if request.data.get('password'):
+        user.set_password(request.data['password'])
+        user.save()
+    
+    if request.data.get('description'):
+        data['description'] = request.data['description']
+        
+    if request.FILES.get('avatar'):
+        data['avatar'] = request.FILES['avatar']
+    
+    # Only proceed with update if there's data to update
+    if data:
+        serializer = UserSerializer(user, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'message': 'User updated successfully'
+            }, status=status.HTTP_200_OK)
+        return Response({
+            'message': 'Invalid data provided',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # If no data was provided but request was valid
+    if not data and not request.data.get('password'):
+        return Response({
+            'message': 'No changes were made'
+        }, status=status.HTTP_200_OK)
+    
+    # If only password was changed
+    return Response({
+        'message': 'User updated successfully'
+    }, status=status.HTTP_200_OK)

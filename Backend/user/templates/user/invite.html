@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="utf-8">
+	<title>Invite</title>
+	{% load static %}
+</head>
+
+<body>
+	<div>
+		<label for="username">Nom d'utilisateur :</label>
+		<input type="text" id="username" name="username" value="{{ user.username }}">
+	</div>
+	<script src="{% static 'user/invite.js' %}"></script>
+</body>

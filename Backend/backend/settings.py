@@ -47,30 +47,18 @@ INSTALLED_APPS = [
 	'backend',
 	'rest_framework.authtoken',
 	'dj_rest_auth',
-	'rest_framework_simplejwt.token_blacklist'
+	'spa',
 ]
-
-# REST_FRAMEWORK = {
-#     "DEFAULT_AUTHENTICATION_CLASSES": [
-#         "rest_framework.authentication.TokenAuthentication",
-#     ],
-# 	# 'DEFAULT_PERMISSION_CLASSES': (
-#     #     'rest_framework.permissions.IsAuthenticated',
-#     # ),
-# }
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        "rest_framework.authentication.TokenAuthentication",
     ),
+	"DEFAULT_PERMISSION_CLASSES": [
+		"rest_framework.permissions.IsAuthenticated",
+	]
 }
 
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # Durée de vie des tokens d'accès
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # Durée de vie des tokens de rafraîchissement
-    'ROTATE_REFRESH_TOKENS': True,                 # Rafraîchir automatiquement les tokens
-    'BLACKLIST_AFTER_ROTATION': True,              # Permet d'invalider les anciens tokens
-}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -80,6 +68,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	# 'backend.middleware.JWTAuthRedirectMiddleware'
+
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -87,7 +77,7 @@ ROOT_URLCONF = 'backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'spa', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -191,6 +181,10 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "magicDuel/static"),
     os.path.join(BASE_DIR, "onlinePong/static"),
+	os.path.join(BASE_DIR, "spa/www/js"),
+	os.path.join(BASE_DIR, "spa/www/html"),
+	# os.path.join(BASE_DIR, "spa/static"),
+	# os.path.join(BASE_DIR, "spa/templates"),
 ]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -213,3 +207,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_ROOT_PATH = Path(MEDIA_ROOT)
 AVATARS_PATH = MEDIA_ROOT_PATH / 'avatars'
 AVATARS_PATH.mkdir(parents=True, exist_ok=True)
+
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False
+
+CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:8000"]
