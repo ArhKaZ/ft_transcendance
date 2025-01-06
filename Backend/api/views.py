@@ -87,6 +87,11 @@ def get_my_info(request):
 	else:
 		return Response({'error': 'User not found or not connected'}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['POST'])
+def logout_user(request):
+    # Delete the token
+    request.user.auth_token.delete()
+    return Response({'message': 'Logged out successfully'})
 
 
 

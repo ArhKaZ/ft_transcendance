@@ -12,4 +12,5 @@ urlpatterns = [
 	path('add_match/', views.add_match),
 	path('get_history/', views.get_history),
 	path('get-my-info/', views.get_my_info),
+	path('logout/', views.logout_user),
 ]

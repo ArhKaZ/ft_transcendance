@@ -1,5 +1,31 @@
 import { getCSRFToken } from '/static/utils.js';
 
+document.getElementById('logout-button').addEventListener('click', async () => {
+	console.log('Logging out...');
+    // Remove the token from sessionStorage
+    sessionStorage.removeItem('token_key');
+
+    // Optional: Make a backend call to invalidate the token if needed
+    const response = await fetch('/api/logout/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+        },
+        credentials: 'include',
+    });
+
+    if (response.ok) {
+        console.log('Logged out successfully');
+    } else {
+        console.error('Error logging out:', response);
+    }
+
+    // Reload the page
+    window.location.reload();
+});
+
+
 const response = await fetch('/api/get-my-info/', {
 	method: 'GET',
 	headers: {
