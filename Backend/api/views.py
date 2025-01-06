@@ -73,7 +73,7 @@ def add_match(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_user_matches(request):
+def get_history(request):
     matches = MatchHistory.objects.filter(user=request.user)
     serializer = MatchHistorySerializer(matches, many=True)
     return Response(serializer.data)
