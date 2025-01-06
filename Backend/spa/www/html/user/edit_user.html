@@ -10,8 +10,8 @@
 	<form id="userForm" enctype="multipart/form-data">
 
 		<div>
-			<label for="username">Nom d'utilisateur :</label>
-			<input type="text" id="username" name="username" value="{{ user.username }}">
+			<label for="username">Nom d'utilisateur (laisser vide si inchangé):</label>
+			<input type="text" id="username" name="username">
 		</div>
 
 		<div>
@@ -20,12 +20,12 @@
 		</div>
 
 		<div>
-			<label for="description">Description :</label>
-			<textarea id="description" name="description">{{ user.description }}</textarea>
+			<label for="description">Description (laisser vide si inchangé):</label>
+			<textarea id="description" name="description"></textarea>
 		</div>
 
 		<div>
-			<label for="avatar">Avatar :</label>
+			<label for="avatar">Avatar (laisser vide si inchangé):</label>
 			<input type="file" id="avatar" name="avatar">
 		</div>
 

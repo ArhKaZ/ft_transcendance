@@ -6,6 +6,9 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
     try {
         const response = await fetch('/api/edit_user_api/', {
             method: 'PATCH',
+			headers: {
+				'Authorization' : `Token ${sessionStorage.getItem('token_key')}`,
+			},
             body: formData,
         });
 
@@ -13,7 +16,7 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
         
         if (response.ok) {
             displayMessage(data.message, 'success');
-            setTimeout(() => window.location.href = '/home', 2000);
+            setTimeout(() => window.location.href = '/home/', 2000);
         } else {
             displayMessage(data.message || 'An error occurred', 'error');
         }
@@ -32,3 +35,4 @@ function displayMessage(message, type) {
         console.error('Message div not found');
     }
 }
+

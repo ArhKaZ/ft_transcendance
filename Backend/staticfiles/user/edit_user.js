@@ -13,7 +13,7 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
         
         if (response.ok) {
             displayMessage(data.message, 'success');
-            setTimeout(() => window.location.href = '/home', 2000);
+            setTimeout(() => window.location.href = '/home/', 2000);
         } else {
             displayMessage(data.message || 'An error occurred', 'error');
         }
