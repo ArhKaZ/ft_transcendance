@@ -22,8 +22,8 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
 
         if (response.ok) {
             try {
-                const data = JSON.parse(responseText);
-                window.location.href = '/home';
+                // const data = JSON.parse(response.JSON);
+                window.location.href = '/home/';
             } catch (parseError) {
                 displayMessage('JSON parsing error: ' + parseError.message, 'error');
                 console.error('Response content:', responseText);

@@ -3,13 +3,11 @@
 <head>
     <meta charset="utf-8">
     <title>Modifier un utilisateur</title>
-    {% load static %}
 </head>
 <body>
     <h1>Modifier l'utilisateur</h1>
 
 	<form id="userForm" enctype="multipart/form-data">
-		{% csrf_token %}
 
 		<div>
 			<label for="username">Nom d'utilisateur :</label>
@@ -36,6 +34,6 @@
 
 	<div id="message"></div>
 
-	<script src="{% static 'js/edit_user.js' %}"></script>
+	<script type="module" src="/static/user/edit_user.js"></script>
 </body>
 </html>
