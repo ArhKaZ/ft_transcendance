@@ -204,7 +204,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				return 200
 			elif time < 90:
 				return 300
-			return float('inf')
+			return double('inf')
 
 		potiential_opponents.sort(
 			key=lambda x: abs(x['ligue_points'] - player_points)

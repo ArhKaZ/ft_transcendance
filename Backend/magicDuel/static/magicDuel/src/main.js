@@ -178,7 +178,6 @@ async function handleWebSocketMessage(event) {
 			break;
 
 		case 'round_end':
-			console.log('j\'ai round end');
 			handleRoundEnd(data);
 			break;
 
