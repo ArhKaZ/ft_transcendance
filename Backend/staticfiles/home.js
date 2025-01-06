@@ -13,24 +13,12 @@ const response = await fetch('/api/get-my-info/', {
 if (response.ok) {
 	const data = await response.json();
 	console.log(data);
-
 	const loginbtn = document.getElementById('login-button');
 	const registerbtn = document.getElementById('register-button');
 	const pongbtn = document.getElementById('pong-button');
-	const historybtn = document.getElementById('history-button');
-	const logoutbtn = document.getElementById('logout-button');
-	const editbtn = document.getElementById('edit-button');
-	const pixelbtn = document.getElementById('pixel-button');
-
-	pongbtn.style.display = 'block';
-	historybtn.style.display = 'block';
-	logoutbtn.style.display = 'block';
-	editbtn.style.display = 'block';
-	pixelbtn.style.display = 'block';
-	
+	pongbtn.style.display = 'none';
 	loginbtn.style.display = 'none';
-	registerbtn.style.display = 'none';
-
+	registerbtn.style.display = 'block';
 	const welcomemsg = document.getElementById('welcome-msg');
 	welcomemsg.innerText = `Bienvenue, ${data.username} !`;
 
