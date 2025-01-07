@@ -142,3 +142,17 @@ def edit_user_api(request):
     return Response({
         'message': 'User updated successfully'
     }, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_friends(request):
+	friends = request.user.friends.all()
+	serializer = UserInfoSerializer(friends, many=True)
+	return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_friend(request):
+	friend = MyUser.objects.get(id=request.data['friend_id'])
+	request.user.friends.add(friend)
+	return Response({'message': 'Friend added successfully'}, status=status.HTTP_200_OK)

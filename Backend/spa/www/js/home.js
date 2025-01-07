@@ -56,12 +56,14 @@ if (response.ok) {
 	const logoutbtn = document.getElementById('logout-button');
 	const editbtn = document.getElementById('edit-button');
 	const pixelbtn = document.getElementById('pixel-button');
+	const friendsbtn = document.getElementById('friend-button');
 
 	pongbtn.style.display = 'none';
 	historybtn.style.display = 'none';
 	logoutbtn.style.display = 'none';
 	editbtn.style.display = 'none';
 	pixelbtn.style.display = 'none';
+	friendsbtn.style.display = 'none';
 	
 	console.error('Erreur lors de la requête de récupération des informations :', response);
 }

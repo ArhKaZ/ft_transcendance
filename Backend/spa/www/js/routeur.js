@@ -51,7 +51,7 @@ class Router {
 
         try {
             const content = await route();
-            console.log(content);
+            // console.log(content);
             this.rootElement.innerHTML = content;
 
             this.executeScripts(this.rootElement);
@@ -118,8 +118,8 @@ const routes = {
     	const response = await fetch('/static/user/history.html');
     	return await response.text();
 	},
-	'/user/invite/': async () => {
-    	const response = await fetch('/static/user/invite.html');
+	'/user/friend/': async () => {
+    	const response = await fetch('/static/user/friend.html');
     	return await response.text();
 	},
 	'/user/login/': async () => {

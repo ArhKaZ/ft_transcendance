@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
             user.set_password(password)  # Hash the password
         user.save()
         return user
-    
+
 class MatchHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = MatchHistory
@@ -25,4 +25,4 @@ class MatchHistorySerializer(serializers.ModelSerializer):
 class UserInfoSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = MyUser
-		fields = ['username', 'description', 'avatar']
+		fields = ['username', 'description', 'avatar', 'ligue_points', 'friends', 'pending_friends']

@@ -27,9 +27,18 @@ class MyUser(AbstractUser):
         'self',
         symmetrical=True,
         blank=True,
-        related_name='friends_with',
-        verbose_name="Friends"
+        related_name='friend_set',
+        verbose_name='friends',
+        help_text='The users that this user is friends with.',
     )
+    pending_friends = models.ManyToManyField(
+        'self',
+		symmetrical=False,
+		blank=True,
+		related_name='pending_friend_set',
+		verbose_name='pending friends',
+		help_text='The users that have sent a friend request to this user.',
+	)
     
 class MatchHistory(models.Model):
     user = models.ForeignKey('MyUser', on_delete=models.CASCADE, related_name="matches")

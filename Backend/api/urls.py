@@ -13,4 +13,6 @@ urlpatterns = [
 	path('get_history/', views.get_history),
 	path('get-my-info/', views.get_my_info),
 	path('logout/', views.logout_user),
+	path('add_friend/', views.add_friend),
+	path('get_friends/', views.get_friends),
 ]
