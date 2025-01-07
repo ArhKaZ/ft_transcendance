@@ -15,8 +15,8 @@ class Paddle {
         this.y = y * this.canvas.height / 100;
     }
 
-    draw(context) {
-        context.fillStyle = 'white';
+    draw(context, color) {
+        context.fillStyle = color;
         context.fillRect(this.x, this.y, this.width, this.height);
     }
 }

@@ -42,14 +42,14 @@ if (response.ok) {
 
 	const loginbtn = document.getElementById('login-button');
 	const registerbtn = document.getElementById('register-button');
-	
-	
+
+
 	loginbtn.style.display = 'none';
 	registerbtn.style.display = 'none';
-	
+
 	const welcomemsg = document.getElementById('welcome-msg');
 	welcomemsg.innerText = `Bienvenue, ${data.username} !`;
-	
+
 } else {
 	const pongbtn = document.getElementById('pong-button');
 	const historybtn = document.getElementById('history-button');

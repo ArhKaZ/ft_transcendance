@@ -1,53 +1,108 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pongiste</title>
-    <link rel="stylesheet" href="{% static 'onlinePong/style/main.css' %}">
+    <title>Neon Pong</title>
+    <link rel="stylesheet" href="../../css/onlinePong/main.css">
 </head>
 <body>
-    <div id="infoP1">
-        <h1 id="p1-username" class="hidden">None</h1>
-            <div id="p1-avatar" class="avatar hidden">
-                <img id="p1-avatar-img" alt="p1-avatar" src="" />
-            </div>
-             <div id="p1-img" class="svg-container hidden">
-                 <svg id="p1-waiting-animation" class="waiting icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 143.7 143.7">
-                     <circle class="circle" fill="none" cx="71.8" cy="71.8" r="67.8"/>
-                 </svg>
-                 <svg id="p1-joined-animation" class="check-circle icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 143.7 143.7">
-                     <circle class="circle" fill="none" cx="71.8" cy="71.8" r="67.8"/>
-                     <path class="path" fill="none" d="M36.8,73.3l21.5,21.5c0.6,0.6,1.5,0.6,2.1,0l46.4-46.4"/>
-                 </svg>
-            </div>
-        <h1 id="p1-status"></h1>
+    <div id="info-main-player" class="info">
+        <span id="mp-username" class="">None</span>
+        <div id="mp-avatar" class="avatar">
+            <img id="mp-avatar-img" alt="p1-avatar" src="" />
+        </div>
+        <div id="mp-img" class="svg-container">
+            <svg id="mp-waiting-animation" class="waiting icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 143.7 143.7">
+                <circle class="circle" fill="none" cx="71.8" cy="71.8" r="67.8"/>
+            </svg>
+            <svg id="mp-joined-animation" class="check-circle icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 143.7 143.7">
+                <circle class="circle" fill="none" cx="71.8" cy="71.8" r="67.8"/>
+                <path class="path" fill="none" d="M36.8,73.3l21.5,21.5c0.6,0.6,1.5,0.6,2.1,0l46.4-46.4"/>
+            </svg>
+        </div>
     </div>
-    <div id="scoreContainer" class="score-container">
-        <span id="scoreP1">0</span>
-        <span id="scoreP2">0</span>
+    <!-- Player 1 Waiting Room when got a game -->
+    <div id="infoP1" class="info hidden">
+        <span id="p1-username" class="hidden">None</span>
+        <div id="p1-avatar" class="avatar hidden">
+            <img id="p1-avatar-img" alt="p1-avatar" src="" />
+        </div>
+        <div id="p1-img" class="svg-container hidden">
+            <svg id="p1-waiting-animation" class="waiting icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 143.7 143.7">
+                <circle class="circle" fill="none" cx="71.8" cy="71.8" r="67.8"/>
+            </svg>
+            <svg id="p1-joined-animation" class="check-circle icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 143.7 143.7">
+                <circle class="circle" fill="none" cx="71.8" cy="71.8" r="67.8"/>
+                <path class="path" fill="none" d="M36.8,73.3l21.5,21.5c0.6,0.6,1.5,0.6,2.1,0l46.4-46.4"/>
+            </svg>
+        </div>
     </div>
-    <div id="canvasContainer">
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-        <script type="module" src="{% static 'onlinePong/src/main.js' %}"></script>
+    <!-- P1 HUD IN GAME -->
+    <div id="hud-p1" class="player-bar hidden">
+        <h1 id="p1-hud-name" class="player-name">Player 1</h1>
+        <div class="separator"></div>
+        <h1 id="p1-score" class="player-score">0</h1>
     </div>
-    <div id="infoP2">
-        <h1 id="p2-username" class="hidden">None</h1>
-            <div id="p2-avatar" class="avatar hidden">
-                <img id="p2-avatar-img" alt="p2-avatar" src=""/>
+    <div id="title">
+        <h1>Neon Pong</h1>
+    </div>
+    <!-- GAME DISPLAY -->
+    <div id="sparks-container" class="sparks-container"></div>
+    <div id="canvasContainer" class="game-area">
+        <div id="end-container" class="end-container hidden">
+            <div id="end-info-p1" class="end-info">
+                <img id="crown-img-p1" src="../../assets/onlinePong/Crown.png" alt="crown" class="hidden crown"/>
+                <img id="end-img-p1" src="" alt="end-img-p1" class="end-img"/>
+                <span id="end-name-p1" class="end-name"></span>
             </div>
-            <div id="p2-img"  class="svg-container hidden">
-                <svg id="p2-waiting-animation" class="waiting icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 143.7 143.7">
-                    <circle class="circle" fill="none" cx="71.8" cy="71.8" r="67.8"/>
-                </svg>
-                <svg id="p2-joined-animation" class="check-circle icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 143.7 143.7">
-                    <circle class="circle" fill="none" cx="71.8" cy="71.8" r="67.8"/>
-                    <path class="path" fill="none" d="M36.8,73.3l21.5,21.5c0.6,0.6,1.5,0.6,2.1,0l46.4-46.4"/>
-                </svg>
+            <div id="end-button"> 
+                <a id="button-home" class="buttonNeon" href="http://127.0.0.1:8000/home/">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    Return to the home
+                </a>
             </div>
-        <h1 id="p2-status"></h1>
+            <div id="end-info-p2" class="end-info">
+                <img id="crown-img-p2" src="../../assets/onlinePong/Crown.png" alt="crown" class="hidden crown"/>
+                <img id="end-img-p2" src="" alt="end-img-p2" class="end-img"/>
+                <span id="end-name-p2" class="end-name"></span>
+            </div>
+        </div>
+        <canvas id="gameCanvas" class="allCanvas hidden"></canvas>
+        <canvas id="countdownCanvas" class="allCanvas"></canvas>
+        <script type="module" src="../../js/onlinePong/main.js"></script>
     </div>
-    <button id="buttonStart">Ready!</button>
+    <!-- P2 Waiting Room when got a game -->
+    <div id="infoP2" class="info hidden">
+        <span id="p2-username" class="hidden">None</span>
+        <div id="p2-avatar" class="avatar hidden">
+            <img id="p2-avatar-img" alt="p2-avatar" src=""/>
+        </div>
+        <div id="p2-img"  class="svg-container hidden">
+            <svg id="p2-waiting-animation" class="waiting icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 143.7 143.7">
+                <circle class="circle" fill="none" cx="71.8" cy="71.8" r="67.8"/>
+            </svg>
+            <svg id="p2-joined-animation" class="check-circle icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 143.7 143.7">
+                <circle class="circle" fill="none" cx="71.8" cy="71.8" r="67.8"/>
+                <path class="path" fill="none" d="M36.8,73.3l21.5,21.5c0.6,0.6,1.5,0.6,2.1,0l46.4-46.4"/>
+            </svg>
+        </div>
+    </div>
+    <!-- P2 HUD IN GAME -->
+    <div id="hud-p2" class="player-bar hidden">
+        <h1 id="p2-hud-name" class="player-name">Player 2</h1>
+        <div class="separator"></div>
+        <h1 id="p2-score" class="player-score">0</h1>
+    </div>
+    <a id="button-ready" class="buttonNeon hidden" href="#">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        I'm Ready !
+    </a>
 </body>
 </html>

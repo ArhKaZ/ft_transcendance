@@ -1,12 +1,15 @@
 import Game from "../src/game/game.js";
 import Player from "../src/game/player.js";
-import {refreshPlayers, updatePlayerStatus, displayConnectedPlayer, displayWhenConnect } from "./game/waitingRoom.js";
+import CountdownAnimation from "./game/countdownAnimation.js";
+import {creationGameDisplay, updatePlayerStatus, displayWhenLoad } from "./game/waitingRoom.js";
 
 let socket = null;
 let oldHeight = null;
 let gameStarted = false;
 let currentPlayerId = null;
 let currentGame = null;
+let currentCountdown = null;
+let currentGameId = null;
 
 function sendToBack(data) {
     if (socket?.readyState === WebSocket.OPEN) {
@@ -30,21 +33,44 @@ async function getUserFromBack() {
     }
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-    try {
-        const currentPlayer = await getUserFromBack();
-        const playerId = currentPlayer.id;
-        socket = await createGame(currentPlayer);
+document.addEventListener("DOMContentLoaded", async () => init());
+    
+async function init() {
+    const user = await getUserFromBack();
 
-        document.getElementById('buttonStart').addEventListener('click', () => {
-            sendToBack({ action: 'ready', player_id: playerId });
+    displayWhenLoad(user);
+    
+    socket = setupWebSocket(user);
+}
+
+function setupWebSocket(user) {
+    currentPlayerId = user.id;
+    const id = user.id.toString();
+    const socket = new WebSocket(`ws://localhost:8000/ws/onlinePong/${id}/`);
+    let game = null;
+
+    socket.onopen = () => {
+        console.log("WebSocket connected");
+        sendToBack({
+            action: 'search', 
+            player_id: user.id, 
+            player_name: user.username, 
+            player_avatar: user.src_avatar
         });
+    };
 
-        setupKeyboardControls(playerId);
-    } catch (error) {
-        handleError(error);
-    }
-});
+    socket.onmessage = async (e) => {
+        await handleWebSocketMessage(e);
+    };
+
+    socket.onerror = (error) => console.error("WebSocket error:", error.type);
+    socket.onclose = () => console.log("WebSocket closed");
+
+    window.addEventListener("resize", () => resizeCanvasGame(game));
+
+    return socket;
+}
+
 
 function setupKeyboardControls(playerId) {
     let movementInterval = null;
@@ -80,40 +106,6 @@ function handleError(error) {
     }
 }
 
-async function createGame(currentPlayer) {
-    currentPlayerId = currentPlayer.id;
-    const currentPlayerName = currentPlayer.username;
-    const currentAvatarSrc = currentPlayer.src_avatar;
-    try {
-        const response = await fetch(`./api/create_or_join_game?player_id=${currentPlayerId}&player_name=${currentPlayerName}&src=${currentAvatarSrc}`);
-        const data = await response.json();
-        const gameId = data.game_id;
-        displayWhenConnect(data);
-        return setupWebSocket(gameId, currentPlayerId);
-    } catch (error) {
-        console.error('Error creating game:', error);
-    }
-}
-
-function setupWebSocket(gameId, playerId) {
-    const socket = new WebSocket(`ws://localhost:8000/ws/onlinePong/${gameId}/${playerId}/`);
-    let game = null;
-
-    socket.onopen = () => {
-        console.log("WebSocket connected");
-    };
-
-    socket.onmessage = async (e) => {
-        await handleWebSocketMessage(e, gameId);
-    };
-
-    socket.onerror = (error) => console.error("WebSocket error:", error.type);
-    socket.onclose = () => console.log("WebSocket closed");
-
-    window.addEventListener("resize", () => resizeCanvasGame(game));
-
-    return socket;
-}
 
 async function initGame(data) {
     const canvas = document.getElementById('gameCanvas');
@@ -123,59 +115,89 @@ async function initGame(data) {
 }
 
 function createPlayers(data) {
-    const main_id = data.main_player_id;
-    const opp_id = data.opponent_id;
-    const main_name = data.main_player_name;
-    const opp_name = data.opponent_name;
-    const player_nb = data.player_nb;
+    const p1_id = data.player1_id;
+    const p2_id = data.player2_id;
+    const p1_name = data.player1_name;
+    const p2_name = data.player2_name;
+    const p1_avatar = data.player1_avatar;
+    const p2_avatar = data.player2_avatar;
 
-    const mainPlayer = new Player(main_id, main_name);
-    const opponent = new Player(data.opponent_id, data.opponent_name);
-    return data.player_number === 1 ? [mainPlayer, opponent] : [opponent, mainPlayer];
+    const P1 = new Player(p1_id, p1_name, p1_avatar);
+    const P2 = new Player(p2_id, p2_name, p2_avatar);
+    return [P1, P2];
 }
 
-async function handleWebSocketMessage(e, gameId) {
+async function handleWebSocketMessage(e) {
     const data = JSON.parse(e.data);
     switch(data.type) {
+
         case 'players_info':
-            refreshPlayers(data, currentGame);
+            currentGameId = data.game_id;
+            creationGameDisplay(data, currentGame);
+            sendToBack({action: 'findGame', game_id: currentGameId})
+            document.getElementById('button-ready').addEventListener('click', () => {
+                sendToBack({action: 'ready', game_id: currentGameId})
+            })
             break;
-        case 'player_connected':
-            displayConnectedPlayer(data.player_id, data.player_name, data.player_avatar, currentPlayerId);
-            break;
+
         case 'player_ready':
-            await updatePlayerStatus(data.player_id, gameId);
+            await updatePlayerStatus(data.player_id, currentGameId);
             break;
+
         case 'ball_position':
             if (currentGame) {
                 currentGame.updateBallPosition(data.x, data.y);
-                currentGame.drawGame();
+                currentGame.drawGame(data.bound_wall, data.bound_player);
             }
             break;
+
         case 'player_move':
             if (currentGame) {
                 updatePlayerPosition(currentGame, data);
             }
             break;
+
         case 'score_update':
             if (currentGame) {
-                currentGame.updateScores(data.scores);
+                currentGame.updateScores(data);
             }
             break;
+
         case 'game_finish':
             if (currentGame) {
-                handleGameFinish(currentGame, data.winning_session, data.opponent_name);
+                handleGameFinish(currentGame, data.winning_session);
                 gameStarted = false;
                 currentGame.stop();
             }
             break;
+
         case 'game_start':
             currentGame = await initGame(data);
-            currentGame.start();
+            currentGame.displayCanvas();
+            currentCountdown = new CountdownAnimation('countdownCanvas');
             gameStarted = true;
             resizeCanvasGame(currentGame);
             break;
+
+        case 'countdown':
+            await handleCountdown(data.countdown);
+            break;
+
+        case 'game_cancel':
+            handleGameCancel(data);
+            break;
+
+        case 'error':
+            alert('Error : '+ data.message);
+            setTimeout(() => {
+                window.location.href = '/logged';
+            }, 300);
     }
+}
+
+function handleGameCancel(data) {
+    alert(`Game is cancelled, player ${data.player_id} is gone`); // TODO Faire meilleur erreur
+    window.location.href = '/logged';
 }
 
 function updatePlayerPosition(game, data) {
@@ -183,9 +205,20 @@ function updatePlayerPosition(game, data) {
     game.updatePlayerPosition(playerNumber, data.y);
 }
 
-function handleGameFinish(game, winningId, opponent) {
-    const winnerName = parseInt(game.P1.id) === parseInt(winningId) ? game.P1.name : game.P2.name;
-    game.displayWinner(winnerName);
+async function handleCountdown(countdown) {
+    await currentCountdown.displayNumber(countdown);
+    if (countdown === 0) {
+        setupKeyboardControls(currentPlayerId);
+        currentCountdown.stopDisplay();
+        currentGame.start();
+    }
+}
+
+function handleGameFinish(game, winningId) { // extraire function pour call api
+    const opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
+    setTimeout(() => {
+        game.displayWinner(winningId);
+    }, 500);
     const asWin = currentPlayerId === parseInt(winningId);
     fetch('/api/add_match/', {
         method: 'POST',
@@ -195,7 +228,8 @@ function handleGameFinish(game, winningId, opponent) {
         },
         // credentials: 'include',  // Important pour inclure les cookies
         body: JSON.stringify({
-            'opponent_name': opponent, // Remplacez par le vrai nom de l'adversaire
+            'type': 'Pong',
+            'opponent_name': opponentName, // Remplacez par le vrai nom de l'adversaire
             'won': asWin
         })
     }).then(response => response.json())
@@ -207,21 +241,26 @@ function handleGameFinish(game, winningId, opponent) {
 function resizeCanvasGame(game) {
     if (!gameStarted || !game) return;
 
+    const canvasCount = document.getElementById('countdownCanvas');
     const canvas = document.getElementById('gameCanvas');
-    const textInfoP1 = document.getElementById('p1-username');
-    const textInfoP2 = document.getElementById('p2-username');
 
     canvas.width = window.innerWidth * 0.6;
     canvas.height = window.innerHeight * 0.8;
+    canvasCount.width = window.innerWidth * 0.6;
+    canvasCount.height = window.innerHeight * 0.8;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    const scale = Math.min(canvas.width / canvas.offsetWidth, canvas.height / canvas.offsetHeight);
+    ctx.scale(scale, scale);
 
     updatePaddleDimensions(game, canvas);
-    updateBallSize(game, canvas);
-    updateFontSizes(game, canvas, textInfoP1, textInfoP2);
+    game.ball.size = Math.min(canvas.width, canvas.height) * 0.01;
 
     oldHeight = canvas.height;
 
-    game.P1.draw(game.context);
-    game.P2.draw(game.context);
+    game.P1.draw(game.context, game.colorP1);
+    game.P2.draw(game.context, game.colorP2);
 }
 
 function updatePaddleDimensions(game, canvas) {
@@ -238,15 +277,4 @@ function updatePaddleDimensions(game, canvas) {
 
     game.P1.paddle.y = (game.P1.paddle.y / oldHeight) * canvas.height;
     game.P2.paddle.y = (game.P2.paddle.y / oldHeight) * canvas.height;
-}
-
-function updateBallSize(game, canvas) {
-    game.ball.size = Math.min(canvas.width, canvas.height) * 0.01;
-}
-
-function updateFontSizes(game, canvas, textInfoP1, textInfoP2) {
-    game.updateScoreFontSize();
-    const fontSize = Math.min(canvas.width, canvas.height) * 0.05;
-    textInfoP1.style.fontSize = `${fontSize}px`;
-    textInfoP2.style.fontSize = `${fontSize}px`;
 }

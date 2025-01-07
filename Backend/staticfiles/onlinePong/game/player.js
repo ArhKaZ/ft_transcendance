@@ -1,8 +1,9 @@
 class Player {
-    constructor(id, name) {
+    constructor(id, name, img) {
         this.name = name;
         this.id = id
         this.paddle = null;
+        this.img = img;
     }
 
     incrementScore()
@@ -18,8 +19,8 @@ class Player {
         return this.name;
     }
 
-    draw(context) {
-        this.paddle.draw(context);
+    draw(context, color) {
+        this.paddle.draw(context, color);
     }
 }
 
