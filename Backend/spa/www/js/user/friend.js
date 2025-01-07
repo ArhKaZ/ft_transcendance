@@ -13,6 +13,7 @@ if (addbtn) {
 }
 
 async function fetchFriends() {
+	console.log("fetching friends");
 	try {
 		const response = await fetch('/api/get_friends/', {
 			method: 'GET',
@@ -24,12 +25,11 @@ async function fetchFriends() {
 		});
 
 		if (response.ok) {
-			console.log("get friends call worked");
 			const data =  await response.json();
-			const friendsHtml = data.map(item => `
-				<p>Friend: ${item.friend_name}</p>
-			`).join('');
-			divFriends.innerHTML = friendsHtml;
+			const friendmsg = document.getElementById('friend-msg');
+			const names = data.map(item => item.name).join(', ');
+			friendmsg.innerText = `friends: ${names} !`;
+			console.log("get friends call worked");
 		} else {
 			console.log("Erreur lors de la récupération de la liste d'amis :", response.status);
 		}

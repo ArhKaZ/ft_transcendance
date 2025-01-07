@@ -153,6 +153,12 @@ def get_friends(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_friend(request):
-	friend = MyUser.objects.get(id=request.data['friend_id'])
-	request.user.friends.add(friend)
-	return Response({'message': 'Friend added successfully'}, status=status.HTTP_200_OK)
+    try:
+        friend = MyUser.objects.get(username=request.data['friend_name'])
+        request.user.friends.add(friend)
+        return Response({'message': 'Friend added successfully'}, status=status.HTTP_200_OK)
+    except MyUser.DoesNotExist:
+        return Response(
+            {'error': 'User not found'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
