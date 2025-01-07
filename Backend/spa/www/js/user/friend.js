@@ -18,17 +18,22 @@ async function fetchFriends() {
 		const response = await fetch('/api/get_friends/', {
 			method: 'GET',
 			headers: {
-				'Content-type' : 'application/json',
+				'Content-type': 'application/json',
 				'X-CSRFToken': getCSRFToken(),
-				'Authorization' : `Token ${sessionStorage.getItem('token_key')}`,
+				'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
 			}
 		});
 
 		if (response.ok) {
-			const data =  await response.json();
+			const data = await response.json(); // Assuming this is your JSON response
 			const friendmsg = document.getElementById('friend-msg');
-			const names = data.map(item => item.name).join(', ');
-			friendmsg.innerText = `friends: ${names} !`;
+
+			// Extract usernames from the array
+			const usernames = data.map(item => item.username).join(', ');
+
+			// Display the usernames in the message
+			friendmsg.innerText = `Friends: ${usernames} !`;
+
 			console.log("get friends call worked");
 		} else {
 			console.log("Erreur lors de la récupération de la liste d'amis :", response.status);
@@ -45,9 +50,9 @@ async function addFriend() {
 		const response = await fetch('/api/add_friend/', {
 			method: 'POST',
 			headers: {
-				'Content-type' : 'application/json',
+				'Content-type': 'application/json',
 				'X-CSRFToken': getCSRFToken(),
-				'Authorization' : `Token ${sessionStorage.getItem('token_key')}`,
+				'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
 			},
 			body: JSON.stringify({
 				'friend_name': document.getElementById('friend_name').value,
