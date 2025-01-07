@@ -51,7 +51,7 @@ class Router {
 
         try {
             const content = await route();
-            console.log(content);
+            // console.log(content);
             this.rootElement.innerHTML = content;
 
             this.executeScripts(this.rootElement);
