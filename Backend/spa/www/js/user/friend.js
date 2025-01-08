@@ -43,6 +43,7 @@ async function fetchFriends() {
 		console.log("get friends call failed");
 	}
 }
+const addmsg = document.getElementById('add-friend-msg');
 
 async function addFriend() {
 	console.log(document.getElementById('friend_name').value);
@@ -63,13 +64,16 @@ async function addFriend() {
 			console.log("add friend call worked");
 			window.location.reload();
 		} else {
-			console.log("Erreur lors de l'ajout d'un ami :", response.status);
+			// Error handling for failed response
+			addmsg.innerText = `Erreur lors de l'ajout d'un ami: ${response.status}`;
 		}
-	}
-	catch {
-		console.log("add friend call failed");
+	} catch (error) {
+		// Error handling for fetch/network errors
+		addmsg.innerText = `Erreur lors de l'ajout d'un ami: ${error.message}`;
+		console.log("add friend call failed", error);
 	}
 }
+
 
 fetchFriends();
 
