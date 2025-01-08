@@ -183,6 +183,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "onlinePong/static"),
 	os.path.join(BASE_DIR, "spa/www/js"),
 	os.path.join(BASE_DIR, "spa/www/html"),
+	# os.path.join(BASE_DIR, "media/avatars"),
 	# os.path.join(BASE_DIR, "spa/static"),
 	# os.path.join(BASE_DIR, "spa/templates"),
 ]

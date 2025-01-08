@@ -19,7 +19,7 @@ async function loginUser() {
 
 	try {
 		const response = await fetch('/api/login/', {
-			method: 'POST',
+			method: 'POST', 
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': getCSRFToken(),
