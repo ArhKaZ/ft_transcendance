@@ -38,8 +38,9 @@ class Router {
         window.history.pushState({}, '', url);
         this.handleLocation();
     }
+
 // NEW 
-    async loadedStylesheets(href) {
+    async loadStylesheet(href) {
         if (this.loadedStylesheets.has(href)) {
             return;
         }
@@ -63,7 +64,7 @@ class Router {
 
         const styleLinks = doc.querySelectorAll('link[rel="stylesheet"]');
         const stylePromises = Array.from(styleLinks).map(link => 
-            this.loadedStylesheets(link.getAttribute('href'))
+            this.loadStylesheet(link.getAttribute('href'))
         );
 
         await Promise.all(stylePromises);
