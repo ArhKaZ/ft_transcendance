@@ -59,6 +59,7 @@ if (response.ok) {
 	const editbtn = document.getElementById('edit-button');
 	const pixelbtn = document.getElementById('pixel-button');
 	const friendsbtn = document.getElementById('friend-button');
+	const avatarImg = document.getElementById('user-avatar');
 
 	pongbtn.style.display = 'none';
 	historybtn.style.display = 'none';
@@ -66,6 +67,7 @@ if (response.ok) {
 	editbtn.style.display = 'none';
 	pixelbtn.style.display = 'none';
 	friendsbtn.style.display = 'none';
+	avatarImg.style.display = 'none';
 	
 	console.error('Erreur lors de la requête de récupération des informations :', response);
 }

@@ -77,6 +77,13 @@ def add_match(request):
 		return Response(serializer.data, status=status.HTTP_201_CREATED)
 	return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# VUE DE TEST
+def change_lp(request):
+	if request.data['won']:
+		request.user.ligue_points += 15
+	else:
+		request.user.ligue_points -= 15
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_history(request):
