@@ -150,13 +150,68 @@ def get_friends(request):
 	serializer = UserInfoSerializer(friends, many=True)
 	return Response(serializer.data)
 
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def add_friend(request):
+#     try:
+#         friend = MyUser.objects.get(username=request.data['friend_name'])
+#         request.user.friends.add(friend)
+#         return Response({'message': 'Friend added successfully'}, status=status.HTTP_200_OK)
+#     except MyUser.DoesNotExist:
+#         return Response(
+#             {'error': 'User not found'}, 
+#             status=status.HTTP_404_NOT_FOUND
+#         )
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_pending_friends(request):
+	pending_friends = request.user.pending_friends.all()
+	serializer = UserInfoSerializer(pending_friends, many=True)
+	return Response(serializer.data)
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_friend(request):
     try:
-        friend = MyUser.objects.get(username=request.data['friend_name'])
-        request.user.friends.add(friend)
-        return Response({'message': 'Friend added successfully'}, status=status.HTTP_200_OK)
+        potential_friend = MyUser.objects.get(username=request.data['friend_name'])
+        
+        # Don't allow adding yourself
+        if potential_friend == request.user:
+            return Response(
+                {'error': 'You cannot add yourself as a friend'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        # Don't allow if already friends
+        if potential_friend in request.user.friends.all():
+            return Response(
+                {'error': 'You are already friends with this user'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        # Check if either user has a pending request from the other
+        if request.user in potential_friend.pending_friends.all() or potential_friend in request.user.pending_friends.all():
+            # Remove both users from each other's pending lists
+            potential_friend.pending_friends.remove(request.user)
+            request.user.pending_friends.remove(potential_friend)
+            
+            # Add both users as friends
+            request.user.friends.add(potential_friend)
+            # No need to add potential_friend.friends.add(request.user) because the relationship is symmetrical
+            
+            return Response(
+                {'message': 'Friend request accepted! You are now friends.'}, 
+                status=status.HTTP_200_OK
+            )
+        else:
+            # If no pending requests exist, add to pending list
+            potential_friend.pending_friends.add(request.user)
+            return Response(
+                {'message': 'Friend request sent successfully'}, 
+                status=status.HTTP_200_OK
+            )
+            
     except MyUser.DoesNotExist:
         return Response(
             {'error': 'User not found'}, 

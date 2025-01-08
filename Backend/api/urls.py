@@ -15,4 +15,5 @@ urlpatterns = [
 	path('logout/', views.logout_user),
 	path('add_friend/', views.add_friend),
 	path('get_friends/', views.get_friends),
+	path('get_pending_friends/', views.get_pending_friends),
 ]
