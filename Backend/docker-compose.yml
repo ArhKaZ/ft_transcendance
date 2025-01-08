@@ -1,11 +1,12 @@
-version: '3'
-
 services:
   redis:
     image: redis:latest
     container_name: redis
+    volumes:
+      - ./init_redis/redis.conf:/usr/local/etc/redis/redis.conf
     ports:
-      - "6379:6379"
+      - "6378:6378"
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   django:
     container_name: django
@@ -23,7 +24,7 @@ services:
       - POSTGRES_PASSWORD=pwd
       - POSTGRES_HOST=db
       - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_PORT=6378
     depends_on:
       - db_postgre
       - redis

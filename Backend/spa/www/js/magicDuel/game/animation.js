@@ -5,17 +5,16 @@ class Animation {
         this.nb = nb;
         this.assetsPath = window.MAGICDUEL_ASSETS;
         this.scale = 2;
-        this.getAssetPath = (path) => `${this.assetsPath}assets/${path}`;
         //IDLE
-        this.IdleLeft = new Sprite(this.getAssetPath('Wizard/Idle.png'), 6, 10, 231, 190, 'idle',true);
-        this.AttackLeft = new Sprite(this.getAssetPath('Wizard/Attack1.png'), 8, 10, 231, 190, 'attack');
-        this.TakeHit = new Sprite(this.getAssetPath('Wizard/Hit.png'), 4, 10, 231, 190, 'hit');
-        this.Death = new Sprite(this.getAssetPath('Wizard/Death.png'), 7, 10, 231, 190, 'death');
+        this.IdleLeft = new Sprite('../static/magicDuel/Wizard/Idle.png', 6, 10, 231, 190, 'idle',true);
+        this.AttackLeft = new Sprite('../static/magicDuel/Wizard/Attack1.png', 8, 10, 231, 190, 'attack');
+        this.TakeHit = new Sprite('../static/magicDuel/Wizard/Hit.png', 4, 10, 231, 190, 'hit');
+        this.Death = new Sprite('../static/magicDuel/Wizard/Death.png', 7, 10, 231, 190, 'death');
         // CHANGER DONNER SPRITES :
-        this.DarkBolt = new Sprite(this.getAssetPath('Attacks/Dark-Bolt.png'), 11, 10, 67, 92, 'darkBolt');
-        this.FireBomb = new Sprite(this.getAssetPath('Attacks/Fire-bomb.png'), 14, 10, 67, 67, 'fireBomb');
-        this.Lightning = new Sprite(this.getAssetPath('Attacks/Lightning1.png'), 10, 10, 46, 92, 'lightning');
-        this.Spark = new Sprite(this.getAssetPath('Attacks/spark.png'), 7 , 10, 67, 67, 'spark');
+        this.DarkBolt = new Sprite('../static/magicDuel/Attacks/Dark-Bolt.png', 11, 10, 67, 92, 'darkBolt');
+        this.FireBomb = new Sprite('../static/magicDuel/Attacks/Fire-bomb.png', 14, 10, 67, 67, 'fireBomb');
+        this.Lightning = new Sprite('../static/magicDuel/Attacks/Lightning1.png', 10, 10, 46, 92, 'lightning');
+        this.Spark = new Sprite('../static/magicDuel/Attacks/spark.png', 7 , 10, 67, 67, 'spark');
     }
 
     update(ctx, obj, attackSprite = null) {

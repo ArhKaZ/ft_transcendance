@@ -11,9 +11,8 @@ class Game {
         this.back = new Image();
         this.plat = new Image();
         this.assetsPath = window.MAGICDUEL_ASSETS;
-        this.getAssetPath = (path) => `${this.assetsPath}assets/${path}`;
-        this.back.src = this.getAssetPath('map/back.png');
-        this.plat.src = this.getAssetPath('map/plat_little.png');
+        this.back.src = '../static/magicDuel/map/back.png';
+        this.plat.src = '../static/magicDuel/map/plat_little.png';
         this.keyState = {};
         this.bindEvents();
         this.countdownFinish = false;
