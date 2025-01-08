@@ -7,7 +7,7 @@ class Router {
 
         this.routes = routes;
         this.rootElement = document.getElementById('app');
-        
+        this.loadedStylesheets = new Set();
         // Only add event listeners if this is the first instance
         window.addEventListener('popstate', this.handleLocation.bind(this));
         this.initLinks();
@@ -38,6 +38,38 @@ class Router {
         window.history.pushState({}, '', url);
         this.handleLocation();
     }
+// NEW 
+    async loadedStylesheets(href) {
+        if (this.loadedStylesheets.has(href)) {
+            return;
+        }
+
+        return new Promise((resolve, reject) => {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = href;
+            link.onload = () => {
+                this.loadedStylesheets.add(href);
+                resolve();
+            };
+            link.onerror = reject;
+            document.head.appendChild(link);
+        });
+    }
+
+    async parseHTML(htmlString) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlString, 'text/html');
+
+        const styleLinks = doc.querySelectorAll('link[rel="stylesheet"]');
+        const stylePromises = Array.from(styleLinks).map(link => 
+            this.loadedStylesheets(link.getAttribute('href'))
+        );
+
+        await Promise.all(stylePromises);
+
+        return doc.body.innerHTML;
+    }
 
     async handleLocation() {
         const path = window.location.pathname;
@@ -50,10 +82,9 @@ class Router {
         }
 
         try {
-            const content = await route();
-            console.log(content);
-            this.rootElement.innerHTML = content;
-
+            const htmlContent = await route();
+            const processedContent = await this.parseHTML(htmlContent);
+            this.rootElement.innerHTML = processedContent;
             this.executeScripts(this.rootElement);
         } catch (error) {
             console.error('Erreur de chargement de la page', error);
@@ -94,8 +125,8 @@ const routes = {
     	const response = await fetch('/static/onlinePong/index.html');
     	return await response.text();
 	},
-	'/pixelPaws/': async () => {
-    	const response = await fetch('/static/pixelPaws/index.html');
+	'/magicDuel/': async () => {
+    	const response = await fetch('/static/magicDuel/index.html');
     	return await response.text();
 	},
 	'/logged/': async () => {
