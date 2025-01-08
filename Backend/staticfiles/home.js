@@ -49,7 +49,9 @@ if (response.ok) {
 
 	const welcomemsg = document.getElementById('welcome-msg');
 	welcomemsg.innerText = `Bienvenue, ${data.username} !`;
-
+	const avatarImg = document.getElementById('user-avatar');
+	avatarImg.src = data.avatar;
+	avatarImg.alt = 'avatar';
 } else {
 	const pongbtn = document.getElementById('pong-button');
 	const historybtn = document.getElementById('history-button');
