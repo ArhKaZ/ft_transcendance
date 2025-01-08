@@ -42,26 +42,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 		await self.channel_layer.group_add("onlinePong_players", self.channel_name)
 		await self.accept()
 
-		# query_string = self.scope["query_string"].decode()
-		# token = self.get_token_from_query(query_string)
-
-		# if not token:
-		#     await self.close()
-		#     print("Error no token")
-		#     return
-
-		# user = await self.get_user_from_token(token)
-
-		# if not user or str(user.id) != user.id:
-		#     await self.close()
-		#     print('Error with user auth')
-		#     return
-		
-		# self.user = user
-		# print(self.user)
-		# self.player_id = player_id
-
-
 	# Disconnect functions
 	async def disconnect(self, close_code):
 		if self.game_id:
@@ -167,12 +147,13 @@ class PongConsumer(AsyncWebsocketConsumer):
 		key = 'waiting_onlinePong_players'
 
 		current_waiting_players = cache.get(key) or []
-
 		player_info = {
 				'id': self.player_id,
 				'username': data['player_name'],
 				'avatar': data['player_avatar'],
 		}
+		
+		self.username = data['player_name']
 
 		if not any(player['id'] == self.player_id for player in current_waiting_players):
 			current_waiting_players.append(player_info)
@@ -234,9 +215,14 @@ class PongConsumer(AsyncWebsocketConsumer):
 # READY 
 	async def handle_player_ready(self, data):
 		await self.async_set_player_ready()
+		nb_player = 0
+		if self.player_id == self.game.p1_id:
+			nb_player = 1
+		else:
+			nb_player = 2
 		message = {
 			'type': 'player_ready',
-			'player_id': self.player_id
+			'player_number': nb_player,
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
 		await self.check_both_ready()
@@ -483,7 +469,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 	async def player_ready(self, event):
 		message = {
 			'type': 'player_ready',
-			'player_id': event['player_id'],
+			'player_number': event['player_number'],
 		}
 		await self.send(text_data=json.dumps(message))
 

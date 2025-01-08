@@ -95,7 +95,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 ASGI_APPLICATION = 'backend.asgi.application'
 
 REDIS_HOST = os.getenv('REDIS_HOST', 'redis')
-REDIS_PORT = os.getenv('REDIS_PORT', '6379')
+REDIS_PORT = os.getenv('REDIS_PORT', '6378')
 REDIS_DB = 1
 
 CHANNEL_LAYERS = {
@@ -182,6 +182,7 @@ STATICFILES_DIRS = [
 	os.path.join(BASE_DIR, "spa/www/js"),
 	os.path.join(BASE_DIR, "spa/www/html"),
     os.path.join(BASE_DIR, "spa/www/assets"),
+    os.path.join(BASE_DIR, "spa/www/css"),
 	# os.path.join(BASE_DIR, "spa/static"),
 	# os.path.join(BASE_DIR, "spa/templates"),
 ]

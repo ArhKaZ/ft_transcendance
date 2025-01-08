@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neon Pong</title>
-    <link rel="stylesheet" href="../../css/onlinePong/main.css">
+    <link rel="stylesheet" href="../static/onlinePong/main.css">
 </head>
 <body>
     <div id="info-main-player" class="info">
@@ -52,7 +52,7 @@
     <div id="canvasContainer" class="game-area">
         <div id="end-container" class="end-container hidden">
             <div id="end-info-p1" class="end-info">
-                <img id="crown-img-p1" src="../../assets/onlinePong/Crown.png" alt="crown" class="hidden crown"/>
+                <img id="crown-img-p1" src="../static/onlinePong/Crown.png" alt="crown" class="hidden crown"/>
                 <img id="end-img-p1" src="" alt="end-img-p1" class="end-img"/>
                 <span id="end-name-p1" class="end-name"></span>
             </div>
@@ -66,14 +66,14 @@
                 </a>
             </div>
             <div id="end-info-p2" class="end-info">
-                <img id="crown-img-p2" src="../../assets/onlinePong/Crown.png" alt="crown" class="hidden crown"/>
+                <img id="crown-img-p2" src="../static/onlinePong/Crown.png" alt="crown" class="hidden crown"/>
                 <img id="end-img-p2" src="" alt="end-img-p2" class="end-img"/>
                 <span id="end-name-p2" class="end-name"></span>
             </div>
         </div>
         <canvas id="gameCanvas" class="allCanvas hidden"></canvas>
         <canvas id="countdownCanvas" class="allCanvas"></canvas>
-        <script type="module" src="../../js/onlinePong/main.js"></script>
+        <script type="module" src="../static/onlinePong/main.js"></script>
     </div>
     <!-- P2 Waiting Room when got a game -->
     <div id="infoP2" class="info hidden">
@@ -97,7 +97,7 @@
         <div class="separator"></div>
         <h1 id="p2-score" class="player-score">0</h1>
     </div>
-    <a id="button-ready" class="buttonNeon hidden" href="#">
+    <a id="button-ready" class="buttonNeon hidden">
         <span></span>
         <span></span>
         <span></span>

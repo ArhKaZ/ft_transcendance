@@ -631,9 +631,14 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		await self.channel_layer.group_send(self.game.group_name, message)
 
 	async def notify_player_ready(self):
+		player_number = 0
+		if self.player_id == self.game.p1_id:
+			player_number = 1
+		else:
+			player_number = 2
 		message = {
 			'type': 'player_ready',
-			'player_id': self.player_id,
+			'player_number': player_number,
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
 
@@ -758,7 +763,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def player_ready(self, event):
 		message = {
 			'type': 'player_ready',
-			'player_id': event['player_id'],
+			'player_number': event['player_number'],
 		}
 		await self.send(text_data=json.dumps(message))
 

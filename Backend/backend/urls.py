@@ -42,6 +42,6 @@ app_name = 'backend'
 urlpatterns = [
 	path('admin/', admin.site.urls),
 	path('api/', include('api.urls')),
-	re_path(r'^.*', views.index),
+	re_path(r'^(?!api/)(?!admin/).*$', views.index),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
   

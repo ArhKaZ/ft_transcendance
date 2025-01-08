@@ -5,7 +5,7 @@ function displayWhenLoad(player) {
     const avatarImg = document.getElementById('mp-avatar-img');
 
     nameElement.innerText = player.username;
-    avatarImg.src = player.src_avatar;
+    avatarImg.src = player.avatar;
 }
 
 function creationGameDisplay(data, game) {
@@ -70,12 +70,8 @@ function creationGameDisplay(data, game) {
     }
 }
 
-async function updatePlayerStatus(playerId, gameId) {
+async function updatePlayerStatus(playerNumber) {
     try {
-        const response = await fetch(`api/get_info_player/?game_id=${gameId}&player_id=${playerId}`);
-        const data = await response.json();
-        const playerNumber = data.player_number;
-        console.log("data:", data , " playerNumber:", playerNumber);
         const waitingAnimation = document.getElementById(`p${playerNumber}-waiting-animation`);
         const joinedAnimation = document.getElementById(`p${playerNumber}-joined-animation`);
 
