@@ -1,4 +1,3 @@
-import { getCSRFToken } from '/static/utils.js';
 import Player from "./game/player.js";
 import Game from "./game/game.js";
 import CountdownAnimation from "./game/countdownAnimation.js";
@@ -70,36 +69,23 @@ function sendToBack(data) {
 }
 
 async function getUserFromBack() {
-    try {
-        const response = await fetch('/api/get-my-info/', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
-            },
-            credentials: 'include',
-        });
-        if (!response.ok) {
-            console.log("error reponse");
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Error getting user");
-        }
-        const data = await response.json();
-        console.log('data:', data);
-        return await data;
-    } catch (error) {
-        alert("Need to be logged");
-        window.location.href = '/home/';
-        console.error("Error when getting user:", error);
-        throw error;
-    }
+	try {
+		const response = await fetch('logged_get_user/');
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || "Error getting user");
+		}
+		return await response.json();
+	} catch (error) {
+		console.error("Error when getting user:", error);
+		throw error;
+	}
 }
 
 function handleError(error) {
 	if (error.message.includes("No token") || error.message.includes("Invalid Token") || error.message.includes("User does not exist")) {
 		alert("You need to connect before playing");
-		window.location.href = '/home/';
+		window.location.href = '/home';
 	} else {
 		alert(error.message);
 	}
@@ -107,7 +93,7 @@ function handleError(error) {
 
 function handleGameCancel(data) {
 	alert(`Game is cancelled, player ${data.player_id} is gone`); // TODO Faire meilleur erreur
-	window.location.href = '/home/';
+	window.location.href = '/home';
 }
 
 async function init() {
@@ -132,7 +118,7 @@ function setupWebSocket(user) {
 			action: 'search',
 			player_id: user.id,
 			player_name: user.username,
-			player_avatar: user.avatar,
+			player_avatar: user.src_avatar,
 			player_lp: user.ligue_points
 		});
 	}
@@ -176,7 +162,7 @@ async function handleWebSocketMessage(event) {
 			break;
 
 		case 'player_ready':
-			await updatePlayerStatus(data.player_number);
+			await updatePlayerStatus(data.player_id, currentGameId);
 			break;
 
 		case 'game_start':
@@ -192,6 +178,7 @@ async function handleWebSocketMessage(event) {
 			break;
 
 		case 'round_end':
+			console.log('j\'ai round end');
 			handleRoundEnd(data);
 			break;
 
@@ -222,7 +209,7 @@ async function handleWebSocketMessage(event) {
 		case 'error':
 			alert('Error : ' + data.message);
 			setTimeout(() => {
-				window.location.href = '/home/';
+				window.location.href = '/logged';
 			}, 300);
 	}
 }
@@ -267,29 +254,24 @@ function handleGameFinish(data) {
 	}, 500);
 }
 
-function sendMatchApi(winningId) {
-	const opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
-    setTimeout(() => {
-        game.displayWinner(winningId);
-    }, 500);
-    const asWin = currentPlayerId === parseInt(winningId);
-    fetch('/api/add_match/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-            'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-            'type': 'magicDuel',
-            'opponent_name': opponentName,
-            'won': asWin
-        })
-    }).then(response => response.json())
-    .then(data => {
-        console.log('Match enregistrer ', data);
-    }).catch(error => console.error(error));
+function sendMatchApi(winning_id) {
+	const opponent_name = currentPlayerId === parseInt(currentGame.P1.id) ? currentGame.P2.name : currentGame.P1.name;
+	const asWin = currentPlayerId === parseInt(winning_id);
+	fetch('/api/add_match/', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+		},
+		body: JSON.stringify({
+			'type': 'Wizard Duel',
+			'opponent_name': opponent_name,
+			'won': asWin
+		})
+	}).then(response => response.json())
+	.then(data => {
+		console.log('Match enregistrer', data);
+	}).catch(error => console.error(error));
 }
 
 
@@ -378,5 +360,5 @@ function resizeCanvas() {
 	}
 }
 
-init();
+document.addEventListener('DOMContentLoaded', init);
 

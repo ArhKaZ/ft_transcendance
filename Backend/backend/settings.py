@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-qdom&c2+nmkyc2!pndizv(5=-!lp!t1v6&+&_kesk4zu-vpek*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', 'django']
 
 # Application definition
 
@@ -205,6 +205,16 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_ROOT_PATH = Path(MEDIA_ROOT)
 AVATARS_PATH = MEDIA_ROOT_PATH / 'avatars'
 AVATARS_PATH.mkdir(parents=True, exist_ok=True)
+
+
+#HTTPS CONFIG
+SECURE_SSL_REDIRECT = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SAMESITE = 'Lax'

@@ -1,6 +1,5 @@
-import { getCSRFToken } from '/static/utils.js';
-import Game from "./game/game.js";
-import Player from "./game/player.js";
+import Game from "../src/game/game.js";
+import Player from "../src/game/player.js";
 import CountdownAnimation from "./game/countdownAnimation.js";
 import {creationGameDisplay, updatePlayerStatus, displayWhenLoad } from "./game/waitingRoom.js";
 
@@ -22,31 +21,19 @@ function sendToBack(data) {
 
 async function getUserFromBack() {
     try {
-        const response = await fetch('/api/get-my-info/', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
-            },
-            credentials: 'include',
-        });
+        const response = await fetch('logged_get_user/');
         if (!response.ok) {
-            console.log("error reponse");
             const errorData = await response.json();
             throw new Error(errorData.error || "Error getting user");
         }
-        const data = await response.json();
-        console.log('data:', data);
-        return await data;
+        return await response.json();
     } catch (error) {
-        alert("Need to be logged");
-        window.location.href = '/home/';
         console.error("Error when getting user:", error);
         throw error;
     }
 }
 
+document.addEventListener("DOMContentLoaded", async () => init());
     
 async function init() {
     const user = await getUserFromBack();
@@ -64,12 +51,11 @@ function setupWebSocket(user) {
 
     socket.onopen = () => {
         console.log("WebSocket connected");
-        console.log(user);
         sendToBack({
             action: 'search', 
             player_id: user.id, 
             player_name: user.username, 
-            player_avatar: user.avatar,
+            player_avatar: user.src_avatar
         });
     };
 
@@ -120,6 +106,7 @@ function handleError(error) {
     }
 }
 
+
 async function initGame(data) {
     const canvas = document.getElementById('gameCanvas');
     oldHeight = canvas.height;
@@ -154,8 +141,7 @@ async function handleWebSocketMessage(e) {
             break;
 
         case 'player_ready':
-            console.log("player ready");
-            await updatePlayerStatus(data.player_number);
+            await updatePlayerStatus(data.player_id, currentGameId);
             break;
 
         case 'ball_position':
@@ -204,14 +190,14 @@ async function handleWebSocketMessage(e) {
         case 'error':
             alert('Error : '+ data.message);
             setTimeout(() => {
-                window.location.href = '/home/';
+                window.location.href = '/logged';
             }, 300);
     }
 }
 
 function handleGameCancel(data) {
     alert(`Game is cancelled, player ${data.player_id} is gone`); // TODO Faire meilleur erreur
-    window.location.href = '/home/';
+    window.location.href = '/logged';
 }
 
 function updatePlayerPosition(game, data) {
@@ -238,10 +224,9 @@ function handleGameFinish(game, winningId) { // extraire function pour call api
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-            'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`, // Si vous utilisez CSRF protection
         },
-        credentials: 'include',
+        // credentials: 'include',  // Important pour inclure les cookies
         body: JSON.stringify({
             'type': 'Pong',
             'opponent_name': opponentName, // Remplacez par le vrai nom de l'adversaire
@@ -293,5 +278,3 @@ function updatePaddleDimensions(game, canvas) {
     game.P1.paddle.y = (game.P1.paddle.y / oldHeight) * canvas.height;
     game.P2.paddle.y = (game.P2.paddle.y / oldHeight) * canvas.height;
 }
-
-init();
