@@ -12,7 +12,6 @@ until python -c "import psycopg2; conn = psycopg2.connect(dbname='$POSTGRES_DB',
   sleep 1
 done
 
-python manage.py collectstatic --noinput
 
 python manage.py makemigrations api # bizarre mais necessaire
 
