@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Magic Duel</title>
-    <link rel="stylesheet" href="../static/magicDuel/main.css">
+    <link rel="stylesheet" href="/css/magicDuel/main.css">
 </head>
 <body>
     <div id="info-main-player" class="info-main-player">
@@ -44,12 +44,12 @@
     <div id="canvasContainer">
         <div id="end-container" class="end-container hidden">
             <div id="end-info-p1" class="end-info">
-                <img id="crown-img-p1" src="../static/magicDuel/Crown.png" alt="crown" class="hidden crown"/>
+                <img id="crown-img-p1" src="../assets/magicDuel/Crown.png" alt="crown" class="hidden crown"/>
                 <img id="end-img-p1" src="" alt="end-img-p1" class="end-img"/>
                 <span id="end-name-p1" class="end-name"></span>
             </div>
             <div id="end-button"> 
-                <a id="button-home" class="buttonNeon" href="http://127.0.0.1:8000/home/">
+                <a id="button-home" class="buttonNeon" href="http://127.0.0.1/home/">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -58,7 +58,7 @@
                 </a>
             </div>
             <div id="end-info-p2" class="end-info">
-                <img id="crown-img-p2" src="../static/magicDuel/Crown.png" alt="crown" class="hidden crown"/>
+                <img id="crown-img-p2" src="../assets/magicDuel/Crown.png" alt="crown" class="hidden crown"/>
                 <img id="end-img-p2" src="" alt="end-img-p2" class="end-img"/>
                 <span id="end-name-p2" class="end-name"></span>
             </div>
@@ -73,12 +73,12 @@
                         <span id="p1-hud-name-element"></span>
                     </div>
                     <div id="p1-hud-lifes" class="pv">
-                        <img id="p1-empty-heart-1" class="hidden" src="../static/magicDuel/empty_heart.png" alt="empty_heart"/>
-                        <img id="p1-full-heart-1" class="" src="../static/magicDuel/full_heart.png" alt="full_heart"/>
-                        <img id="p1-empty-heart-2" class="hidden" src="../static/magicDuel/empty_heart.png" alt="empty_heart"/>
-                        <img id="p1-full-heart-2" class="" src="../static/magicDuel/full_heart.png" alt="full_heart"/>
-                        <img id="p1-empty-heart-3" class="hidden" src="../static/magicDuel/empty_heart.png" alt="empty_heart"/>
-                        <img id="p1-full-heart-3" class="" src="../static/magicDuel/full_heart.png" alt="full_heart"/>
+                        <img id="p1-empty-heart-1" class="hidden" src="../assets/magicDuel/empty_heart.png" alt="empty_heart"/>
+                        <img id="p1-full-heart-1" class="" src="../assets/magicDuel/full_heart.png" alt="full_heart"/>
+                        <img id="p1-empty-heart-2" class="hidden" src="../assets/magicDuel/empty_heart.png" alt="empty_heart"/>
+                        <img id="p1-full-heart-2" class="" src="../assets/magicDuel/full_heart.png" alt="full_heart"/>
+                        <img id="p1-empty-heart-3" class="hidden" src="../assets/magicDuel/empty_heart.png" alt="empty_heart"/>
+                        <img id="p1-full-heart-3" class="" src="../assets/magicDuel/full_heart.png" alt="full_heart"/>
                     </div>
                 </div>
                 <div id="p2-hud" class="player-hud">
@@ -86,12 +86,12 @@
                         <span id="p2-hud-name-element"></span>
                     </div>
                     <div id="p2-hud-lifes" class="pv">
-                        <img id="p2-empty-heart-1" class="hidden" src="../static/magicDuel/empty_heart.png" alt="empty_heart"/>
-                        <img id="p2-full-heart-1" class="" src="../static/magicDuel/full_heart.png" alt="full_heart"/>
-                        <img id="p2-empty-heart-2" class="hidden" src="../static/magicDuel/empty_heart.png" alt="empty_heart"/>
-                        <img id="p2-full-heart-2" class="" src="../static/magicDuel/full_heart.png" alt="full_heart"/>
-                        <img id="p2-empty-heart-3" class="hidden" src="../static/magicDuel/empty_heart.png" alt="empty_heart"/>
-                        <img id="p2-full-heart-3" class="" src="../static/magicDuel/full_heart.png" alt="full_heart"/>
+                        <img id="p2-empty-heart-1" class="hidden" src="../assets/magicDuel/empty_heart.png" alt="empty_heart"/>
+                        <img id="p2-full-heart-1" class="" src="../assets/magicDuel/full_heart.png" alt="full_heart"/>
+                        <img id="p2-empty-heart-2" class="hidden" src="../assets/magicDuel/empty_heart.png" alt="empty_heart"/>
+                        <img id="p2-full-heart-2" class="" src="../assets/magicDuel/full_heart.png" alt="full_heart"/>
+                        <img id="p2-empty-heart-3" class="hidden" src="../assets/magicDuel/empty_heart.png" alt="empty_heart"/>
+                        <img id="p2-full-heart-3" class="" src="../assets/magicDuel/full_heart.png" alt="full_heart"/>
                     </div>
                 </div>
             </div>
@@ -123,23 +123,23 @@
         <div id="timer-element" class="hidden timer"></div>
         <div id="choiceButtons" class="centered-buttons hidden">
             <button id='btn1' class="magic-button-base btn-purple">
-                <img src="../static/magicDuel/Icon-button/dark-bolt.png" class="element-icon" alt="dark-bolt"/>
+                <img src="../assets/magicDuel/Icon-button/dark-bolt.png" class="element-icon" alt="dark-bolt"/>
                 <span class="power-name">DARK BOLT</span>
             </button>
             <button id='btn2' class="magic-button-base btn-fire">
-                <img src="../static/magicDuel/Icon-button/fire-bomb.png" class="element-icon" alt="fire-bomb"/>
+                <img src="../assets/magicDuel/Icon-button/fire-bomb.png" class="element-icon" alt="fire-bomb"/>
                 <span class="power-name">FIRE BOMB</span>
             </button>
             <button id='btn3' class="magic-button-base btn-lightning">
-                <img src="../static/magicDuel/Icon-button/lightning.png" class="element-icon" alt="lightning"/>
+                <img src="../assets/magicDuel/Icon-button/lightning.png" class="element-icon" alt="lightning"/>
                 <span class="power-name">LIGHTNING</span>
             </button>
             <button id='btn4' class="magic-button-base btn-circle">
-                <img src="../static/magicDuel/Icon-button/spark4.png" class="element-icon" alt="spark"/>
+                <img src="../assets/magicDuel/Icon-button/spark4.png" class="element-icon" alt="spark"/>
                 <span class="power-name">SPARK</span>
             </button>
         </div>
-        <script type="module" src="../static/magicDuel/main.js"></script>
+        <script type="module" src="/js/magicDuel/main.js"></script>
     </div>
     <!-- Player 2 Waiting Room when got a game -->
     <div id="infoP2" class="info-player">

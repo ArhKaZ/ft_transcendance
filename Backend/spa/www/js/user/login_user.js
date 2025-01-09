@@ -1,4 +1,4 @@
-import { getCSRFToken } from '/static/utils.js';
+import { getCSRFToken } from '/js/utils.js';
 
 var loginbtn = document.getElementById('login-button');
 

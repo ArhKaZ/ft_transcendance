@@ -32,7 +32,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 	async def connect(self):
 		self.player_id = self.scope['url_route']['kwargs']['player_id']
-
+		print("Je passe ici")
 		previous_channel = cache.get(f"player_{self.player_id}_channel")
 		if previous_channel:
 			await self.channel_layer.group_discard("onlinePong_players", previous_channel)

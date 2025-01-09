@@ -527,17 +527,17 @@ body {
     transition: transform 0.5s ease-in-out;
   }
   
-  .front-cover {
+  /* .front-cover {
     left: 0;
     transform: rotateY(0deg);
-    background: url('/static/magicDuel/assets/leather-texture.png') center/cover; /* Texture de cuir */
-  }
+    background: url('asset/magicDuel/assets/leather-texture.png') center/cover; /* Texture de cuir */
+  /* } */
   
-  .back-cover {
+  /* .back-cover {
     right: 0;
     transform: rotateY(-180deg);
-    background: url('/static/magicDuel/assets/leather-texture.png') center/cover; /* Texture de cuir */
-  }
+    background: url('assets/magicDuel/assets/leather-texture.png') center/cover; /* Texture de cuir */
+  /* } */ 
   
   /* Contenu du livre */
   .book-container {

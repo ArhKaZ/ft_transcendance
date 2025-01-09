@@ -1,4 +1,4 @@
-import { getCSRFToken } from '/static/utils.js';
+import { getCSRFToken } from '/js/utils.js';
 
 document.getElementById('logout-button').addEventListener('click', async () => {
 	console.log('Logging out...');

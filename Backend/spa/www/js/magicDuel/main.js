@@ -1,4 +1,4 @@
-import { getCSRFToken } from '/static/utils.js';
+import { getCSRFToken } from '/js/utils.js';
 import Player from "./game/player.js";
 import Game from "./game/game.js";
 import CountdownAnimation from "./game/countdownAnimation.js";
@@ -123,7 +123,7 @@ async function init() {
 function setupWebSocket(user) {
 	currentPlayerId = user.id;
 	const id = user.id.toString()
-	const socket = new WebSocket(`wss://localhost:8000/ws/magicDuel/${id}/`);
+	const socket = new WebSocket(`wss://127.0.0.1/ws/magicDuel/${id}/`);
 	let game = null;
 
 	socket.onopen = () => {
@@ -216,14 +216,13 @@ async function handleWebSocketMessage(event) {
 			break;
 
 		case 'game_cancel':
+			alert('Game cancel');
 			handleGameCancel(data);
 			break;
 
 		case 'error':
 			alert('Error : ' + data.message);
-			setTimeout(() => {
-				window.location.href = '/home/';
-			}, 300);
+			window.location.href = '/home/';
 	}
 }
 
@@ -268,10 +267,7 @@ function handleGameFinish(data) {
 }
 
 function sendMatchApi(winningId) {
-	const opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
-    setTimeout(() => {
-        game.displayWinner(winningId);
-    }, 500);
+	const opponentName = currentPlayerId === parseInt(currentGame.P1.id) ? currentGame.P2.name : currentGame.P1.name;
     const asWin = currentPlayerId === parseInt(winningId);
     fetch('/api/add_match/', {
         method: 'POST',

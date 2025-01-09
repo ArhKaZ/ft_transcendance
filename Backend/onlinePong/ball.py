@@ -67,7 +67,6 @@ class Ball:
                 colission_point = (self.y + 1) - (player1_data['y'] + 8)
             elif self.x >= 95 and player2_data['y'] <= self.y <= player2_data['y'] + 16:
                 colission_point = (self.y + 1) - (player2_data['y'] + 8)
-            print('players data:', player1_data, player2_data)
             normalized_point = colission_point / 8
             max_bounce_angle = math.pi / 4
             bounce_angle = normalized_point * max_bounce_angle

@@ -93,7 +93,6 @@ def get_history(request):
 
 @api_view(['GET'])
 def get_my_info(request):
-	print("in the fucntion")
 	user = request.user
 	serializer = UserInfoSerializer(user)
 	if user:

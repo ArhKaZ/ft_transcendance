@@ -119,43 +119,44 @@ class Router {
 // Définition des routes avec des fichiers HTML
 const routes = {
 	'/home/': async () => {
-    	const response = await fetch('/static/home.html');
+    	const response = await fetch('/html/home.html');
+        console.log(response);
     	return await response.text();
 	},
 	'/onlinePong/': async () => {
-    	const response = await fetch('/static/onlinePong/index.html');
+    	const response = await fetch('/html/onlinePong/index.html');
     	return await response.text();
 	},
 	'/magicDuel/': async () => {
-    	const response = await fetch('/static/magicDuel/index.html');
+    	const response = await fetch('/html/magicDuel/index.html');
     	return await response.text();
 	},
 	'/logged/': async () => {
-    	const response = await fetch('/static/user/logged.html');
+    	const response = await fetch('/html/user/logged.html');
     	return await response.text();
 	},
 	'/user/add/': async () => {
-    	const response = await fetch('/static/user/add.html');
+    	const response = await fetch('/html/user/add.html');
     	return await response.text();
 	},
 	'/user/edit/': async () => {
-    	const response = await fetch('/static/user/edit.html');
+    	const response = await fetch('/html/user/edit.html');
     	return await response.text();
 	},
 	'/user/edit_user/': async () => {
-    	const response = await fetch('/static/user/edit_user.html');
+    	const response = await fetch('/html/user/edit_user.html');
     	return await response.text();
 	},
 	'/user/history/': async () => {
-    	const response = await fetch('/static/user/history.html');
+    	const response = await fetch('/html/user/history.html');
     	return await response.text();
 	},
 	'/user/friend/': async () => {
-    	const response = await fetch('/static/user/friend.html');
+    	const response = await fetch('/html/user/friend.html');
     	return await response.text();
 	},
 	'/user/login/': async () => {
-		const response = await fetch('/static/user/login.html');
+		const response = await fetch('/html/user/login.html');
 		return await response.text();
 	},
     // '/user/invite/': () => '<h1>ERROR</h1>',

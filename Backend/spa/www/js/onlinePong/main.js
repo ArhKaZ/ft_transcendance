@@ -1,4 +1,4 @@
-import { getCSRFToken } from '/static/utils.js';
+import { getCSRFToken } from '/js/utils.js';
 import Game from "./game/game.js";
 import Player from "./game/player.js";
 import CountdownAnimation from "./game/countdownAnimation.js";
@@ -58,8 +58,11 @@ async function init() {
 
 function setupWebSocket(user) {
     currentPlayerId = user.id;
+    console.log("1");
     const id = user.id.toString();
-    const socket = new WebSocket(`wss://localhost:8000/ws/onlinePong/${id}/`);
+    console.log("2");
+    const socket = new WebSocket(`wss://127.0.0.1/ws/onlinePong/${id}/`);
+    console.log("3");
     let game = null;
 
     socket.onopen = () => {
