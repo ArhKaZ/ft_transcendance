@@ -1,5 +1,5 @@
-import Dot from './dot.js';
-
+import Dot from './onlinePong/game/dot.js';
+import { sleep } from './utils.js';
 class CountdownAnimation {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
@@ -13,12 +13,6 @@ class CountdownAnimation {
 
         window.addEventListener('resize', this.resizeCanvas);
         this.resizeCanvas();
-    }
-
-    sleep(ms) {
-        return new Promise(
-            resolve => setTimeout(resolve, ms)
-        );
     }
 
     stopDisplay() {
@@ -97,11 +91,11 @@ class CountdownAnimation {
         let count = from;
         this.isAnimating = true;
 
-        if (count >= 0) {
+        if (count > 0) {
             this.dots = this.createDotsFromText(count.toString());
         } else {
             this.dots = this.createDotsFromText('GO');
-            await this.sleep(1000);
+            await sleep(1000);
             this.isAnimating = false;
             this.destroy();
         }

@@ -1,7 +1,7 @@
 import { getCSRFToken, sleep } from '/js/utils.js';
 import Game from "./game/game.js";
 import Player from "./game/player.js";
-import CountdownAnimation from "./game/countdownAnimation.js";
+import CountdownAnimation from "../countdownAnimation.js";
 import { displayWhenLoad } from "./game/waitingRoom.js";
 
 let oldHeight = null;

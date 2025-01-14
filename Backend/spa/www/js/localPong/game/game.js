@@ -21,6 +21,7 @@ class Game {
         this.bindEvents();
         this.asReset = false;
         this.bounceAnimations = [];
+        this.bound = [false, false];
     }
 
     bindEvents() {
@@ -57,7 +58,7 @@ class Game {
     update() {
         this.P1.paddle.update(this.keyState);
         this.P2.paddle.update(this.keyState);
-        this.ball.update(this.P1.paddle, this.P2.paddle);
+        this.bound = this.ball.update(this.P1.paddle, this.P2.paddle);
         this.checkAsScore();
         this.checkWinner();
     }
@@ -111,12 +112,12 @@ class Game {
         this.isStart = false;
     }
 
-    drawGame(bound_wall, bound_player) {
+    drawGame() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawBorders(this.context, this.canvas);
         this.drawFrame();
         this.ball.draw(this.context);
-        this.activeBound(bound_wall, bound_player);
+        this.activeBound();
         this.P1.draw(this.context, this.colorP1);
         this.P2.draw(this.context, this.colorP2);
     }
@@ -128,6 +129,7 @@ class Game {
     }
 
     animateBounce(side) {
+        console.log('animateBounce');
         const startTime = Date.now();
         const animation = {
             startTime,
@@ -140,6 +142,7 @@ class Game {
     drawFrame() {
         const currentTime = Date.now();
         this.bounceAnimations = this.bounceAnimations.filter(animation => {
+            console.log('drawFrame in filtrer');
             const progress = (currentTime - animation.startTime) / animation.duration;
             if (progress > 1) 
                 return false;
@@ -149,10 +152,10 @@ class Game {
             this.context.lineWidth = 4;
 
             this.context.beginPath();
-            if (side === "top") {
+            if (animation.side === "top") {
                 this.context.moveTo(0, 0);
                 this.context.lineTo(this.canvas.width, 0);
-            } else if (side === "bottom") {
+            } else if (animation.side === "bottom") {
                 this.context.moveTo(0, this.canvas.height);
                 this.context.lineTo(this.canvas.width, this.canvas.height);
             }
@@ -160,7 +163,6 @@ class Game {
 
             return true;
         });
-        
     }
 
     updatePlayerPosition(player, y) {
@@ -200,17 +202,17 @@ class Game {
         this.scoreP2Element.style.fontSize = `${scoreFontSizeP2}px`;
     }
 
-    activeBound(bound_wall, bound_player) {
-        if (bound_wall) {
+    activeBound() {
+        if (this.bound[0]) {
             this.bound_wall();
         }
-        else if (bound_player) {
+        else if (this.bound[1]) {
             this.bound_player();
         }
     }
 
     bound_wall() {
-        const x_ball = this.ball.x;
+        console.log('bound_wall');
         const y_ball = this.ball.y;
         if (y_ball < this.canvas.height / 2) {
             this.animateBounce("top");

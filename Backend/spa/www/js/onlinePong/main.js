@@ -1,7 +1,7 @@
 import { getCSRFToken } from '/js/utils.js';
 import Game from "./game/game.js";
 import Player from "./game/player.js";
-import CountdownAnimation from "./game/countdownAnimation.js";
+import CountdownAnimation from "../countdownAnimation.js";
 import {creationGameDisplay, updatePlayerStatus, displayWhenLoad } from "./game/waitingRoom.js";
 
 let socket = null;

@@ -18,18 +18,19 @@ class Ball {
     }
 
     update(paddle1, paddle2) {
+        let bound = [false, false];
         this.x += this.vx;
         this.y += this.vy;
+
         if (this.y - this.size <= 0 || this.y + this.size >= this.canvas.height) {
             this.vy *= -1;
+            bound[0] = true;
         }
 
-        if (this.collisionPaddle(paddle1))
-            return 1;
-        if (this.collisionPaddle(paddle2))
-            return 2;
+        if (this.collisionPaddle(paddle1) || this.collisionPaddle(paddle2))
+            bound[1] = true;
 
-        return 0;
+        return bound;
     }
 
     collisionPaddle(paddle)
