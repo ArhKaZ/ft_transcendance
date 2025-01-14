@@ -53,6 +53,7 @@ if (response.ok) {
 	avatarImg.src = data.avatar;
 	avatarImg.alt = 'avatar';
 } else {
+	const localbtn = document.getElementById('local-button');
 	const pongbtn = document.getElementById('pong-button');
 	const historybtn = document.getElementById('history-button');
 	const logoutbtn = document.getElementById('logout-button');
@@ -61,6 +62,7 @@ if (response.ok) {
 	const friendsbtn = document.getElementById('friend-button');
 	const avatarImg = document.getElementById('user-avatar');
 
+	localbtn.style.display = 'none';
 	pongbtn.style.display = 'none';
 	historybtn.style.display = 'none';
 	logoutbtn.style.display = 'none';

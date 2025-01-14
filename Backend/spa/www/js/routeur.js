@@ -118,15 +118,22 @@ class Router {
 
 // Définition des routes avec des fichiers HTML
 const routes = {
+    '/': async () => {
+        router.navigateTo('/home/');
+        return '';
+    },
 	'/home/': async () => {
     	const response = await fetch('/html/home.html');
-        console.log(response);
     	return await response.text();
 	},
 	'/onlinePong/': async () => {
     	const response = await fetch('/html/onlinePong/index.html');
     	return await response.text();
 	},
+    '/localPong/': async () => {
+        const response = await fetch('/html/localPong/index.html');
+        return await response.text();
+    },
 	'/magicDuel/': async () => {
     	const response = await fetch('/html/magicDuel/index.html');
     	return await response.text();
