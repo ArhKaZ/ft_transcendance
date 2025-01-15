@@ -207,7 +207,7 @@ async function handleWebSocketMessage(event) {
 			startTimer(data);
 			break;
 
-		case 'looser':
+		case 'game_end':
 			handleGameFinish(data);
 			break;
 

@@ -2,14 +2,17 @@ from asgiref.sync import sync_to_async
 from django.core.cache import cache
 
 class Player:
-    def __init__(self, nb, player_id, game_id, action = None, life=1):
+    def __init__(self, nb, player_info, game_id, ready = False, action = None, life=1):
         self.life = life
-        self.game_id = game_id
-        self.player_id = player_id
         self.nb = nb
         self.width = 3
         self.height = 7
         self.action = action
+        self.id = player_info['id']
+        self.username = player_info['username']
+        self.avatar = player_info['avatar']
+        self.ready = ready
+        self.game_id = game_id
 
     def __repr__(self):
         return f"Player(id={self.player_id}, nb={self.nb}, life={self.life}, action={self.action})"
@@ -44,36 +47,29 @@ class Player:
         return data if data else None
 
     async def save_to_cache(self):
-        cache_key = f'wizard_duel_player_{self.player_id}_{self.game_id}'
+        cache_key = f'wizard_duel_player_{self.id}_{self.game_id}'
         await sync_to_async(cache.set)(cache_key, {
             'life': self.life,
-            'player_id': self.player_id,
+            'player_id': self.id,
             'game_id': self.game_id,
             'nb': self.nb,
             'action': self.action
         }, timeout= 3600)
 
-        # player_sessions_key = f'wizard_duel_sessions_game_{self.game_id}'
-        # current_sessions = cache.get(player_sessions_key) or []
-        # if self.player_id not in current_sessions:
-        #     current_sessions.append(self.player_id)
-        #     await sync_to_async(cache.set)(player_sessions_key, current_sessions)
 
     def delete_from_cache(self):
         cache.delete(f'wizard_duel_player_{self.player_id}_{self.game_id}')
 
-    @staticmethod
-    async def reset_action(p1_id, p2_id, game_id):
-        players = await Player.get_players_of_game(p1_id, p2_id, game_id)
-        if players is None:
-            return
-        if players[0].action is None and players[1].action is None:
-            return
-        for player in players:
-            player.action = None
-            await player.save_to_cache()
-
     async def lose_life(self):
         self.life -= 1
         await self.save_to_cache()
-        print(self.life)
+
+    async def assign_action(self, action):
+        self.action = action
+        await self.save_to_cache()
+
+    async def update_player(self):
+        player_cache = await self.load_from_cache(self.id, self.game_id)
+        if player_cache:
+            self.life = player_cache['life']
+            self.action = player_cache['action']
