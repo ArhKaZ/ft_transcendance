@@ -8,13 +8,16 @@ from backend import settings
 
 
 class Player:
-    def __init__(self, player_id, game_id):
+    def __init__(self, player_info, game_id, ready = False):
         self.y = 42.5
         self.nb = 0
         self.speed = 0.7
         self.score = 0
         self.game_id = game_id
-        self.player_id = player_id
+        self.id = player_info['id']
+        self.username = player_info['username']
+        self.avatar = player_info['avatar']
+        self.ready = ready
 
     def __repr__(self):
         return f"Player(id={self.player_id}, nb={self.nb}, y={self.y}, score={self.score})"
@@ -84,3 +87,15 @@ class Player:
             print(f"Redis Error in add_point: {e}")
         except Exception as e:
             print(f"Exception in add_point: {e}")
+
+    async def delete_from_cache(self):
+        cache_key = f'player_{self.id}_{self.game_id}'
+        await sync_to_async(cache.delete)(cache_key)
+
+    async def update_player(self):
+        player_cache = await self.load_from_cache(self.id, self.game_id)
+        if player_cache:
+            self.score = player_cache['score']
+            return 0
+        else:
+            return -1

@@ -3,7 +3,7 @@ from asgiref.sync import sync_to_async
 from .player import Player
 
 class Game:
-	def __init__(self, player_info, opponent_info, game_id,  p1_ready = False, p2_ready = False,):
+	def __init__(self, player_info, opponent_info, game_id, p1_ready = False, p2_ready = False):
 		self.game_id = game_id
 		self.status = "WAITING"
 		self.group_name = f"wizard_duel_game_{self.game_id}"
@@ -39,8 +39,8 @@ class Game:
 	def both_players_ready(self):
 		return self.p1.ready and self.p2.ready
 	
-	def remove_from_cache(self):
-		cache.delete(f'wizard_duel_game_{self.game_id}')
+	async def remove_from_cache(self):
+		await cache.delete(f'wizard_duel_game_{self.game_id}')
 
 	async def set_a_player_ready(self, player_id):
 		new_game = await self.get_game_from_cache(self.game_id)
@@ -87,14 +87,14 @@ class Game:
 		await self.save_to_cache()
 
 		if player_id == self.p1.id:
-			self.p1.delete_from_cache()
+			await self.p1.delete_from_cache()
 			self.p1 = None
 		elif player_id == self.p2.id:
-			self.p2.delete_from_cache()
+			await self.p2.delete_from_cache()
 			self.p2 = None
 
 		if self.p1 is None and self.p2 is None:
-			self.remove_from_cache()
+			await self.remove_from_cache()
 
 	# async def get_players(self):
 	# 	return await Player.get_players_of_game(self.p1_id, self.p2_id, self.game_id)

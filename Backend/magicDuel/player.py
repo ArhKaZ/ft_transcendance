@@ -8,7 +8,6 @@ class Player:
         self.width = 3
         self.height = 7
         self.action = action
-        print('init player:', player_info)
         self.id = player_info['id']
         self.username = player_info['username']
         self.avatar = player_info['avatar']
@@ -59,11 +58,9 @@ class Player:
             'action': self.action
         }, timeout= 3600)
 
-
-    def delete_from_cache(self):
+    async def delete_from_cache(self):
         cache_key = f'wizard_duel_player_{self.id}_{self.game_id}'
-        print(f'delete: {cache_key}, ')
-        cache.delete(cache_key)
+        await sync_to_async(cache.delete)(cache_key)
 
     async def lose_life(self):
         self.life -= 1

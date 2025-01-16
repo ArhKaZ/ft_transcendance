@@ -46,15 +46,26 @@ class PongConsumer(AsyncWebsocketConsumer):
 	async def disconnect(self, close_code):
 		if self.game_id:
 			print(f"Disconnect player {self.player_id} from game {self.game_id}")
-			await sync_to_async(cache.delete)(f'player_current_game_{self.player_id}')
-			await self.notify_game_cancel(self.player_id)
-			await self.cleanup(False)
-		else:
-			print(f"Disconnect player {self.player_id} from waiting room")
+
 			key = 'waiting_onlinePong_players'
-			current_waiting_players = cache.get(key) or []
-			current_waiting_players = [player for player in current_waiting_players if player['id'] != self.player_id]
+			current_waiting_players = await sync_to_async(cache.get)(key) or []
+			current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
 			await sync_to_async(cache.set)(key, current_waiting_players)
+
+			await sync_to_async(cache.delete)(f'player_current_game_{self.player_id}')
+			await sync_to_async(cache.delete)(f"player_{self.player_id}_channel")
+
+			if self.game:
+				self.game.update_game()
+				username_gone = self.game.p1.username if self.player_id == self.game.p1.id else self.game.p2.username
+				await self.notify_game_cancel(username_gone)
+				await self.cleanup(False)
+				if self.game.status == "WAITING":
+					await sync_to_async(cache.delete)(f'game_pong_{self.game_id}')
+					print(f"Game {self.game_id} removed from cache - was in WAITING state")
+				else:
+					await self.game.handle_player_disconnect(self.player_id)
+			await self.cleanup()
 
 	async def cleanup(self, game_finished):
 		async with self.cleanup_lock:
@@ -63,26 +74,21 @@ class PongConsumer(AsyncWebsocketConsumer):
 			self.is_cleaning_up = True
 
 			try:
-				if self.listen_task and not self.listen_task.done():
-					self.listen_task.cancel()
-					try:
-						await self.listen_task
-					except asyncio.CancelledError:
-						pass
+				tasks = [
+					(self.listen_task, 'listen_task'),
+					(self.send_ball_task, 'send_ball_task'),
+					(self.countdown_task, 'countdown_task')
+				]
 
-				if self.send_ball_task and not self.send_ball_task.done():
-					self.send_ball_task.cancel()
-					try:
-						await self.send_ball_task
-					except asyncio.CancelledError:
-						pass
-
-				if self.countdown_task and not self.countdown_task.done():
-					self.countdown_task.cancel()
-					try: 
-						await self.countdown_task
-					except asyncio.CancelledError:
-						pass
+				for task, task_name in tasks:
+					if task and not task.done():
+						task.cancel()
+						try:
+							await task
+						except asyncio.CancelledError:
+							print(f"Task {task_name} cancelled successfully")
+						except Exception as e:
+							print(f"Error cancelling {task_name}: {e}")
 
 				if hasattr(self, 'pubsub'):
 					try: 
@@ -99,12 +105,19 @@ class PongConsumer(AsyncWebsocketConsumer):
 				if self.game and hasattr(self.game, 'group_name'):		
 					await self.channel_layer.group_discard(self.game.group_name, self.channel_name)
 
-				print(f"Game {self.game_id} removed from cache")
-				await self.remove_game_from_cache(game_finished)
+				if self.ame and self.game.status == "WAITING":
+					await sync_to_async(cache.delete)(f"player_{self.player_id}")
+					await sync_to_async(cache.delete)(f"game_pong_{self.game_id}")
+					print(f"Cleaned up waiting game {self.game_id}")
+
+				await sync_to_async(cache.delete)(f"player_current_game_{self.player_id}")
+
 			except Exception as e:
 				print(f"Error during cleanup: {e}")
+				print(f"Error details:", str(e))
 			finally:
 				self.is_cleaning_up = False
+				self.game = None
 
 	async def initialize_listener(self):
 		try:
@@ -426,10 +439,11 @@ class PongConsumer(AsyncWebsocketConsumer):
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
 
-	async def notify_game_cancel(self, player_id):
+	async def notify_game_cancel(self, username_gone):
 		message = {
 			'type': 'game_cancel',
-			'player_id': player_id
+			'username': username_gone,
+			'game_status': self.game.status
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
 
