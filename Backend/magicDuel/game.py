@@ -13,9 +13,10 @@ class Game:
 	async def save_to_cache(self):
 		cache_key = f'wizard_duel_game_{self.game_id}'
 		await sync_to_async(cache.set)(cache_key, self.to_dict())
+		self.p1.save_to_cache()
+		self.p2.save_to_cache()
 
 	def to_dict(self):
-		print(self.p1.ready, self.p2.ready)
 		return {
 			'id': self.game_id,
 			'p1_id': self.p1.id,
@@ -26,6 +27,8 @@ class Game:
 			'p2_avatar': self.p2.avatar,
 			'p1_ready' : self.p1.ready,
 			'p2_ready' : self.p2.ready,
+			'p1_ligue_points': self.p1.ligue_points,
+			'p2_ligue_points': self.p2.ligue_points,
 			'status': self.status,
 			'group_name': self.group_name
 		}
@@ -37,8 +40,6 @@ class Game:
 		return self.p1.ready and self.p2.ready
 	
 	def remove_from_cache(self):
-		cache.delete(f'player_current_game_{self.p1_id}')
-		cache.delete(f'player_current_game_{self.p2_id}')
 		cache.delete(f'wizard_duel_game_{self.game_id}')
 
 	async def set_a_player_ready(self, player_id):
@@ -61,13 +62,15 @@ class Game:
 		player_info= {
 			'id': game['p1_id'],
 			'username': game['p1_username'],
-			'avatar': game['p1_avatar']
+			'avatar': game['p1_avatar'],
+			'ligue_points': game['p1_ligue_points']
 		}
 
 		opponent_info= {
 			'id': game['p2_id'],
 			'username': game['p2_username'],
-			'avatar': game['p2_avatar']
+			'avatar': game['p2_avatar'],
+			'ligue_points': game['p2_ligue_points']
 		}
 
 		game_instance = cls(player_info, opponent_info, game_id, game['p1_ready'], game['p2_ready'])
@@ -77,15 +80,24 @@ class Game:
 		game_instance.group_name = game['group_name']
 
 		return game_instance
-	
-	def delete_player(self, nb):
-		if nb == 1:
+
+
+	async def handle_player_disconnect(self, player_id):
+		self.status = 'CANCELLED'
+		await self.save_to_cache()
+
+		if player_id == self.p1.id:
+			self.p1.delete_from_cache()
 			self.p1 = None
-		elif nb == 2:
+		elif player_id == self.p2.id:
+			self.p2.delete_from_cache()
 			self.p2 = None
 
-	async def get_players(self):
-		return await Player.get_players_of_game(self.p1_id, self.p2_id, self.game_id)
+		if self.p1 is None and self.p2 is None:
+			self.remove_from_cache()
+
+	# async def get_players(self):
+	# 	return await Player.get_players_of_game(self.p1_id, self.p2_id, self.game_id)
 	
 	async def update_game(self):
 		newGame = cache.get(f"wizard_duel_game_{self.game_id}")
@@ -93,5 +105,7 @@ class Game:
 		self.update_players()
 
 	async def update_players(self):
-		await self.p1.update_player()
-		await self.p2.update_player()
+		if await self.p1.update_player() == -1:
+			self.p1 = None
+		if await self.p2.update_player() == -1:
+			self.p2 = None

@@ -2,7 +2,7 @@ import { getCSRFToken } from '/js/utils.js';
 import Player from "./game/player.js";
 import Game from "./game/game.js";
 import CountdownAnimation from "../countdownAnimation.js";
-import {creationGameDisplay, updatePlayerStatus, displayWhenLoad } from "./game/waitingRoom.js";
+import {creationGameDisplay, updatePlayerStatus, displayWhenLoad, playerLeave } from "./game/waitingRoom.js";
 
 let socket = null;
 let currentPlayerId = null;
@@ -106,8 +106,14 @@ function handleError(error) {
 }
 
 function handleGameCancel(data) {
-	alert(`Game is cancelled, player ${data.player_id} is gone`); // TODO Faire meilleur erreur
-	window.location.href = '/home/';
+	alert(`Player ${data.username} left`);
+	if (data.game_status === "WAITING")
+	{
+		window.location.href = '/home/';
+	}
+	else { //Gerer les lp 
+		window.location.href = '/home/';
+	}
 }
 
 async function init() {
@@ -216,7 +222,6 @@ async function handleWebSocketMessage(event) {
 			break;
 
 		case 'game_cancel':
-			alert('Game cancel');
 			handleGameCancel(data);
 			break;
 

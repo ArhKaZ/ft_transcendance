@@ -35,7 +35,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 	async def connect(self):
 		self.player_id = self.scope['url_route']['kwargs']['player_id']	
-
+		print(type(self.player_id))
 		previous_channel = cache.get(f"player_{self.player_id}_channel")
 		if previous_channel:
 			await self.channel_layer.group_discard("wizard_duel_players", previous_channel)
@@ -49,71 +49,67 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def disconnect(self, close_code):
 		if self.game_id:
 			print(f"Disconnect player {self.player_id} from game {self.game_id}")
-			await sync_to_async(cache.delete)(f"player_current_game_{self.player_id}")
-			await self.notify_game_cancel(self.player_id)
-			await self.cleanup(False)
 
-	async def cleanup(self, game_finished):
+			key = 'waiting_wizard_duel_players'
+			current_waiting_players = await sync_to_async(cache.get)(key) or []
+			current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
+			await sync_to_async(cache.set)(key, current_waiting_players)
+
+			await sync_to_async(cache.delete)(f"player_current_game_{self.player_id}")
+			await sync_to_async(cache.delete)(f"player_{self.player_id}_channel")
+
+			if self.game:
+				self.game.update_game()
+				username_gone = self.game.p1.username if self.player_id == self.game.p1.id else self.game.p2.username
+				await self.notify_game_cancel(username_gone)
+				if self.game.status == "WAITING":
+					await sync_to_async(cache.delete)(f'wizard_duel_game_{self.game_id}')
+					print(f"Game {self.game_id} removed from cache - was in WAITING state")
+				else:
+					await self.game.handle_player_disconnect(self.player_id)
+			await self.cleanup()
+
+	async def cleanup(self):
 		async with self.cleanup_lock:
 			if self.is_cleaning_up:
 				return
 			self.is_cleaning_up = True
 			
 			try:
-				player = await Player.create_player_from_cache(self.player_id, self.game_id)
-				if player is not None:
-					print(f'delete player {player.player_id} from cache')
-					player.delete_from_cache()
-					if self.game.p1.id == self.player_id:
-						self.game.delete_player(1)
-					elif self.game.p2.id == self.player_id:
-						self.game.delete_player(2)
+				tasks = [
+					(self._countdown_task, '_countdow_task'),
+					(self._game_loop_task, '_game_loop_task'),
+					(self.monitor_task, 'monitor_task'),
+					(self.round_task, 'round_task'),
+					(self._start_round_task, '_start_round_task')
+				]
 
-				if self._countdown_task and not self._countdown_task.done():
-					self._countdown_task.cancel()
-					try:
-						await self._countdown_task
-					except asyncio.CancelledError:
-						pass
+				for task, task_name in tasks:
+					if task and not task.done():
+						task.cancel()
+						try:
+							await task
+						except asyncio.CancelledError:
+							print(f"Task {task_name} cancelled successfully")
+						except Exception as e:
+							print(f"Error cancelling {task_name}: {e}")
 
-				if self._game_loop_task and not self._game_loop_task.done():
-					self._game_loop_task.cancel()
-					try:
-						await self._game_loop_task
-					except asyncio.CancelledError:
-						pass
-
-				if self.monitor_task and not self.monitor_task.done():
-					self.monitor_task.cancel()
-					try:
-						await self.monitor_task
-					except asyncio.CancelledError:
-						pass
-
-				if self.round_task and not self.round_task.done():
-					self.round_task.cancel()
-					try:
-						await self.round_task
-					except asyncio.CancelledError:
-						pass
-
-				if self._start_round_task and not self._start_round_task.done():
-					self._start_round_task.cancel()
-					try:
-						await self._start_round_task
-					except asyncio.CancelledError:
-						pass
-
-				if  self.game and hasattr(self.game, 'group_name'):
+				if self.game and hasattr(self.game, 'group_name'):
 					await self.channel_layer.group_discard(self.game.group_name, self.channel_name)
 
-				if self.game.p1 is None and self.game.p2 is None:
-					print(f"Game {self.game_id} removed from cache")
-					await self.remove_game_from_cache(game_finished)
+				if self.game and self.game.status == "WAITING":
+					await sync_to_async(cache.delete)(f'wizard_duel_player_{self.player_id}')
+					await sync_to_async(cache.delete)(f'wizard_duel_game_{self.game_id}')
+					print(f"Cleaned up waiting game {self.game_id}")
+
+				await sync_to_async(cache.delete)(f"player_current_game_{self.player_id}")
+
 			except Exception as e:
 				print(f"Error during cleanup: {e}")
+				print(f"Error details:", str(e))
 			finally:
 				self.is_cleaning_up = False
+				self.game = None
 
 		
 	async def receive(self, text_data):
@@ -134,6 +130,11 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 
 	async def handle_player_search(self, data):
+		key = 'waiting_wizard_duel_players'
+		current_waiting_players = await sync_to_async(cache.get)(key) or []
+		current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
+		await sync_to_async(cache.set)(key, current_waiting_players)
+
 		player_game_key = f"player_current_game_{self.player_id}"
 		current_game = await sync_to_async(cache.get)(player_game_key)
 
@@ -186,6 +187,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			player for player in current_waiting_players
 			if player['id'] != self.player_id
 		]
+		print('not find opponent:', potiential_opponents)
 
 		if not potiential_opponents:
 			return None
@@ -211,6 +213,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 			if abs(opponent['ligue_points'] - player_points) <= range:
 				current_waiting_players.remove(opponent)
+				print('find opponent:', current_waiting_players)
 				await sync_to_async(cache.set)(key, current_waiting_players)
 				return opponent
 			
@@ -480,13 +483,12 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 		return id_winner, action
 
-	async def notify_game_cancel(self, p_id):
-		self.game.status = 'CANCELLED'
-		await self.game.save_to_cache()
+	async def notify_game_cancel(self, username_gone):
 		self.game_cancel_event.set()
 		message = {
 			'type': 'game_cancel',
-			'player_id': p_id, # Mettre le pseudo du joueur ?
+			'username': username_gone,
+			'game_status': self.game.status,
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
 
@@ -606,7 +608,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def game_cancel(self, event):
 		message = {
 			'type': 'game_cancel',
-			'player_id': event['player_id'],
+			'username': event['username'],
+			'game_status': event['game_status'],
 		}
 		await self.send(text_data=json.dumps(message))
 

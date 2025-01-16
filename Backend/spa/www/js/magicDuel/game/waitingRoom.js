@@ -82,4 +82,11 @@ async function updatePlayerStatus(playerNumber) {
     }
 }
 
-export { creationGameDisplay, updatePlayerStatus,  displayWhenLoad }
+async function playerLeave() {
+    document.getElementById('info-main-player').classList.remove('hidden');
+    document.getElementById('infoP1').classList.add('hidden');
+    document.getElementById('infoP2').classList.add('hidden');
+    document.getElementById('button-ready').classList.add('hidden');
+}
+
+export { creationGameDisplay, updatePlayerStatus,  displayWhenLoad, playerLeave }
