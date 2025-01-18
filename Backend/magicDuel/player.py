@@ -2,7 +2,7 @@ from asgiref.sync import sync_to_async
 from django.core.cache import cache
 
 class Player:
-    def __init__(self, nb, player_info, game_id, ready = False, action = None, life=1):
+    def __init__(self, nb, player_info, game_id, ready = False, action = None, life=3):
         self.life = life
         self.nb = nb
         self.width = 3
@@ -18,29 +18,6 @@ class Player:
     def __repr__(self):
         return f"Player(id={self.id}, nb={self.nb}, life={self.life}, action={self.action})"
 
-    # @staticmethod
-    # async def get_players_of_game(p1_id, p2_id, game_id):
-    #     players = []
-    #     p1 = await Player.create_player_from_cache(p1_id, game_id)
-    #     p2 = await Player.create_player_from_cache(p2_id, game_id)
-    #     if p1 is None or p2 is None:
-    #         return None
-    #     players.append(p1)
-    #     players.append(p2)
-    #     return players
-
-    # @staticmethod
-    # async def create_player_from_cache(player_id, game_id):
-    #     player_cache = await Player.load_from_cache(player_id, game_id)
-    #     if player_cache:
-    #         p_life = player_cache['life']
-    #         p_nb = player_cache['nb']
-    #         p_action = player_cache['action']
-    #         player = Player(p_nb, player_id, game_id, p_action, p_life)
-    #         return player
-    #     else:
-    #         return None
-
     @staticmethod
     async def load_from_cache(player_id, game_id):
         cache_key = f'wizard_duel_player_{player_id}_{game_id}'
@@ -49,7 +26,6 @@ class Player:
 
     async def save_to_cache(self):
         cache_key = f'wizard_duel_player_{self.id}_{self.game_id}'
-        print(f'save: {cache_key}')
         await sync_to_async(cache.set)(cache_key, {
             'life': self.life,
             'player_id': self.id,
@@ -67,7 +43,9 @@ class Player:
         await self.save_to_cache()
 
     async def assign_action(self, action):
+        print('action : ', action)
         self.action = action
+        print('after set it :', self.action)
         await self.save_to_cache()
 
     async def update_player(self):

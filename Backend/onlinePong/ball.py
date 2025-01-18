@@ -6,13 +6,11 @@ from django.core.cache import cache
 from .player import Player
 
 class Ball:
-    def __init__(self, game_id, player1, player2):
+    def __init__(self, game_id):
         self.x = 50
         self.y = 50
         self.speed = 0.58
         self.game_id = game_id
-        self.player1 = Player(player1['player_id'], self.game_id)
-        self.player2 = Player(player2['player_id'], self.game_id)
         rand = random.choice([1,2])
         angle = random.uniform(-math.pi / 4, math.pi / 4)
         direction = -1 if rand == 1 else 1
@@ -23,7 +21,7 @@ class Ball:
     def __repr__(self):
         return f"Ball(x:{self.x}, y:{self.y})"
 
-    async def reset(self, player_as_score):
+    async def reset(self, player_as_score, game):
         self.is_resetting = True
         self.x = 50
         self.y = 50
@@ -33,40 +31,39 @@ class Ball:
         self.vy = self.speed * math.sin(angle)
 
         if player_as_score == 1:
-            await self.player1.add_point()
+            await game.p1.add_point()
         else:
-            await self.player2.add_point()
+            await game.p2.add_point()
 
         await self.save_to_cache()    
         return
 
-    async def update_position(self):
-        bound_wall = False
-        bound_player = False
+    async def update_position(self, game):
         self.x += self.vx
         self.y += self.vy
-        bound_wall = await self.check_boundaries()
-        bound_player = await self.check_boundaries_player()
-        return bound_wall, bound_player
+        print(f'pos {self.x} {self.y} add {self.vx} {self.vy}')
+        await self.check_boundaries(game)
+        print('finish 1')
+        await self.check_boundaries_player(game)
+        print('finish 2')
 
-    async def check_boundaries(self):
+    async def check_boundaries(self, game):
         if self.y <= 1 or self.y >= 99:
             self.vy = -self.vy
-            return True
+            game.bound_wall = True
         if self.x <= 1 or self.x >= 99:
             player_as_score = 1 if self.x >= 99 else 2
-            await self.reset(player_as_score)
-        return False
+            await self.reset(player_as_score, game)
 
-    async def check_boundaries_player(self):
-        player1_data = await Player.load_from_cache(self.player1.player_id, self.player1.game_id)
-        player2_data = await Player.load_from_cache(self.player2.player_id, self.player2.game_id)
-        if self.x <= 3 and player1_data['y'] <= self.y <= player1_data['y'] + 16 or \
-                self.x >= 97 and player2_data['y'] <= self.y <= player2_data['y'] + 16:
-            if self.x <= 3 and player1_data['y'] <= self.y <= player1_data['y'] + 16:
-                colission_point = (self.y + 1) - (player1_data['y'] + 8)
-            elif self.x >= 95 and player2_data['y'] <= self.y <= player2_data['y'] + 16:
-                colission_point = (self.y + 1) - (player2_data['y'] + 8)
+    async def check_boundaries_player(self, game):
+        await game.update_players()
+        if self.x <= 3 and game.p1.y <= self.y <= game.p1.y + 16 or \
+                self.x >= 97 and game.p2.y <= self.y <= game.p2.y + 16:
+            game.bound_player = True
+            if self.x <= 3 and game.p1.y <= self.y <= game.p1.y + 16:
+                colission_point = (self.y + 1) - (game.p1.y + 8)
+            elif self.x >= 95 and game.p2.y <= self.y <= game.p2.y + 16:
+                colission_point = (self.y + 1) - (game.p2.y + 8)
             normalized_point = colission_point / 8
             max_bounce_angle = math.pi / 4
             bounce_angle = normalized_point * max_bounce_angle
@@ -75,9 +72,7 @@ class Ball:
             self.vy = self.speed * math.sin(bounce_angle)
             if abs(normalized_point) > 0.9:
                 self.vy *= 0.5
-            return True
-        else:
-            return False
+            
 
     @sync_to_async
     def save_to_cache(self):
@@ -96,3 +91,15 @@ class Ball:
         if data:
             return data
         return None
+    
+    async def update_ball(self):
+        key = f'ball_{self.game_id}_state'
+        newBall = await sync_to_async(cache.get)(key)
+        if newBall:
+            self.x = newBall['x']
+            self.y = newBall['y']
+            self.vx = newBall['vx']
+            self.vy = newBall['vy']
+            self.is_resetting = newBall['is_resetting']
+
+    

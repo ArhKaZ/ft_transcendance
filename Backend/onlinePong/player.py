@@ -34,36 +34,14 @@ class Player:
                 self.y += self.speed
 
     async def save_to_cache(self):
-        cache_key = f'player_{self.player_id}_{self.game_id}'
+        cache_key = f'player_{self.id}_{self.game_id}'
         await sync_to_async(cache.set)(cache_key, {
             'y': self.y,
-            'player_id': self.player_id,
+            'player_id': self.id,
             'game_id': self.game_id,
             'score': self.score,
+            'ready': self.ready
         })
-
-        player_sessions_key = f'sessions_game_{self.game_id}'
-        current_sessions = cache.get(player_sessions_key) or []
-        if self.player_id not in current_sessions:
-            current_sessions.append(self.player_id)
-            await sync_to_async(cache.set)(player_sessions_key, current_sessions)
-
-
-    @classmethod
-    async def get_players_of_game(cls, game_id):
-        player_sessions_key = f'sessions_game_{game_id}'
-        players_ids = await sync_to_async(cache.get)(player_sessions_key) or []
-        players = []
-        for player_id in players_ids:
-            cache_key = f'player_{player_id}_{game_id}'
-            player_data = await sync_to_async(cache.get)(cache_key)
-            if player_data:
-                player = cls(player_id, game_id)
-                player.y = player_data['y']
-                player.score = player_data['score']
-                players.append(player)
-
-        return players
 
     @staticmethod
     async def load_from_cache(player_id, game_id):
@@ -73,15 +51,13 @@ class Player:
 
     async def add_point(self):
         try:
-            player = await self.load_from_cache(self.player_id, self.game_id)
-            self.y = player['y']
-            self.score = player['score'] + 1
+            self.score += 1
             await self.save_to_cache()
 
             redis = await aioredis.from_url(f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}')
-            await redis.publish(f"game_update:{self.game_id}", f"score_updated_{self.player_id}")
+            await redis.publish(f"game_update:{self.game_id}", f"score_updated_{self.id}")
             if self.score >= 11:
-                await redis.publish(f"game_update:{self.game_id}", f"game_finish_{self.player_id}")
+                await redis.publish(f"game_update:{self.game_id}", f"game_finish_{self.id}")
             await redis.close()
         except aioredis.RedisError as e:
             print(f"Redis Error in add_point: {e}")
@@ -95,7 +71,9 @@ class Player:
     async def update_player(self):
         player_cache = await self.load_from_cache(self.id, self.game_id)
         if player_cache:
+            self.ready = player_cache['ready']
             self.score = player_cache['score']
+            self.y = player_cache['y']
             return 0
         else:
             return -1

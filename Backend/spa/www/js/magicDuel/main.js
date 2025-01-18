@@ -14,6 +14,7 @@ let totalTime;
 let timerInterval;
 let currentRound = 0;
 let currentGameId = null;
+let asFinishedAnim = false;
 
 function bindEvents() {
 	const btn1 = document.getElementById("btn1");
@@ -168,7 +169,6 @@ function createGame(game_data) {
 
 async function handleWebSocketMessage(event) {
 	const data = JSON.parse(event.data);
-	console.log(data);
 	switch(data.type) {
 
 		case 'players_info':
@@ -235,8 +235,6 @@ function handleRoundEnd(data) {
 	clearInterval(timerInterval);
 	currentGame.toggleTimer(false);
 	document.getElementById('choiceButtons').classList.add('hidden');
-	console.log(document.getElementById('choiceButtons').classList);
-
 }
 
 function handleGameStart(data) {
@@ -265,6 +263,7 @@ async function handleCountdown(countdown) {
 }
 
 function handleGameFinish(data) {
+	while (!asFinishedAnim) {;}
 	setTimeout(() => {
 		currentGame.displayWinner(data.player_id);
 		sendMatchApi(data.player_id);
@@ -320,6 +319,7 @@ function handleStartRound(data) {
 }
 
 function handleRoundInteraction(data) {
+	asFinishedAnim = false;
 	if (data.player_id !== 0) {
 		const pTakeDmg = currentGame.P1.id === data.player_id ? currentGame.P2 : currentGame.P1;
 		pTakeDmg.playAnimationAttack(data.power);
@@ -335,6 +335,7 @@ function handleRoundInteraction(data) {
 			equE.classList.add('hidden');
 		}, 1500);
 	}
+	asFinishedAnim = true;
 	sendToBack({'action': 'finishAnim', 'player_id': currentPlayerId, 'round': currentRound});
 }
 

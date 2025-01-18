@@ -154,13 +154,15 @@ async function handleWebSocketMessage(e) {
             break;
 
         case 'player_ready':
-            console.log("player ready");
             await updatePlayerStatus(data.player_number);
             break;
 
         case 'ball_position':
             if (currentGame) {
+                console.log('ball position', data);
                 currentGame.updateBallPosition(data.x, data.y);
+                if (data.bound_player)
+                    console.log("bound player true");
                 currentGame.drawGame(data.bound_wall, data.bound_player);
             }
             break;
@@ -173,6 +175,7 @@ async function handleWebSocketMessage(e) {
 
         case 'score_update':
             if (currentGame) {
+                console.log('update score:', data);
                 currentGame.updateScores(data);
             }
             break;
@@ -210,8 +213,14 @@ async function handleWebSocketMessage(e) {
 }
 
 function handleGameCancel(data) {
-    alert(`Game is cancelled, player ${data.player_id} is gone`); // TODO Faire meilleur erreur
-    window.location.href = '/home/';
+    alert(`Player ${data.username} left`);
+	if (data.game_status === "WAITING")
+	{
+		window.location.href = '/home/';
+	}
+	else { //Gerer les lp 
+		window.location.href = '/home/';
+	}
 }
 
 function updatePlayerPosition(game, data) {

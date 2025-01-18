@@ -14,7 +14,7 @@ class Animation {
         this.DarkBolt = new Sprite('../assets/magicDuel/Attacks/Dark-Bolt.png', 11, 10, 67, 92, 'darkBolt');
         this.FireBomb = new Sprite('../assets/magicDuel/Attacks/Fire-bomb.png', 14, 10, 67, 67, 'fireBomb');
         this.Lightning = new Sprite('../assets/magicDuel/Attacks/Lightning1.png', 10, 10, 46, 92, 'lightning');
-        this.Spark = new Sprite('../assets/magicDuel/Attacks/spark.png', 7 , 10, 67, 67, 'spark');
+        this.Spark = new Sprite('../assets/magicDuel/Attacks/Spark.png', 7 , 10, 67, 67, 'spark');
     }
 
     update(ctx, obj, attackSprite = null) {
