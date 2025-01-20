@@ -9,9 +9,9 @@ class GameMap {
         this.groundX = this.x;
         this.groundEndX = this.groundX + (this.width - 10);
         this.back = new Image();
-        this.back.src = './assets/Map/city.png';
+        this.back.src = '../assets/Map/city.png';
         this.stage = new Image();
-        this.stage.src = './assets/Map/stage.png';
+        this.stage.src = '../assets/Map/stage.png';
     }
 
     handleCollision(object) {

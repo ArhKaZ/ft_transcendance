@@ -32,7 +32,7 @@ class Ball {
         return 0;
     }
 
-    collisionPaddle(paddle)//si je touche les coins ca ne touche pas
+    collisionPaddle(paddle)
     {
         if (this.x - this.size < paddle.x + paddle.width &&
             this.x + this.size > paddle.x &&
