@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Pong</title>
+    <link rel="stylesheet" href="/css/localPong/main.css">
+</head>
+<body>
+    <div id="info-main-player" class="info">
+        <span id="mp-username" class="">None</span>
+        <div id="mp-avatar" class="avatar">
+            <img id="mp-avatar-img" alt="p1-avatar" src="" />
+        </div>
+        <div id="mp-img" class="svg-container">
+            <svg id="mp-waiting-animation" class="waiting icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 143.7 143.7">
+                <circle class="circle" fill="none" cx="71.8" cy="71.8" r="67.8"/>
+            </svg>
+            <svg id="mp-joined-animation" class="check-circle icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 143.7 143.7">
+                <circle class="circle" fill="none" cx="71.8" cy="71.8" r="67.8"/>
+                <path class="path" fill="none" d="M36.8,73.3l21.5,21.5c0.6,0.6,1.5,0.6,2.1,0l46.4-46.4"/>
+            </svg>
+        </div>
+    </div>
+    <!-- P1 HUD IN GAME -->
+    <div id="hud-p1" class="player-bar hidden">
+        <h1 id="p1-hud-name" class="player-name">Player 1</h1>
+        <div class="separator"></div>
+        <h1 id="p1-score" class="player-score">0</h1>
+    </div>
+    <div id="title">
+        <h1>Neon Pong</h1>
+    </div>
+    <!-- GAME DISPLAY -->
+    <div id="sparks-container" class="sparks-container"></div>
+    <div id="canvasContainer" class="game-area">
+        <div id="end-container" class="end-container hidden">
+            <div id="end-info-p1" class="end-info">
+                <img id="crown-img-p1" src="../assets/onlinePong/Crown.png" alt="crown" class="hidden crown"/>
+                <img id="end-img-p1" src="" alt="end-img-p1" class="end-img"/>
+                <span id="end-name-p1" class="end-name"></span>
+            </div>
+            <div id="end-button"> 
+                <a id="button-home" class="buttonNeon" href="http://127.0.0.1/home/">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    Return to the home
+                </a>
+            </div>
+            <div id="end-info-p2" class="end-info">
+                <img id="crown-img-p2" src="../assets/onlinePong/Crown.png" alt="crown" class="hidden crown"/>
+                <img id="end-img-p2" src="" alt="end-img-p2" class="end-img"/>
+                <span id="end-name-p2" class="end-name"></span>
+            </div>
+        </div>
+        <canvas id="gameCanvas" class="allCanvas hidden"></canvas>
+        <canvas id="countdownCanvas" class="allCanvas"></canvas>
+        <script type="module" src="/js/localPongIa/main.js"></script>
+    </div>
+    <!-- P2 HUD IN GAME -->
+    <div id="hud-p2" class="player-bar hidden">
+        <h1 id="p2-hud-name" class="player-name">Player 2</h1>
+        <div class="separator"></div>
+        <h1 id="p2-score" class="player-score">0</h1>
+    </div>
+    <!-- <div id="levels" class="levels">
+        
+    </div> -->
+    <a id="button-ready" class="buttonNeon hidden">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        Start Game !
+    </a>
+</body>
+</html>

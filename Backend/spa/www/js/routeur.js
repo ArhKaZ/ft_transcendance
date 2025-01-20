@@ -134,6 +134,10 @@ const routes = {
         const response = await fetch('/html/localPong/index.html');
         return await response.text();
     },
+    '/localPongIa/': async () => {
+        const response = await fetch('/html/localPongIa/index.html');
+        return await response.text();
+    },
 	'/magicDuel/': async () => {
     	const response = await fetch('/html/magicDuel/index.html');
     	return await response.text();

@@ -1,15 +1,18 @@
 import Paddle from './paddle.js';
 import Ball from './ball.js';
+import IA from './ia.js';
 import { createNeonExplosion } from './spark.js';
 import { sleep } from "../../utils.js";
+
 class Game {
-    constructor(canvas, p1, p2) {
+    constructor(canvas, p1, p2, level) {
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
         this.P1 = p1;
         this.P2 = p2;
         this.P1.paddle = new Paddle(this.canvas, 1);
         this.P2.paddle = new Paddle(this.canvas, 2);
+        this.IA = new IA(level, this.canvas);
         this.ball = new Ball(this.canvas);
         this.score = [0, 0];
         this.scoreP1Element = document.getElementById('p1-score');
@@ -56,9 +59,10 @@ class Game {
     }
 
     update() {
+        this.IA.checkPosition(this.ball, this.P2.paddle, this.keyState)
         this.P1.paddle.update(this.keyState);
         this.P2.paddle.update(this.keyState);
-        this.bound = this.ball.update(this.P1.paddle, this.P2.paddle);
+        this.bound = this.ball.update(this.P1.paddle, this.P2.paddle, this.IA);
         this.checkAsScore();
         this.checkWinner();
     }
