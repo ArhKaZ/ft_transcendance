@@ -46,7 +46,7 @@ class Ball {
 
             const bounceAngle = normalizedCollidePoint * Math.PI / 4;
 
-            this.vx = -this.vx;
+            this.vx = -Math.sign(this.vx) * this.ballSpeed * Math.cos(bounceAngle);
             this.vy = this.ballSpeed * Math.sin(bounceAngle);
             return 1;
         }
@@ -63,7 +63,7 @@ class Ball {
     }
 
     draw(context) {
-        context.shadowBlur = 20; 
+        context.shadowBlur = 10; 
         context.shadowColor = '#8a2be2'; 
         context.fillStyle = '#8a2be2';
         context.beginPath();

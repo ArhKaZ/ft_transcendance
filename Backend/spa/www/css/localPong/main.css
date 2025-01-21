@@ -200,7 +200,7 @@ body {
     display: none;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    justify-content: space-evenly;
     background: rgba(0, 0, 0, 0.6);
     border: 2px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
@@ -231,6 +231,8 @@ body {
     font-size: 2rem;
     color: #00ffff; 
     text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+    margin: 0;
+    padding: 1%;
 }
 
 .separator {
@@ -252,11 +254,14 @@ body {
     font-size: 3rem;
     color: #ffff00; 
     text-shadow: 0 0 5px #ffff00, 0 0 10px #ffff00;
+    margin: 0;
+    padding: 1%;
 }
 
 .player-bar:not(.hidden) {
     display: flex;
 }
+
 
 /* TOP TITLE */
 

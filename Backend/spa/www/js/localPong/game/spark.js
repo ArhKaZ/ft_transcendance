@@ -56,8 +56,10 @@ export function createNeonExplosion(side, ball_y) {
     const particleCount = 100;
 
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = canvas.width;
-    tempCanvas.height = canvas.height;
+    const displayWidth = window.innerWidth * 0.6;
+    const displayHeight = window.innerHeight * 0.8;
+    tempCanvas.width = displayWidth;
+    tempCanvas.height = displayHeight;
     const tempCtx = tempCanvas.getContext('2d');
 
     for (let i = 0; i < particleCount; i++) {

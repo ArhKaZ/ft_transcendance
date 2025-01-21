@@ -91,7 +91,7 @@ function resizeCanvasGame(game) {
     const pixelRatio = window.devicePixelRatio || 1;
 
     canvas.width = displayWidth * pixelRatio;
-    canvas.headers = displayHeight * pixelRatio;
+    canvas.height = displayHeight * pixelRatio;
     canvasCount.width = displayWidth * pixelRatio;
     canvasCount.height = displayHeight * pixelRatio;
 

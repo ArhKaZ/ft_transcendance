@@ -95,7 +95,6 @@ class CountdownAnimation {
             this.dots = this.createDotsFromText(count.toString());
         } else {
             this.dots = this.createDotsFromText('GO');
-            await sleep(1000);
             this.isAnimating = false;
             this.destroy();
         }

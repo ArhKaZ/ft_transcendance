@@ -129,7 +129,6 @@ class Game {
     }
 
     animateBounce(side) {
-        console.log('animateBounce');
         const startTime = Date.now();
         const animation = {
             startTime,

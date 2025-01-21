@@ -30,14 +30,6 @@ class Ball {
         if (this.collisionPaddle(paddle1, ia) || this.collisionPaddle(paddle2, ia))
             bound[1] = true;
 
-        if (this.vx > 0){
-            ia.setThink(true);
-        }
-        else if (this.vx < 0) {
-            ia.resetPos();
-            ia.setThink(false);
-        }
-
         return bound;
     }
 
@@ -54,7 +46,7 @@ class Ball {
 
             const bounceAngle = normalizedCollidePoint * Math.PI / 4;
 
-            this.vx = -this.vx;
+            this.vx = -Math.sign(this.vx) * this.ballSpeed * Math.cos(bounceAngle);
             this.vy = this.ballSpeed * Math.sin(bounceAngle);
             return 1;
         }

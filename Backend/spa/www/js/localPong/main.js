@@ -37,7 +37,6 @@ async function getUserFromBack() {
     }
 }
 
-    
 async function init() {
     const user = await getUserFromBack();
     displayWhenLoad(user);
@@ -59,14 +58,6 @@ async function startCountdown() {
     await currentGame.start();
 }
 
-function handleError(error) {
-    if (error.message.includes("No token") || error.message.includes("Invalid Token") || error.message.includes("User does not exist")) {
-        alert("You need to connect before playing");
-        window.location.href = '/home/';
-    } else {
-        alert(error.message);
-    }
-}
 
 async function initGame(user) {
     const canvas = document.getElementById('gameCanvas');
@@ -100,7 +91,7 @@ function resizeCanvasGame(game) {
     const pixelRatio = window.devicePixelRatio || 1;
 
     canvas.width = displayWidth * pixelRatio;
-    canvas.headers = displayHeight * pixelRatio;
+    canvas.height = displayHeight * pixelRatio;
     canvasCount.width = displayWidth * pixelRatio;
     canvasCount.height = displayHeight * pixelRatio;
 
@@ -111,9 +102,6 @@ function resizeCanvasGame(game) {
     
     const ctx = canvas.getContext('2d');
     ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-
-    // const scale = Math.min(canvas.width / canvas.offsetWidth, canvas.height / canvas.offsetHeight);
-    // ctx.scale(scale, scale);
 
     updatePaddleDimensions(game, canvas);
     game.ball.size = Math.min(canvas.width, canvas.height) * 0.01;

@@ -68,7 +68,9 @@ class Ball:
             max_bounce_angle = math.pi / 4
             bounce_angle = normalized_point * max_bounce_angle
             
-            self.vx = -self.vx
+            # this.vx = -Math.sign(this.vx) * this.ballSpeed * Math.cos(bounceAngle);
+            # this.vy = this.ballSpeed * Math.sin(bounceAngle);
+            self.vx = math.copysign(1, self.vx) * self.speed * math.cos(bounce_angle)
             self.vy = self.speed * math.sin(bounce_angle)
             if abs(normalized_point) > 0.9:
                 self.vy *= 0.5
