@@ -96,6 +96,7 @@ class Game {
         document.getElementById('canvasContainer').style.display = 'flex';
         document.getElementById('button-ready').classList.add('hidden');
         document.getElementById('info-main-player').classList.add('hidden');
+        document.getElementById('levels').classList.add('hidden');
     }
 
     displayForStart() {

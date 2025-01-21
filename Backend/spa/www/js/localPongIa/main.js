@@ -6,10 +6,9 @@ import { displayWhenLoad } from "./game/waitingRoom.js";
 
 let oldHeight = null;
 let gameStarted = false;
-let currentPlayerId = null;
 let currentGame = null;
 let currentCountdown = null;
-let currentGameId = null;
+let currentLevel = 0;
 
 async function getUserFromBack() {
     try {
@@ -44,9 +43,40 @@ async function init() {
     currentGame = await initGame(user);
     currentCountdown = new CountdownAnimation('countdownCanvas');
     window.addEventListener('resize', () => resizeCanvasGame());
+    listenerLevelButtons();
     document.getElementById('button-ready').addEventListener('click', () => {
         startCountdown();
     })
+}
+
+function listenerLevelButtons() {
+    const lvl1 = document.getElementById('lvl1');
+    const lvl2 = document.getElementById('lvl2');
+    const lvl3 = document.getElementById('lvl3');
+    lvl1.addEventListener(('click'), (event) => {
+        currentLevel = 1;
+        if (lvl2.classList.contains('clicked'))
+            lvl2.classList.remove('clicked');
+        if (lvl3.classList.contains('clicked'))
+            lvl3.classList.remove('clicked');
+        event.target.classList.add('clicked');
+    });
+    lvl2.addEventListener(('click'), (event) => {
+        currentLevel = 2;
+        if (lvl1.classList.contains('clicked'))
+            lvl1.classList.remove('clicked');
+        if (lvl3.classList.contains('clicked'))
+            lvl3.classList.remove('clicked');
+        event.target.classList.add('clicked');
+    });
+    lvl3.addEventListener(('click'), (event) => {
+        currentLevel = 3;
+        if (lvl1.classList.contains('clicked'))
+            lvl1.classList.remove('clicked');
+        if (lvl2.classList.contains('clicked'))
+            lvl2.classList.remove('clicked');
+        event.target.classList.add('clicked');
+    });
 }
 
 async function startCountdown() {
@@ -63,7 +93,7 @@ async function initGame(user) {
     const canvas = document.getElementById('gameCanvas');
     oldHeight = canvas.height;
     const [P1, P2] = createPlayers(user);
-    return new Game(canvas, P1, P2);
+    return new Game(canvas, P1, P2, currentLevel);
 }
 
 function createPlayers(data) {

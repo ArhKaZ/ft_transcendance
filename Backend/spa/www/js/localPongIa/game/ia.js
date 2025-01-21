@@ -1,6 +1,6 @@
 import Player from './player.js';
 class IA {
-	constructor(level = 2, canvas) {
+	constructor(level, canvas) {
 		this.level = level;
 		this.canvas = canvas;
 		this.lastCheck = null;
