@@ -41,11 +41,8 @@ class Ball:
     async def update_position(self, game):
         self.x += self.vx
         self.y += self.vy
-        print(f'pos {self.x} {self.y} add {self.vx} {self.vy}')
         await self.check_boundaries(game)
-        print('finish 1')
         await self.check_boundaries_player(game)
-        print('finish 2')
 
     async def check_boundaries(self, game):
         if self.y <= 1 or self.y >= 99:
@@ -68,9 +65,7 @@ class Ball:
             max_bounce_angle = math.pi / 4
             bounce_angle = normalized_point * max_bounce_angle
             
-            # this.vx = -Math.sign(this.vx) * this.ballSpeed * Math.cos(bounceAngle);
-            # this.vy = this.ballSpeed * Math.sin(bounceAngle);
-            self.vx = math.copysign(1, self.vx) * self.speed * math.cos(bounce_angle)
+            self.vx = -math.copysign(1, self.vx) * self.speed * math.cos(bounce_angle)
             self.vy = self.speed * math.sin(bounce_angle)
             if abs(normalized_point) > 0.9:
                 self.vy *= 0.5

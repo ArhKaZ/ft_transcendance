@@ -44,6 +44,7 @@ async function init() {
     currentCountdown = new CountdownAnimation('countdownCanvas');
     window.addEventListener('resize', () => resizeCanvasGame());
     document.getElementById('button-ready').addEventListener('click', () => {
+        gameStarted = true;
         startCountdown();
     })
 }
@@ -56,6 +57,7 @@ async function startCountdown() {
     }
     currentCountdown.stopDisplay();
     await currentGame.start();
+    resizeCanvasGame();
 }
 
 
@@ -79,37 +81,36 @@ function createPlayers(data) {
     return [P1, P2];
 }
 
-function resizeCanvasGame(game) {
-    if (!gameStarted || !game) return;
-
+function resizeCanvasGame() {
     const canvasCount = document.getElementById('countdownCanvas');
     const canvas = document.getElementById('gameCanvas');
+    let oldCoorNormBall;
 
-    const displayWidth = window.innerWidth * 0.6;
-    const displayHeight = window.innerHeight * 0.8;
-
-    const pixelRatio = window.devicePixelRatio || 1;
-
-    canvas.width = displayWidth * pixelRatio;
-    canvas.height = displayHeight * pixelRatio;
-    canvasCount.width = displayWidth * pixelRatio;
-    canvasCount.height = displayHeight * pixelRatio;
-
-    canvas.style.width = `${displayWidth}px`;
-    canvas.style.height = `${displayHeight}px`;
-    canvasCount.style.width = `${displayWidth}px`;
-    canvasCount.style.height = `${displayHeight}px`;
+    if (currentGame) {
+        oldCoorNormBall = getCoorBall(canvas);
+    }
+    canvas.width = window.innerWidth * 0.70;
+    canvas.height = window.innerHeight * 0.80;
+    canvasCount.width = window.innerWidth * 0.70;
+    canvasCount.height = window.innerHeight * 0.80;
     
     const ctx = canvas.getContext('2d');
-    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    const scale = Math.min(canvas.width / canvas.offsetWidth, canvas.height / canvas.offsetHeight);
+    ctx.scale(scale, scale);
 
-    updatePaddleDimensions(game, canvas);
-    game.ball.size = Math.min(canvas.width, canvas.height) * 0.01;
-
+    if (!gameStarted || !currentGame) return;
+    
+    updatePaddleDimensions(currentGame, canvas);
+    
+    currentGame.ball.size = Math.min(canvas.width, canvas.height) * 0.01;
+    currentGame.ball.x = oldCoorNormBall[0] * canvas.width / 100;
+    currentGame.ball.y = oldCoorNormBall[1] * canvas.height / 100;
     oldHeight = canvas.height;
 
-    game.P1.draw(game.context, game.colorP1);
-    game.P2.draw(game.context, game.colorP2);
+    currentGame.P1.draw(currentGame.context, currentGame.colorP1);
+    currentGame.P2.draw(currentGame.context, currentGame.colorP2);
+    currentGame.ball.draw(currentGame.context);
 }
 
 function updatePaddleDimensions(game, canvas) {
@@ -126,6 +127,14 @@ function updatePaddleDimensions(game, canvas) {
 
     game.P1.paddle.y = (game.P1.paddle.y / oldHeight) * canvas.height;
     game.P2.paddle.y = (game.P2.paddle.y / oldHeight) * canvas.height;
+}
+
+function getCoorBall(canvas) {
+    const oldX = currentGame.ball.x;
+    const oldY = currentGame.ball.y;
+    let normX = oldX / canvas.width * 100;
+    let normY = oldY / canvas.height * 100;
+    return [normX, normY];
 }
 
 init();

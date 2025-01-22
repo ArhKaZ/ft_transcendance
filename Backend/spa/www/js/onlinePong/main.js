@@ -37,12 +37,10 @@ async function getUserFromBack() {
             throw new Error(errorData.error || "Error getting user");
         }
         const data = await response.json();
-        console.log('data:', data);
         return await data;
     } catch (error) {
         alert("Need to be logged");
         window.location.href = '/home/';
-        console.error("Error when getting user:", error);
         throw error;
     }
 }
@@ -60,11 +58,9 @@ function setupWebSocket(user) {
     currentPlayerId = user.id;
     const id = user.id.toString();
     const socket = new WebSocket(`wss://127.0.0.1/ws/onlinePong/${id}/`);
-    let game = null;
 
     socket.onopen = () => {
         console.log("WebSocket connected");
-        console.log(user);
         sendToBack({
             action: 'search', 
             player_id: user.id, 
@@ -80,7 +76,7 @@ function setupWebSocket(user) {
     socket.onerror = (error) => console.error("WebSocket error:", error.type);
     socket.onclose = () => console.log("WebSocket closed");
 
-    window.addEventListener("resize", () => resizeCanvasGame(game));
+    window.addEventListener("resize", () => resizeCanvasGame());
 
     return socket;
 }
@@ -111,15 +107,6 @@ function sendMovement(direction, playerId) {
     sendToBack({ action: 'move', direction, player_id: playerId });
 }
 
-function handleError(error) {
-    if (error.message.includes("No token") || error.message.includes("Invalid Token") || error.message.includes("User does not exist")) {
-        alert("You need to connect before playing");
-        window.location.href = '/home/';
-    } else {
-        alert(error.message);
-    }
-}
-
 async function initGame(data) {
     const canvas = document.getElementById('gameCanvas');
     oldHeight = canvas.height;
@@ -145,12 +132,7 @@ async function handleWebSocketMessage(e) {
     switch(data.type) {
 
         case 'players_info':
-            currentGameId = data.game_id;
-            creationGameDisplay(data, currentGame);
-            sendToBack({action: 'findGame', game_id: currentGameId})
-            document.getElementById('button-ready').addEventListener('click', () => {
-                sendToBack({action: 'ready', game_id: currentGameId})
-            })
+            handlePlayerInfo(data);
             break;
 
         case 'player_ready':
@@ -158,42 +140,26 @@ async function handleWebSocketMessage(e) {
             break;
 
         case 'ball_position':
-            if (currentGame) {
-                console.log('ball position', data);
-                currentGame.updateBallPosition(data.x, data.y);
-                if (data.bound_player)
-                    console.log("bound player true");
-                currentGame.drawGame(data.bound_wall, data.bound_player);
-            }
+            currentGame.updateBallPosition(data.x, data.y);
+            currentGame.drawGame(data.bound_wall, data.bound_player);
             break;
 
         case 'player_move':
-            if (currentGame) {
-                updatePlayerPosition(currentGame, data);
-            }
+            updatePlayerPosition(currentGame, data);
             break;
 
         case 'score_update':
-            if (currentGame) {
-                console.log('update score:', data);
-                currentGame.updateScores(data);
-            }
+            currentGame.updateScores(data);
             break;
 
         case 'game_finish':
-            if (currentGame) {
-                handleGameFinish(currentGame, data.winning_session);
-                gameStarted = false;
-                currentGame.stop();
-            }
+            handleGameFinish(currentGame, data.winning_session);
+            gameStarted = false;
+            currentGame.stop();
             break;
 
         case 'game_start':
-            currentGame = await initGame(data);
-            currentGame.displayCanvas();
-            currentCountdown = new CountdownAnimation('countdownCanvas');
-            gameStarted = true;
-            resizeCanvasGame(currentGame);
+            await handleGameStart(data);
             break;
 
         case 'countdown':
@@ -212,13 +178,30 @@ async function handleWebSocketMessage(e) {
     }
 }
 
+function handlePlayerInfo(data) {
+    currentGameId = data.game_id;
+    creationGameDisplay(data, currentGame);
+    sendToBack({action: 'findGame', game_id: currentGameId})
+    document.getElementById('button-ready').addEventListener('click', () => {
+        sendToBack({action: 'ready', game_id: currentGameId})
+    })
+}
+
+async function handleGameStart(data) {
+    currentGame = await initGame(data);
+    currentGame.displayCanvas();
+    currentCountdown = new CountdownAnimation('countdownCanvas');
+    gameStarted = true;
+    resizeCanvasGame();
+}
+
 function handleGameCancel(data) {
     alert(`Player ${data.username} left`);
 	if (data.game_status === "WAITING")
 	{
 		window.location.href = '/home/';
 	}
-	else { //Gerer les lp 
+	else {
 		window.location.href = '/home/';
 	}
 }
@@ -237,7 +220,7 @@ async function handleCountdown(countdown) {
     }
 }
 
-function handleGameFinish(game, winningId) { // extraire function pour call api
+function handleGameFinish(game, winningId) {
     const opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
     setTimeout(() => {
         game.displayWinner(winningId);
@@ -253,7 +236,7 @@ function handleGameFinish(game, winningId) { // extraire function pour call api
         credentials: 'include',
         body: JSON.stringify({
             'type': 'Pong',
-            'opponent_name': opponentName, // Remplacez par le vrai nom de l'adversaire
+            'opponent_name': opponentName,
             'won': asWin
         })
     }).then(response => response.json())
@@ -262,29 +245,29 @@ function handleGameFinish(game, winningId) { // extraire function pour call api
     }).catch(error => console.error(error));
 }
 
-function resizeCanvasGame(game) {
-    if (!gameStarted || !game) return;
-
+function resizeCanvasGame() {
     const canvasCount = document.getElementById('countdownCanvas');
     const canvas = document.getElementById('gameCanvas');
 
-    canvas.width = window.innerWidth * 0.6;
-    canvas.height = window.innerHeight * 0.8;
-    canvasCount.width = window.innerWidth * 0.6;
-    canvasCount.height = window.innerHeight * 0.8;
+    canvas.width = window.innerWidth * 0.70;
+    canvas.height = window.innerHeight * 0.80;
+    canvasCount.width = window.innerWidth * 0.70;
+    canvasCount.height = window.innerHeight * 0.80;
     
     const ctx = canvas.getContext('2d');
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     const scale = Math.min(canvas.width / canvas.offsetWidth, canvas.height / canvas.offsetHeight);
     ctx.scale(scale, scale);
 
-    updatePaddleDimensions(game, canvas);
-    game.ball.size = Math.min(canvas.width, canvas.height) * 0.01;
+    if (!gameStarted || !currentGame) return;
+    
+    updatePaddleDimensions(currentGame, canvas);
+    currentGame.ball.size = Math.min(canvas.width, canvas.height) * 0.01;
 
     oldHeight = canvas.height;
 
-    game.P1.draw(game.context, game.colorP1);
-    game.P2.draw(game.context, game.colorP2);
+    currentGame.P1.draw(currentGame.context, currentGame.colorP1);
+    currentGame.P2.draw(currentGame.context, currentGame.colorP2);
 }
 
 function updatePaddleDimensions(game, canvas) {

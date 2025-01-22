@@ -3,7 +3,7 @@ class Ball {
     constructor(canvas) {
         this.canvas = canvas;
         this.size = Math.min(canvas.width, canvas.height) * 0.01;
-        this.ballSpeed = canvas.width * 0.002;
+        this.ballSpeed = canvas.width * 0.005;
         this.reset();
     }
 

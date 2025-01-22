@@ -50,6 +50,7 @@ class Game {
     }
 
     drawGame(bound_wall, bound_player) {
+        console.log('drawing');
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawBorders(this.context, this.canvas);
         this.ball.draw(this.context);
@@ -108,9 +109,6 @@ class Game {
 
     updateScores(data) {
         const side = data.player_id === this.P1.id.toString() ? 'right' : 'left'; 
-        console.log(`side: ${side}`);
-        console.log(`id: ${data.player_id}, this:${this.P1.id}`);
-        console.log(`id: ${typeof(data.player_id)}, this:${typeof(this.P1.id)}`);
         createNeonExplosion(side, this.ball.y);
         this.score = data.scores;
         this.scoreP1Element.textContent = this.score[0].toString();

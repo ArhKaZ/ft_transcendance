@@ -5,14 +5,14 @@ import { createNeonExplosion } from './spark.js';
 import { sleep } from "../../utils.js";
 
 class Game {
-    constructor(canvas, p1, p2, level) {
+    constructor(canvas, p1, p2) {
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
         this.P1 = p1;
         this.P2 = p2;
         this.P1.paddle = new Paddle(this.canvas, 1);
         this.P2.paddle = new Paddle(this.canvas, 2);
-        this.IA = new IA(level, this.canvas);
+        this.IA = new IA(this.canvas);
         this.ball = new Ball(this.canvas);
         this.score = [0, 0];
         this.scoreP1Element = document.getElementById('p1-score');

@@ -288,28 +288,18 @@ class PongConsumer(AsyncWebsocketConsumer):
 	async def send_ball_position(self):
 		while True:
 			try:
-				# print("1")
 				if self.game_cancel_event.is_set():
 					break
-				# print("2")
 				self.game.reset_bounds()
-				# print("3")
 				await self.ball_reset_event.wait()
-				# print("4")
-				# await self.game.update_game()
-				# print("5")
 				if self.game.ball.is_resetting:
 					self.game.ball.is_resetting = False
 					await self.game.ball.save_to_cache()
-					# print("6")
 					self.ball_reset_event.clear()
 					asyncio.create_task(self.reset_delay())
 					continue
-				# print("7")
 				await self.game.ball.update_position(self.game)
-				# print("8")
 				await self.notify_ball_position()
-				# print("9")
 				await asyncio.sleep(0.02)
 			except asyncio.CancelledError:
 				print('Task cancelled')

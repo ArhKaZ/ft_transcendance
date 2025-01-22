@@ -1,13 +1,13 @@
-import Player from './player.js';
 class IA {
-	constructor(level, canvas) {
-		this.level = level;
+	constructor(canvas) {
+		this.level = 0;
 		this.canvas = canvas;
 		this.lastCheck = null;
 		this.newPosition = -1;
 		this.target = -1;
+		this.randPos = -1;
 		this.errorRange = { 
-			1: this.canvas.height / 10, 
+			1: this.canvas.height / 8, 
 			2: this.canvas.height / 25, 
 			3: this.canvas.height / 50
 		}
@@ -32,6 +32,7 @@ class IA {
 		this.newPosition = positionFuture;
 		let error = Math.random() * this.errorRange[this.level] - this.errorRange[this.level] / 2;
 		this.target = this.newPosition + error;
+		console.log(`target: ${this.newPosition} error: ${error} final: ${this.target}`)
 		keyState['z'] = false;
 		keyState['q'] = false;
 		this.lastCheck = Date.now();
@@ -41,24 +42,50 @@ class IA {
 		if (ball.vx > 0) {
 			let now = Date.now();
 			let diff;
+			if (this.randPos === -1)
+				this.randPos = this.generatePointOnPaddle(paddle);
+
 			if (this.lastCheck != null) {
 				diff = now - this.lastCheck;
 			}
-			if (this.lastCheck == null || diff >= 1000) 
+			if (this.lastCheck == null || diff >= 1000) {
 				this.getFuturePosition(ball, paddle, keyState);
+				console.log(`randPos: ${this.randPos}`);
+			}
 			if (this.newPosition != -1)
-				this.movePaddle(paddle, keyState);
+				this.movePaddle(paddle, this.randPos, keyState);
+		} else {
+			keyState['z'] = false;
+			keyState['q'] = false;
+			this.randPos = -1;
 		}
 	}
 
-	movePaddle(paddle, keyState) {
-		let randPosInPaddle = Math.floor(Math.random() * (paddle.y + paddle.height - paddle.y + 1)) + paddle.y;
+	movePaddle(paddle, randPosInPaddle, keyState) {
+		if (!randPosInPaddle) return;
+		console.log(`random Pos: ${randPosInPaddle}`);
+		if (this.level === 3 && Math.random() < 0.005) {
+			console.log('ia get bugged');
+			this.target += this.canvas.height / 8;
+		}
 		setTimeout(() => {
-		if (this.target > randPosInPaddle) {
-			keyState['z'] = true;
-		} else if (this.target < randPosInPaddle) {
-			keyState['q'] = true;
-	}}, this.reactionTime[this.level]);
+			if (this.target > paddle.y + randPosInPaddle) {
+				keyState['z'] = true;
+			} else if (this.target < paddle.y + randPosInPaddle) {
+				keyState['q'] = true;
+			}
+		}, (this.reactionTime[this.level] + Math.random() * 100 - 50));
+	}
+
+	generatePointOnPaddle(paddle) {
+		const difficultyFactor = Math.min(1, Math.max(0, (this.level - 1) / 2));
+
+		const edgeMargin = difficultyFactor * (paddle.height / 4);
+
+		const validStart = edgeMargin;
+		const validEnd = paddle.height - edgeMargin;
+
+		return Math.random() * (validEnd - validStart) + validStart;
 	}
 
 	resetPos() {
@@ -67,6 +94,10 @@ class IA {
 
 	setThink(setter) {
 		this.addToThink = setter;
+	}
+
+	assignLevel(level) {
+		this.level = level;
 	}
 }
 

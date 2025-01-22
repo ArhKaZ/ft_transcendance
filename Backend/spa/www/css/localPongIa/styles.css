@@ -84,7 +84,7 @@ body {
     display: none;
     width: 20%;
     position: absolute;
-    top: 40%;
+    top: 30%;
     align-items: center;
     justify-content: space-evenly;
     flex-direction: column;
@@ -314,14 +314,6 @@ body {
 .buttonNeon:not(.hidden) {
     display: inline-block;
 }
-
-/* #button-ready:not(.hidden) {
-    display: inline-block;
-}
-
-#button-home:not(.hidden) {
-    display: inline-block;
-} */
 
 .buttonNeon:hover {
     background: #03e9f4;
