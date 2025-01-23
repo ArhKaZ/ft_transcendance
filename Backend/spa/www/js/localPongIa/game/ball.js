@@ -23,7 +23,13 @@ class Ball {
         this.y += this.vy;
 
         if (this.y - this.size <= 0 || this.y + this.size >= this.canvas.height) {
-            this.vy *= -1;
+            if (this.y - this.size <= 0 && this.vy === 0) {
+                this.vy = 0.1;
+            } else if (this.y + this.size >= this.canvas.height && this.vy === 0) {
+                this.vy = -0.1;
+            } else {
+                this.vy *= -1;
+            }
             bound[0] = true;
         }
 
