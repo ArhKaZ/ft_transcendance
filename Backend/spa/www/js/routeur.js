@@ -118,10 +118,10 @@ class Router {
 
 // Définition des routes avec des fichiers HTML
 const routes = {
-    '/': async () => {
-        router.navigateTo('/home/');
-        return '';
-    },
+    // '/': async () => {
+    //     router.navigateTo('/home/');
+    //     return '';
+    // },
 	'/home/': async () => {
     	const response = await fetch('/html/home.html');
     	return await response.text();

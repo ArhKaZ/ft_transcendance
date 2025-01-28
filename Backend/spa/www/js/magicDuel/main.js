@@ -29,36 +29,22 @@ function bindEvents() {
 	btn3.addEventListener('click', () => handleClick('lightning'));
 	btn4.addEventListener('click', () => handleClick('spark'));
 	btnBook.addEventListener("click", () => handleOpenBook());
-	bookOverlay.addEventListener("click", (e) => handleCloseBook(e));
-}
-
-function handleCloseBook(e) {
-	const bookOverlay = document.getElementById("bookOverlay");
-
-	if (e.target === bookOverlay) {
-		const frontCover = document.querySelector(".front-cover");
-		const backCover = document.querySelector(".back-cover");
-
-		document.querySelector(".book").style.transform = "scale(0)";
-		frontCover.style.transform = "rotateY(0deg)";
-		backCover.style.transform = "rotateY(-180deg)";
-
-		setTimeout(() => {
-			bookOverlay.classList.add("hidden");
-		}, 500);
-	}
 }
 
 function handleOpenBook() {
-	const bookContainer = document.querySelector(".book-container");
 	const bookOverlay = document.getElementById("bookOverlay");
+	const imgBookOpen = document.getElementById("img-book-open");
+	const imgBookClosed = document.getElementById("img-book-closed");
 
-	bookOverlay.classList.remove("hidden");
-
-	setTimeout(() => {
-		bookContainer.classList.add("open");
-		document.querySelector(".book").style.transform = "scale(1)";
-	},  100);
+	if (bookOverlay.classList.contains("hidden")) {
+		imgBookClosed.classList.add("hidden");
+		imgBookOpen.classList.remove("hidden");
+		bookOverlay.classList.remove("hidden");
+	} else {
+		imgBookOpen.classList.add("hidden");
+		imgBookClosed.classList.remove("hidden");
+		bookOverlay.classList.add("hidden");
+	}
 }
 
 function sendToBack(data) {
@@ -130,7 +116,7 @@ async function init() {
 function setupWebSocket(user) {
 	currentPlayerId = user.id;
 	const id = user.id.toString()
-	const socket = new WebSocket(`wss://127.0.0.1/ws/magicDuel/${id}/`);
+	const socket = new WebSocket(`wss://127.0.0.1:8443/ws/magicDuel/${id}/`);
 	let game = null;
 
 	socket.onopen = () => {
@@ -328,8 +314,8 @@ function handleRoundInteraction(data) {
 			pTakeDmg.loosePv();
 		}, 1000);
 	} else {
-		const equE = document.getElementById('equality');
-		equE.textContent = 'Equality';
+		const equE = document.getElementById('draw');
+		equE.textContent = 'Draw';
 		equE.classList.remove('hidden');
 		setTimeout(() => {
 			equE.classList.add('hidden');

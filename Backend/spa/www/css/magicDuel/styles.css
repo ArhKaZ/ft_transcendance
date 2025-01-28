@@ -392,7 +392,7 @@ body {
     color: white;
     font-size: 24px;
     text-align: center;
-    z-index: 10;
+    z-index: 9;
     font-size: 2rem;
     font-family: 'Press Start 2P';
 }
@@ -405,8 +405,9 @@ body {
     color: white;
     font-size: 2rem;
     text-align: center;
-    z-index: 10;
+    z-index: 9;
     font-family: 'Press Start 2P';
+
 }
 
 .countainer-hud {
@@ -505,60 +506,6 @@ body {
 }
 
 
-/* BOOK TUTO */
-
-.top-right {
-    width: 2vw;
-    height: 3vh;
-    position: absolute;
-    right: 2vw;
-    top: 3vh;
-}
-
-/* Couvertures */
-.book-cover {
-    position: absolute;
-    width: 50%;
-    height: 100%;
-    background: #5b3924; /* Une couleur de cuir marron */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-    transform-origin: center;
-    z-index: 2;
-    transition: transform 0.5s ease-in-out;
-  }
-  
-  /* .front-cover {
-    left: 0;
-    transform: rotateY(0deg);
-    background: url('asset/magicDuel/assets/leather-texture.png') center/cover; /* Texture de cuir */
-  /* } */
-  
-  /* .back-cover {
-    right: 0;
-    transform: rotateY(-180deg);
-    background: url('assets/magicDuel/assets/leather-texture.png') center/cover; /* Texture de cuir */
-  /* } */ 
-  
-  /* Contenu du livre */
-  .book-container {
-    position: relative;
-    width: 80%;
-    max-width: 800px;
-    height: 400px;
-    perspective: 1500px;
-    display: flex;
-  }
-  
-  .book {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-    transform: scale(0); /* Livre fermé au départ */
-    transform-origin: center;
-    transition: transform 0.5s ease-in-out;
-  }
-  
 /* TOP TITLE */
 
 #title {
@@ -773,4 +720,92 @@ body {
     100% {
         transform: translateX(0) translateX(0);
     }
+}
+
+
+/* BOOK TUTO */
+
+.top-right {
+    width: 2vw;
+    height: 3vh;
+    position: absolute;
+    right: 2vw;
+    top: 3vh;
+}
+
+
+.title-book {
+    display: flex;
+    width: 100%;
+    height: 10%;
+    justify-content: center;
+    align-items: center;
+}
+
+.title-book span {
+    font-family: "Press Start 2P";
+    font-size: 3em;
+}
+
+.instructions {
+    display: flex;
+    width: 100%;
+    height: 90%;
+    flex-wrap: wrap;
+}
+
+.top-right img {
+    width: 1vw;
+    height: 2vh;
+}
+
+.overlay {
+    display: none;
+    position: absolute;
+    z-index: 10;
+    width: 80%;
+    height: 80%;
+    border: solid 4px black;
+    background-color: #cccaca;
+    opacity: 0.9;
+    top: 10%;
+    left: 10%;
+    flex-wrap: wrap;
+}
+
+.overlay:not(.hidden) {
+    display: flex;
+}
+
+.instruction {
+    font-family: "Press Start 2P";
+    display: flex;
+    width: 49.8%;
+    height: 49%;
+    flex-direction: column;
+    border: solid 1px grey;
+}
+
+.instruction-top {
+    display: flex;
+    width: 100%;
+    height: 40%;
+    justify-content: center;
+    align-items: center;
+}
+
+.instruction-mid {
+    display: flex;
+    width: 100%;
+    height: 20%;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.instruction-bot {
+    display: flex;
+    width: 100%;
+    height: 40%;
+    justify-content: space-evenly;
+    align-items: center;
 }
