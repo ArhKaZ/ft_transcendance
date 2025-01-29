@@ -13,7 +13,7 @@ class Player {
             this.x = canvas.width * (72 / 100);
         this.y = canvas.height * (40 / 100);
         this.lifes = lifes;
-        this.currentAnimationPlayer = 'Idle';
+        this.currentAnimationPlayer = `IdleP${nb}`;
         this.currentAnimationAttack = 'dark_bolt';
         this.sprites = new Animation();
         this.isAnimatingAttack = false;
@@ -38,7 +38,7 @@ class Player {
                 this.queuedAnimationPlayer = null;
                 this.isAnimatingPlayer = true;
             } else {
-                this.currentAnimationPlayer = 'Idle';
+                this.currentAnimationPlayer = `IdleP${this.nb}`;
                 this.isAnimatingPlayer = false;
             }
         }
@@ -55,12 +55,14 @@ class Player {
                 this.canvas.getContext('2d').clearRect(0, 0, this.canvas.width, this.canvas.height);
             }
         }
-        if (this.currentAnimationPlayer != 'Idle')
+        if (this.currentAnimationPlayer != `IdleP${this.nb}`)
             console.log(this.currentAnimationPlayer);
         this.sprites.update(ctx, this, attackSprite);
     }
 
     playAnimationPlayer(animationName) {
+        animationName = animationName + `P${this.nb}`;
+        console.log('name animation : ', animationName);
         if (this.isAnimatingPlayer) {
             this.queuedAnimationPlayer = animationName;
             return;
@@ -68,7 +70,7 @@ class Player {
 
         this.currentAnimationPlayer = animationName;
 
-        if (animationName !== 'Idle') {
+        if (animationName !== `IdleP${this.nb}`) {
             this.isAnimatingPlayer = true;
             this.sprites.resetAnimation(animationName);
         }

@@ -59,6 +59,16 @@ class Game {
         const gameCanvas = document.getElementById('gameCanvas');
         if (show) {
             gameCanvas.style.backgroundImage = 'url(' + this.back.src + ')';
+            
+        }
+    }
+
+    toggleButtonTuto(show) {
+        const button = document.getElementById('btn-book-element');
+        if (show) {
+            button.classList.remove('hidden');
+        } else {
+            button.classList.add('hidden');
         }
     }
 
@@ -129,6 +139,7 @@ class Game {
         const p2ImgElement = document.getElementById('end-img-p2');
         const p1NameElement = document.getElementById('end-name-p1');
         const p2NameElement = document.getElementById('end-name-p2');
+        const overlay = document.getElementById('bookOverlay');
 
         if (this.P1.id === winner) {
             document.getElementById('crown-img-p1').classList.remove('hidden');
@@ -142,6 +153,9 @@ class Game {
         p2NameElement.textContent = this.P2.name;
         gameCanvas.classList.add('hidden');
         endElement.classList.remove('hidden');
+        this.toggleButtonTuto(false);
+        if (!overlay.classList.contains('hidden'))
+            overlay.classList.add('hidden');
     }
 
     gameLoop(timestamp) {

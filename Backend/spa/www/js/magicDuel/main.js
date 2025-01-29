@@ -241,6 +241,7 @@ async function handleCountdown(countdown) {
 		currentCountdown.stopDisplay();
 		currentGame.toggleCanvas(true);
 		currentGame.toggleInfoPlayer(false);
+		currentGame.toggleButtonTuto(true);
 		bindEvents();
 		currentGame.fillUsernames();
 		currentGame.gameLoop(0);

@@ -447,7 +447,7 @@ body {
     justify-content: space-between;
     align-items: center;
     flex-direction: column;
-    z-index: 10;
+    z-index: 9;
     position: relative;
     border: white solid 3px;
     object-fit: contain;
@@ -476,7 +476,7 @@ body {
 
 .username span {
     color: white;
-    font-size: 2vw;
+    font-size: 3vw;
 }
 
 .pv {
@@ -492,7 +492,7 @@ body {
 
 .pv img {
     height: auto;
-    max-width: 100%;
+    max-width: 25%;
     object-fit: contain;
 }
 
@@ -734,6 +734,18 @@ body {
     top: 3vh;
 }
 
+.top-right img {
+    max-width: 100%;
+    object-fit: contain;
+    height: auto;
+}
+
+.button-book {
+    background-color: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+}
 
 .title-book {
     display: flex;
@@ -753,29 +765,23 @@ body {
     width: 100%;
     height: 90%;
     flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: space-evenly;
     align-items: center;
     padding-left: 1%;
     padding-right: 1%;
-}
-
-.top-right img {
-    max-width: 100%;
-    object-fit: contain;
-    height: auto;
 }
 
 .overlay {
     display: none;
     position: absolute;
     z-index: 10;
-    width: 80%;
+    width: 60%;
     height: 80%;
     border: solid 4px black;
     background-color: #cccaca;
     opacity: 1;
     top: 10%;
-    left: 10%;
+    left: 20%;
     flex-wrap: wrap;
 }
 
@@ -789,12 +795,31 @@ body {
     height: 48%;
     box-sizing: border-box;
     flex-direction: column;
-    border: solid 1px grey;
+    border: solid 3px grey;
+    justify-content: space-evenly;
 }
 
 .instruction span {
     font-size: 2vw;
     font-family: "VT323";
+}
+
+.instruction-info-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-evenly;
+}
+
+.instruction-info {
+    width: 100%;
+    height: 90%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .instruction-top {
@@ -804,26 +829,40 @@ body {
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    margin-bottom: 10%;
+    margin-top: 2%;
 }
 
 .instruction-mid {
     display: flex;
     width: 100%;
     height: 20%;
-    justify-content: space-evenly;
+    justify-content: center;
     align-items: center;
+}
+
+.instruction-mid span {
+    font-family: "VT323";
+    font-size: 1.4vw;
+    text-align: center;
 }
 
 .instruction-bot {
+    justify-content: center;
     display: flex;
     width: 100%;
     height: 40%;
-    justify-content: space-evenly;
     align-items: center;
 }
 
-.instruction img {
-    max-width: 10%;
+.instruction-top img {
+    max-width: 20%;
+    height: auto;
+    object-fit: contain;
+}
+
+.instruction-bot img {
+    max-width: 30%;
     height: auto;
     object-fit: contain;
 }

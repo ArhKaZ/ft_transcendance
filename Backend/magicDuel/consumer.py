@@ -424,6 +424,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		await self.game.p1.assign_action(None)
 		await self.game.p2.assign_action(None)
 		self._round_complete_event.clear()
+		print('cleanup_round round complete : ', self._round_complete_event.is_set())
 		self._both_anim_done.clear()
 		self._start_round_task = None
 		self.time_task = None
@@ -435,8 +436,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		await self.notify_round_timer(start_time)
 		remaining_time = 0
 		while not self._round_complete_event.is_set() \
-			or not self.game_cancel_event.is_set \
-			or not self.game.status == 'CANCELLED':
+			and not self.game_cancel_event.is_set() \
+			and not self.game.status == 'CANCELLED':
 			elapsed_time = time.time() - start_time
 			remaining_time =  max(self.round_time - elapsed_time, 0)
 			if remaining_time <= 0:
@@ -447,11 +448,10 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 	async def manage_players_actions(self):
 		while not self._round_complete_event.is_set() \
-			or not self.game_cancel_event.is_set() \
-			or not self.game.status == 'CANCELLED':
+			and not self.game_cancel_event.is_set() \
+			and not self.game.status == 'CANCELLED':
 			await self.game.update_game()
 			if self.game.p1 and self.game.p2 and self.game.p1.action and self.game.p2.action:
-				print('break both players played')
 				self._round_complete_event.set()
 				break
 
