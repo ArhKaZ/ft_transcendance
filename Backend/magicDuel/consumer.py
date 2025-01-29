@@ -253,6 +253,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			self._both_anim_done.set()
 
 	async def handle_player_attack(self, data):
+		# print(f"handle attack : is p1 : {data['player_id'] == self.game.p1.id} / is p2: {data['player_id'] == self.game.p2.id}")
 		if data['player_id'] == self.game.p1.id:
 			self.p1_as_attack.set()
 			await self.game.p1.assign_action(data['choice'])
@@ -367,10 +368,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				except asyncio.CancelledError:
 					print('Round cancel')
 					raise
-					# self.game_cancel_event.set()
-					# await self.cleanup_round()
-					# await self.cleanup()
-					# return
 				except Exception as e:
 					print(f"Error in round : {e}")
 					self.game_cancel_event.set()

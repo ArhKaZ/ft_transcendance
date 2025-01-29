@@ -26,6 +26,7 @@ class Player:
 
     async def save_to_cache(self):
         cache_key = f'wizard_duel_player_{self.id}_{self.game_id}'
+        # print(f'save to cache {self.nb}, {self.action}')
         await sync_to_async(cache.set)(cache_key, {
             'life': self.life,
             'player_id': self.id,
@@ -43,9 +44,9 @@ class Player:
         await self.save_to_cache()
 
     async def assign_action(self, action):
-        print('action : ', action)
+        # print('action : ', action)
         self.action = action
-        print('after set it :', self.action)
+        # print('after set it :', self.action)
         await self.save_to_cache()
 
     async def update_player(self):

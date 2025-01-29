@@ -329,8 +329,8 @@ body {
 }
 
 .element-icon {
-    width: 40%;
-    height: 50%;
+    max-width: 40%;
+    height: auto;
     object-fit: contain;
 }
 
@@ -491,8 +491,9 @@ body {
 }
 
 .pv img {
-    height: 2rem;
-    width: 2rem;
+    height: auto;
+    max-width: 100%;
+    object-fit: contain;
 }
 
 .damage {
@@ -726,8 +727,8 @@ body {
 /* BOOK TUTO */
 
 .top-right {
-    width: 2vw;
-    height: 3vh;
+    width: 3vw;
+    height: 4vh;
     position: absolute;
     right: 2vw;
     top: 3vh;
@@ -752,11 +753,16 @@ body {
     width: 100%;
     height: 90%;
     flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 1%;
+    padding-right: 1%;
 }
 
 .top-right img {
-    width: 1vw;
-    height: 2vh;
+    max-width: 100%;
+    object-fit: contain;
+    height: auto;
 }
 
 .overlay {
@@ -767,7 +773,7 @@ body {
     height: 80%;
     border: solid 4px black;
     background-color: #cccaca;
-    opacity: 0.9;
+    opacity: 1;
     top: 10%;
     left: 10%;
     flex-wrap: wrap;
@@ -778,12 +784,17 @@ body {
 }
 
 .instruction {
-    font-family: "Press Start 2P";
     display: flex;
-    width: 49.8%;
-    height: 49%;
+    width: 48%;
+    height: 48%;
+    box-sizing: border-box;
     flex-direction: column;
     border: solid 1px grey;
+}
+
+.instruction span {
+    font-size: 2vw;
+    font-family: "VT323";
 }
 
 .instruction-top {
@@ -792,6 +803,7 @@ body {
     height: 40%;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
 }
 
 .instruction-mid {
@@ -808,4 +820,10 @@ body {
     height: 40%;
     justify-content: space-evenly;
     align-items: center;
+}
+
+.instruction img {
+    max-width: 10%;
+    height: auto;
+    object-fit: contain;
 }
