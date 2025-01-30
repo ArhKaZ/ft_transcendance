@@ -8,8 +8,8 @@ class Game {
         this.P1 = P1;
         this.P2 = P2;
         this.isRunning = false;
-        this.back = new Image();
-        this.plat = new Image();
+        this.back = new Image(gameCanvas.width, gameCanvas.height);
+        this.plat = new Image(282, 215);
         this.assetsPath = window.MAGICDUEL_ASSETS;
         this.back.src = '../assets/magicDuel/map/back.png';
         this.plat.src = '../assets/magicDuel/map/plat_little.png';
@@ -132,6 +132,11 @@ class Game {
             return this.P2;
     }
 
+    updateImageSize(gameCanvas) {
+        this.back.width = gameCanvas.width;
+        this.back.height = gameCanvas.height;
+    }
+
     displayWinner(winner) {
         const endElement = document.getElementById('end-container');
         const gameCanvas = document.getElementById('gameCanvas');
@@ -168,8 +173,23 @@ class Game {
         if (elapsed >= this.frameInterval) {
             this.gameCtx.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
 
-            this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (3/100), this.gameCanvas.height * (72/100));
-            this.gameCtx.drawImage(this.plat, this.gameCanvas.width * (76/100), this.gameCanvas.height * (72/100));
+            let scaleFactor = this.gameCanvas.width / 1400;
+            let newPlatWidth = this.plat.width * scaleFactor;
+            let newPlatHeight = this.plat.height * scaleFactor;
+            this.gameCtx.drawImage(
+                this.plat, 
+                this.gameCanvas.width * 0.05, 
+                this.gameCanvas.height - (newPlatHeight - 5),
+                newPlatWidth, 
+                newPlatHeight
+            );
+            this.gameCtx.drawImage(
+                this.plat, 
+                this.gameCanvas.width * 0.95 - newPlatWidth, 
+                this.gameCanvas.height - (newPlatHeight - 5),
+                newPlatWidth,
+                newPlatHeight
+            );
             this.P1.updateAnimation(this.gameCtx);
             this.P2.updateAnimation(this.gameCtx);
 

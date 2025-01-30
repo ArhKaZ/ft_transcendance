@@ -361,9 +361,10 @@ function resizeCanvas() {
 	});
 
 	if (currentGame) {
+		currentGame.updateImageSize(gameCanvas);
 		currentGame.updateCanvas(gameCanvas, attackCanvas);
-		currentGame.P1.updatePos(gameCanvas);
-		currentGame.P2.updatePos(gameCanvas);
+		currentGame.P1.updatePos(gameCanvas, currentGame.plat);
+		currentGame.P2.updatePos(gameCanvas, currentGame.plat);
 	}
 }
 

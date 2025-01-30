@@ -48,13 +48,13 @@ class Animation {
         }
 
         if (spriteToDraw) {
-            spriteToDraw.drawSprite(ctx, obj.x, obj.y, this.scale)
+            spriteToDraw.drawSprite(obj.canvas, ctx, obj.x, obj.y)
         }
 
         if (attackSprite) {
             const attackX = (obj.x + (this.IdleP1.frameWidth * this.scale) / 2) - (attackSprite.frameWidth * this.scale) / 2;
             const attackY = (obj.y + (this.IdleP1.frameHeight * this.scale) / 2) - (attackSprite.frameHeight * this.scale) / 2;
-            attackSprite.drawSprite(ctx, attackX, attackY, this.scale);
+            attackSprite.drawSprite(obj.canvas, ctx, attackX, attackY);
         }
     }
 

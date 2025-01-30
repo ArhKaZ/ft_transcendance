@@ -22,13 +22,21 @@ class Player {
         this.currentAttackSprite = null;
     }
 
-    updatePos(canvas) {
+    updatePos(canvas, plat) {
         this.canvas = canvas;
+        let scaleFactor = canvas.width / 1400;
+        let newPlatWidth = plat.width * scaleFactor;
+        let newPlatHeight = plat.height * scaleFactor;
+        let spriteWidth = 231 * scaleFactor;
+        let spriteHeight = 190 * scaleFactor;
+
         if (this.nb === 1) {
-            this.x = canvas.width * (1 / 100);
+            this.x = canvas.width * 0.05 + newPlatWidth / 2 - spriteWidth / 1.2;
         } else
-            this.x = canvas.width * (72 / 100);
-        this.y = canvas.height * (40 / 100);
+            this.x = canvas.width * 0.95 - newPlatWidth / 2 - spriteWidth / 1.2;
+        
+        let marginAbovePlatform = newPlatHeight * 0.1;
+        this.y = canvas.height - newPlatHeight - spriteHeight - marginAbovePlatform;
     }
 
     updateAnimation(ctx) {
