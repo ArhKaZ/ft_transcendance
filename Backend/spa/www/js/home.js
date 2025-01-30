@@ -61,6 +61,7 @@ if (response.ok) {
 	const pixelbtn = document.getElementById('pixel-button');
 	const friendsbtn = document.getElementById('friend-button');
 	const avatarImg = document.getElementById('user-avatar');
+	const tournamentbtn = document.getElementById('tournament-button');
 
 	localbtn.style.display = 'none';
 	pongbtn.style.display = 'none';
@@ -70,6 +71,7 @@ if (response.ok) {
 	pixelbtn.style.display = 'none';
 	friendsbtn.style.display = 'none';
 	avatarImg.style.display = 'none';
+	tournamentbtn.style.display = 'none';
 	
 	console.error('Erreur lors de la requête de récupération des informations :', response);
 }
