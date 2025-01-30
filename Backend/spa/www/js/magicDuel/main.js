@@ -93,12 +93,17 @@ function handleError(error) {
 }
 
 function handleGameCancel(data) {
-	alert(`Player ${data.username} left`);
-	if (data.game_status === "WAITING")
-	{
-		window.location.href = '/home/';
-	}
-	else { //Gerer les lp 
+	if (!data.message) {
+		alert(`Player ${data.username} left`);
+		if (data.game_status === "WAITING")
+		{
+			window.location.href = '/home/';
+		}
+		else { //Gerer les lp 
+			window.location.href = '/home/';
+		}
+	} else {
+		alert(data.message);
 		window.location.href = '/home/';
 	}
 }

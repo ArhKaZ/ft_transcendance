@@ -107,3 +107,12 @@ class Game:
 			self.p1 = None
 		if await self.p2.update_player() == -1:
 			self.p2 = None
+
+	async def check_players_have_played(self): 
+		await self.p1.check_have_played()
+		await self.p2.check_have_played()
+		if self.p1.nb_round_no_play >= 4:
+			return self.p1.username
+		elif self.p2.nb_round_no_play >= 4:
+			return self.p2.username
+		return None

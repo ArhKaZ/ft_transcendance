@@ -14,6 +14,7 @@ class Player:
         self.ligue_points = player_info['ligue_points']
         self.ready = ready
         self.game_id = game_id
+        self.nb_round_no_play = 0
 
     def __repr__(self):
         return f"Player(id={self.id}, nb={self.nb}, life={self.life}, action={self.action})"
@@ -31,7 +32,8 @@ class Player:
             'player_id': self.id,
             'game_id': self.game_id,
             'nb': self.nb,
-            'action': self.action
+            'action': self.action,
+            'no_play': self.nb_round_no_play
         }, timeout= 3600)
 
     async def delete_from_cache(self):
@@ -43,9 +45,7 @@ class Player:
         await self.save_to_cache()
 
     async def assign_action(self, action):
-        # print('action : ', action)
         self.action = action
-        # print('after set it :', self.action)
         await self.save_to_cache()
 
     async def update_player(self):
@@ -53,7 +53,15 @@ class Player:
         if player_cache:
             self.life = player_cache['life']
             self.action = player_cache['action']
+            self.nb_round_no_play = player_cache['no_play']
             return 0
         else:
             return -1
+        
+    async def check_have_played(self):
+        if self.action == None:
+            self.nb_round_no_play += 1
+        else: 
+            self.nb_round_no_play = 0
+        await self.save_to_cache()
             

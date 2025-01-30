@@ -424,7 +424,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		await self.game.p1.assign_action(None)
 		await self.game.p2.assign_action(None)
 		self._round_complete_event.clear()
-		print('cleanup_round round complete : ', self._round_complete_event.is_set())
 		self._both_anim_done.clear()
 		self._start_round_task = None
 		self.time_task = None
@@ -460,6 +459,14 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def check_winner_round(self):
 		if self.game_cancel_event.is_set() or self.game.status == 'CANCELLED':
 			return
+		player = await self.game.check_players_have_played()
+		if player != None:
+			await self.notify_game_cancel(player)
+			self.game.status = 'CANCELLED'
+			await self.cleanup_round()
+			await self.cleanup()
+			return
+
 		result = self.resolve_power(self.game.p1.action, self.game.p2.action)
 		if result == 'Error interaction':
 			print('Error with power interaction')
@@ -523,12 +530,15 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
 
-	# async def notify_debug(self, fromwhere):
-	# 	message = {
-	# 		'type': 'debug',
-	# 		'from': fromwhere
-	# 	}
-	# 	await self.channel_layer.group_send(self.game.group_name, message)
+	async def notify_player_no_player(self, username):
+		self.game_cancel_event.set()
+		message = {
+			'type': 'game_cancel',
+			'message': f'Player {username} have not played since 4 rounds',
+			'user': username,
+			'game_status': self.game.status,
+		}
+		await self.channel_layer.group_send(self.game.group_name, message)
 
 	async def notify_round_timer(self, start_time):
 		message = {
