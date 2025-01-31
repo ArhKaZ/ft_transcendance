@@ -169,7 +169,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 		if current_game:
 			await self.send(text_data=json.dumps({
 				'type': 'error',
-				'message': 'Already in a game'
+				'message': 'You\'r already in a game'
 			}))
 			return
 
@@ -411,6 +411,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 	async def notify_game_cancel(self, username_gone):
 		message = {
 			'type': 'game_cancel',
+			'message': f'Player {username_gone} is gone, game is cancelled',
 			'username': username_gone,
 			'game_status': self.game.status
 		}
@@ -432,6 +433,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 	async def game_cancel(self, event):
 		message = {
 			'type': 'game_cancel',
+			'message': event['message'],
 			'username': event['username'],
 			'game_status': event['game_status']
 		}

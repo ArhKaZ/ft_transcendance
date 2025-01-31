@@ -10,12 +10,14 @@ body {
     /*background-color: white;*/
 }
 
-#canvasContainer {
-    display: none;
-    /*display: flex;*/
+.canvasContainer {
     position: relative;
     width: 80%;
     height: 80%;
+}
+
+.canvasContainer:not(.hidden) {
+    display: flex;
 }
 
 .allCanvas {
@@ -24,7 +26,6 @@ body {
     left: 0;
     margin: 0;
     padding: 0;
-    display: none;
     width: 100%;
     height: 100%;
     background-size: cover;
@@ -410,11 +411,14 @@ body {
 
 }
 
-.countainer-hud {
-    display: flex;
+.container-hud {
     height: 100%;
     width: 100%;
     align-items: center;
+}
+
+.container-hud:not(.hidden) {
+    display: flex;
 }
 
 .hud-items {
@@ -864,4 +868,20 @@ body {
     max-width: 30%;
     height: auto;
     object-fit: contain;
+}
+
+.error-container {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.error-container span {
+    color: red;
+    font-family: "VT323";
+    font-size: 3vw;
+}
+
+.error-container:not(.hidden) {
+    display: flex;
 }

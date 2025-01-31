@@ -32,19 +32,14 @@ async function getUserFromBack() {
             credentials: 'include',
         });
         if (!response.ok) {
-            console.log("error reponse");
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Error getting user");
+            handleErrors({message: 'You need to be logged before playing'});
         }
         const data = await response.json();
         return await data;
     } catch (error) {
-        alert("Need to be logged");
-        window.location.href = '/home/';
-        throw error;
+        handleErrors({message: 'You need to be logged before playing'});
     }
 }
-
     
 async function init() {
     const user = await getUserFromBack();
@@ -171,11 +166,52 @@ async function handleWebSocketMessage(e) {
             break;
 
         case 'error':
-            alert('Error : '+ data.message);
-            setTimeout(() => {
-                window.location.href = '/home/';
-            }, 300);
+            handleErrors(data);
+            break;
     }
+}
+
+function handleErrors(data) {
+    const infoMain = document.getElementById('info-main-player');
+    const infop1 = document.getElementById('infoP1');
+    const infop2 = document.getElementById('infoP2');
+    const hudp1 = document.getElementById('hud-p1');
+    const hudp2 = document.getElementById('hud-p2');
+    const spark = document.getElementById('sparks-container');
+    const canvasContainer = document.getElementById('canvasContainer');
+    const game = document.getElementById('gameCanvas');
+    const countdown = document.getElementById('countdownCanvas');
+    const button = document.getElementById('button-ready');
+    const errorContainer = document.getElementById('error-container');
+    const errorMessage = document.getElementById('error-message');
+
+    if (!infoMain.classList.contains('hidden'))
+        infoMain.classList.add('hidden');
+    if (!infop1.classList.contains('hidden'))
+        infop1.classList.add('hidden');
+    if (!infop2.classList.contains('hidden'))
+        infop2.classList.add('hidden');
+    if (!hudp1.classList.contains('hidden'))
+        hudp1.classList.add('hidden');
+    if (!hudp2.classList.contains('hidden'))
+        hudp2.classList.add('hidden');
+    if (!spark.classList.contains('hidden'))
+        spark.classList.add('hidden');
+    if (!canvasContainer.classList.contains('hidden'))
+        canvasContainer.classList.add('hidden');
+    if (!game.classList.contains('hidden'))
+        game.classList.add('hidden');
+    if (!countdown.classList.contains('hidden'))
+    {
+        if (currentCountdown)
+            currentCountdown.stopDisplay();
+        countdown.classList.add('hidden');
+    }
+    if (!button.classList.contains('hidden'))
+        button.classList.add('hidden');
+
+    errorContainer.classList.remove('hidden');
+    errorMessage.innerText += data.message;
 }
 
 function handlePlayerInfo(data) {
@@ -196,14 +232,8 @@ async function handleGameStart(data) {
 }
 
 function handleGameCancel(data) {
-    alert(`Player ${data.username} left`);
-	if (data.game_status === "WAITING")
-	{
-		window.location.href = '/home/';
-	}
-	else {
-		window.location.href = '/home/';
-	}
+    sendToBack({action: 'cancel'});
+    handleErrors(data);
 }
 
 function updatePlayerPosition(game, data) {

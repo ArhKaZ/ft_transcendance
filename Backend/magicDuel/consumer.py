@@ -140,12 +140,15 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			'finishAnim': self.handle_finish_anim,
 			'search': self.handle_player_search,
 			'findGame': self.handle_find_game,
+			'cancel': self.handle_game_cancel,
 		}
 
 		handler = actions.get(action)
 		if handler:
 			await handler(data)
 
+	async def handle_game_cancel(self, data):
+		self.game_cancel_event.set()
 
 	async def handle_player_search(self, data):
 		key = 'waiting_wizard_duel_players'
@@ -159,7 +162,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		if current_game:
 			await self.send(text_data=json.dumps({
 				'type': 'error',
-				'message': 'Already in a game'
+				'message': 'You\'r already in a game'
 			}))
 			return
 		key = 'waiting_wizard_duel_players'
@@ -253,7 +256,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			self._both_anim_done.set()
 
 	async def handle_player_attack(self, data):
-		# print(f"handle attack : is p1 : {data['player_id'] == self.game.p1.id} / is p2: {data['player_id'] == self.game.p2.id}")
 		if data['player_id'] == self.game.p1.id:
 			self.p1_as_attack.set()
 			await self.game.p1.assign_action(data['choice'])
@@ -288,7 +290,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		await self._countdown_done.wait()
 		# game_loop_task can be launch because countdown is done
 		if not self._game_loop_task:
-			print('status_game: ', self.game.status)
 			self._game_loop_task = asyncio.create_task(self.game_loop())
 
 	async def run_countdown_sequence(self):
@@ -303,7 +304,9 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def game_loop(self):
 		try:
 			await self.game.update_players()
-
+			print(f'game loop event cancel : {self.game_cancel_event.is_set()}')
+			if self.game_cancel_event.is_set():
+				return
 			# Use an event to manage game state
 			game_over_event = asyncio.Event()
 
@@ -324,7 +327,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 	async def monitor_game_state(self, game_over_event):
 		try:
-			while not game_over_event.is_set():
+			while not game_over_event.is_set() and not self.game_cancel_event.is_set():
 				await self.game.update_game()
 				if self.game.status == 'CANCELLED':
 					await self.cleanup()
@@ -352,7 +355,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 	async def round_manager(self, game_over_event):
 		try: 
-			while not game_over_event.is_set():
+			while not game_over_event.is_set() and not self.game_cancel_event.is_set():
 				try:
 					if self.game.status == 'CANCELLED' or self.game_cancel_event.is_set():
 						break 
@@ -388,6 +391,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		await self.notify_round_count(self.current_round_count)
 		await asyncio.sleep(3)
 		try:
+			if self.game_cancel_event.is_set():
+				return
 			self.time_task = asyncio.create_task(self.manage_round_time())
 			self.action_task = asyncio.create_task(self.manage_players_actions())
 
@@ -525,6 +530,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		self.game_cancel_event.set()
 		message = {
 			'type': 'game_cancel',
+			'message': f'Player {username_gone} is gone, game is cancelled',
 			'username': username_gone,
 			'game_status': self.game.status,
 		}
@@ -649,6 +655,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			'type': 'game_cancel',
 			'username': event['username'],
 			'game_status': event['game_status'],
+			'message': event['message']
 		}
 		await self.send(text_data=json.dumps(message))
 

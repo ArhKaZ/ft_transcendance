@@ -24,7 +24,7 @@ class Router {
             const link = e.target.closest('a');
             if (link) {
                 const href = link.getAttribute('href');
-                if (href && !href.startsWith('http')) {
+                if (href && !href.startsWith('https')) {
                     e.preventDefault();
                     this.navigateTo(href);
                 }

@@ -56,7 +56,6 @@ class Game {
     }
 
     update() {
-        console.log(`in drawGame : ${this.canvas.width} ${this.canvas.height}`);
         this.P1.paddle.update(this.keyState);
         this.P2.paddle.update(this.keyState);
         this.bound = this.ball.update(this.P1.paddle, this.P2.paddle);

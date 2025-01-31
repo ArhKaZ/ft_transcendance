@@ -68,45 +68,15 @@ async function getUserFromBack() {
             credentials: 'include',
         });
         if (!response.ok) {
-            console.log("error reponse");
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Error getting user");
+            handleErrors({message: 'You need to be logged before playing'});
         }
         const data = await response.json();
-        console.log('data:', data);
         return await data;
     } catch (error) {
-        alert("Need to be logged");
-        window.location.href = '/home/';
-        console.error("Error when getting user:", error);
-        throw error;
+        handleErrors({message: 'You need to be logged before playing'});
     }
 }
 
-function handleError(error) {
-	if (error.message.includes("No token") || error.message.includes("Invalid Token") || error.message.includes("User does not exist")) {
-		alert("You need to connect before playing");
-		window.location.href = '/home/';
-	} else {
-		alert(error.message);
-	}
-}
-
-function handleGameCancel(data) {
-	if (!data.message) {
-		alert(`Player ${data.username} left`);
-		if (data.game_status === "WAITING")
-		{
-			window.location.href = '/home/';
-		}
-		else { //Gerer les lp 
-			window.location.href = '/home/';
-		}
-	} else {
-		alert(data.message);
-		window.location.href = '/home/';
-	}
-}
 
 async function init() {
 	try {
@@ -114,7 +84,7 @@ async function init() {
 		displayWhenLoad(user);
 		socket = setupWebSocket(user);
 	} catch (error) {
-		handleError(error);
+		handleErrors({message:error});
 	}
 }
 
@@ -122,8 +92,7 @@ function setupWebSocket(user) {
 	currentPlayerId = user.id;
 	const id = user.id.toString()
 	const socket = new WebSocket(`wss://127.0.0.1:8443/ws/magicDuel/${id}/`);
-	let game = null;
-
+	
 	socket.onopen = () => {
 		console.log("WEBSOCKET CONNECTED");
 		sendToBack({
@@ -217,8 +186,8 @@ async function handleWebSocketMessage(event) {
 			break;
 
 		case 'error':
-			alert('Error : ' + data.message);
-			window.location.href = '/home/';
+			handleErrors(data);
+			break;
 	}
 }
 
@@ -262,6 +231,54 @@ function handleGameFinish(data) {
 	}, 500);
 }
 
+function handleErrors(data) {
+	const infoMain = document.getElementById('info-main-player');
+	const infop1 = document.getElementById('infoP1');
+	const infop2 = document.getElementById('infoP2');
+	const buttonStart = document.getElementById('button-ready');
+	const canvas = document.getElementById('canvasContainer');
+	const countDown = document.getElementById('countdownCanvas');
+	const game = document.getElementById('gameCanvas');
+	const hud = document.getElementById('hud-container');
+	const buttonGuide = document.getElementById('btn-book-element');
+	const errorContainer = document.getElementById('error-container');
+	const errorMessage = document.getElementById('error-message');
+
+	if (!infoMain.classList.contains('hidden'))
+		infoMain.classList.add('hidden');
+	if (!infop1.classList.contains('hidden'))
+		infop1.classList.add('hidden');
+	if (!infop2.classList.contains('hidden'))
+		infop2.classList.add('hidden');
+	if (!buttonStart.classList.contains('hidden'))
+		buttonStart.classList.add('hidden');
+	if (!canvas.classList.contains('hidden'))
+		canvas.classList.add('hidden');
+	if (!countDown.classList.contains('hidden'))
+	{
+		if (currentCountdown)
+			currentCountdown.stopDisplay();
+		countDown.classList.add('hidden');
+	}
+	if (!game.classList.contains('hidden'))
+		game.classList.add('hidden');
+	if (!hud.classList.contains('hidden'))
+		hud.classList.add('hidden');
+	if (!buttonGuide.classList.contains('hidden')) {
+		console.log('cc');
+		buttonGuide.classList.add('hidden');
+	}
+
+	errorContainer.classList.remove('hidden');
+	errorMessage.innerText += data.message;
+}
+
+function handleGameCancel(data) {
+	sendToBack({action: 'cancel'});
+	//rajouter lp si player username == currrentUser;
+	handleErrors(data);
+}
+
 function sendMatchApi(winningId) {
 	const opponentName = currentPlayerId === parseInt(currentGame.P1.id) ? currentGame.P2.name : currentGame.P1.name;
     const asWin = currentPlayerId === parseInt(winningId);
@@ -283,7 +300,6 @@ function sendMatchApi(winningId) {
         console.log('Match enregistrer ', data);
     }).catch(error => console.error(error));
 }
-
 
 function handleClick(choice) {
 	sendToBack({ action: 'attack', choice: choice, player_id: currentPlayerId });

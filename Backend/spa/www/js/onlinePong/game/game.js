@@ -20,7 +20,7 @@ class Game {
     }
 
     displayCanvas() {
-        document.getElementById('canvasContainer').style.display = 'flex';
+        document.getElementById('canvasContainer').classList.remove('hidden');
         document.getElementById('button-ready').classList.add('hidden');
     }
 

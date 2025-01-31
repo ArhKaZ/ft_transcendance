@@ -122,7 +122,7 @@ class Game {
 
     displayCanvas() {
         document.getElementById('button-ready').classList.add('hidden');
-        document.getElementById('canvasContainer').style.display = 'flex';
+        document.getElementById('canvasContainer').classList.remove('hidden');
     }
 
     getPlayer(playerId) {

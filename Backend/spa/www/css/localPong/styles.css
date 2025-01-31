@@ -75,10 +75,6 @@ body {
 }
 
 
-#scoreP1, #scoreP2 {
-    font-size: 100px;
-}
-
 .info {
     display: none;
     width: 20%;
@@ -241,6 +237,7 @@ body {
     background: linear-gradient(90deg, #ffff00, #ff00ff);
     animation: pulse 1.5s infinite;
 }
+
 @keyframes pulse {
     0%, 100% {
     opacity: 1;
@@ -261,7 +258,6 @@ body {
 .player-bar:not(.hidden) {
     display: flex;
 }
-
 
 /* TOP TITLE */
 
@@ -512,3 +508,19 @@ body {
       transform: translateX(0) translateX(0);
     }
   }
+
+.error-container {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.error-container span {
+    color: red;
+    font-family: "VT323";
+    font-size: 3vw;
+}
+
+.error-container:not(.hidden) {
+    display: flex;
+}

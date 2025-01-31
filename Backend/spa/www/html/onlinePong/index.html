@@ -49,7 +49,7 @@
     </div>
     <!-- GAME DISPLAY -->
     <div id="sparks-container" class="sparks-container"></div>
-    <div id="canvasContainer" class="game-area">
+    <div id="canvasContainer" class="game-area hidden">
         <div id="end-container" class="end-container hidden">
             <div id="end-info-p1" class="end-info">
                 <img id="crown-img-p1" src="../assets/onlinePong/Crown.png" alt="crown" class="hidden crown"/>
@@ -57,7 +57,7 @@
                 <span id="end-name-p1" class="end-name"></span>
             </div>
             <div id="end-button"> 
-                <a id="button-home" class="buttonNeon" href="http://127.0.0.1:8443/home/">
+                <a id="button-home" class="buttonNeon" href="https://127.0.0.1:8443/home/">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -104,5 +104,15 @@
         <span></span>
         I'm Ready !
     </a>
+    <div class="error-container hidden" id="error-container">
+        <span id="error-message">Error: </span>
+        <a id="button-home" class="buttonNeon" href="https://127.0.0.1:8443/home/">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            Return to the home
+        </a>
+    </div>
 </body>
 </html>
