@@ -690,7 +690,7 @@ body {
     width: 90%;
     height: 20%;
     text-align: center;
-    font-size: 2em;
+    font-size: 2vw;
     color: white;
     font-family: "Press Start 2P";
     overflow: hidden;
@@ -705,7 +705,7 @@ body {
     height: 8%;
     animation: swing 4s linear infinite;
     top: 12%;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 @keyframes swing {
@@ -713,13 +713,13 @@ body {
         transform: translateX(0) translateX(0);
     }
     25% {
-        transform: translateX(0) translateX(50px); 
+        transform: translateX(0) translateX(80%); 
     }
     50% {
         transform: translateX(0) translateX(0);
     }
     75% {
-        transform: translateX(0) translateX(-50px); 
+        transform: translateX(0) translateX(-80%); 
     }
     100% {
         transform: translateX(0) translateX(0);
@@ -872,7 +872,7 @@ body {
 
 .error-container {
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-evenly;
     align-items: center;
 }
 

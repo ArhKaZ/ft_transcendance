@@ -145,13 +145,23 @@ class Game {
         const p1NameElement = document.getElementById('end-name-p1');
         const p2NameElement = document.getElementById('end-name-p2');
         const overlay = document.getElementById('bookOverlay');
+        const huds = document.getElementById('hud-items');
+        const p1Lps = document.getElementById('end-lps-p1');
+        const p2Lps = document.getElementById('end-lps-p2');
 
+        huds.classList.add('hidden');
         if (this.P1.id === winner) {
             document.getElementById('crown-img-p1').classList.remove('hidden');
+            p1Lps.innerText = '+ 15 LP';
+            p2Lps.innerText = '- 15 LP';
         } else {
             document.getElementById('crown-img-p2').classList.remove('hidden');
+            p1Lps.innerText = '- 15 LP';
+            p2Lps.innerText = '+ 15 LP';
         }
         
+        p1Lps.classList.remove('hidden');
+        p2Lps.classList.remove('hidden');
         p1ImgElement.src = this.P1.img;
         p2ImgElement.src = this.P2.img;
         p1NameElement.textContent = this.P1.name;

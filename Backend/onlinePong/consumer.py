@@ -51,14 +51,13 @@ class PongConsumer(AsyncWebsocketConsumer):
 			print(f"Error during disconnect: {e}")
 
 	async def _handle_disconnect(self, close_code):
+		print(f"Disconnect player {self.player_id} from game {self.game_id}")
+		
+		key = 'waiting_onlinePong_players'
+		current_waiting_players = await sync_to_async(cache.get)(key) or []
+		current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
+		await sync_to_async(cache.set)(key, current_waiting_players)
 		if self.game_id:
-			print(f"Disconnect player {self.player_id} from game {self.game_id}")
-			
-			key = 'waiting_onlinePong_players'
-			current_waiting_players = await sync_to_async(cache.get)(key) or []
-			current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
-			await sync_to_async(cache.set)(key, current_waiting_players)
-
 			await sync_to_async(cache.delete)(f'player_current_game_{self.player_id}')
 			await sync_to_async(cache.delete)(f"player_{self.player_id}_channel")
 
@@ -210,6 +209,10 @@ class PongConsumer(AsyncWebsocketConsumer):
 				await self.channel_layer.group_add(self.game.group_name, opponent_channel_name)
 
 			await self.send_players_info(self.game.to_dict())
+			key = 'waiting_onlinePong_players'
+			current_waiting_players = await sync_to_async(cache.get)(key) or []
+			current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
+			await sync_to_async(cache.set)(key, current_waiting_players)
 		else:
 			await self.waiting_for_opponent()
 
@@ -309,7 +312,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 				await self.cleanup()
 				return
 	
-
 	async def reset_delay(self):
 		await self.set_can_move_in_cache(False)
 		await asyncio.sleep(1)

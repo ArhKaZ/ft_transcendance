@@ -65,11 +65,13 @@ def add_match(request):
 	data = request.data.copy()
 	data['user'] = request.user.id
 	
-	if request.data['won']:
-		request.user.ligue_points += 15
-	else:
-		request.user.ligue_points -= 15
-	request.user.save()
+	if request.data['type'] == 'magicDuel':
+		if request.data['won']:
+			request.user.ligue_points += 15
+		else:
+			request.user.ligue_points -= 15
+		request.user.save()
+		
 	serializer = MatchHistorySerializer(data=data)
 	if serializer.is_valid():
 		serializer.save(user=request.user)

@@ -9,7 +9,7 @@ class Ball:
     def __init__(self, game_id):
         self.x = 50
         self.y = 50
-        self.speed = 0.58
+        self.speed = 0.64
         self.game_id = game_id
         rand = random.choice([1,2])
         angle = random.uniform(-math.pi / 4, math.pi / 4)

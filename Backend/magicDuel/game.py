@@ -102,6 +102,12 @@ class Game:
 		self.status = newGame['status']
 		await self.update_players()
 
+	async def update_status_game(self):
+		newGame = await sync_to_async(cache.get)(f"wizard_duel_game_{self.game_id}")
+		if not newGame: 
+			return
+		self.status = newGame['status']
+
 	async def update_players(self):
 		if await self.p1.update_player() == -1:
 			self.p1 = None

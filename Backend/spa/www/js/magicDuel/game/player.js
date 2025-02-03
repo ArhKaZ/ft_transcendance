@@ -63,14 +63,11 @@ class Player {
                 this.canvas.getContext('2d').clearRect(0, 0, this.canvas.width, this.canvas.height);
             }
         }
-        if (this.currentAnimationPlayer != `IdleP${this.nb}`)
-            console.log(this.currentAnimationPlayer);
         this.sprites.update(ctx, this, attackSprite);
     }
 
     playAnimationPlayer(animationName) {
         animationName = animationName + `P${this.nb}`;
-        console.log('name animation : ', animationName);
         if (this.isAnimatingPlayer) {
             this.queuedAnimationPlayer = animationName;
             return;
@@ -86,6 +83,8 @@ class Player {
 
     playAnimationAttack(attackName) {
         this.currentAttackSprite = this.sprites.getAttackSprite(attackName);
+        if (this.currentAttackSprite)
+            this.currentAttackSprite.resetAnimation();
         this.isAnimatingAttack = true;
     }
 

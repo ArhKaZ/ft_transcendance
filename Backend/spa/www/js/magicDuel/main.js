@@ -16,6 +16,7 @@ let currentRound = 0;
 let currentGameId = null;
 let asFinishedAnim = false;
 let currentInverval = null;
+let asShowDeath = false;
 
 function bindEvents() {
 	const btn1 = document.getElementById("btn1");
@@ -93,7 +94,6 @@ function sendSearch(user) {
 	const mainP = document.getElementById("info-main-player");
 	if (!mainP.classList.contains('hidden'))
 	{
-		console.log("j'envoie search ");
 		sendToBack({
 			action: 'search',
 			player_id: user.id,
@@ -102,7 +102,6 @@ function sendSearch(user) {
 			player_lp: user.ligue_points
 		});
 	} else {
-		console.log('je clear l\'interval');
 		clearInterval(currentInverval);
 	}
 }
@@ -213,6 +212,13 @@ function handleRoundEnd(data) {
 	document.getElementById('choiceButtons').classList.add('hidden');
 }
 
+function handleQuitGame(event) {
+	let opponentId = currentGame.P1.id === currentPlayerId ? currentGame.P2.id : currentGame.P1.id;
+	sendMatchApi(opponentId);
+	event.preventDefault();
+	event.returnValue = true;
+}
+
 function handleGameStart(data) {
 	currentGame = createGame(data);
 
@@ -222,6 +228,7 @@ function handleGameStart(data) {
 	currentGame.start();
 	resizeCanvas();
 	window.addEventListener('resize', resizeCanvas);
+	window.addEventListener("beforeunload", handleQuitGame);
 	currentCountdown = new CountdownAnimation('countdownCanvas');
 }
 
@@ -240,14 +247,24 @@ async function handleCountdown(countdown) {
 }
 
 function handleGameFinish(data) {
-	while (!asFinishedAnim) {;}
-	setTimeout(() => {
-		currentGame.displayWinner(data.player_id);
-		sendMatchApi(data.player_id);
-	}, 500);
+	let checkAnim = setInterval(() => {
+        if (asFinishedAnim) {
+			clearInterval(checkAnim);
+			setTimeout(() => {
+				currentGame.displayWinner(data.player_id);
+				sendMatchApi(data.player_id);
+			}, 1000);
+        }
+    }, 10);
 }
 
 function handleErrors(data) {
+	const errorContainer = document.getElementById('error-container');
+
+	if (!errorContainer.classList.contains('hidden'))
+		return;
+
+	window.removeEventListener('beforeunload', handleQuitGame);
 	const infoMain = document.getElementById('info-main-player');
 	const infop1 = document.getElementById('infoP1');
 	const infop2 = document.getElementById('infoP2');
@@ -257,8 +274,8 @@ function handleErrors(data) {
 	const game = document.getElementById('gameCanvas');
 	const hud = document.getElementById('hud-container');
 	const buttonGuide = document.getElementById('btn-book-element');
-	const errorContainer = document.getElementById('error-container');
 	const errorMessage = document.getElementById('error-message');
+	const lpMessage = document.getElementById('error-lp');
 
 	if (!infoMain.classList.contains('hidden'))
 		infoMain.classList.add('hidden');
@@ -280,18 +297,18 @@ function handleErrors(data) {
 		game.classList.add('hidden');
 	if (!hud.classList.contains('hidden'))
 		hud.classList.add('hidden');
-	if (!buttonGuide.classList.contains('hidden')) {
-		console.log('cc');
+	if (!buttonGuide.classList.contains('hidden'))
 		buttonGuide.classList.add('hidden');
-	}
 
 	errorContainer.classList.remove('hidden');
 	errorMessage.innerText += data.message;
+	if (data.type === 'error')
+		lpMessage.classList.add('hidden');
 }
 
 function handleGameCancel(data) {
 	sendToBack({action: 'cancel'});
-	//rajouter lp si player username == currrentUser;
+	sendMatchApi(currentPlayerId);
 	handleErrors(data);
 }
 
@@ -348,7 +365,10 @@ function handleRoundInteraction(data) {
 		const pTakeDmg = currentGame.P1.id === data.player_id ? currentGame.P2 : currentGame.P1;
 		pTakeDmg.playAnimationAttack(data.power);
 		setTimeout(() => {
-			pTakeDmg.playAnimationPlayer('TakeHit');
+			if (data.p1_life !== 0 || data.p2_life !== 0)
+				pTakeDmg.playAnimationPlayer('TakeHit');
+			else
+				pTakeDmg.playAnimationPlayer('Death');
 			pTakeDmg.loosePv();
 		}, 1000);
 	} else {

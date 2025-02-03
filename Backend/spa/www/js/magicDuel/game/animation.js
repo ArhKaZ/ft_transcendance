@@ -52,8 +52,9 @@ class Animation {
         }
 
         if (attackSprite) {
-            const attackX = (obj.x + (this.IdleP1.frameWidth * this.scale) / 2) - (attackSprite.frameWidth * this.scale) / 2;
-            const attackY = (obj.y + (this.IdleP1.frameHeight * this.scale) / 2) - (attackSprite.frameHeight * this.scale) / 2;
+            let scaleFactor = obj.canvas.width / 1400;
+            const attackX = obj.x + (231 * scaleFactor) / 2 + (attackSprite.frameWidth * scaleFactor) / 2;
+            const attackY = obj.y + (190 * scaleFactor) / 2;
             attackSprite.drawSprite(obj.canvas, ctx, attackX, attackY);
         }
     }
@@ -66,6 +67,7 @@ class Animation {
             case 'spark': return this.Spark;
             default: return null;
         }
+        
     }
 
     isAnimationComplete(animationName) {
