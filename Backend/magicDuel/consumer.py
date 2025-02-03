@@ -209,6 +209,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			if player['id'] != self.player_id
 		]
 
+		print(potiential_opponents)
+
 		if not potiential_opponents:
 			return None
 
@@ -230,7 +232,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		for opponent in potiential_opponents:
 			wait_time = current_time - opponent['timestamp']
 			range = get_range_points(wait_time)
-
+			print(range)
+			print(opponent)
 			if abs(opponent['ligue_points'] - player_points) <= range:
 				current_waiting_players.remove(opponent)
 				await sync_to_async(cache.set)(key, current_waiting_players)

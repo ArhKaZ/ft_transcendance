@@ -15,6 +15,7 @@ let timerInterval;
 let currentRound = 0;
 let currentGameId = null;
 let asFinishedAnim = false;
+let currentInverval = null;
 
 function bindEvents() {
 	const btn1 = document.getElementById("btn1");
@@ -77,7 +78,6 @@ async function getUserFromBack() {
     }
 }
 
-
 async function init() {
 	try {
 		const user = await getUserFromBack();
@@ -88,13 +88,12 @@ async function init() {
 	}
 }
 
-function setupWebSocket(user) {
-	currentPlayerId = user.id;
-	const id = user.id.toString()
-	const socket = new WebSocket(`wss://127.0.0.1:8443/ws/magicDuel/${id}/`);
-	
-	socket.onopen = () => {
-		console.log("WEBSOCKET CONNECTED");
+function sendSearch(user) {
+	console.log('je passe dans send search');
+	const mainP = document.getElementById("info-main-player");
+	if (!mainP.classList.contains('hidden'))
+	{
+		console.log("j'envoie search ");
 		sendToBack({
 			action: 'search',
 			player_id: user.id,
@@ -102,6 +101,20 @@ function setupWebSocket(user) {
 			player_avatar: user.avatar,
 			player_lp: user.ligue_points
 		});
+	} else {
+		console.log('je clear l\'interval');
+		clearInterval(currentInverval);
+	}
+}
+
+function setupWebSocket(user) {
+	currentPlayerId = user.id;
+	const id = user.id.toString()
+	const socket = new WebSocket(`wss://127.0.0.1:8443/ws/magicDuel/${id}/`);
+	
+	socket.onopen = () => {
+		console.log("WEBSOCKET CONNECTED");
+		currentInverval = setInterval(() => sendSearch(user), 2000);
 	}
 
 	socket.onmessage = async (e) => {
@@ -132,13 +145,7 @@ async function handleWebSocketMessage(event) {
 	switch(data.type) {
 
 		case 'players_info':
-			console.log(data)
-			currentGameId = data.game_id;
-			creationGameDisplay(data, currentGame);
-			sendToBack({action: 'findGame', game_id: currentGameId})
-			document.getElementById('button-ready').addEventListener('click', () => {
-				sendToBack({action: 'ready', game_id: currentGameId})
-			})
+			handlePlayerInfo(data);
 			break;
 
 		case 'player_ready':
@@ -189,6 +196,15 @@ async function handleWebSocketMessage(event) {
 			handleErrors(data);
 			break;
 	}
+}
+
+function handlePlayerInfo(data) {
+	currentGameId = data.game_id;
+	creationGameDisplay(data, currentGame);
+	sendToBack({action: 'findGame', game_id: currentGameId})
+	document.getElementById('button-ready').addEventListener('click', () => {
+		sendToBack({action: 'ready', game_id: currentGameId})
+	})
 }
 
 function handleRoundEnd(data) {
