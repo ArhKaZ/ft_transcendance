@@ -7,14 +7,14 @@ class IA {
 		this.target = -1;
 		this.randPos = -1;
 		this.errorRange = { 
-			1: this.canvas.height / 8, 
-			2: this.canvas.height / 25, 
-			3: this.canvas.height / 50
+			1: this.canvas.height / 4, 
+			2: this.canvas.height / 13, 
+			3: this.canvas.height / 25
 		}
 		this.reactionTime = {
-			1: 800,
-			2: 500,
-			3: 300
+			1: 1100,
+			2: 800,
+			3: 500
 		}
 	}
 
@@ -50,7 +50,6 @@ class IA {
 			}
 			if (this.lastCheck == null || diff >= 1000) {
 				this.getFuturePosition(ball, paddle, keyState);
-				console.log(`randPos: ${this.randPos}`);
 			}
 			if (this.newPosition != -1)
 				this.movePaddle(paddle, this.randPos, keyState);

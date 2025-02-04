@@ -75,15 +75,15 @@ class Game {
         if (this.ball.x <= 0) 
         {
             this.P2.incrementScore();
-            this.ball.reset('p2');
             this.updateScores('left');
+            this.ball.reset('p2');
             this.asReset = true;
         }
         if (this.ball.x + this.ball.size >= this.canvas.width)
         {
             this.P1.incrementScore();
-            this.ball.reset('p1');
             this.updateScores('right');
+            this.ball.reset('p1');
             this.asReset = true;
         }
     }

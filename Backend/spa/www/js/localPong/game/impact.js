@@ -13,7 +13,7 @@ class Impact {
     update() {
         this.x += this.vx;
         this.y += this.vy;
-        this.alpha -= 0.02;
+        this.alpha -= 0.03;
     }
 
     draw() {

@@ -117,8 +117,10 @@ class Game:
 	async def check_players_have_played(self): 
 		await self.p1.check_have_played()
 		await self.p2.check_have_played()
-		if self.p1.nb_round_no_play >= 4:
-			return self.p1.username
+		if self.p1.nb_round_no_play >= 4 and self.p2.nb_round_no_play >= 4:
+			return {"p_id": self.p1.id, "p2_id": self.p2.id, "p_name": self.p1.username, "p2_name": self.p2.username}
+		elif self.p1.nb_round_no_play >= 4:
+			return {"p_id": self.p1.id, "p2_id": None, "p_name": self.p1.username, "p2_name": None}
 		elif self.p2.nb_round_no_play >= 4:
-			return self.p2.username
+			return {"p_id": self.p1.id, "p2_id": None, "p_name": self.p1.username, "p2_name": None}
 		return None

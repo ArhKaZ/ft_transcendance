@@ -303,6 +303,7 @@ body {
     font-family: "Press Start 2P";
     color: white;
     margin: 2%;
+    font-size: 2vw;
 }
 
 /* BUTTONS */
@@ -320,6 +321,7 @@ body {
     overflow: hidden;
     font-family: "Press Start 2P";
     text-align: center;
+    cursor: pointer;
 }
 
 #button-ready {

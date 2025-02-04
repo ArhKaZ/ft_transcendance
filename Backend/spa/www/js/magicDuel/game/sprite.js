@@ -41,6 +41,8 @@ class Sprite {
     updateFrame() {
         this.frameCount++;
         if (this.frameCount >= this.animationSpeed) {
+            if (this.name === 'attackP1' || this.name === 'attackP2')
+                console.log(`frame: ${this.currentFrame}`);
             this.frameCount = 0;
             this.currentFrame++;
 

@@ -90,7 +90,6 @@ async function init() {
 }
 
 function sendSearch(user) {
-	console.log('je passe dans send search');
 	const mainP = document.getElementById("info-main-player");
 	if (!mainP.classList.contains('hidden'))
 	{
@@ -191,6 +190,10 @@ async function handleWebSocketMessage(event) {
 			handleGameCancel(data);
 			break;
 
+		case 'no_play':
+			handleNoPlay(data);
+			break;
+
 		case 'error':
 			handleErrors(data);
 			break;
@@ -250,6 +253,7 @@ function handleGameFinish(data) {
 	let checkAnim = setInterval(() => {
         if (asFinishedAnim) {
 			clearInterval(checkAnim);
+			window.removeEventListener('beforeunload', handleQuitGame);
 			setTimeout(() => {
 				currentGame.displayWinner(data.player_id);
 				sendMatchApi(data.player_id);
@@ -301,14 +305,39 @@ function handleErrors(data) {
 		buttonGuide.classList.add('hidden');
 
 	errorContainer.classList.remove('hidden');
-	errorMessage.innerText += data.message;
-	if (data.type === 'error')
+	errorMessage.innerHTML += data.message;
+	if (data.type === 'error' || data.game_status === 'WAITING')
 		lpMessage.classList.add('hidden');
 }
 
 function handleGameCancel(data) {
+	if (data.game_status !== 'WAITING')
+		sendMatchApi(currentPlayerId);
 	sendToBack({action: 'cancel'});
-	sendMatchApi(currentPlayerId);
+	handleErrors(data);
+}
+
+function handleNoPlay(data) {
+	let playerWin = null;
+	if (!data.p2_id) {
+		playerWin = currentGame.P1.id === data.p_id ? currentGame.P2 : currentGame.P1;
+		sendMatchApi(playerWin.id);
+		if (currentPlayerId === data.p_id) {
+			data.message = " You have not played since for 4 rounds";
+			let errorLp = document.getElementById('error-lp');
+			errorLp.innerText = "You lose 15 LP";
+		} else {
+			data.message = ` Player ${data.p_name} have not played since 4 rounds`;
+			let errorLp = document.getElementById('error-lp');
+			errorLp.innerText = "You win 15 LP";
+		}
+	} else {
+		data.message = " You both not played since 4 rounds";
+		let errorLp = document.getElementById('error-lp');
+		errorLp.classList.add('hidden');
+	}
+	sendToBack({action: 'cancel'});
+	// 'message': f'Player {user.username} have not played since 4 rounds',
 	handleErrors(data);
 }
 
