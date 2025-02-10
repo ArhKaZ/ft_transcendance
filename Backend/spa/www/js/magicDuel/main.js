@@ -257,7 +257,7 @@ function handleGameFinish(data) {
 			setTimeout(() => {
 				currentGame.displayWinner(data.player_id);
 				sendMatchApi(data.player_id);
-			}, 1000);
+			}, 3000);
         }
     }, 10);
 }

@@ -13,7 +13,9 @@ body {
 .canvasContainer {
     position: relative;
     width: 80%;
-    height: 80%;
+    height: 80vh;
+    min-height: 80vh;
+    aspect-ratio: 16/9;
 }
 
 .canvasContainer:not(.hidden) {
@@ -48,7 +50,6 @@ body {
     justify-content: space-evenly;
     flex-direction: column;
     transform: translateY(-50%);
-    /* border: solid 3px white; */
     color: white;
     text-align: center;
     height: 30%;
@@ -212,7 +213,10 @@ body {
     bottom: 10%;
     left: 50%;
     transform: translateX(-50%);
+    flex-wrap: nowrap;
+    width: 50%;
 }
+
 
 .centered-buttons:not(.hidden) {
     display: flex;
@@ -445,6 +449,7 @@ body {
 
 .player-hud {
     height: auto;
+    min-height: 100px;
     width: 12%;
     display: none;
     justify-content: space-between;
@@ -454,7 +459,9 @@ body {
     position: relative;
     border: white solid 3px;
     object-fit: contain;
+    padding: 10px;
 }
+
 
 #p1-hud {
     left: 7%;
@@ -664,7 +671,6 @@ body {
     justify-content: space-between;
     position: absolute;
     display: none;
-    border: #03e9f4 solid 1rem;
     z-index: 5;
 }
 
@@ -796,11 +802,13 @@ body {
 .instruction {
     display: flex;
     width: 48%;
-    height: 48%;
+    height: auto;
+    min-height: 200px;
     box-sizing: border-box;
     flex-direction: column;
     border: solid 3px grey;
     justify-content: space-evenly;
+    padding: 10px;
 }
 
 .instruction span {
@@ -815,6 +823,7 @@ body {
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: space-evenly;
+    object-fit: contain;
 }
 
 .instruction-info {
@@ -865,7 +874,7 @@ body {
     object-fit: contain;
 }
 
-.instruction-bot img {
+.instruction-bot img{
     max-width: 30%;
     height: auto;
     object-fit: contain;
@@ -885,4 +894,69 @@ body {
 
 .error-container:not(.hidden) {
     display: flex;
+}
+
+@media (max-width: 900px) {
+    .canvasContainer {
+        height: 80vh;
+        width: 90%;
+    }
+}
+
+@media (max-width: 768px) {
+    .magic-button-base {
+        width: 45%;
+        height: auto;
+        margin: 2%;
+    }
+
+    .element-icon {
+        max-width: 80%;
+    }
+
+    .power-name {
+        display: none;
+    }
+
+    .player-hud {
+        width: 20%;
+        min-height: 80%;
+    }
+
+    .username span {
+        font-size: 4vw;
+    }
+
+    .pv img {
+        max-width: 20%;
+    }
+
+    .instruction-info-container {
+        flex-direction: column;
+    }
+
+    .instruction-top img {
+        max-width: 40%;
+    }
+
+    .instruction-bot img {
+        max-width: 20%;
+    }
+}
+
+@media (max-width: 769px) {
+    .magic-button-base {
+        width: 8vw;
+    }
+}
+
+@media (max-width: 480px) {
+    .player-hud {
+        width: 20%;
+    }
+
+    .magic-button-base {
+        width: 90%;
+        margin: 2% 0;
+    }
 }
