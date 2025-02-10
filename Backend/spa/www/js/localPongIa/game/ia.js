@@ -6,11 +6,11 @@ class IA {
 		this.newPosition = -1;
 		this.target = -1;
 		this.randPos = -1;
-		this.errorRange = { 
-			1: this.canvas.height / 4, 
-			2: this.canvas.height / 13, 
-			3: this.canvas.height / 25
-		}
+		this.errorRange = [
+			this.canvas.height / 4,
+			this.canvas.height / 8,
+			this.canvas.height / 12,
+		];
 		this.reactionTime = {
 			1: 1100,
 			2: 800,
@@ -19,8 +19,8 @@ class IA {
 	}
 
 	getFuturePosition(ball, paddle, keyState) {
-		let temps = (paddle.x - ball.x) / ball.vx;
-		let positionFuture = ball.y + ball.vy * temps;
+		let time = (paddle.x - ball.x) / ball.vx;
+		let positionFuture = ball.y + ball.vy * time;
 
 		while (positionFuture < 0 || positionFuture > this.canvas.height) {
 			if (positionFuture < 0) {
@@ -29,10 +29,7 @@ class IA {
 				positionFuture = 2 * this.canvas.height - positionFuture;
 			}
 		}
-		this.newPosition = positionFuture;
-		let error = Math.random() * this.errorRange[this.level] - this.errorRange[this.level] / 2;
-		this.target = this.newPosition + error;
-		console.log(`target: ${this.newPosition} error: ${error} final: ${this.target}`)
+		this.target = positionFuture;
 		keyState['z'] = false;
 		keyState['q'] = false;
 		this.lastCheck = Date.now();
@@ -42,35 +39,35 @@ class IA {
 		if (ball.vx > 0) {
 			let now = Date.now();
 			let diff;
-			if (this.randPos === -1)
-				this.randPos = this.generatePointOnPaddle(paddle);
 
 			if (this.lastCheck != null) {
 				diff = now - this.lastCheck;
 			}
+
 			if (this.lastCheck == null || diff >= 1000) {
 				this.getFuturePosition(ball, paddle, keyState);
+				this.target += Math.random() * this.errorRange[this.level];
 			}
-			if (this.newPosition != -1)
-				this.movePaddle(paddle, this.randPos, keyState);
+
+			if (this.target != -1) {
+				this.movePaddle(paddle, keyState);
+			}
 		} else {
 			keyState['z'] = false;
 			keyState['q'] = false;
-			this.randPos = -1;
+			this.target = -1;
 		}
 	}
 
-	movePaddle(paddle, randPosInPaddle, keyState) {
-		if (!randPosInPaddle) return;
-		console.log(`random Pos: ${randPosInPaddle}`);
+	movePaddle(paddle, keyState) {
 		if (this.level === 3 && Math.random() < 0.005) {
 			console.log('ia get bugged');
 			this.target += this.canvas.height / 8;
 		}
 		setTimeout(() => {
-			if (this.target > paddle.y + randPosInPaddle) {
+			if (this.target > paddle.y + paddle.height) {
 				keyState['z'] = true;
-			} else if (this.target < paddle.y + randPosInPaddle) {
+			} else if (this.target < paddle.y) {
 				keyState['q'] = true;
 			}
 		}, (this.reactionTime[this.level] + Math.random() * 100 - 50));
@@ -83,7 +80,7 @@ class IA {
 
 		const validStart = edgeMargin;
 		const validEnd = paddle.height - edgeMargin;
-
+		console.log(`validStart: ${validStart} | validEnd: ${validEnd}`);
 		return Math.random() * (validEnd - validStart) + validStart;
 	}
 
