@@ -64,7 +64,7 @@ class Game {
     }
 
     checkWinner() {
-        let winner = this.score[0] >= 11 ? 1 : this.score[1] >= 11 ? 2 : 0
+        let winner = this.score[0] >= 5 ? 1 : this.score[1] >= 5 ? 2 : 0
         if (winner != 0) {
             this.stop();
             this.displayWinner(winner);
@@ -124,7 +124,7 @@ class Game {
 
     drawBorders(ctx, canvas) {
         ctx.strokeStyle = 'white';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 4;
         ctx.strokeRect(0, 0, canvas.width, canvas.height);
     }
 

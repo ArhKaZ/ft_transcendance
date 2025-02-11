@@ -41,6 +41,7 @@ class Player:
         await sync_to_async(cache.delete)(cache_key)
 
     async def lose_life(self):
+        print(f"Player {self.id} losing life: {self.life} -> {self.life - 1}")
         self.life -= 1
         await self.save_to_cache()
 
@@ -51,11 +52,15 @@ class Player:
     async def update_player(self):
         player_cache = await self.load_from_cache(self.id, self.game_id)
         if player_cache:
+            old_life = self.life
             self.life = player_cache['life']
+            if old_life != self.life:
+                print(f"Player {self.id} life updated from cache: {old_life} -> {self.life}")
             self.action = player_cache['action']
             self.nb_round_no_play = player_cache['no_play']
             return 0
         else:
+            print(f"Warning: No cache found for player {self.id}")
             return -1
         
     async def check_have_played(self):

@@ -12,6 +12,8 @@ class Animation {
         this.IdleP2 = new Sprite('../assets/magicDuel/Wizard/IdleP2.png', 6, 6, 231, 190, 'idleP2', true);
         this.AttackP2 = new Sprite('../assets/magicDuel/Wizard/AttackP2.png', 8, 6, 231, 190, 'attackP2');
         this.TakeHitP2 = new Sprite('../assets/magicDuel/Wizard/HitP2.png', 4, 7, 231, 190, 'hitP2');
+        this.DeathP1 = new Sprite('../assets/magicDuel/Wizard/DeathP1.png', 7, 7, 231, 190, 'deathP1');
+        this.DeathP2 = new Sprite('../assets/magicDuel/Wizard/DeathP2.png', 7, 7, 231, 190, 'deathP2');
         // CHANGER DONNER SPRITES :
         this.DarkBolt = new Sprite('../assets/magicDuel/Attacks/Dark-Bolt.png', 11, 6, 67, 92, 'darkBolt');
         this.FireBomb = new Sprite('../assets/magicDuel/Attacks/Fire-bomb.png', 14, 6, 67, 67, 'fireBomb');
@@ -40,8 +42,11 @@ class Animation {
             case 'TakeHitP2':
                 spriteToDraw = this.TakeHitP2;
                 break;
-            case 'Death':
-                spriteToDraw = this.Death;
+            case 'DeathP1':
+                spriteToDraw = this.DeathP1;
+                break;
+            case 'DeathP2':
+                spriteToDraw = this.DeathP2;
                 break;
             default:
                 spriteToDraw = this.IdleP1;
@@ -85,9 +90,6 @@ class Animation {
             case 'TakeHitP2':
                 sprite = this.TakeHitP2;
                 break;
-            case 'Death':
-                sprite = this.Death;
-                break;
             default:
                 return false;
         }
@@ -109,8 +111,11 @@ class Animation {
             case 'TakeHitP2':
                 sprite = this.TakeHitP2;
                 break;
-            case 'Death':
-                sprite = this.Death;
+            case 'DeathP1':
+                sprite = this.DeathP1;
+                break;
+            case 'DeathP2':
+                sprite = this.DeathP2;
                 break;
         }
         if (sprite) {

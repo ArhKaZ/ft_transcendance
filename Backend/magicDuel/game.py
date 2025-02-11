@@ -74,6 +74,19 @@ class Game:
 
 		game_instance = cls(player_info, opponent_info, game_id, game['p1_ready'], game['p2_ready'])
 
+		p1_cache = await Player.load_from_cache(game['p1_id'], game_id)
+		p2_cache = await Player.load_from_cache(game['p2_id'], game_id)
+
+		if p1_cache:
+			game_instance.p1.life = p1_cache['life']
+			game_instance.p1.action = p1_cache['action']
+			game_instance.p1.nb_round_no_play = p1_cache['no_play']
+			
+		if p2_cache:
+			game_instance.p2.life = p2_cache['life']
+			game_instance.p2.action = p2_cache['action']
+			game_instance.p2.nb_round_no_play = p2_cache['no_play']
+
 		game_instance.game_id = game['id']
 		game_instance.status = game['status']
 		game_instance.group_name = game['group_name']
@@ -83,7 +96,6 @@ class Game:
 
 	async def handle_player_disconnect(self, player_id):
 		self.status = 'CANCELLED'
-		# await self.save_to_cache()
 
 		if player_id == self.p1.id:
 			await self.p1.delete_from_cache()

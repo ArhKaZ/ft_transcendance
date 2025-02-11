@@ -337,7 +337,6 @@ function handleNoPlay(data) {
 		errorLp.classList.add('hidden');
 	}
 	sendToBack({action: 'cancel'});
-	// 'message': f'Player {user.username} have not played since 4 rounds',
 	handleErrors(data);
 }
 
@@ -394,11 +393,13 @@ function handleRoundInteraction(data) {
 		const pTakeDmg = currentGame.P1.id === data.player_id ? currentGame.P2 : currentGame.P1;
 		pTakeDmg.playAnimationAttack(data.power);
 		setTimeout(() => {
-			if (data.p1_life !== 0 || data.p2_life !== 0)
-				pTakeDmg.playAnimationPlayer('TakeHit');
-			else
-				pTakeDmg.playAnimationPlayer('Death');
+			console.log(data);
 			pTakeDmg.loosePv();
+			if (pTakeDmg.lifes === 0) 
+				pTakeDmg.playAnimationPlayer('Death');
+			else
+				pTakeDmg.playAnimationPlayer('TakeHit');
+			sendToBack({'action': 'finishAnim', 'player_id': currentPlayerId, 'round': currentRound});
 		}, 1000);
 	} else {
 		const equE = document.getElementById('draw');
@@ -406,10 +407,10 @@ function handleRoundInteraction(data) {
 		equE.classList.remove('hidden');
 		setTimeout(() => {
 			equE.classList.add('hidden');
+			sendToBack({'action': 'finishAnim', 'player_id': currentPlayerId, 'round': currentRound});
 		}, 1500);
 	}
 	asFinishedAnim = true;
-	sendToBack({'action': 'finishAnim', 'player_id': currentPlayerId, 'round': currentRound});
 }
 
 function startTimer(data) {

@@ -333,6 +333,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				if self.game.p1 is None or self.game.p2 is None:
 					game_over_event.set()
 					break
+				print(f'lifes: {self.game.p1.life}/{self.game.p2.life}')
 				if self.game.p1.life <= 0 or self.game.p2.life <= 0:
 					self.game.status = 'FINISHED'
 					await self.game.save_to_cache()
