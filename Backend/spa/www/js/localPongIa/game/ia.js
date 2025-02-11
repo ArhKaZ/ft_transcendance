@@ -7,14 +7,14 @@ class IA {
 		this.target = -1;
 		this.randPos = -1;
 		this.errorRange = [
-			this.canvas.height / 4,
 			this.canvas.height / 8,
-			this.canvas.height / 12,
+			this.canvas.height / 16,
+			this.canvas.height / 32,
 		];
 		this.reactionTime = {
-			1: 1100,
-			2: 800,
-			3: 500
+			0: 900,
+			1: 600,
+			2: 400
 		}
 	}
 
@@ -46,7 +46,7 @@ class IA {
 
 			if (this.lastCheck == null || diff >= 1000) {
 				this.getFuturePosition(ball, paddle, keyState);
-				this.target += Math.random() * this.errorRange[this.level];
+				this.target += Math.random() * this.errorRange[this.level - 1];
 			}
 
 			if (this.target != -1) {
@@ -60,28 +60,14 @@ class IA {
 	}
 
 	movePaddle(paddle, keyState) {
-		if (this.level === 3 && Math.random() < 0.005) {
-			console.log('ia get bugged');
-			this.target += this.canvas.height / 8;
-		}
+		console.log(`level : ${this.level} ${this.reactionTime[this.level - 1]}`)
 		setTimeout(() => {
 			if (this.target > paddle.y + paddle.height) {
 				keyState['z'] = true;
 			} else if (this.target < paddle.y) {
 				keyState['q'] = true;
 			}
-		}, (this.reactionTime[this.level] + Math.random() * 100 - 50));
-	}
-
-	generatePointOnPaddle(paddle) {
-		const difficultyFactor = Math.min(1, Math.max(0, (this.level - 1) / 2));
-
-		const edgeMargin = difficultyFactor * (paddle.height / 4);
-
-		const validStart = edgeMargin;
-		const validEnd = paddle.height - edgeMargin;
-		console.log(`validStart: ${validStart} | validEnd: ${validEnd}`);
-		return Math.random() * (validEnd - validStart) + validStart;
+		}, (this.reactionTime[this.level - 1] + Math.random() * 100 - 50));
 	}
 
 	resetPos() {
