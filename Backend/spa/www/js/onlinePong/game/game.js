@@ -20,7 +20,7 @@ class Game {
     }
 
     displayCanvas() {
-        document.getElementById('canvasContainer').style.display = 'flex';
+        document.getElementById('canvasContainer').classList.remove('hidden');
         document.getElementById('button-ready').classList.add('hidden');
     }
 
@@ -50,7 +50,6 @@ class Game {
     }
 
     drawGame(bound_wall, bound_player) {
-        console.log('drawing');
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawBorders(this.context, this.canvas);
         this.ball.draw(this.context);

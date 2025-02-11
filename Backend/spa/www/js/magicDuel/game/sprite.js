@@ -13,15 +13,16 @@ class Sprite {
         this.isLooping = isLooping;
     }
 
-    drawSprite(ctx, canvasX, canvasY, scale) {
+    drawSprite(canvas, ctx, canvasX, canvasY) {
+        let scaleFactor = canvas.width / 800;
         const sx = this.currentFrame * this.frameWidth;
         const sy = 0;
         const sWidth = this.frameWidth;
         const sHeight = this.frameHeight;
         const dx = canvasX;
         const dy = canvasY;
-        const dWidth = this.frameWidth * scale;
-        const dHeight = this.frameHeight * scale;
+        const dWidth = this.frameWidth * scaleFactor;
+        const dHeight = this.frameHeight * scaleFactor;
         ctx.drawImage(
             this.sprite,
             sx, sy,
@@ -40,6 +41,8 @@ class Sprite {
     updateFrame() {
         this.frameCount++;
         if (this.frameCount >= this.animationSpeed) {
+            if (this.name === 'attackP1' || this.name === 'attackP2')
+                console.log(`frame: ${this.currentFrame}`);
             this.frameCount = 0;
             this.currentFrame++;
 

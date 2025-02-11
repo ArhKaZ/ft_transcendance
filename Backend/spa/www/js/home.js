@@ -26,6 +26,42 @@ document.getElementById('logout-button').addEventListener('click', async () => {
 });
 
 
+document.getElementById('loseLp').addEventListener('click', async () => {
+	fetch('/api/change_lp/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+            'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+            'won': false
+        })
+    }).then(response => response.json())
+	.then(data => {
+		const lps = document.getElementById('lps').innerText = `Ligue Points: ${data}`;
+	});
+})
+
+document.getElementById('addLp').addEventListener('click', async () => {
+	fetch('/api/change_lp/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+            'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+            'won': true
+        })
+    }).then(response => response.json())
+	.then(data => {
+		const lps = document.getElementById('lps').innerText = `Ligue Points: ${data}`;
+	});
+})
+
 const response = await fetch('/api/get-my-info/', {
 	method: 'GET',
 	headers: {
@@ -52,6 +88,8 @@ if (response.ok) {
 	const avatarImg = document.getElementById('user-avatar');
 	avatarImg.src = data.avatar;
 	avatarImg.alt = 'avatar';
+	const lps = document.getElementById('lps');
+	lps.innerText += data.ligue_points;
 } else {
 	const localbtn = document.getElementById('local-button');
 	const pongbtn = document.getElementById('pong-button');

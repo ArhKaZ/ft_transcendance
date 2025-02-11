@@ -62,13 +62,13 @@ class Game {
         this.IA.checkPosition(this.ball, this.P2.paddle, this.keyState)
         this.P1.paddle.update(this.keyState);
         this.P2.paddle.update(this.keyState);
-        this.bound = this.ball.update(this.P1.paddle, this.P2.paddle, this.IA);
+        this.bound = this.ball.update(this.P1.paddle, this.P2.paddle);
         this.checkAsScore();
         this.checkWinner();
     }
 
     checkWinner() {
-        let winner = this.score[0] >= 11 ? 1 : this.score[1] >= 11 ? 2 : 0
+        let winner = this.score[0] >= 5 ? 1 : this.score[1] >= 5 ? 2 : 0
         if (winner != 0) {
             this.stop();
             this.displayWinner(winner);
@@ -79,15 +79,15 @@ class Game {
         if (this.ball.x <= 0) 
         {
             this.P2.incrementScore();
-            this.ball.reset('p2');
             this.updateScores('left');
+            this.ball.reset('p2');
             this.asReset = true;
         }
         if (this.ball.x + this.ball.size >= this.canvas.width)
         {
             this.P1.incrementScore();
-            this.ball.reset('p1');
             this.updateScores('right');
+            this.ball.reset('p1');
             this.asReset = true;
         }
     }
@@ -129,7 +129,7 @@ class Game {
 
     drawBorders(ctx, canvas) {
         ctx.strokeStyle = 'white';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 4;
         ctx.strokeRect(0, 0, canvas.width, canvas.height);
     }
 

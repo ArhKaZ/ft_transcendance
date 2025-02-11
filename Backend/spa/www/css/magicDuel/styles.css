@@ -10,12 +10,16 @@ body {
     /*background-color: white;*/
 }
 
-#canvasContainer {
-    display: none;
-    /*display: flex;*/
+.canvasContainer {
     position: relative;
     width: 80%;
-    height: 80%;
+    height: 80vh;
+    min-height: 80vh;
+    aspect-ratio: 16/9;
+}
+
+.canvasContainer:not(.hidden) {
+    display: flex;
 }
 
 .allCanvas {
@@ -24,7 +28,6 @@ body {
     left: 0;
     margin: 0;
     padding: 0;
-    display: none;
     width: 100%;
     height: 100%;
     background-size: cover;
@@ -47,7 +50,6 @@ body {
     justify-content: space-evenly;
     flex-direction: column;
     transform: translateY(-50%);
-    /* border: solid 3px white; */
     color: white;
     text-align: center;
     height: 30%;
@@ -211,7 +213,10 @@ body {
     bottom: 10%;
     left: 50%;
     transform: translateX(-50%);
+    flex-wrap: nowrap;
+    width: 50%;
 }
+
 
 .centered-buttons:not(.hidden) {
     display: flex;
@@ -393,7 +398,7 @@ body {
     font-size: 24px;
     text-align: center;
     z-index: 9;
-    font-size: 2rem;
+    font-size: 2.5vw;
     font-family: 'Press Start 2P';
 }
 
@@ -403,18 +408,21 @@ body {
     left: 50%;
     transform: translateX(-50%);
     color: white;
-    font-size: 2rem;
+    font-size: 2vw;
     text-align: center;
     z-index: 9;
     font-family: 'Press Start 2P';
 
 }
 
-.countainer-hud {
-    display: flex;
+.container-hud {
     height: 100%;
     width: 100%;
     align-items: center;
+}
+
+.container-hud:not(.hidden) {
+    display: flex;
 }
 
 .hud-items {
@@ -427,7 +435,6 @@ body {
 }
 
 .hud-items span {
-    font-size: 2em;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -442,16 +449,19 @@ body {
 
 .player-hud {
     height: auto;
+    min-height: 100px;
     width: 12%;
     display: none;
     justify-content: space-between;
     align-items: center;
     flex-direction: column;
-    z-index: 10;
+    z-index: 9;
     position: relative;
     border: white solid 3px;
     object-fit: contain;
+    padding: 10px;
 }
+
 
 #p1-hud {
     left: 7%;
@@ -476,7 +486,7 @@ body {
 
 .username span {
     color: white;
-    font-size: 2vw;
+    font-size: 3vw;
 }
 
 .pv {
@@ -492,7 +502,7 @@ body {
 
 .pv img {
     height: auto;
-    max-width: 100%;
+    max-width: 25%;
     object-fit: contain;
 }
 
@@ -525,6 +535,7 @@ body {
     font-family: "Press Start 2P";
     color: white;
     margin: 2%;
+    font-size:2vw;
 }
 
 /* BUTTONS */
@@ -660,7 +671,6 @@ body {
     justify-content: space-between;
     position: absolute;
     display: none;
-    border: #03e9f4 solid 1rem;
     z-index: 5;
 }
 
@@ -687,7 +697,7 @@ body {
     width: 90%;
     height: 20%;
     text-align: center;
-    font-size: 2em;
+    font-size: 2vw;
     color: white;
     font-family: "Press Start 2P";
     overflow: hidden;
@@ -702,7 +712,7 @@ body {
     height: 8%;
     animation: swing 4s linear infinite;
     top: 12%;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 @keyframes swing {
@@ -710,13 +720,13 @@ body {
         transform: translateX(0) translateX(0);
     }
     25% {
-        transform: translateX(0) translateX(50px); 
+        transform: translateX(0) translateX(80%); 
     }
     50% {
         transform: translateX(0) translateX(0);
     }
     75% {
-        transform: translateX(0) translateX(-50px); 
+        transform: translateX(0) translateX(-80%); 
     }
     100% {
         transform: translateX(0) translateX(0);
@@ -734,6 +744,18 @@ body {
     top: 3vh;
 }
 
+.top-right img {
+    max-width: 100%;
+    object-fit: contain;
+    height: auto;
+}
+
+.button-book {
+    background-color: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+}
 
 .title-book {
     display: flex;
@@ -745,7 +767,7 @@ body {
 
 .title-book span {
     font-family: "Press Start 2P";
-    font-size: 3em;
+    font-size: 2vw;
 }
 
 .instructions {
@@ -753,29 +775,23 @@ body {
     width: 100%;
     height: 90%;
     flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: space-evenly;
     align-items: center;
     padding-left: 1%;
     padding-right: 1%;
-}
-
-.top-right img {
-    max-width: 100%;
-    object-fit: contain;
-    height: auto;
 }
 
 .overlay {
     display: none;
     position: absolute;
     z-index: 10;
-    width: 80%;
+    width: 60%;
     height: 80%;
     border: solid 4px black;
     background-color: #cccaca;
     opacity: 1;
     top: 10%;
-    left: 10%;
+    left: 20%;
     flex-wrap: wrap;
 }
 
@@ -786,15 +802,37 @@ body {
 .instruction {
     display: flex;
     width: 48%;
-    height: 48%;
+    height: auto;
+    min-height: 200px;
     box-sizing: border-box;
     flex-direction: column;
-    border: solid 1px grey;
+    border: solid 3px grey;
+    justify-content: space-evenly;
+    padding: 10px;
 }
 
 .instruction span {
     font-size: 2vw;
     font-family: "VT323";
+}
+
+.instruction-info-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-evenly;
+    object-fit: contain;
+}
+
+.instruction-info {
+    width: 100%;
+    height: 90%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .instruction-top {
@@ -804,26 +842,121 @@ body {
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    margin-bottom: 10%;
+    margin-top: 2%;
 }
 
 .instruction-mid {
     display: flex;
     width: 100%;
     height: 20%;
-    justify-content: space-evenly;
+    justify-content: center;
     align-items: center;
+}
+
+.instruction-mid span {
+    font-family: "VT323";
+    font-size: 1.4vw;
+    text-align: center;
 }
 
 .instruction-bot {
+    justify-content: center;
     display: flex;
     width: 100%;
     height: 40%;
+    align-items: center;
+}
+
+.instruction-top img {
+    max-width: 20%;
+    height: auto;
+    object-fit: contain;
+}
+
+.instruction-bot img{
+    max-width: 30%;
+    height: auto;
+    object-fit: contain;
+}
+
+.error-container {
+    flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
 }
 
-.instruction img {
-    max-width: 10%;
-    height: auto;
-    object-fit: contain;
+.error-container span {
+    color: red;
+    font-family: "VT323";
+    font-size: 3vw;
+}
+
+.error-container:not(.hidden) {
+    display: flex;
+}
+
+@media (max-width: 900px) {
+    .canvasContainer {
+        height: 80vh;
+        width: 90%;
+    }
+}
+
+@media (max-width: 768px) {
+    .magic-button-base {
+        width: 45%;
+        height: auto;
+        margin: 2%;
+    }
+
+    .element-icon {
+        max-width: 80%;
+    }
+
+    .power-name {
+        display: none;
+    }
+
+    .player-hud {
+        width: 20%;
+        min-height: 80%;
+    }
+
+    .username span {
+        font-size: 4vw;
+    }
+
+    .pv img {
+        max-width: 20%;
+    }
+
+    .instruction-info-container {
+        flex-direction: column;
+    }
+
+    .instruction-top img {
+        max-width: 40%;
+    }
+
+    .instruction-bot img {
+        max-width: 20%;
+    }
+}
+
+@media (max-width: 769px) {
+    .magic-button-base {
+        width: 8vw;
+    }
+}
+
+@media (max-width: 480px) {
+    .player-hud {
+        width: 20%;
+    }
+
+    .magic-button-base {
+        width: 90%;
+        margin: 2% 0;
+    }
 }

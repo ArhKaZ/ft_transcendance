@@ -13,7 +13,7 @@ class Player {
             this.x = canvas.width * (72 / 100);
         this.y = canvas.height * (40 / 100);
         this.lifes = lifes;
-        this.currentAnimationPlayer = 'Idle';
+        this.currentAnimationPlayer = `IdleP${nb}`;
         this.currentAnimationAttack = 'dark_bolt';
         this.sprites = new Animation();
         this.isAnimatingAttack = false;
@@ -22,13 +22,21 @@ class Player {
         this.currentAttackSprite = null;
     }
 
-    updatePos(canvas) {
+    updatePos(canvas, plat) {
         this.canvas = canvas;
+        let scaleFactor = canvas.width / 1400;
+        let newPlatWidth = plat.width * scaleFactor;
+        let newPlatHeight = plat.height * scaleFactor;
+        let spriteWidth = 231 * scaleFactor;
+        let spriteHeight = 190 * scaleFactor;
+
         if (this.nb === 1) {
-            this.x = canvas.width * (1 / 100);
+            this.x = canvas.width * 0.05 + newPlatWidth / 2 - spriteWidth / 1.2;
         } else
-            this.x = canvas.width * (72 / 100);
-        this.y = canvas.height * (40 / 100);
+            this.x = canvas.width * 0.95 - newPlatWidth / 2 - spriteWidth / 1.2;
+        
+        let marginAbovePlatform = newPlatHeight * 0.1;
+        this.y = canvas.height - newPlatHeight - spriteHeight - marginAbovePlatform;
     }
 
     updateAnimation(ctx) {
@@ -38,7 +46,7 @@ class Player {
                 this.queuedAnimationPlayer = null;
                 this.isAnimatingPlayer = true;
             } else {
-                this.currentAnimationPlayer = 'Idle';
+                this.currentAnimationPlayer = `IdleP${this.nb}`;
                 this.isAnimatingPlayer = false;
             }
         }
@@ -55,12 +63,11 @@ class Player {
                 this.canvas.getContext('2d').clearRect(0, 0, this.canvas.width, this.canvas.height);
             }
         }
-        if (this.currentAnimationPlayer != 'Idle')
-            console.log(this.currentAnimationPlayer);
         this.sprites.update(ctx, this, attackSprite);
     }
 
     playAnimationPlayer(animationName) {
+        animationName = animationName + `P${this.nb}`;
         if (this.isAnimatingPlayer) {
             this.queuedAnimationPlayer = animationName;
             return;
@@ -68,7 +75,7 @@ class Player {
 
         this.currentAnimationPlayer = animationName;
 
-        if (animationName !== 'Idle') {
+        if (animationName !== `IdleP${this.nb}`) {
             this.isAnimatingPlayer = true;
             this.sprites.resetAnimation(animationName);
         }
@@ -76,6 +83,8 @@ class Player {
 
     playAnimationAttack(attackName) {
         this.currentAttackSprite = this.sprites.getAttackSprite(attackName);
+        if (this.currentAttackSprite)
+            this.currentAttackSprite.resetAnimation();
         this.isAnimatingAttack = true;
     }
 

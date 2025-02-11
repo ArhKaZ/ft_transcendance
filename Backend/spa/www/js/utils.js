@@ -22,7 +22,6 @@ export function getCSRFToken()
 }
 
 export function sleep(ms) {
-    console.log('sleeping ', ms);
     return new Promise(
         resolve => setTimeout(resolve, ms)
     );

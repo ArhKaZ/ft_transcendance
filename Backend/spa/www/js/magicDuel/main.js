@@ -15,6 +15,8 @@ let timerInterval;
 let currentRound = 0;
 let currentGameId = null;
 let asFinishedAnim = false;
+let currentInverval = null;
+let asShowDeath = false;
 
 function bindEvents() {
 	const btn1 = document.getElementById("btn1");
@@ -68,39 +70,13 @@ async function getUserFromBack() {
             credentials: 'include',
         });
         if (!response.ok) {
-            console.log("error reponse");
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Error getting user");
+            handleErrors({message: 'You need to be logged before playing'});
         }
         const data = await response.json();
-        console.log('data:', data);
         return await data;
     } catch (error) {
-        alert("Need to be logged");
-        window.location.href = '/home/';
-        console.error("Error when getting user:", error);
-        throw error;
+        handleErrors({message: 'You need to be logged before playing'});
     }
-}
-
-function handleError(error) {
-	if (error.message.includes("No token") || error.message.includes("Invalid Token") || error.message.includes("User does not exist")) {
-		alert("You need to connect before playing");
-		window.location.href = '/home/';
-	} else {
-		alert(error.message);
-	}
-}
-
-function handleGameCancel(data) {
-	alert(`Player ${data.username} left`);
-	if (data.game_status === "WAITING")
-	{
-		window.location.href = '/home/';
-	}
-	else { //Gerer les lp 
-		window.location.href = '/home/';
-	}
 }
 
 async function init() {
@@ -109,18 +85,14 @@ async function init() {
 		displayWhenLoad(user);
 		socket = setupWebSocket(user);
 	} catch (error) {
-		handleError(error);
+		handleErrors({message:error});
 	}
 }
 
-function setupWebSocket(user) {
-	currentPlayerId = user.id;
-	const id = user.id.toString()
-	const socket = new WebSocket(`wss://127.0.0.1:8443/ws/magicDuel/${id}/`);
-	let game = null;
-
-	socket.onopen = () => {
-		console.log("WEBSOCKET CONNECTED");
+function sendSearch(user) {
+	const mainP = document.getElementById("info-main-player");
+	if (!mainP.classList.contains('hidden'))
+	{
 		sendToBack({
 			action: 'search',
 			player_id: user.id,
@@ -128,6 +100,19 @@ function setupWebSocket(user) {
 			player_avatar: user.avatar,
 			player_lp: user.ligue_points
 		});
+	} else {
+		clearInterval(currentInverval);
+	}
+}
+
+function setupWebSocket(user) {
+	currentPlayerId = user.id;
+	const id = user.id.toString()
+	const socket = new WebSocket(`wss://127.0.0.1:8443/ws/magicDuel/${id}/`);
+	
+	socket.onopen = () => {
+		console.log("WEBSOCKET CONNECTED");
+		currentInverval = setInterval(() => sendSearch(user), 2000);
 	}
 
 	socket.onmessage = async (e) => {
@@ -158,13 +143,7 @@ async function handleWebSocketMessage(event) {
 	switch(data.type) {
 
 		case 'players_info':
-			console.log(data)
-			currentGameId = data.game_id;
-			creationGameDisplay(data, currentGame);
-			sendToBack({action: 'findGame', game_id: currentGameId})
-			document.getElementById('button-ready').addEventListener('click', () => {
-				sendToBack({action: 'ready', game_id: currentGameId})
-			})
+			handlePlayerInfo(data);
 			break;
 
 		case 'player_ready':
@@ -211,16 +190,36 @@ async function handleWebSocketMessage(event) {
 			handleGameCancel(data);
 			break;
 
+		case 'no_play':
+			handleNoPlay(data);
+			break;
+
 		case 'error':
-			alert('Error : ' + data.message);
-			window.location.href = '/home/';
+			handleErrors(data);
+			break;
 	}
+}
+
+function handlePlayerInfo(data) {
+	currentGameId = data.game_id;
+	creationGameDisplay(data, currentGame);
+	sendToBack({action: 'findGame', game_id: currentGameId})
+	document.getElementById('button-ready').addEventListener('click', () => {
+		sendToBack({action: 'ready', game_id: currentGameId})
+	})
 }
 
 function handleRoundEnd(data) {
 	clearInterval(timerInterval);
 	currentGame.toggleTimer(false);
 	document.getElementById('choiceButtons').classList.add('hidden');
+}
+
+function handleQuitGame(event) {
+	let opponentId = currentGame.P1.id === currentPlayerId ? currentGame.P2.id : currentGame.P1.id;
+	sendMatchApi(opponentId);
+	event.preventDefault();
+	event.returnValue = true;
 }
 
 function handleGameStart(data) {
@@ -232,6 +231,7 @@ function handleGameStart(data) {
 	currentGame.start();
 	resizeCanvas();
 	window.addEventListener('resize', resizeCanvas);
+	window.addEventListener("beforeunload", handleQuitGame);
 	currentCountdown = new CountdownAnimation('countdownCanvas');
 }
 
@@ -241,6 +241,7 @@ async function handleCountdown(countdown) {
 		currentCountdown.stopDisplay();
 		currentGame.toggleCanvas(true);
 		currentGame.toggleInfoPlayer(false);
+		currentGame.toggleButtonTuto(true);
 		bindEvents();
 		currentGame.fillUsernames();
 		currentGame.gameLoop(0);
@@ -249,11 +250,94 @@ async function handleCountdown(countdown) {
 }
 
 function handleGameFinish(data) {
-	while (!asFinishedAnim) {;}
-	setTimeout(() => {
-		currentGame.displayWinner(data.player_id);
-		sendMatchApi(data.player_id);
-	}, 500);
+	let checkAnim = setInterval(() => {
+        if (asFinishedAnim) {
+			clearInterval(checkAnim);
+			window.removeEventListener('beforeunload', handleQuitGame);
+			setTimeout(() => {
+				currentGame.displayWinner(data.player_id);
+				sendMatchApi(data.player_id);
+			}, 3000);
+        }
+    }, 10);
+}
+
+function handleErrors(data) {
+	const errorContainer = document.getElementById('error-container');
+
+	if (!errorContainer.classList.contains('hidden'))
+		return;
+
+	window.removeEventListener('beforeunload', handleQuitGame);
+	const infoMain = document.getElementById('info-main-player');
+	const infop1 = document.getElementById('infoP1');
+	const infop2 = document.getElementById('infoP2');
+	const buttonStart = document.getElementById('button-ready');
+	const canvas = document.getElementById('canvasContainer');
+	const countDown = document.getElementById('countdownCanvas');
+	const game = document.getElementById('gameCanvas');
+	const hud = document.getElementById('hud-container');
+	const buttonGuide = document.getElementById('btn-book-element');
+	const errorMessage = document.getElementById('error-message');
+	const lpMessage = document.getElementById('error-lp');
+
+	if (!infoMain.classList.contains('hidden'))
+		infoMain.classList.add('hidden');
+	if (!infop1.classList.contains('hidden'))
+		infop1.classList.add('hidden');
+	if (!infop2.classList.contains('hidden'))
+		infop2.classList.add('hidden');
+	if (!buttonStart.classList.contains('hidden'))
+		buttonStart.classList.add('hidden');
+	if (!canvas.classList.contains('hidden'))
+		canvas.classList.add('hidden');
+	if (!countDown.classList.contains('hidden'))
+	{
+		if (currentCountdown)
+			currentCountdown.stopDisplay();
+		countDown.classList.add('hidden');
+	}
+	if (!game.classList.contains('hidden'))
+		game.classList.add('hidden');
+	if (!hud.classList.contains('hidden'))
+		hud.classList.add('hidden');
+	if (!buttonGuide.classList.contains('hidden'))
+		buttonGuide.classList.add('hidden');
+
+	errorContainer.classList.remove('hidden');
+	errorMessage.innerHTML += data.message;
+	if (data.type === 'error' || data.game_status === 'WAITING')
+		lpMessage.classList.add('hidden');
+}
+
+function handleGameCancel(data) {
+	if (data.game_status !== 'WAITING')
+		sendMatchApi(currentPlayerId);
+	sendToBack({action: 'cancel'});
+	handleErrors(data);
+}
+
+function handleNoPlay(data) {
+	let playerWin = null;
+	if (!data.p2_id) {
+		playerWin = currentGame.P1.id === data.p_id ? currentGame.P2 : currentGame.P1;
+		sendMatchApi(playerWin.id);
+		if (currentPlayerId === data.p_id) {
+			data.message = " You have not played since for 4 rounds";
+			let errorLp = document.getElementById('error-lp');
+			errorLp.innerText = "You lose 15 LP";
+		} else {
+			data.message = ` Player ${data.p_name} have not played since 4 rounds`;
+			let errorLp = document.getElementById('error-lp');
+			errorLp.innerText = "You win 15 LP";
+		}
+	} else {
+		data.message = " You both not played since 4 rounds";
+		let errorLp = document.getElementById('error-lp');
+		errorLp.classList.add('hidden');
+	}
+	sendToBack({action: 'cancel'});
+	handleErrors(data);
 }
 
 function sendMatchApi(winningId) {
@@ -277,7 +361,6 @@ function sendMatchApi(winningId) {
         console.log('Match enregistrer ', data);
     }).catch(error => console.error(error));
 }
-
 
 function handleClick(choice) {
 	sendToBack({ action: 'attack', choice: choice, player_id: currentPlayerId });
@@ -310,8 +393,13 @@ function handleRoundInteraction(data) {
 		const pTakeDmg = currentGame.P1.id === data.player_id ? currentGame.P2 : currentGame.P1;
 		pTakeDmg.playAnimationAttack(data.power);
 		setTimeout(() => {
-			pTakeDmg.playAnimationPlayer('TakeHit');
+			console.log(data);
 			pTakeDmg.loosePv();
+			if (pTakeDmg.lifes === 0) 
+				pTakeDmg.playAnimationPlayer('Death');
+			else
+				pTakeDmg.playAnimationPlayer('TakeHit');
+			sendToBack({'action': 'finishAnim', 'player_id': currentPlayerId, 'round': currentRound});
 		}, 1000);
 	} else {
 		const equE = document.getElementById('draw');
@@ -319,10 +407,10 @@ function handleRoundInteraction(data) {
 		equE.classList.remove('hidden');
 		setTimeout(() => {
 			equE.classList.add('hidden');
+			sendToBack({'action': 'finishAnim', 'player_id': currentPlayerId, 'round': currentRound});
 		}, 1500);
 	}
 	asFinishedAnim = true;
-	sendToBack({'action': 'finishAnim', 'player_id': currentPlayerId, 'round': currentRound});
 }
 
 function startTimer(data) {
@@ -360,9 +448,10 @@ function resizeCanvas() {
 	});
 
 	if (currentGame) {
+		currentGame.updateImageSize(gameCanvas);
 		currentGame.updateCanvas(gameCanvas, attackCanvas);
-		currentGame.P1.updatePos(gameCanvas);
-		currentGame.P2.updatePos(gameCanvas);
+		currentGame.P1.updatePos(gameCanvas, currentGame.plat);
+		currentGame.P2.updatePos(gameCanvas, currentGame.plat);
 	}
 }
 

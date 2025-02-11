@@ -53,14 +53,15 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			print(f"Error during disconnect: {e}")
 
 	async def _handle_disconnect(self, close_code):
+		print(f"Disconnect player {self.player_id} from game {self.game_id}")
+		
+		key = 'waiting_wizard_duel_players'
+		current_waiting_players = await sync_to_async(cache.get)(key) or []
+		print(current_waiting_players)
+		current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
+		print(current_waiting_players)
+		await sync_to_async(cache.set)(key, current_waiting_players)
 		if self.game_id:
-			print(f"Disconnect player {self.player_id} from game {self.game_id}")
-			
-			key = 'waiting_wizard_duel_players'
-			current_waiting_players = await sync_to_async(cache.get)(key) or []
-			current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
-			await sync_to_async(cache.set)(key, current_waiting_players)
-
 			# Faire le nettoyage du cache d'abord
 			await sync_to_async(cache.delete)(f"player_current_game_{self.player_id}")
 			await sync_to_async(cache.delete)(f"player_{self.player_id}_channel")
@@ -140,28 +141,27 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			'finishAnim': self.handle_finish_anim,
 			'search': self.handle_player_search,
 			'findGame': self.handle_find_game,
+			'cancel': self.handle_game_cancel,
 		}
 
 		handler = actions.get(action)
 		if handler:
 			await handler(data)
 
+	async def handle_game_cancel(self, data):
+		self.game_cancel_event.set()
 
 	async def handle_player_search(self, data):
-		key = 'waiting_wizard_duel_players'
-		current_waiting_players = await sync_to_async(cache.get)(key) or []
-		current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
-		await sync_to_async(cache.set)(key, current_waiting_players)
-
 		player_game_key = f"player_current_game_{self.player_id}"
 		current_game = await sync_to_async(cache.get)(player_game_key)
 
 		if current_game:
 			await self.send(text_data=json.dumps({
 				'type': 'error',
-				'message': 'Already in a game'
+				'message': 'You\'r already in a game'
 			}))
 			return
+
 		key = 'waiting_wizard_duel_players'
 
 		current_waiting_players = cache.get(key) or []
@@ -173,7 +173,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			'ligue_points': data['player_lp'],
 			'timestamp': time.time()
 		}
-
+		
 		if not any(player['id'] == self.player_id for player in current_waiting_players):
 			current_waiting_players.append(player_info)
 			await sync_to_async(cache.set)(key, current_waiting_players)
@@ -193,6 +193,10 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				await self.channel_layer.group_add(self.game.group_name, opponent_channel_name)
 			
 			await self.send_players_info(self.game.to_dict())
+			key = 'waiting_wizard_duel_players'
+			current_waiting_players = await sync_to_async(cache.get)(key) or []
+			current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
+			await sync_to_async(cache.set)(key, current_waiting_players)
 		else:
 			pass
 
@@ -212,11 +216,11 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		current_time = time.time()
 
 		def get_range_points(time):
-			if time < 30:
+			if time < 10:
 				return 100
-			elif time < 60:
+			elif time < 30:
 				return 200
-			elif time < 90:
+			elif time < 50:
 				return 300
 			return float('inf')
 
@@ -227,7 +231,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		for opponent in potiential_opponents:
 			wait_time = current_time - opponent['timestamp']
 			range = get_range_points(wait_time)
-
 			if abs(opponent['ligue_points'] - player_points) <= range:
 				current_waiting_players.remove(opponent)
 				await sync_to_async(cache.set)(key, current_waiting_players)
@@ -253,7 +256,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			self._both_anim_done.set()
 
 	async def handle_player_attack(self, data):
-		# print(f"handle attack : is p1 : {data['player_id'] == self.game.p1.id} / is p2: {data['player_id'] == self.game.p2.id}")
 		if data['player_id'] == self.game.p1.id:
 			self.p1_as_attack.set()
 			await self.game.p1.assign_action(data['choice'])
@@ -270,7 +272,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def check_both_ready(self):
 		async with asyncio.Lock():
 			if self.game.both_players_ready():
-				print('player all ready')
 				await self.start_game_sequence()
 
 	async def start_game_sequence(self):
@@ -288,7 +289,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		await self._countdown_done.wait()
 		# game_loop_task can be launch because countdown is done
 		if not self._game_loop_task:
-			print('status_game: ', self.game.status)
 			self._game_loop_task = asyncio.create_task(self.game_loop())
 
 	async def run_countdown_sequence(self):
@@ -303,7 +303,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def game_loop(self):
 		try:
 			await self.game.update_players()
-
+			if self.game_cancel_event.is_set():
+				return
 			# Use an event to manage game state
 			game_over_event = asyncio.Event()
 
@@ -324,7 +325,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 	async def monitor_game_state(self, game_over_event):
 		try:
-			while not game_over_event.is_set():
+			while not game_over_event.is_set() and not self.game_cancel_event.is_set():
 				await self.game.update_game()
 				if self.game.status == 'CANCELLED':
 					await self.cleanup()
@@ -332,8 +333,10 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				if self.game.p1 is None or self.game.p2 is None:
 					game_over_event.set()
 					break
+				print(f'lifes: {self.game.p1.life}/{self.game.p2.life}')
 				if self.game.p1.life <= 0 or self.game.p2.life <= 0:
-					print('game is over no more lifes')
+					self.game.status = 'FINISHED'
+					await self.game.save_to_cache()
 					game_over_event.set()
 					await self.notify_game_end()
 					break
@@ -352,10 +355,10 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 	async def round_manager(self, game_over_event):
 		try: 
-			while not game_over_event.is_set():
+			while not game_over_event.is_set() and not self.game_cancel_event.is_set():
 				try:
 					if self.game.status == 'CANCELLED' or self.game_cancel_event.is_set():
-						break 
+						break
 
 					await asyncio.wait_for(
 						self.execute_round(),
@@ -388,6 +391,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		await self.notify_round_count(self.current_round_count)
 		await asyncio.sleep(3)
 		try:
+			if self.game_cancel_event.is_set():
+				return
 			self.time_task = asyncio.create_task(self.manage_round_time())
 			self.action_task = asyncio.create_task(self.manage_players_actions())
 
@@ -397,16 +402,15 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				return_exceptions=True
 			)
 			await asyncio.wait_for(self._round_complete_event.wait(), timeout=self.round_time + 5)
-			print(f'action before update: ', self.game.p1.action, self.game.p2.action)
 			await self.notify_round_end()
 			await self.game.update_game()
 			result = await self.check_winner_round()
 			await asyncio.sleep(1)
 			if result is not None and not self.game_cancel_event.is_set():
 				winner_id, power = await self.apply_power(result)
-				await self.notify_round_interaction(winner_id, power)
+				await self.notify_round_interaction(winner_id, power, self.game.p1.life, self.game.p2.life)
 				try:
-					await asyncio.wait_for(self._both_anim_done.wait(), timeout=5) 
+					await asyncio.wait_for(self._both_anim_done.wait(), timeout=15) 
 				except asyncio.TimeoutError:
 					print("Animation completed timeout error")
 					self._both_anim_done.set()
@@ -415,7 +419,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 					await asyncio.sleep(1)
 		except asyncio.TimeoutError:
 				print('Round timeout - ')
-				self._round_complete_event.set() # TODO : Rajouter un flag pour dire que c'est egaliter
+				self._round_complete_event.set()
 
 	async def cleanup_round(self):
 		if self.game is None or self.game.p1 is None or self.game.p2 is None:
@@ -435,8 +439,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		await self.notify_round_timer(start_time)
 		remaining_time = 0
 		while not self._round_complete_event.is_set() \
-			or not self.game_cancel_event.is_set \
-			or not self.game.status == 'CANCELLED':
+			and not self.game_cancel_event.is_set() \
+			and not self.game.status == 'CANCELLED':
 			elapsed_time = time.time() - start_time
 			remaining_time =  max(self.round_time - elapsed_time, 0)
 			if remaining_time <= 0:
@@ -447,11 +451,10 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 	async def manage_players_actions(self):
 		while not self._round_complete_event.is_set() \
-			or not self.game_cancel_event.is_set() \
-			or not self.game.status == 'CANCELLED':
+			and not self.game_cancel_event.is_set() \
+			and not self.game.status == 'CANCELLED':
 			await self.game.update_game()
 			if self.game.p1 and self.game.p2 and self.game.p1.action and self.game.p2.action:
-				print('break both players played')
 				self._round_complete_event.set()
 				break
 
@@ -460,10 +463,19 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def check_winner_round(self):
 		if self.game_cancel_event.is_set() or self.game.status == 'CANCELLED':
 			return
+		# ret = await self.game.check_players_have_played()
+		# if ret != None:
+		# 	self.game.status = 'CANCELLED'
+		# 	await self.notify_player_no_play(ret)
+		# 	await self.cleanup_round()
+		# 	await self.cleanup()
+		# 	return
+
 		result = self.resolve_power(self.game.p1.action, self.game.p2.action)
 		if result == 'Error interaction':
 			print('Error with power interaction')
 			return None
+			
 		return result
 
 	@staticmethod
@@ -502,7 +514,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		id_winner = 0
 		action = None
 
-		print('apply_power: result:', result)
 		if result == 1:
 			await self.game.p2.lose_life()
 			id_winner = self.game.p1.id
@@ -514,21 +525,32 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 		return id_winner, action
 
-	async def notify_game_cancel(self, username_gone):
-		self.game_cancel_event.set()
-		message = {
-			'type': 'game_cancel',
-			'username': username_gone,
-			'game_status': self.game.status,
-		}
-		await self.channel_layer.group_send(self.game.group_name, message)
 
-	# async def notify_debug(self, fromwhere):
-	# 	message = {
-	# 		'type': 'debug',
-	# 		'from': fromwhere
-	# 	}
-	# 	await self.channel_layer.group_send(self.game.group_name, message)
+	async def notify_game_cancel(self, username_gone):
+		await self.game.update_status_game()
+		if not self.game.status == 'FINISHED':
+			self.game_cancel_event.set()
+			message = {
+				'type': 'game_cancel',
+				'message': f'Player {username_gone} is gone, game is cancelled',
+				'username': username_gone,
+				'game_status': self.game.status,
+			}
+			await self.channel_layer.group_send(self.game.group_name, message)
+
+	async def notify_player_no_play(self, data):
+		self.game.update_status_game()
+		if not self.game.status == 'FINISHED':
+			self.game_cancel_event.set()
+			message = {
+				'type': 'no_play',
+				'p_id': data['p_id'],
+				'p2_id': data['p2_id'],
+				'p_name': data['p_name'],
+				'p2_name': data['p2_name'],
+				'game_status': self.game.status,
+			}
+			await self.channel_layer.group_send(self.game.group_name, message)
 
 	async def notify_round_timer(self, start_time):
 		message = {
@@ -553,11 +575,13 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
 
-	async def notify_round_interaction(self, p_id, power):
+	async def notify_round_interaction(self, p_id, power, p1_life, p2_life):
 		message = {
 			'type': 'round_interaction',
 			'player_id': p_id,
-			'power': power
+			'power': power,
+			'p1_life': p1_life,
+			'p2_life': p2_life,
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
 
@@ -634,11 +658,23 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
 
+	async def no_play(self, event):
+		message = {
+			'type': 'no_play',
+			'p_id': event['p_id'],
+			'p2_id': event['p2_id'],
+			'p_name': event['p_name'],
+			'p2_name': event['p2_name'],
+			'game_status': event['game_status'],
+		}
+		await self.send(text_data=json.dumps(message))
+
 	async def game_cancel(self, event):
 		message = {
 			'type': 'game_cancel',
 			'username': event['username'],
 			'game_status': event['game_status'],
+			'message': event['message']
 		}
 		await self.send(text_data=json.dumps(message))
 
@@ -682,6 +718,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			'type': 'round_interaction',
 			'player_id': event['player_id'],
 			'power': event['power'],
+			'p1_life': event['p1_life'],
+			'p2_life': event['p2_life'],
 		}
 		await self.send(text_data=json.dumps(message))
 

@@ -41,15 +41,16 @@
     <div id="title">
         <h1>Wizard Duels</h1>
     </div>
-    <div id="canvasContainer">
+    <div id="canvasContainer" class="hidden canvasContainer">
         <div id="end-container" class="end-container hidden">
             <div id="end-info-p1" class="end-info">
                 <img id="crown-img-p1" src="../assets/magicDuel/Crown.png" alt="crown" class="hidden crown"/>
                 <img id="end-img-p1" src="" alt="end-img-p1" class="end-img"/>
                 <span id="end-name-p1" class="end-name"></span>
+                <span id="end-lps-p1" class="end-name"></span>
             </div>
             <div id="end-button"> 
-                <a id="button-home" class="buttonNeon" href="http://127.0.0.1:8443/home/">
+                <a id="button-home" class="buttonNeon" href="https://127.0.0.1:8443/home/">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -61,12 +62,13 @@
                 <img id="crown-img-p2" src="../assets/magicDuel/Crown.png" alt="crown" class="hidden crown"/>
                 <img id="end-img-p2" src="" alt="end-img-p2" class="end-img"/>
                 <span id="end-name-p2" class="end-name"></span>
+                <span id="end-lps-p2" class="end-name"></span>
             </div>
         </div>
         <canvas id="countdownCanvas" class="allCanvas"></canvas>
         <canvas id="gameCanvas" class="allCanvas"></canvas>
         <canvas id="attackCanvas" class="allCanvas"></canvas>
-        <div id="hud-container" class="countainer-hud">
+        <div id="hud-container" class="container-hud">
             <div id="hud-items" class="hud-items hidden">
                 <div id="p1-hud" class="player-hud">
                     <div id="p1-hud-name" class="username">
@@ -106,15 +108,31 @@
                         <span class="power-name">DARK BOLT</span>
                         <img alt="Spell" src="../assets/magicDuel/Icon-button/dark-bolt.png"/>
                     </div>
-                    <div class="instruction-mid">
-                        <span class="power-name">Win (>)</span>
-                        <span class="power-name">Lose (<)</span>
-                        <span class="power-name">Draw (=)</span>
-                    </div>
-                    <div class="instruction-bot">
-                        <img alt="SpellWin" src="../assets/magicDuel/Icon-button/spark4.png"/>
-                        <img alt="SpellLoss" src="../assets/magicDuel/Icon-button/fire-bomb.png"/>
-                        <img alt="SpellDraw" src="../assets/magicDuel/Icon-button/lightning.png"/>
+                    <div class="instruction-info-container">
+                        <div class="instruction-info">
+                            <div class="instruction-mid">
+                                <span>Win (>)</span>
+                            </div>
+                            <div class="instruction-bot">
+                                <img alt="SpellWin" src="../assets/magicDuel/Icon-button/spark4.png"/>
+                            </div>
+                        </div>
+                        <div class="instruction-info">
+                            <div class="instruction-mid">
+                                <span>Lose (<)</span>
+                            </div>
+                            <div class="instruction-bot">
+                                <img alt="SpellLoss" src="../assets/magicDuel/Icon-button/fire-bomb.png"/>
+                            </div>
+                        </div>
+                        <div class="instruction-info">
+                            <div class="instruction-mid">
+                                <span>Draw (=)</span>
+                            </div>
+                            <div class="instruction-bot">
+                                <img alt="SpellDraw" src="../assets/magicDuel/Icon-button/lightning.png"/>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="instruction" id="instruction2">
@@ -122,15 +140,31 @@
                         <span class="power-name">FIRE BOMB</span>
                         <img alt="Spell" src="../assets/magicDuel/Icon-button/fire-bomb.png"/>
                     </div>
-                    <div class="instruction-mid">
-                        <span class="power-name">Win (>)</span>
-                        <span class="power-name">Lose (<)</span>
-                        <span class="power-name">Draw (=)</span>
-                    </div>
-                    <div class="instruction-bot">
-                        <img alt="SpellWin" src="../assets/magicDuel/Icon-button/dark-bolt.png"/>
-                        <img alt="SpellLoss" src="../assets/magicDuel/Icon-button/lightning.png"/>
-                        <img alt="SpellDraw" src="../assets/magicDuel/Icon-button/spark4.png"/>
+                    <div class="instruction-info-container">
+                        <div class="instruction-info">
+                            <div class="instruction-mid">
+                                <span>Win (>)</span>
+                            </div>
+                            <div class="instruction-bot">
+                                <img alt="SpellWin" src="../assets/magicDuel/Icon-button/dark-bolt.png"/>
+                            </div>
+                        </div>
+                        <div class="instruction-info">
+                            <div class="instruction-mid">
+                                <span>Lose (<)</span>
+                            </div>
+                            <div class="instruction-bot">
+                                <img alt="SpellLoss" src="../assets/magicDuel/Icon-button/lightning.png"/>
+                            </div>
+                        </div>
+                        <div class="instruction-info">                            
+                            <div class="instruction-mid">
+                                <span>Draw (=)</span>
+                            </div>
+                            <div class="instruction-bot">
+                                <img alt="SpellDraw" src="../assets/magicDuel/Icon-button/spark4.png"/>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="instruction" id="instruction3">
@@ -138,15 +172,31 @@
                         <span class="power-name">LIGHTNING</span>
                         <img alt="Spell" src="../assets/magicDuel/Icon-button/lightning.png"/>
                     </div>
-                    <div class="instruction-mid">
-                        <span class="power-name">Win (>)</span>
-                        <span class="power-name">Lose (<)</span>
-                        <span class="power-name">Draw (=)</span>
-                    </div>
-                    <div class="instruction-bot">
-                        <img alt="SpellWin" src="../assets/magicDuel/Icon-button/fire-bomb.png"/>
-                        <img alt="SpellLoss" src="../assets/magicDuel/Icon-button/spark4.png"/>
-                        <img alt="SpellDraw" src="../assets/magicDuel/Icon-button/dark-bolt.png"/>
+                    <div class="instruction-info-container">
+                        <div class="instruction-info">
+                            <div class="instruction-mid">
+                                <span>Win (>)</span>
+                            </div>
+                            <div class="instruction-bot">
+                                <img alt="SpellWin" src="../assets/magicDuel/Icon-button/fire-bomb.png"/>
+                            </div>
+                        </div>
+                        <div class="instruction-info">
+                            <div class="instruction-mid">
+                                <span>Lose (<)</span>
+                            </div>
+                            <div class="instruction-bot">
+                                <img alt="SpellLoss" src="../assets/magicDuel/Icon-button/spark4.png"/>
+                            </div>
+                        </div>
+                        <div class="instruction-info">                           
+                            <div class="instruction-mid">
+                                <span>Draw (=)</span>
+                            </div>
+                            <div class="instruction-bot">
+                                <img alt="SpellDraw" src="../assets/magicDuel/Icon-button/dark-bolt.png"/>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="instruction" id="instruction4">
@@ -154,21 +204,37 @@
                         <span class="power-name">SPARK</span>
                         <img alt="Spell" src="../assets/magicDuel/Icon-button/spark4.png"/>
                     </div>
-                    <div class="instruction-mid">
-                        <span class="power-name">Win (>)</span>
-                        <span class="power-name">Lose (<)</span>
-                        <span class="power-name">Draw (=)</span>
-                    </div>
-                    <div class="instruction-bot">
-                        <img alt="SpellWin" src="../assets/magicDuel/Icon-button/lightning.png"/>
-                        <img alt="SpellLoss" src="../assets/magicDuel/Icon-button/dark-bolt.png"/>
-                        <img alt="SpellDraw" src="../assets/magicDuel/Icon-button/fire-bomb.png"/>
+                    <div class="instruction-info-container">
+                        <div class="instruction-info">
+                            <div class="instruction-mid">
+                                <span>Win (>)</span>
+                            </div>
+                            <div class="instruction-bot">
+                                <img alt="SpellWin" src="../assets/magicDuel/Icon-button/lightning.png"/>
+                            </div>
+                        </div>
+                        <div class="instruction-info">
+                            <div class="instruction-mid">
+                                <span>Lose (<)</span>
+                            </div>
+                            <div class="instruction-bot">
+                                <img alt="SpellLoss" src="../assets/magicDuel/Icon-button/dark-bolt.png"/>
+                            </div>
+                        </div>
+                        <div class="instruction-info">
+                            <div class="instruction-mid">
+                                <span>Draw (=)</span>
+                            </div>
+                            <div class="instruction-bot">
+                                <img alt="SpellDraw" src="../assets/magicDuel/Icon-button/fire-bomb.png"/>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div id="btn-book-element" class="top-right">
-            <button id="openBook">
+        <div id="btn-book-element" class="top-right hidden">
+            <button id="openBook" class="button-book">
                 <img id="img-book-closed" alt="img-book-closed" src="../assets/magicDuel/closed-book.png" class=""/>
                 <img id="img-book-open" alt="img-book-open" src="../assets/magicDuel/open-book.png" class="hidden"/>
             </button>
@@ -219,5 +285,16 @@
         <span></span>
         I'm Ready !
     </a>
+    <div class="error-container hidden" id="error-container">
+        <span id="error-message">Error: </span>
+        <span id="error-lp">You win 15 LP</span>
+        <a id="button-home" class="buttonNeon" href="https://127.0.0.1:8443/home/">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            Return to the home
+        </a>
+    </div>
 </body>
 </html>

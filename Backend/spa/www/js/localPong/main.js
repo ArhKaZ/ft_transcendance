@@ -23,22 +23,19 @@ async function getUserFromBack() {
             credentials: 'include',
         });
         if (!response.ok) {
-            console.log("error reponse");
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Error getting user");
+            handleErrors({message: 'You need to be logged before playing'});
         }
         const data = await response.json();
         return await data;
     } catch (error) {
-        alert("Need to be logged");
-        window.location.href = '/home/';
-        console.error("Error when getting user:", error);
-        throw error;
+        handleErrors({message: 'You need to be logged before playing'});
     }
 }
 
 async function init() {
     const user = await getUserFromBack();
+    if (!user.username)
+        return;
     displayWhenLoad(user);
     currentGame = await initGame(user);
     currentCountdown = new CountdownAnimation('countdownCanvas');
@@ -60,7 +57,6 @@ async function startCountdown() {
     resizeCanvasGame();
 }
 
-
 async function initGame(user) {
     const canvas = document.getElementById('gameCanvas');
     oldHeight = canvas.height;
@@ -79,6 +75,46 @@ function createPlayers(data) {
     const P1 = new Player(p1_id, p1_name, p1_avatar);
     const P2 = new Player(p2_id, p2_name, p2_avatar);
     return [P1, P2];
+}
+
+function handleErrors(data) {
+    const infoMain = document.getElementById('info-main-player');
+    const hudp1 = document.getElementById('hud-p1');
+    const hudp2 = document.getElementById('hud-p2');
+    const spark = document.getElementById('sparks-container');
+    const canvasContainer = document.getElementById('canvasContainer');
+    const game = document.getElementById('gameCanvas');
+    const countdown = document.getElementById('countdownCanvas');
+    const button = document.getElementById('button-ready');
+    const errorContainer = document.getElementById('error-container');
+    const errorMessage = document.getElementById('error-message');
+
+    if (!infoMain.classList.contains('hidden'))
+        infoMain.classList.add('hidden');
+    if (!hudp1.classList.contains('hidden'))
+        hudp1.classList.add('hidden');
+    if (!hudp2.classList.contains('hidden'))
+        hudp2.classList.add('hidden');
+    if (!spark.classList.contains('hidden'))
+        spark.classList.add('hidden');
+    if (!canvasContainer.classList.contains('hidden'))
+        canvasContainer.classList.add('hidden');
+    if (!game.classList.contains('hidden'))
+        game.classList.add('hidden');
+    if (!countdown.classList.contains('hidden'))
+    {
+        if (currentCountdown)
+            currentCountdown.stopDisplay();
+        countdown.classList.add('hidden');
+    }
+    console.log('button:', button);
+    if (!button.classList.contains('hidden'))
+    {
+        console.log('je passe ici');
+        button.classList.add('hidden');
+    }
+    errorContainer.classList.remove('hidden');
+    errorMessage.innerText += data.message;
 }
 
 function resizeCanvasGame() {

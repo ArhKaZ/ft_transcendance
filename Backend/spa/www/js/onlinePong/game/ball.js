@@ -11,9 +11,6 @@ class Ball {
         this.y = y * this.canvas.height / 100;
     }
 
-    getPos() {
-        return this.x, this.y;
-    }
 
     setInMiddle(canvas) {
         this.x = 50 * canvas.width / 100;
