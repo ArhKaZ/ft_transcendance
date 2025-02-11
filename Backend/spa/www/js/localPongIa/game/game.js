@@ -62,7 +62,7 @@ class Game {
         this.IA.checkPosition(this.ball, this.P2.paddle, this.keyState)
         this.P1.paddle.update(this.keyState);
         this.P2.paddle.update(this.keyState);
-        this.bound = this.ball.update(this.P1.paddle, this.P2.paddle, this.IA);
+        this.bound = this.ball.update(this.P1.paddle, this.P2.paddle);
         this.checkAsScore();
         this.checkWinner();
     }
