@@ -54,24 +54,33 @@ class MatchHistory(models.Model):
         return f"{self.user.username} vs {self.opponent_name} - Date {self.date} - Win: {self.won}"
 
 
-class Tournament(models.Model):
-    running = models.BooleanField()
-    participants = models.ManyToManyField(
-        'MyUser',
-        related_name='tournaments',
-        blank=True,
-        help_text='Users participating in the tournament (maximum 10)',
-    )
+import uuid
+from django.db import models
+from django.core.exceptions import ValidationError
 
-    def clean(self):
-        from django.core.exceptions import ValidationError
-        # Check if the number of participants exceeds 10
-        if self.participants.count() > 10:
-            raise ValidationError('A tournament cannot have more than 10 participants.')
+class Tournament(models.Model):
+    code = models.CharField(max_length=10, unique=True, editable=False, default=None)
+    players = models.ManyToManyField('MyUser', blank=True, related_name='tournaments')
+    started = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        self.clean()
+        if not self.code:
+            self.code = str(uuid.uuid4())[:8]  # Generate a short unique code
         super().save(*args, **kwargs)
 
+    def add_player(self, user):
+        # """Adds a player to the tournament if there's space."""
+        if self.players.count() >= 4:
+            raise ValidationError("Tournament is full.")
+        self.players.add(user)
+        self.check_start()
+
+    def check_start(self):
+        # """Starts the tournament if 4 players have joined."""
+        if self.players.count() == 4:
+            self.started = True
+            self.save()
+
     def __str__(self):
-        return f"Tournament {self.id} - {'Running' if self.running else 'Not running'}"
+        return f"Tournament {self.code} - Players: {self.players.count()}/4 - Started: {self.started}"

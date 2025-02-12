@@ -17,4 +17,5 @@ urlpatterns = [
 	path('get_friends/', views.get_friends),
 	path('get_pending_friends/', views.get_pending_friends),
     path('change_lp/', views.change_lp),
+	path('join_tournament/', views.join_tournament),
 ]

@@ -229,3 +229,8 @@ def add_friend(request):
 			{'error': 'User not found'}, 
 			status=status.HTTP_404_NOT_FOUND
 		)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def join_tournament(request):
