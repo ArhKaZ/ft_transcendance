@@ -8,6 +8,7 @@ class Router {
         this.routes = routes;
         this.rootElement = document.getElementById('app');
         this.loadedStylesheets = new Set();
+        this.baseUrl = window.location.origin;
         // Only add event listeners if this is the first instance
         window.addEventListener('popstate', this.handleLocation.bind(this));
         this.initLinks();
@@ -24,7 +25,7 @@ class Router {
             const link = e.target.closest('a');
             if (link) {
                 const href = link.getAttribute('href');
-                if (href && !href.startsWith('https')) {
+                if (href && href.startsWith('/') && href.startsWith('//')) {
                     e.preventDefault();
                     this.navigateTo(href);
                 }
@@ -35,7 +36,8 @@ class Router {
     }
 
     navigateTo(url) {
-        window.history.pushState({}, '', url);
+        const fullUrl = new URL(url, this.baseUrl).href;
+        window.history.pushState({}, '', fullUrl);
         this.handleLocation();
     }
 
