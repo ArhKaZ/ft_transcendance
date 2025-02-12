@@ -303,7 +303,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 					continue
 				await self.game.ball.update_position(self.game)
 				await self.notify_ball_position()
-				await asyncio.sleep(0.01)
+				await asyncio.sleep(0.16)
 			except asyncio.CancelledError:
 				print('Task cancelled')
 				break

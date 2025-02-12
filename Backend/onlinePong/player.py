@@ -11,7 +11,7 @@ class Player:
     def __init__(self, player_info, game_id, ready = False):
         self.y = 42.5
         self.nb = 0
-        self.speed = 0.5
+        self.speed = 0.7
         self.score = 0
         self.game_id = game_id
         self.id = player_info['id']
@@ -26,10 +26,10 @@ class Player:
         self.y = y
 
     def move(self, direction):
-        if self.y > 0.5 :
+        if self.y > 2 :
             if direction == 'up':
                 self.y -= self.speed
-        if self.y + 15 < 99.5:
+        if self.y + 15 < 98:
             if direction == 'down':
                 self.y += self.speed
 
