@@ -51,7 +51,7 @@ class Ball {
         {
             bound[1] = true;
             paddleCollision = true;
-            if (this.ballSpeed <= 8){
+            if (this.ballSpeed < 8){
                 this.ballSpeed += 0.4;
             }
         }

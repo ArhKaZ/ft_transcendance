@@ -107,8 +107,9 @@ function sendSearch(user) {
 
 function setupWebSocket(user) {
 	currentPlayerId = user.id;
-	const id = user.id.toString()
-	const socket = new WebSocket(`wss://127.0.0.1:8443/ws/magicDuel/${id}/`);
+	const id = user.id.toString();
+	const currentUrl = window.location.host;
+	const socket = new WebSocket(`wss://${currentUrl}/ws/magicDuel/${id}/`);
 	
 	socket.onopen = () => {
 		console.log("WEBSOCKET CONNECTED");

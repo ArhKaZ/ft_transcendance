@@ -52,14 +52,14 @@ async function init() {
 function setupWebSocket(user) {
     currentPlayerId = user.id;
     const id = user.id.toString();
-    const socket = new WebSocket(`wss://127.0.0.1:8443/ws/onlinePong/${id}/`);
+    const currentUrl = window.location.host;
+    const socket = new WebSocket(`wss://${currentUrl}/ws/onlinePong/${id}/`);
 
     socket.onopen = () => {
-        console.log("WebSocket connected");
         sendToBack({
             action: 'search', 
             player_id: user.id, 
-            player_name: user.username, 
+            player_name: user.username,
             player_avatar: user.avatar,
         });
     };
