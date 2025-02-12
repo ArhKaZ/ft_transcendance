@@ -52,3 +52,26 @@ class MatchHistory(models.Model):
 
     def __str__(self):
         return f"{self.user.username} vs {self.opponent_name} - Date {self.date} - Win: {self.won}"
+
+
+class Tournament(models.Model):
+    running = models.BooleanField()
+    participants = models.ManyToManyField(
+        'MyUser',
+        related_name='tournaments',
+        blank=True,
+        help_text='Users participating in the tournament (maximum 10)',
+    )
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        # Check if the number of participants exceeds 10
+        if self.participants.count() > 10:
+            raise ValidationError('A tournament cannot have more than 10 participants.')
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Tournament {self.id} - {'Running' if self.running else 'Not running'}"
