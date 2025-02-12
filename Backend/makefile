@@ -11,4 +11,9 @@ logs:
 clear:
 		docker compose -f $(NAME) down -v
 
+fclear:
+		docker compose -f $(NAME) down -v --remove-orphans && \
+		docker system prune -a --volumes -f
+
+
 PHONY: start stop logs clear

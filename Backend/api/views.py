@@ -234,3 +234,53 @@ def add_friend(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def join_tournament(request):
+    try:
+        tournament_code = request.data.get('tournament_code')
+        if not tournament_code:
+            return Response(
+                {'error': 'Tournament code is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        tournament = Tournament.objects.get(code=tournament_code)
+        
+        # Check if tournament has already started
+        if tournament.started:
+            return Response(
+                {'error': 'Tournament has already started'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        # Check if user is already in tournament
+        if request.user in tournament.players.all():
+            return Response(
+                {'error': 'You are already in this tournament'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        # Try to add player
+        try:
+            tournament.add_player(request.user)
+            
+            response_data = {
+                'message': 'Successfully joined tournament',
+                'tournament_code': tournament.code,
+                'players_count': tournament.players.count(),
+                'started': tournament.started
+            }
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+            
+        except ValidationError as e:
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+    except Tournament.DoesNotExist:
+        return Response(
+            {'error': 'Tournament not found'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+	
+	
