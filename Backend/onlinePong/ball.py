@@ -9,7 +9,7 @@ class Ball:
     def __init__(self, game_id):
         self.x = 50
         self.y = 50
-        self.speed = 0.64
+        self.speed = 0.45
         self.game_id = game_id
         rand = random.choice([1,2])
         angle = random.uniform(-math.pi / 4, math.pi / 4)
@@ -40,26 +40,35 @@ class Ball:
 
     async def update_position(self, game):
         self.x += self.vx
-        self.y += self.vy
         await self.check_boundaries(game)
         await self.check_boundaries_player(game)
 
     async def check_boundaries(self, game):
-        if self.y <= 1 or self.y >= 99:
+        nextY = self.y + self.vy
+        nextX = self.x + self.vx
+        if self.nextY <= 1 or nextY >= 99:
             self.vy = -self.vy
             game.bound_wall = True
-        if self.x <= 1 or self.x >= 99:
+            if self.nextY <= 1:
+                self.y = 1
+            elif self.nextY <= 99:
+                self.y = 99
+        elif nextX <= 1 or nextX >= 99:
             player_as_score = 1 if self.x >= 99 else 2
             await self.reset(player_as_score, game)
+        else:
+            self.y = nextY
 
     async def check_boundaries_player(self, game):
         await game.update_players()
-        if self.x <= 3 and game.p1.y <= self.y <= game.p1.y + 16 or \
-                self.x >= 97 and game.p2.y <= self.y <= game.p2.y + 16:
+        nextY = self.y + self.vy
+        nextX = self.x + self.vx
+        if nextX <= 3 and game.p1.y <= nextY <= game.p1.y + 16 or \
+                nextX >= 97 and game.p2.y <= nextY <= game.p2.y + 16:
             game.bound_player = True
-            if self.x <= 3 and game.p1.y <= self.y <= game.p1.y + 16:
+            if nextX <= 3 and game.p1.y <= nextY <= game.p1.y + 16:
                 colission_point = (self.y + 1) - (game.p1.y + 8)
-            elif self.x >= 95 and game.p2.y <= self.y <= game.p2.y + 16:
+            elif nextX >= 95 and game.p2.y <= nextY <= game.p2.y + 16:
                 colission_point = (self.y + 1) - (game.p2.y + 8)
             normalized_point = colission_point / 8
             max_bounce_angle = math.pi / 4
