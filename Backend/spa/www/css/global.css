@@ -5,12 +5,14 @@ body {
     text-align: center;
     padding-top: 50px;
 }
+
 .home {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 20px;
 }
+
 .choice-home a, .choice-home button {
     display: block;
     background: none;
