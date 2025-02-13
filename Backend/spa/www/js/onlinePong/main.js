@@ -11,6 +11,7 @@ let currentPlayerId = null;
 let currentGame = null;
 let currentCountdown = null;
 let currentGameId = null;
+let inTournament = false;
 
 function sendToBack(data) {
     if (socket?.readyState === WebSocket.OPEN) {
@@ -46,14 +47,25 @@ async function init() {
 
     displayWhenLoad(user);
     
-    socket = setupWebSocket(user);
+    const urlParams = new URLSearchParams(window.location.search);
+    inTournament = urlParams.get('tournament');
+    let opponent = null;
+    if (inTournament) {
+        opponent = {
+            id: urlParams.get('opp_id'),
+            name: urlParams.get('opp_name'),
+            avatar: urlParams.get('opp_avatar')
+        };
+    }
+    socket = setupWebSocket(user, inTournament, opponent);
 }
 
-function setupWebSocket(user) {
+function setupWebSocket(user, inTournament, opponent) {
     currentPlayerId = user.id;
     const id = user.id.toString();
     const socket = new WebSocket(`wss://127.0.0.1:8443/ws/onlinePong/${id}/`);
-
+    console.log(`opponent : ${opponent}`);
+    
     socket.onopen = () => {
         console.log("WebSocket connected");
         sendToBack({
@@ -61,6 +73,8 @@ function setupWebSocket(user) {
             player_id: user.id, 
             player_name: user.username, 
             player_avatar: user.avatar,
+            in_tournament: inTournament,
+            opponent: opponent
         });
     };
 

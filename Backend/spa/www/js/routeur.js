@@ -136,7 +136,7 @@ const routes = {
         const response = await fetch('/html/home.html');
         return await response.text();
     },
-    '/onlinePong/': async () => {
+    '/onlinePong/': async (params) => {
         const response = await fetch('/html/onlinePong/index.html');
         return await response.text();
     },
