@@ -360,3 +360,10 @@ def get_tournament_players(request, tournament_code):
             'error': 'Tournament not found'
         }, status=status.HTTP_404_NOT_FOUND)
 	
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def erase_user(request):
+	user = request.user
+	user.delete()
+	return Response({'message': 'User deleted successfully'}, status=status.HTTP_200_OK)
+	
