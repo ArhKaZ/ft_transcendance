@@ -1,4 +1,4 @@
-NAME	=	./docker-compose.yml 
+NAME	=	./srcs/docker-compose.yml 
 
 start:
 		clear && \
@@ -11,4 +11,8 @@ logs:
 clear:
 		docker compose -f $(NAME) down -v
 
-PHONY: start stop logs clear
+fclear:
+		docker compose -f $(NAME) down -v --remove-orphans && \
+		docker system prune -a --volumes -f
+
+PHONY: start stop logs clear fclear

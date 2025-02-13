@@ -61,7 +61,6 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      # - db_postgre:/root/42/ft_transcendance/Backend/dbVolumes/
       - db_postgre:/var/lib/postgresql/data
       - ./init_db/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
