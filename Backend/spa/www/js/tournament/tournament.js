@@ -1,24 +1,3 @@
-// document.getElementById('userForm'),addEventListener('submit', async function(event) {
-// 	const tournamentCode = document.getElementById('tournament_code');
-
-// 	try {
-// 		const response = await fetch('/api/join_tournament/', {
-// 			method: 'GET',
-// 			headers: {
-// 				'Content-type': 'application/json',
-// 				'X-CSRFToken': getCSRFToken(),
-// 				'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
-// 			}
-// 		});
-// 		if (response.ok) {
-// 			const data = await response.json();
-// 		}
-
-// 	} catch (error) {
-// 		messageDiv.innerHTML = `<span style="color: red;">Error. Are you sure about the code ?</span>`;
-// 	}
-// });
-
 class TournamentManager {
 	
 	constructor() {
@@ -132,15 +111,14 @@ class TournamentManager {
             const data = await response.json();
             
             if (response.ok) {
-                this.messageDiv.innerHTML = `
-                    <div class="status-message">
-                        Tournament Status:<br>
-                        Players: ${data.players_count}/4<br>
-                        ${data.started ? 'Tournament is starting!' : 'Waiting for players...'}
-                    </div>`;
-                
-                if (data.started) {
-                    this.handleTournamentStart();
+                if (data.is_full) {
+                    // Redirect to game page when tournament is full
+                    window.location.href = `/tournament/game/${this.currentTournamentCode}/`;
+                } else {
+                    this.messageDiv.innerHTML = `
+                        <div class="status-message">
+                            Waiting for players... (${data.players_count}/4)
+                        </div>`;
                 }
             }
         } catch (error) {

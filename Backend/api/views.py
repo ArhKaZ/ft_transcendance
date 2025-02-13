@@ -322,13 +322,36 @@ def create_tournament(request):
 def tournament_status(request, tournament_code):
     try:
         tournament = Tournament.objects.get(code=tournament_code)
+        players = tournament.players.all()
+        
+        # Serialize player information
+        player_data = []
+        for player in players:
+            player_data.append({
+                'username': player.username,
+                'status': 'ready'  # You can add more status logic here
+            })
+        
         return Response({
-            'players_count': tournament.players.count(),
+            'players_count': len(players),
+            'players': player_data,
             'started': tournament.started,
-            'is_full': tournament.players.count() >= 4
+            'is_full': len(players) >= 4,
+            'is_active': True  # You can add logic to determine if tournament is still active
         })
     except Tournament.DoesNotExist:
         return Response({
             'error': 'Tournament not found'
         }, status=status.HTTP_404_NOT_FOUND)
+
+@permission_classes([IsAuthenticated])
+def tournament_game_page(request, tournament_code):
+    # Get tournament or return 404
+    tournament = get_object_or_404(Tournament, code=tournament_code)
+    
+    # Check if user is part of this tournament
+    if request.user not in tournament.players.all():
+        return redirect('tournament_home')
+        
+    return render(request, 'tournament_game.html')
 	
