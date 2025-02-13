@@ -100,23 +100,25 @@ class TournamentManager {
 
     async checkTournamentStatus() {
         if (!this.currentTournamentCode) return;
-        
+    
         try {
             const response = await fetch(`/api/tournament_status/${this.currentTournamentCode}/`, {
                 headers: {
                     'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
                 }
             });
-            
+    
             const data = await response.json();
-            
+    
             if (response.ok) {
                 if (data.is_full) {
                     // Redirect to game page when tournament is full
                     window.location.href = `/tournament/game/${this.currentTournamentCode}/`;
                 } else {
+                    // Preserve the tournament code while updating player count
                     this.messageDiv.innerHTML = `
-                        <div class="status-message">
+                        <div class="success-message">
+                            Tournament created! Your code is: <strong>${this.currentTournamentCode}</strong><br>
                             Waiting for players... (${data.players_count}/4)
                         </div>`;
                 }
