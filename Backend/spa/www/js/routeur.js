@@ -1,6 +1,5 @@
 class Router {
     constructor(routes) {
-        // Prevent multiple router instances
         if (window.routerInstance) {
             return window.routerInstance;
         }
@@ -8,16 +7,13 @@ class Router {
         this.routes = routes;
         this.rootElement = document.getElementById('app');
         this.loadedStylesheets = new Set();
-        // Only add event listeners if this is the first instance
         window.addEventListener('popstate', this.handleLocation.bind(this));
         this.initLinks();
 
-        // Store the instance globally
         window.routerInstance = this;
     }
 
     initLinks() {
-        // Remove previous event listeners to prevent multiple bindings
         document.removeEventListener('click', this.linkHandler);
         
         this.linkHandler = (e) => {
@@ -39,7 +35,6 @@ class Router {
         this.handleLocation();
     }
 
-// NEW 
     async loadStylesheet(href) {
         if (this.loadedStylesheets.has(href)) {
             return;
@@ -75,10 +70,30 @@ class Router {
     async handleLocation() {
         const path = window.location.pathname;
         
+        // Check for dynamic tournament game route
+        const tournamentGameMatch = path.match(/^\/tournament\/game\/([a-zA-Z0-9-]+)\/?$/);
+        if (tournamentGameMatch) {
+            const tournamentCode = tournamentGameMatch[1];
+            // Use the dynamic tournament game route handler
+            const route = this.routes['/tournament/game/:code'];
+            if (route) {
+                try {
+                    const htmlContent = await route(tournamentCode);
+                    const processedContent = await this.parseHTML(htmlContent);
+                    this.rootElement.innerHTML = processedContent;
+                    this.executeScripts(this.rootElement);
+                    return;
+                } catch (error) {
+                    console.error('Error loading tournament game page:', error);
+                }
+            }
+        }
+        
+        // Handle regular routes
         const route = this.routes[path] || this.routes['/404'];
         
         if (!route) {
-            console.error('Route non trouvée');
+            console.error('Route not found');
             return;
         }
 
@@ -88,8 +103,8 @@ class Router {
             this.rootElement.innerHTML = processedContent;
             this.executeScripts(this.rootElement);
         } catch (error) {
-            console.error('Erreur de chargement de la page', error);
-            this.rootElement.innerHTML = '<h1>Erreur de chargement</h1>';
+            console.error('Error loading page', error);
+            this.rootElement.innerHTML = '<h1>Loading Error</h1>';
         }
     }
 
@@ -108,7 +123,6 @@ class Router {
     }
 
     init() {
-        // Only handle location if this is the first instance
         if (!window.routerInitialized) {
             this.handleLocation();
             window.routerInitialized = true;
@@ -116,20 +130,16 @@ class Router {
     }
 }
 
-// Définition des routes avec des fichiers HTML
+// Route definitions with HTML files
 const routes = {
-    // '/': async () => {
-    //     router.navigateTo('/home/');
-    //     return '';
-    // },
-	'/home/': async () => {
-    	const response = await fetch('/html/home.html');
-    	return await response.text();
-	},
-	'/onlinePong/': async () => {
-    	const response = await fetch('/html/onlinePong/index.html');
-    	return await response.text();
-	},
+    '/home/': async () => {
+        const response = await fetch('/html/home.html');
+        return await response.text();
+    },
+    '/onlinePong/': async () => {
+        const response = await fetch('/html/onlinePong/index.html');
+        return await response.text();
+    },
     '/localPong/': async () => {
         const response = await fetch('/html/localPong/index.html');
         return await response.text();
@@ -138,50 +148,50 @@ const routes = {
         const response = await fetch('/html/localPongIa/index.html');
         return await response.text();
     },
-	'/magicDuel/': async () => {
-    	const response = await fetch('/html/magicDuel/index.html');
-    	return await response.text();
-	},
-	'/logged/': async () => {
-    	const response = await fetch('/html/user/logged.html');
-    	return await response.text();
-	},
-	'/user/add/': async () => {
-    	const response = await fetch('/html/user/add.html');
-    	return await response.text();
-	},
-	'/user/edit/': async () => {
-    	const response = await fetch('/html/user/edit.html');
-    	return await response.text();
-	},
-	'/user/edit_user/': async () => {
-    	const response = await fetch('/html/user/edit_user.html');
-    	return await response.text();
-	},
-	'/user/history/': async () => {
-    	const response = await fetch('/html/user/history.html');
-    	return await response.text();
-	},
-	'/user/friend/': async () => {
-    	const response = await fetch('/html/user/friend.html');
-    	return await response.text();
-	},
-	'/user/login/': async () => {
-		const response = await fetch('/html/user/login.html');
-		return await response.text();
-	},
+    '/magicDuel/': async () => {
+        const response = await fetch('/html/magicDuel/index.html');
+        return await response.text();
+    },
+    '/logged/': async () => {
+        const response = await fetch('/html/user/logged.html');
+        return await response.text();
+    },
+    '/user/add/': async () => {
+        const response = await fetch('/html/user/add.html');
+        return await response.text();
+    },
+    '/user/edit/': async () => {
+        const response = await fetch('/html/user/edit.html');
+        return await response.text();
+    },
+    '/user/edit_user/': async () => {
+        const response = await fetch('/html/user/edit_user.html');
+        return await response.text();
+    },
+    '/user/history/': async () => {
+        const response = await fetch('/html/user/history.html');
+        return await response.text();
+    },
+    '/user/friend/': async () => {
+        const response = await fetch('/html/user/friend.html');
+        return await response.text();
+    },
+    '/user/login/': async () => {
+        const response = await fetch('/html/user/login.html');
+        return await response.text();
+    },
     '/tournament/': async () => {
-		const response = await fetch('/html/tournament/tournament.html');
-		return await response.text();
-	},
-    '/tournament/game/': async () => {
-		const response = await fetch('/html/tournament/tournament_game.html');
-		return await response.text();
-	},
-    // '/user/invite/': () => '<h1>ERROR</h1>',
-    '/404': () => '<h1>Page Non Trouvée</h1>'
+        const response = await fetch('/html/tournament/tournament.html');
+        return await response.text();
+    },
+    // New dynamic route for tournament game
+    '/tournament/game/:code': async (tournamentCode) => {
+        const response = await fetch('/html/tournament/tournament_game.html');
+        return await response.text();
+    },
+    '/404': () => '<h1>Page Not Found</h1>'
 };
 
-// Instanciation du routeur
+// Router instantiation
 const router = new Router(routes);
 router.init();
