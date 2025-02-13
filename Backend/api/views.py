@@ -344,14 +344,19 @@ def tournament_status(request, tournament_code):
             'error': 'Tournament not found'
         }, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def tournament_game_page(request, tournament_code):
-    # Get tournament or return 404
-    tournament = get_object_or_404(Tournament, code=tournament_code)
-    
-    # Check if user is part of this tournament
-    if request.user not in tournament.players.all():
-        return redirect('tournament_home')
-        
-    return render(request, 'tournament_game.html')
+def get_tournament_players(request, tournament_code):
+    try:
+        tournament = Tournament.objects.get(code=tournament_code)
+        players = tournament.players.all()
+        serializer = UserInfoSerializer(players, many=True)
+        return Response({
+            'tournament_code': tournament_code,
+            'players': serializer.data
+        })
+    except Tournament.DoesNotExist:
+        return Response({
+            'error': 'Tournament not found'
+        }, status=status.HTTP_404_NOT_FOUND)
 	

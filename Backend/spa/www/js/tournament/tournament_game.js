@@ -1,73 +1,58 @@
 class TournamentGame {
     constructor() {
-        this.tournamentCode = window.location.pathname.split('/').pop();
+        this.tournamentCode = window.location.pathname.split('/').filter(Boolean)[2];
         this.init();
     }
 
     async init() {
-        document.getElementById('tournament-code').textContent = this.tournamentCode;
-        this.startStatusPolling();
+        await this.loadPlayers();
     }
 
-    async checkTournamentStatus() {
+    async loadPlayers() {
         try {
-            const response = await fetch(`/api/tournament_status/${this.tournamentCode}/`, {
+            const response = await fetch(`/api/tournament/${this.tournamentCode}/players/`, {
                 headers: {
-                    'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                    'Authorization': `Token ${sessionStorage.getItem('token_key')}`
                 }
             });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                this.updatePlayerList(data.players);
-                this.updateStatus(data);
-                
-                if (!data.is_active) {
-                    // Tournament was cancelled or ended
-                    window.location.href = '/tournament/';
-                }
-            } else {
-                // Handle error - maybe tournament doesn't exist anymore
-                window.location.href = '/tournament/';
+
+            if (!response.ok) {
+                throw new Error('Failed to load tournament data');
             }
+
+            const data = await response.json();
+            this.displayTournamentInfo(data);
         } catch (error) {
-            console.error('Error checking tournament status:', error);
+            this.displayError('Error loading tournament data');
+            console.error('Error:', error);
         }
     }
 
-    updatePlayerList(players) {
-        const container = document.getElementById('players-container');
-        container.innerHTML = players.map(player => `
-            <div class="player">
-                <strong>${player.username}</strong>
-                <span>${player.status}</span>
+    displayTournamentInfo(data) {
+        // Display tournament code
+        document.getElementById('tournamentCode').textContent = 
+            `Tournament Code: ${data.tournament_code}`;
+
+        // Display players
+        const playersList = document.getElementById('playersList');
+        playersList.innerHTML = data.players.map(player => 
+            `<li class="player-item">
+                <span class="player-name">${player.username}</span>
+            </li>`
+        ).join('');
+
+    }
+
+    displayError(message) {
+        const container = document.querySelector('.tournament-container');
+        container.innerHTML = `
+            <div class="error-message">
+                <h3>Error</h3>
+                <p>${message}</p>
             </div>
-        `).join('');
-    }
-
-    updateStatus(data) {
-        const statusDiv = document.getElementById('status-message');
-        if (data.started) {
-            statusDiv.textContent = 'Tournament is starting!';
-            // Additional game logic here
-        } else {
-            statusDiv.textContent = `Waiting for players... (${data.players_count}/4)`;
-        }
-    }
-
-    startStatusPolling() {
-        this.pollInterval = setInterval(() => this.checkTournamentStatus(), 2000);
-    }
-
-    stopStatusPolling() {
-        if (this.pollInterval) {
-            clearInterval(this.pollInterval);
-        }
+        `;
     }
 }
 
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    window.tournamentGame = new TournamentGame();
-});
+// Initialize the tournament game page
+new TournamentGame();
