@@ -18,4 +18,6 @@ urlpatterns = [
 	path('get_pending_friends/', views.get_pending_friends),
     path('change_lp/', views.change_lp),
 	path('join_tournament/', views.join_tournament),
+	path('create_tournament/', views.create_tournament),
+	path('tournament_status/<str:tournament_code>/', views.tournament_status, name='tournament_status'),
 ]

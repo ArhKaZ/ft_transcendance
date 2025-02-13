@@ -18,6 +18,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny
 from django.views.decorators.csrf import ensure_csrf_cookie
 from .serializers import UserInfoSerializer
+from .models import Tournament
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -282,5 +283,52 @@ def join_tournament(request):
             {'error': 'Tournament not found'}, 
             status=status.HTTP_404_NOT_FOUND
         )
-	
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_tournament(request):
+    # Check if user is already in an active tournament
+    active_tournaments = Tournament.objects.filter(
+        players=request.user,
+        started=False
+    )
+    
+    if active_tournaments.exists():
+        return Response({
+            'error': 'You are already in an active tournament'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Create new tournament
+        tournament = Tournament.objects.create()
+        
+        # Add creator as first player
+        tournament.add_player(request.user)
+        
+        return Response({
+            'message': 'Tournament created successfully',
+            'tournament_code': tournament.code,
+            'players_count': tournament.players.count(),
+            'max_players': 4
+        }, status=status.HTTP_201_CREATED)
+        
+    except Exception as e:
+        return Response({
+            'error': 'Failed to create tournament'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def tournament_status(request, tournament_code):
+    try:
+        tournament = Tournament.objects.get(code=tournament_code)
+        return Response({
+            'players_count': tournament.players.count(),
+            'started': tournament.started,
+            'is_full': tournament.players.count() >= 4
+        })
+    except Tournament.DoesNotExist:
+        return Response({
+            'error': 'Tournament not found'
+        }, status=status.HTTP_404_NOT_FOUND)
 	
