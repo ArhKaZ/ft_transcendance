@@ -128,6 +128,9 @@ def edit_user_api(request):
 	
 	if request.data.get('description'):
 		data['description'] = request.data['description']
+
+	if request.data.get('pseudo'):
+		data['pseudo'] = request.data['pseudo']
 		
 	if request.FILES.get('avatar'):
 		data['avatar'] = request.FILES['avatar']
