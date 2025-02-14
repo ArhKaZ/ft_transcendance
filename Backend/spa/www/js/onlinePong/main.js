@@ -141,6 +141,7 @@ async function handleWebSocketMessage(e) {
     switch(data.type) {
 
         case 'players_info':
+            console.log('got player infos');
             handlePlayerInfo(data);
             break;
 

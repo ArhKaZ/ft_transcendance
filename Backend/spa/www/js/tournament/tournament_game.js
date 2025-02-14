@@ -61,7 +61,17 @@ class TournamentGame {
 	}
 
 	redirPlayerToGame(opp) {
-		window.location.href = `/onlinePong/?tournament=true&opp_id=${opp.id}&opp_name=${opp.name}&opp_avatar=${opp.avatar}/`;
+		const params = new URLSearchParams({
+			tournament: 'true',
+			opp_id: opp.id
+		});
+		
+		if (this.currentPlayer.id < opp.id) {
+			params.append('opp_name', opp.name);
+			params.append('opp_avatar', opp.img);
+		}
+
+		window.location.href = `/onlinePong/?${params.toString()}`;
 	}
 
 	async loadPlayers() {
@@ -77,6 +87,7 @@ class TournamentGame {
 			}
 
 			const data = await response.json();
+			console.log(data);
 			this.createPlayers(data);
 			this.displayTournamentInfo(data);
 		} catch (error) {

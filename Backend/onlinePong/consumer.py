@@ -167,6 +167,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 		player_game_key = f'player_current_game_{self.player_id}'
 		current_game = await sync_to_async(cache.get)(player_game_key)
 
+		print(f"current_game: {current_game}")
 		if current_game and not self.in_tournament:
 			await self.send(text_data=json.dumps({
 				'type': 'error',
@@ -174,57 +175,64 @@ class PongConsumer(AsyncWebsocketConsumer):
 			}))
 			return
 		elif current_game and self.in_tournament:
-			handle_find_game({"game_id": current_game})
+			print(f"in condition game is created : {self.player_id}")
+			await self.handle_find_game({"game_id": current_game})
+			return 
+
+		player_info = {
+				'id': self.player_id,
+				'username': data['player_name'],
+				'avatar': data['player_avatar'],
+		}
+		self.username = data['player_name']
+
+		if not self.in_tournament:
+			print('not in a tournament')
+			key = 'waiting_onlinePong_players'
+
+			current_waiting_players = cache.get(key) or []
+		
+			if not any(player['id'] == self.player_id for player in current_waiting_players):
+				current_waiting_players.append(player_info)
+				await sync_to_async(cache.set)(key, current_waiting_players)
+
+			opponent_info = await self.find_oppenent()
 		else:
-			player_info = {
-					'id': self.player_id,
-					'username': data['player_name'],
-					'avatar': data['player_avatar'],
+			print(f'in a tournament {self.player_id}')
+			opponent_info = {
+				'id': data['opponent']['id'],
+				'username': data['opponent']['name'],
+				'avatar': data['opponent']['avatar']
 			}
-			self.username = data['player_name']
+		if opponent_info:
+			print('got opponent_info')
+			self.game_id = str(uuid.uuid4())
+			await sync_to_async(cache.set)(f'player_current_game_{self.player_id}', self.game_id, timeout=1800)
+			await sync_to_async(cache.set)(f'player_current_game_{opponent_info["id"]}', self.game_id, timeout=1800)
+		
+			self.game = Game(player_info, opponent_info, self.game_id)
+			await self.game.save_to_cache()
+
+			if not await self.initialize_listener():
+				await self.close()
+				return
+
+			self.listen_task = asyncio.create_task(self._redis_listener())
+
+			await self.channel_layer.group_add(self.game.group_name, self.channel_name)
+			opponent_channel_name = cache.get(f"player_{opponent_info['id']}_channel")
+			if opponent_channel_name:
+				await self.channel_layer.group_add(self.game.group_name, opponent_channel_name)
+
+			await self.send_players_info(self.game.to_dict())
 
 			if not self.in_tournament:
-				key = 'waiting_onlinePong_players'
-
-				current_waiting_players = cache.get(key) or []
-			
-				if not any(player['id'] == self.player_id for player in current_waiting_players):
-					current_waiting_players.append(player_info)
-					await sync_to_async(cache.set)(key, current_waiting_players)
-
-				opponent_info = await self.find_oppenent()
-			else:
-				opponent_info = {
-					'id': data['opponent_id'],
-					'username': data['opponent_name'],
-					'avatar': data['opponent_avatar']
-				}
-			if opponent_info:
-				self.game_id = str(uuid.uuid4())
-				await sync_to_async(cache.set)(f'player_current_game_{self.player_id}', self.game_id, timeout=1800)
-				await sync_to_async(cache.set)(f'player_current_game_{opponent_info["id"]}', self.game_id, timeout=1800)
-			
-				self.game = Game(player_info, opponent_info, self.game_id)
-				await self.game.save_to_cache()
-
-				if not await self.initialize_listener():
-					await self.close()
-					return
-
-				self.listen_task = asyncio.create_task(self._redis_listener())
-
-				await self.channel_layer.group_add(self.game.group_name, self.channel_name)
-				opponent_channel_name = cache.get(f"player_{opponent_info['id']}_channel")
-				if opponent_channel_name:
-					await self.channel_layer.group_add(self.game.group_name, opponent_channel_name)
-
-				await self.send_players_info(self.game.to_dict())
 				key = 'waiting_onlinePong_players'
 				current_waiting_players = await sync_to_async(cache.get)(key) or []
 				current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
 				await sync_to_async(cache.set)(key, current_waiting_players)
-			else:
-				await self.waiting_for_opponent()
+		else:
+			await self.waiting_for_opponent()
 
 	async def find_oppenent(self):
 		key = 'waiting_onlinePong_players'
@@ -246,7 +254,11 @@ class PongConsumer(AsyncWebsocketConsumer):
 	async def handle_find_game(self, data):
 		if self.game is None:
 			self.game_id = data['game_id']
+			print(f'game_id: {self.game_id}')
 			self.game = await Game.get_game_from_cache(self.game_id)
+			if self.in_tournament:
+				await self.send_players_info(self.game.to_dict())
+			print(f"game: {self.game}")
 			if not await self.initialize_listener():
 				await self.close()
 				return
