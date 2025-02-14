@@ -98,6 +98,7 @@ def get_history(request):
 	return Response(serializer.data)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_my_info(request):
 	user = request.user
 	serializer = UserInfoSerializer(user)
@@ -369,4 +370,36 @@ def erase_user(request):
 	user = request.user
 	user.delete()
 	return Response({'message': 'User deleted successfully'}, status=status.HTTP_200_OK)
-	
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def quit_tournament(request, tournament_code):
+    try:
+        tournament = Tournament.objects.get(code=tournament_code)
+        user = request.user
+        
+        if user not in tournament.players.all():
+            return Response({'error': 'You are not in this tournament'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Remove player from tournament
+        tournament.players.remove(user)
+        deleted = False
+        
+        # Delete tournament if no players left
+        if tournament.players.count() == 0:
+            tournament.delete()
+            deleted = True
+        else:
+            # If tournament creator left, assign new creator
+            if tournament.creator == user:
+                tournament.creator = tournament.players.first()
+                tournament.save()
+        
+        return Response({
+            'message': 'Successfully left tournament',
+            'deleted': deleted
+        }, status=status.HTTP_200_OK)
+        
+    except Tournament.DoesNotExist:
+        return Response({'error': 'Tournament not found'}, status=status.HTTP_404_NOT_FOUND)

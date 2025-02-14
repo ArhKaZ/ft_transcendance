@@ -20,6 +20,8 @@ urlpatterns = [
     path('change_lp/', views.change_lp),
 	path('join_tournament/', views.join_tournament),
 	path('create_tournament/', views.create_tournament),
+	path('quit_tournament/<str:tournament_code>/', views.quit_tournament),
+	
 	path('tournament_status/<str:tournament_code>/', views.tournament_status, name='tournament_status'),
 	path('tournament/<str:tournament_code>/players/', views.get_tournament_players, name='tournament_players'),
 ]

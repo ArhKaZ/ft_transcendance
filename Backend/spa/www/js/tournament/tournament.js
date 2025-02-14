@@ -4,17 +4,68 @@ class TournamentManager {
 		this.messageDiv = document.getElementById('message') || this.createMessageDiv();
         this.setupEventListeners();
         this.currentTournamentCode = null;
+		this.quitButton = document.getElementById('quit-button');
     }
 	
     setupEventListeners() {
 		// Create tournament button handler
         document.getElementById('create-button').addEventListener('click', () => this.createTournament());
+
+		document.getElementById('quit-button').addEventListener('click', () => this.quitTournament());
         
         // Join tournament form handler
         document.getElementById('userForm').addEventListener('submit', (e) => this.joinTournament(e));
         
+		// this.quitButton.addEventListener('click', () => this.quitTournament());
         // Setup polling if we're in a tournament
         this.setupTournamentPolling();
+
+    }
+
+	async quitTournament() {
+        if (!this.currentTournamentCode) return;
+
+        try {
+            const response = await fetch(`/api/quit_tournament/${this.currentTournamentCode}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken(),
+                    'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                this.handleQuitSuccess(data);
+            } else {
+                this.messageDiv.innerHTML = `<div class="error-message">${data.error}</div>`;
+            }
+        } catch (error) {
+            this.messageDiv.innerHTML = `<div class="error-message">Error quitting tournament</div>`;
+        }
+    }
+
+	handleQuitSuccess(data) {
+        this.stopTournamentPolling();
+        sessionStorage.removeItem('current_tournament');
+        this.currentTournamentCode = null;
+        
+        this.updateUIState(false);
+        this.messageDiv.innerHTML = `<div class="success-message">${data.message}</div>`;
+        
+        if (data.deleted) {
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        }
+    }
+
+    updateUIState(inTournament) {
+        document.getElementById('create-button').disabled = inTournament;
+        document.getElementById('userForm').style.display = inTournament ? 'none' : 'block';
+        this.quitButton.style.display = inTournament ? 'block' : 'none';
     }
 
     async createTournament() {
@@ -33,6 +84,7 @@ class TournamentManager {
     
             if (response.ok) {
                 this.currentTournamentCode = data.tournament_code;
+				this.updateUIState(true);
                 sessionStorage.setItem('current_tournament', data.tournament_code); // Save in sessionStorage
     
                 this.messageDiv.innerHTML = `
@@ -72,6 +124,7 @@ class TournamentManager {
     
             if (response.ok) {
                 this.currentTournamentCode = tournamentCode;
+				this.updateUIState(true);
                 sessionStorage.setItem('current_tournament', tournamentCode); // Save in sessionStorage
     
                 this.messageDiv.innerHTML = `
@@ -108,8 +161,22 @@ class TournamentManager {
             });
     
             const data = await response.json();
+
+			if (response.status === 404) {
+				// Tournament was deleted
+				this.handleQuitSuccess({ message: 'Tournament has been canceled', deleted: true });
+				return;
+			}
     
             if (response.ok) {
+				const userInTournament = data.players.some(player => 
+					player.username === this.getCurrentUsername());
+				
+				if (!userInTournament) {
+					this.handleQuitSuccess({ message: 'You were removed from the tournament' });
+					return;
+				}
+
                 if (data.is_full) {
                     // Redirect to game page when tournament is full
                     window.location.href = `/tournament/game/${this.currentTournamentCode}/`;
@@ -150,6 +217,7 @@ class TournamentManager {
         const existingTournament = sessionStorage.getItem('current_tournament');
         if (existingTournament) {
             this.currentTournamentCode = existingTournament;
+			this.updateUIState(true);
             console.log("Restoring tournament:", existingTournament);
     
             this.messageDiv.innerHTML = `
@@ -167,7 +235,7 @@ class TournamentManager {
         const messageDiv = document.createElement('div');
         messageDiv.id = 'message';
         document.getElementById('userForm').insertAdjacentElement('beforebegin', messageDiv);
-        return messageDiv;console.log("yo tout le monde");
+        return messageDiv;
 
     }
 
@@ -181,6 +249,10 @@ class TournamentManager {
         }
         return '';
     }
+
+	getCurrentUsername() {
+		return sessionStorage.getItem('username');
+	}
 }
 
 window.tournamentManager = new TournamentManager();
