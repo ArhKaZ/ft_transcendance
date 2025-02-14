@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser
 
 class MyUser(AbstractUser):
     description = models.TextField(blank=True)
+    pseudo = models.CharField(max_length=100)
     avatar = models.ImageField(upload_to='avatars/', default='avatars/default.png')
     ligue_points = models.IntegerField(default=500)
     # Add related_name to avoid clashes

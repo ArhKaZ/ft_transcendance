@@ -5,6 +5,12 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
     formData.append('username', document.getElementById('username').value);
     formData.append('password', document.getElementById('password').value);
     formData.append('description', document.getElementById('description').value);
+	if (!document.getElementById('pseudo').value) {
+		formData.append('pseudo', document.getElementById('username').value);
+	}
+	else {
+		formData.append('pseudo', document.getElementById('pseudo').value);
+	}
     
     const avatarInput = document.getElementById('avatar');
     if (avatarInput.files.length > 0) {

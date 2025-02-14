@@ -25,4 +25,4 @@ class MatchHistorySerializer(serializers.ModelSerializer):
 class UserInfoSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = MyUser
-		fields = ['id', 'username', 'description', 'avatar', 'ligue_points']
+		fields = ['id', 'username', 'description', 'avatar', 'ligue_points', 'pseudo']
