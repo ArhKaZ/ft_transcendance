@@ -153,6 +153,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 			'move': self.move_player,
 			'search': self.handle_player_search,
 			'findGame': self.handle_find_game,
+			'tournament': self.handle_tournament_game,
 		}
 
 		handler = actions.get(action)
@@ -161,24 +162,45 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 
 # GAME INIT
-	async def handle_player_search(self, data):
-		self.in_tournament = data['in_tournament']
 
+	async def handle_tournament_game(self, data):
+
+		if data['create'] == 'false':
+			await asyncio.sleep(0.1)
+			player_game_key = f'player_current_game_{self.player_id}'
+			current_game = await sync_to_async(cache.get)(player_game_key)
+			if current_game:
+				await self.handle_find_game({"game_id": current_game})
+			else:
+				await self.notify_need_wait(data)
+			return
+		player_info = {
+			'id': self.player_id,
+			'username': data['player_name'],
+			'avatar': data['player_avatar'],
+		}
+		self.username = data['player_name']
+
+		opponent_info = {
+			'id': data['opponent']['id'],
+			'username': data['opponent']['name'],
+			'avatar': data['opponent']['avatar']
+		}
+
+		await self.create_a_game(player_info, opponent_info)
+
+	async def handle_player_search(self, data):
+		
 		player_game_key = f'player_current_game_{self.player_id}'
 		current_game = await sync_to_async(cache.get)(player_game_key)
 
-		print(f"current_game: {current_game}")
-		if current_game and not self.in_tournament:
+		if current_game:
 			await self.send(text_data=json.dumps({
 				'type': 'error',
 				'message': 'You\'r already in a game'
 			}))
 			return
-		elif current_game and self.in_tournament:
-			print(f"in condition game is created : {self.player_id}")
-			await self.handle_find_game({"game_id": current_game})
-			return 
-
+		
 		player_info = {
 				'id': self.player_id,
 				'username': data['player_name'],
@@ -186,45 +208,18 @@ class PongConsumer(AsyncWebsocketConsumer):
 		}
 		self.username = data['player_name']
 
-		if not self.in_tournament:
-			print('not in a tournament')
-			key = 'waiting_onlinePong_players'
+		key = 'waiting_onlinePong_players'
 
-			current_waiting_players = cache.get(key) or []
+		current_waiting_players = cache.get(key) or []
+	
+		if not any(player['id'] == self.player_id for player in current_waiting_players):
+			current_waiting_players.append(player_info)
+			await sync_to_async(cache.set)(key, current_waiting_players)
+
+		opponent_info = await self.find_oppenent()
 		
-			if not any(player['id'] == self.player_id for player in current_waiting_players):
-				current_waiting_players.append(player_info)
-				await sync_to_async(cache.set)(key, current_waiting_players)
-
-			opponent_info = await self.find_oppenent()
-		else:
-			print(f'in a tournament {self.player_id}')
-			opponent_info = {
-				'id': data['opponent']['id'],
-				'username': data['opponent']['name'],
-				'avatar': data['opponent']['avatar']
-			}
 		if opponent_info:
-			print('got opponent_info')
-			self.game_id = str(uuid.uuid4())
-			await sync_to_async(cache.set)(f'player_current_game_{self.player_id}', self.game_id, timeout=1800)
-			await sync_to_async(cache.set)(f'player_current_game_{opponent_info["id"]}', self.game_id, timeout=1800)
-		
-			self.game = Game(player_info, opponent_info, self.game_id)
-			await self.game.save_to_cache()
-
-			if not await self.initialize_listener():
-				await self.close()
-				return
-
-			self.listen_task = asyncio.create_task(self._redis_listener())
-
-			await self.channel_layer.group_add(self.game.group_name, self.channel_name)
-			opponent_channel_name = cache.get(f"player_{opponent_info['id']}_channel")
-			if opponent_channel_name:
-				await self.channel_layer.group_add(self.game.group_name, opponent_channel_name)
-
-			await self.send_players_info(self.game.to_dict())
+			await self.create_a_game(player_info, opponent_info)	
 
 			if not self.in_tournament:
 				key = 'waiting_onlinePong_players'
@@ -251,14 +246,34 @@ class PongConsumer(AsyncWebsocketConsumer):
 		else:
 			return None
 
+	async def create_a_game(self, player_info, opponent_info): 
+		self.game_id = str(uuid.uuid4())
+		await sync_to_async(cache.set)(f'player_current_game_{self.player_id}', self.game_id, timeout=1800)
+		await sync_to_async(cache.set)(f'player_current_game_{opponent_info["id"]}', self.game_id, timeout=1800)
+	
+		self.game = Game(player_info, opponent_info, self.game_id)
+		await self.game.save_to_cache()
+
+		if not await self.initialize_listener():
+			await self.close()
+			return
+
+		self.listen_task = asyncio.create_task(self._redis_listener())
+
+		await self.channel_layer.group_add(self.game.group_name, self.channel_name)
+		opponent_channel_name = cache.get(f"player_{opponent_info['id']}_channel")
+		if opponent_channel_name:
+			await self.channel_layer.group_add(self.game.group_name, opponent_channel_name)
+
+		await self.send_players_info(self.game.to_dict())
+
 	async def handle_find_game(self, data):
 		if self.game is None:
 			self.game_id = data['game_id']
-			print(f'game_id: {self.game_id}')
 			self.game = await Game.get_game_from_cache(self.game_id)
 			if self.in_tournament:
+				print('send info', self.player_id)
 				await self.send_players_info(self.game.to_dict())
-			print(f"game: {self.game}")
 			if not await self.initialize_listener():
 				await self.close()
 				return
@@ -393,6 +408,18 @@ class PongConsumer(AsyncWebsocketConsumer):
 		cache = caches['default']
 		await sync_to_async(cache.set)(f'game_{game_id}', game_data, timeout=60 * 30)
 
+	async def notify_need_wait(self, data):
+		message = {
+			'type': 'waiting_tournament',
+			'player_id': data['player_id'],
+			'player_name': data['player_name'],
+			'player_avatar': data['player_avatar'],
+			'opponent': data['opponent'],
+			'create': data['create'],
+		}
+		await self.send(text_data=json.dumps(message))
+
+
 	async def notify_player_ready(self):
 		player_number = 0
 		if self.player_id == self.game.p1.id:
@@ -495,6 +522,18 @@ class PongConsumer(AsyncWebsocketConsumer):
 			'player2_avatar': event['player2_avatar'],
 		}
 		await self.send(text_data=json.dumps(message))
+
+	# async def waiting_tournament(self, event):
+	# 	message = {
+	# 		'type': 'waiting_tournament',
+	# 		'player_id': event['player_id'],
+	# 		'player_name': event['player_name'],
+	# 		'player_avatar': event['player_avatar'],
+	# 		'in_tournament': event['in_tournament'],
+	# 		'opponent': event['opponent'],
+	# 		'create': event['createGame'],
+	# 	}
+		# await self.send(text_data=json.dumps(message))
 
 	async def ball_position(self, event):
 		message = {

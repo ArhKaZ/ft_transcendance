@@ -46,27 +46,28 @@ class TournamentGame {
 		const playerIndex = this.players.findIndex(player => player.id === this.currentPlayer.id);
 		switch (playerIndex) {
 			case 0:
-				this.redirPlayerToGame(this.players[1]);
+				this.redirPlayerToGame(this.players[1], true);
 				break;
 			case 1: 
-				this.redirPlayerToGame(this.players[0]);
+				this.redirPlayerToGame(this.players[0], false);
 				break;
 			case 2:
-				this.redirPlayerToGame(this.players[3]);
+				this.redirPlayerToGame(this.players[3], true);
 				break;
 			case 3:
-				this.redirPlayerToGame(this.players[2]);
+				this.redirPlayerToGame(this.players[2], false);
 				break;
 		}
 	}
 
-	redirPlayerToGame(opp) {
+	redirPlayerToGame(opp, create) {
 		const params = new URLSearchParams({
 			tournament: 'true',
-			opp_id: opp.id
+			create_game: create,
 		});
-		
-		if (this.currentPlayer.id < opp.id) {
+
+		if (create) {
+			params.append('opp_id', opp.id);
 			params.append('opp_name', opp.name);
 			params.append('opp_avatar', opp.img);
 		}
@@ -87,7 +88,6 @@ class TournamentGame {
 			}
 
 			const data = await response.json();
-			console.log(data);
 			this.createPlayers(data);
 			this.displayTournamentInfo(data);
 		} catch (error) {
