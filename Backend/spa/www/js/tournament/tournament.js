@@ -1,11 +1,20 @@
+console.log("Tournament script loaded!");
+
 class TournamentManager {
 	
 	constructor() {
+		// Ensure elements are available before using them
 		this.messageDiv = document.getElementById('message') || this.createMessageDiv();
-        this.setupEventListeners();
-        this.currentTournamentCode = null;
 		this.quitButton = document.getElementById('quit-button');
-    }
+		
+		// Check if elements exist before setup
+		if (document.getElementById('create-button') && this.quitButton) {
+			this.setupEventListeners();
+		}
+		
+		this.currentTournamentCode = null;
+		this.setupTournamentPolling();
+	}
 	
     setupEventListeners() {
 		// Create tournament button handler
@@ -63,10 +72,13 @@ class TournamentManager {
     }
 
     updateUIState(inTournament) {
-        document.getElementById('create-button').disabled = inTournament;
-        document.getElementById('userForm').style.display = inTournament ? 'none' : 'block';
-        this.quitButton.style.display = inTournament ? 'block' : 'none';
-    }
+		const createButton = document.getElementById('create-button');
+		const userForm = document.getElementById('userForm');
+		
+		if (createButton) createButton.disabled = inTournament;
+		if (userForm) userForm.style.display = inTournament ? 'none' : 'block';
+		if (this.quitButton) this.quitButton.style.display = inTournament ? 'block' : 'none';
+	}
 
     async createTournament() {
         console.log("je veux creer un nouveau tournois");
@@ -255,4 +267,14 @@ class TournamentManager {
 	}
 }
 
-window.tournamentManager = new TournamentManager();
+console.log("Script starting...");
+if (document.readyState === 'loading') {
+    console.log("Document still loading, adding DOMContentLoaded listener");
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log("DOM fully loaded - creating TournamentManager");
+        window.tournamentManager = new TournamentManager();
+    });
+} else {
+    console.log("Document already loaded - creating TournamentManager immediately");
+    window.tournamentManager = new TournamentManager();
+}
