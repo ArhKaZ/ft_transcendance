@@ -102,16 +102,14 @@ function setupKeyboardControls(playerId) {
         if (!movementInterval) {
             const direction = event.key === 'ArrowUp' ? 'up' : event.key === 'ArrowDown' ? 'down' : null;
             if (direction) {
-                sendMovement(direction, playerId);
-                movementInterval = setInterval(() => sendMovement(direction, playerId), 10);
+                sendToBack({ action: 'move', instruction: 'start', direction, player_id: playerId});
             }
         }
     });
 
     window.addEventListener('keyup', (event) => {
         if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-            clearInterval(movementInterval);
-            movementInterval = null;
+            sendToBack({ action: 'move', instruction: 'stop', player_id: playerId});
         }
     });
 }

@@ -356,11 +356,18 @@ class PongConsumer(AsyncWebsocketConsumer):
 		self.ball_reset_event.set()
 
 	async def move_player(self, data):
-		is_set = await self.get_can_move_in_cache()
-		if not is_set:
-			return
-		player = await self.game.move_player(data['player_id'], data['direction'])
-		await self.notify_player_move(player)
+		if data['instruction'] == 'start':
+			self.moving_direction = data['direction']
+			asyncio.create_task(self.handle_continuous_movement())
+
+	async def handle_continuous_movement(self):
+		while self.moving_direction and not self.game_cancel_event.is_set():
+			is_set = await self.get_can_move_in_cache()
+			if not is_set:
+				break
+			player = await self.game.move_player({'player_id': self.player_id, 'direction': self.moving_direction})
+			await self.notify_player_move(player)
+			await asyncio.sleep(0.05)
 
 	async def _redis_listener(self):
 		try:
