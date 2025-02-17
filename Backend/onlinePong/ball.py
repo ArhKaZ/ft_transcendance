@@ -43,6 +43,10 @@ class Ball:
         self.y += self.vy
         await self.check_boundaries(game)
         await self.check_boundaries_player(game)
+        await self.save_to_cache()
+        if game.bound_player or game.bound_player:
+            return True
+        return False
 
     async def check_boundaries(self, game):
         if self.y <= 1 or self.y >= 99:

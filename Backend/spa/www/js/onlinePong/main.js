@@ -14,6 +14,7 @@ let currentGameId = null;
 let inTournament = false;
 
 function sendToBack(data) {
+    console.log(`action : ${data.action}`);
     if (socket?.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify(data));
     } else {
@@ -114,10 +115,6 @@ function setupKeyboardControls(playerId) {
     });
 }
 
-function sendMovement(direction, playerId) {
-    sendToBack({ action: 'move', direction, player_id: playerId });
-}
-
 async function initGame(data) {
     const canvas = document.getElementById('gameCanvas');
     oldHeight = canvas.height;
@@ -140,8 +137,8 @@ function createPlayers(data) {
 
 async function handleWebSocketMessage(e) {
     const data = JSON.parse(e.data);
+    console.log(data.type);
     switch(data.type) {
-
         case 'players_info':
             console.log('got player infos');
             handlePlayerInfo(data);
@@ -152,8 +149,7 @@ async function handleWebSocketMessage(e) {
             break;
 
         case 'ball_position':
-            currentGame.updateBallPosition(data.x, data.y);
-            currentGame.drawGame(data.bound_wall, data.bound_player);
+            currentGame.updateBallPosition(data);
             break;
 
         case 'player_move':
@@ -203,6 +199,10 @@ async function handleWaiting(data) {
         create: data.create,
     });
 }
+
+// async function handleFindGame(data) {
+//     sendToBack({action: 'findGame', game_id: data.game_id});
+// }
 
 function handleErrors(data) {
     const infoMain = document.getElementById('info-main-player');

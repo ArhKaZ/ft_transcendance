@@ -17,6 +17,8 @@ class Game {
         this.isStart = false;
         this.colorP1 = 'white';
         this.colorP2 = 'white';
+        this.isBoundPlayer = false;
+        this.isBoundWall = false;
     }
 
     displayCanvas() {
@@ -39,21 +41,34 @@ class Game {
         this.ball.setInMiddle(this.canvas);
         this.ball.draw(this.context);
         this.isStart = true;
+        this.startGameLoop();
     }
 
     stop() {
         this.isStart = false;
     }
 
-    updateBallPosition(x, y) {
-        this.ball.assignPos(x, y);
+    updateBallPosition(data) {
+        this.isBoundPlayer = data.bound_player;
+        this.isBoundWall = data.bound_wall;
+        this.ball.serverUpdate(data);
     }
 
-    drawGame(bound_wall, bound_player) {
+    startGameLoop() {
+        const gameLoop = () => {
+            if (!this.isStart) return;
+            this.ball.updatePosition();
+            this.drawGame();
+            requestAnimationFrame(gameLoop);
+        }
+        gameLoop();
+    }
+
+    drawGame() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawBorders(this.context, this.canvas);
         this.ball.draw(this.context);
-        this.activeBound(bound_wall, bound_player);
+        this.activeBound(this.isBoundWall, this.isBoundPlayer);
         this.P1.draw(this.context, this.colorP1);
         this.P2.draw(this.context, this.colorP2);
     }
@@ -135,12 +150,12 @@ class Game {
     }
 
     activeBound(bound_wall, bound_player) {
-        if (bound_wall) {
-            this.bound_wall();
-        }
-        else if (bound_player) {
-            this.bound_player();
-        }
+        // if (bound_wall) {
+        //     this.bound_wall();
+        // }
+        // else if (bound_player) {
+        //     this.bound_player();
+        // }
     }
 
     bound_wall() {
