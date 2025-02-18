@@ -1,4 +1,4 @@
-import { getCSRFToken } from '/js/utils.js';
+import { getCSRFToken, sleep } from '/js/utils.js';
 import Game from "./game/game.js";
 import Player from "./game/player.js";
 import CountdownAnimation from "../countdownAnimation.js";
@@ -11,6 +11,7 @@ let currentPlayerId = null;
 let currentGame = null;
 let currentCountdown = null;
 let currentGameId = null;
+let inTournament = false;
 
 function sendToBack(data) {
     if (socket?.readyState === WebSocket.OPEN) {
@@ -53,15 +54,32 @@ function setupWebSocket(user) {
     currentPlayerId = user.id;
     const id = user.id.toString();
     const socket = new WebSocket(`wss://127.0.0.1:8443/ws/onlinePong/${id}/`);
-
+    const urlParams = new URLSearchParams(window.location.search);
+    inTournament = urlParams.get('tournament');
+    
     socket.onopen = () => {
         console.log("WebSocket connected");
-        sendToBack({
-            action: 'search', 
-            player_id: user.id, 
-            player_name: user.username, 
-            player_avatar: user.avatar,
-        });
+        if (inTournament) {
+            sendToBack({
+                action: 'tournament',
+                player_id: user.id,
+                player_name: user.username,
+                player_avatar: user.avatar,
+                create: urlParams.get('create_game'),
+                opponent: {
+                    id: urlParams.get('opp_id'),
+                    name: urlParams.get('opp_name'),
+                    avatar: urlParams.get('opp_avatar'),
+                }
+            })
+        } else {
+            sendToBack({
+                action: 'search', 
+                player_id: user.id, 
+                player_name: user.username, 
+                player_avatar: user.avatar,
+            });
+        }
     };
 
     socket.onmessage = async (e) => {
@@ -127,6 +145,7 @@ async function handleWebSocketMessage(e) {
     switch(data.type) {
 
         case 'players_info':
+            console.log('got player infos');
             handlePlayerInfo(data);
             break;
 
@@ -167,8 +186,24 @@ async function handleWebSocketMessage(e) {
 
         case 'error':
             handleErrors(data);
+            break; 
+
+        case 'waiting_tournament':
+            await handleWaiting(data);
             break;
     }
+}
+
+async function handleWaiting(data) {
+    await sleep(100);
+    sendToBack({
+        action: 'tournament',
+        player_id: data.player_id, 
+        player_name: data.player_name, 
+        player_avatar: data.player_avatar,
+        opponent: data.opponent,
+        create: data.create,
+    });
 }
 
 function handleErrors(data) {
@@ -272,6 +307,7 @@ function handleGameFinish(game, winningId) {
     }).then(response => response.json())
     .then(data => {
         console.log('Match enregistrer ', data);
+        
     }).catch(error => console.error(error));
 }
 
