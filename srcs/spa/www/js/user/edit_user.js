@@ -26,6 +26,15 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
     }
 });
 
+document.getElementById('avatar').addEventListener('change', function() {
+    const fileName = this.files[0] ? this.files[0].name : "No file chosen";
+    document.getElementById('file-chosen').textContent = fileName;
+});
+
+document.getElementById('return-button').addEventListener('click', () => {
+    window.history.back();
+});
+
 function displayMessage(message, type) {
     const messageDiv = document.getElementById('message');
     if (messageDiv) {

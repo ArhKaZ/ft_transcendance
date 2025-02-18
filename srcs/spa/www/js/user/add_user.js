@@ -38,6 +38,11 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
     }
 });
 
+document.getElementById('avatar').addEventListener('change', function() {
+    const fileName = this.files[0] ? this.files[0].name : "No file chosen";
+    document.getElementById('file-chosen').textContent = fileName;
+});
+
 function displayMessage(message, type) {
     const messageDiv = document.getElementById('message');
     messageDiv.innerHTML = message;

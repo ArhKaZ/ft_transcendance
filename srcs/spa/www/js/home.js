@@ -47,6 +47,11 @@ document.getElementById('loseLp').addEventListener('click', async () => {
 	});
 })
 
+document.getElementById('user-avatar').addEventListener('click', () => {
+    window.location.href = "/user/edit_user/";
+});
+
+
 document.getElementById('addLp').addEventListener('click', async () => {
 	fetch('/api/change_lp/', {
         method: 'POST',
@@ -101,7 +106,7 @@ if (response.ok) {
 	const gamebtn = document.getElementById('Game-button');
 	const historybtn = document.getElementById('history-button');
 	const logoutbtn = document.getElementById('logout-button');
-	const editbtn = document.getElementById('edit-button');
+	// const editbtn = document.getElementById('edit-button');
 	// const pixelbtn = document.getElementById('pixel-button');
 	const friendsbtn = document.getElementById('friend-button');
 	const avatarImg = document.getElementById('user-avatar');
@@ -111,7 +116,7 @@ if (response.ok) {
 	gamebtn.style.display = 'none';
 	historybtn.style.display = 'none';
 	logoutbtn.style.display = 'none';
-	editbtn.style.display = 'none';
+	// editbtn.style.display = 'none';
 	// pixelbtn.style.display = 'none';
 	friendsbtn.style.display = 'none';
 	avatarImg.style.display = 'none';
