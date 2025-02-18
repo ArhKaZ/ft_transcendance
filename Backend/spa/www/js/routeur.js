@@ -7,6 +7,7 @@ class Router {
         this.routes = routes;
         this.rootElement = document.getElementById('app');
         this.loadedStylesheets = new Set();
+        this.publicPaths = ['/home/', '/user/login/', '/user/add/'];
         window.addEventListener('popstate', this.handleLocation.bind(this));
         this.initLinks();
 
@@ -67,9 +68,30 @@ class Router {
         return doc.body.innerHTML;
     }
 
+    isAuthenticated() {
+        return sessionStorage.getItem('token_key') !== null;
+    }
+
+    isPublicPath(path) {
+        return this.publicPaths.includes(path);
+    }
+
     async handleLocation() {
         const path = window.location.pathname;
         
+        if (!this.isPublicPath(path) && !this.isAuthenticated()) {
+            // Redirect to login if not authenticated
+            console.log('Unauthorized access, redirecting to login');
+            window.history.pushState({}, '', '/user/login/');
+            const loginRoute = this.routes['/user/login/'];
+            const htmlContent = await loginRoute();
+            const processedContent = await this.parseHTML(htmlContent);
+            this.rootElement.innerHTML = processedContent;
+            this.executeScripts(this.rootElement);
+            return;
+        }
+
+
         // Check for dynamic tournament game route
         const tournamentGameMatch = path.match(/^\/tournament\/game\/([a-zA-Z0-9-]+)\/?$/);
         if (tournamentGameMatch) {
