@@ -58,6 +58,8 @@ class Game {
         const gameLoop = () => {
             if (!this.isStart) return;
             this.ball.updatePosition();
+            this.P1.paddle.updatePosition();
+            this.P2.paddle.updatePosition();
             this.drawGame();
             requestAnimationFrame(gameLoop);
         }
@@ -80,7 +82,7 @@ class Game {
     }
 
 
-    animateBounce(ctx, canvas, x, side) {
+    animateBounce(ctx, canvas, side) {
         const animationTime = 1000;
         const startTime = Date.now();
     
@@ -110,16 +112,16 @@ class Game {
         drawFrame(); 
     }
 
-    updatePlayerPosition(player, y) {
-        if (player === 1) {
-            this.P1.paddle.assignPos(y);
-            this.P1.draw(this.context, this.colorP1);
-        }
-        else {
-            this.P2.paddle.assignPos(y);
-            this.P2.draw(this.context, this.colorP2);
-        }
-    }
+    // updatePlayerPosition(player, y) {
+    //     if (player === 1) {
+    //         this.P1.paddle.assignPos(y);
+    //         this.P1.draw(this.context, this.colorP1);
+    //     }
+    //     else {
+    //         this.P2.paddle.assignPos(y);
+    //         this.P2.draw(this.context, this.colorP2);
+    //     }
+    // }
 
     updateScores(data) {
         const side = data.player_id === this.P1.id.toString() ? 'right' : 'left'; 
@@ -159,12 +161,11 @@ class Game {
     }
 
     bound_wall() {
-        const x_ball = this.ball.x;
         const y_ball = this.ball.y;
         if (y_ball < this.canvas.height / 2) {
-            this.animateBounce(this.context, this.canvas, x_ball, "top");
+            this.animateBounce(this.context, this.canvas, "top");
         } else {
-           this.animateBounce(this.context, this.canvas, x_ball, "bottom");
+           this.animateBounce(this.context, this.canvas, "bottom");
         }
     }
 

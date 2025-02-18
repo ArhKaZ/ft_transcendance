@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-qdom&c2+nmkyc2!pndizv(5=-!lp!t1v6&+&_kesk4zu-vpek*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', 'django']
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 

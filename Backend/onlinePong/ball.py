@@ -9,7 +9,7 @@ class Ball:
     def __init__(self, game_id):
         self.x = 50
         self.y = 50
-        self.speed = 0.64
+        self.speed = 0.40
         self.game_id = game_id
         rand = random.choice([1,2])
         angle = random.uniform(-math.pi / 4, math.pi / 4)
@@ -35,7 +35,7 @@ class Ball:
         else:
             await game.p2.add_point()
 
-        await self.save_to_cache()    
+        await game.save_to_cache()    
         return
 
     async def update_position(self, game):
@@ -43,8 +43,8 @@ class Ball:
         self.y += self.vy
         await self.check_boundaries(game)
         await self.check_boundaries_player(game)
-        await self.save_to_cache()
-        if game.bound_player or game.bound_player:
+        if game.bound_wall or game.bound_player:
+            await self.save_to_cache()
             return True
         return False
 

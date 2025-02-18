@@ -163,16 +163,16 @@ class Game {
         });
     }
 
-    updatePlayerPosition(player, y) {
-        if (player === 1) {
-            this.P1.paddle.assignPos(y);
-            this.P1.draw(this.context, this.colorP1);
-        }
-        else {
-            this.P2.paddle.assignPos(y);
-            this.P2.draw(this.context, this.colorP2);
-        }
-    }
+    // updatePlayerPosition(player, y) {
+    //     if (player === 1) {
+    //         this.P1.paddle.assignPos(y);
+    //         this.P1.draw(this.context, this.colorP1);
+    //     }
+    //     else {
+    //         this.P2.paddle.assignPos(y);
+    //         this.P2.draw(this.context, this.colorP2);
+    //     }
+    // }
 
     updateScores(side) {
         this.score = [this.P1.score, this.P2.score];

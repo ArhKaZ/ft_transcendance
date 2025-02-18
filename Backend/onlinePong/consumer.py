@@ -9,32 +9,28 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.cache import cache, caches
 from rest_framework_simplejwt.authentication import JWTAuthentication
+
 from .ball import Ball
 from .player import Player
 from .game import PongGame
-from .server import PongServer
+from .server import pong_server
 
 class PongConsumer(AsyncWebsocketConsumer):
 	def __init__(self, *args,  **kwargs):
 		super().__init__(*args, **kwargs)
-		self.pong_server = PongServer()
 		self.listen_task = None
 		self.countdown_task = None
 		self._countdown_done = asyncio.Event()
 		self.send_ball_task = None
 		self.cleanup_lock = asyncio.Lock()
 		self.is_cleaning_up = False
-		self.game_cancel_event = asyncio.Event()
 		self.in_tournament = False
+		self.game = None
+		self.game_id = None
 
 	async def connect(self):
 		self.player_id = int(self.scope['url_route']['kwargs']['player_id'])
-		previous_channel = await sync_to_async(cache.get)(f"player_{self.player_id}_channel")
-		if previous_channel:
-			await self.channel_layer.group_discard("onlinePong_players", previous_channel)
-
-		await sync_to_async(cache.set)(f"player_{self.player_id}_channel", self.channel_name)
-		await self.channel_layer.group_add("onlinePong_players", self.channel_name)
+		await pong_server.register_connection(self.player_id, self.channel_name)
 		await self.accept()
 
 	async def disconnect(self, close_code):
@@ -46,14 +42,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 			print(f"Error during disconnect: {e}")
 
 	async def _handle_disconnect(self, close_code):
-		print(f"Disconnect player {self.player_id} from game {self.game_id}")
 		if self.game_id:
-			await self.pong_server.cleanup_player(self.player_id, self.game_id)
-			if self.game:
-				username_gone = self.game.p1.username if self.player_id == self.game.p1.id else self.game.p2.username
-				await self.notify_game_cancel(username_gone)
-
-		self.game_cancel_event.set()
+			await pong_server.cleanup_player(self.player_id, self.username, self.game_id)
 		await self.cleanup()
 
 	async def cleanup(self):
@@ -64,11 +54,11 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 			try:
 				tasks = [self.listen_task, self.send_ball_task, self.countdown_task]
-				print(f'tasks: {tasks}')
-				for task in tasks:
-					if task and not task.done():
-						task.cancel()
-				await asyncio.wait([task for task in tasks if task], timeout=5)
+				if tasks:
+					for task in tasks:
+						if task and not task.done():
+							task.cancel()
+					await asyncio.wait([task for task in tasks if task], timeout=5)
 
 				if hasattr(self, 'pubsub'):
 					try:
@@ -94,20 +84,27 @@ class PongConsumer(AsyncWebsocketConsumer):
 				self.game = None
 
 	async def receive(self, text_data):
-		data = json.loads(text_data)
-		action = data['action']
+		try:
+			data = json.loads(text_data)
+			action = data['action']
 
-		actions = {
-			'ready': self.handle_player_ready,
-			'move': self.move_player,
-			'search': self.handle_player_search,
-			'findGame': self.handle_find_game,
-			'tournament': self.handle_tournament_game,
-		}
+			actions = {
+				'ready': self.handle_player_ready,
+				'move': self.move_player,
+				'search': self.handle_player_search,
+				'findGame': self.handle_find_game,
+				'tournament': self.handle_tournament_game,
+			}
 
-		handler = actions.get(action)
-		if handler:
-			await handler(data)
+			handler = actions.get(action)
+			if handler:
+				await handler(data)
+			else:
+				print(f"Unknown action: {action}")
+		except json.JSONDecodeError:
+			print("Invalid JSON received")
+		except Exception as e:
+			print(f"Error processing message: {e}")
 
 	async def initialize_listener(self):
 		try:
@@ -145,7 +142,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 			'avatar': data['opponent']['avatar']
 		}
 
-		self.game, self.game_id = await self.pong_server.initialize_game(player_info, opponent_info)
+		self.game, self.game_id = await pong_server.initialize_game(player_info, opponent_info)
 		if self.game:
 			await self._setup_game()
 
@@ -167,7 +164,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 		}
 		self.username = data['player_name']
 
-		self.game, self.game_id = await self.pong_server.initialize_game(player_info)
+		self.game, self.game_id = await pong_server.initialize_game(player_info)
 		if self.game:
 			await self._setup_game()
 		else:
@@ -182,14 +179,36 @@ class PongConsumer(AsyncWebsocketConsumer):
 		await self.channel_layer.group_add(self.game.group_name, self.channel_name)
 		await self.send_players_info(self.game.to_dict())
 
+		asyncio.create_task(self._watch_game_events())
+
+	async def _watch_game_events(self):
+		try:
+			while True:
+				if await self._wait_for_event(self.game.events['game_cancelled']):
+					print(f"Game cancelled for player {self.player_id}")
+					break
+
+				if await self._wait_for_event(self.game.events['game_finished']):
+					print(f"Game finished for player {self.player_id}")
+					break
+				
+				await asyncio.sleep(0.1)
+		except Exception as e:
+			print(f"Error in game events watcher: {e}")
+		finally:
+			await pong_server.cleanup_player(self.player_id, self.username, self.game_id)
+
+	async def _wait_for_event(self, event):
+		try:
+			return await asyncio.wait_for(event.wait(), timeout=0.1)
+		except asyncio.TimeoutError:
+			return False
+
 	async def handle_find_game(self, data):
-		print(f'handle_find_game for {self.player_id}')
 		if self.game is None:
-			print(f'game is None {self.player_id}')
 			self.game_id = data['game_id']
-			self.game = await self.pong_server.get_game(self.game_id)
+			self.game = await pong_server.get_game(self.game_id)
 			if self.game:
-				print(f'got game : {self.game} in {self.player_id}')
 				await self._setup_game()
 
 	async def handle_find_game_message(self, event):
@@ -199,29 +218,30 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 # READY 
 	async def handle_player_ready(self, data):
+		if not self.game:
+			return
+
 		both_r = await self.game.set_player_ready(self.player_id)
 		await self.notify_player_ready()
-		print(f'both_r : {both_r}')
 		if both_r:
 			await self.start_game_sequence()
 
 	async def start_game_sequence(self):
-		print('start game sequence')
-		game_state = await self.game.start_game()
-		print(f'pass start_game : {game_state}')
 		await self.notify_game_start(self.game.p1, self.game.p2)
-		if not self.countdown_task:
-			self._countdown_task = asyncio.create_task(self.run_countdown_sequence())
+		self._countdown_task = asyncio.create_task(self.run_countdown_sequence())
 		asyncio.create_task(self.launch_game_after_countdown())
 
 	async def launch_game_after_countdown(self):
 		await self._countdown_done.wait()
-		if not self.send_ball_task:
-			self.first_pos_send = True
-			self.send_ball_task = asyncio.create_task(self.send_ball_position())
+		if not self.send_ball_task and not self.game.events['game_cancelled'].is_set():
+			game_state = await self.game.start_game()
+			if game_state:
+				self.send_ball_task = asyncio.create_task(self.send_ball_position())
 
 	async def run_countdown_sequence(self):
 		for count in range(3, -1, -1):
+			if self.game.events['game_cancelled'].is_set():
+				break
 			await self.notify_countdown(count)
 			if count > 0:
 				await asyncio.sleep(1)
@@ -230,37 +250,43 @@ class PongConsumer(AsyncWebsocketConsumer):
 		self._countdown_done.set()
 
 	async def send_ball_position(self):
-		while True:
+		while self.game:
 			try:
 				async for game_state in self.game.ball_position_updates():
-					if self.game_cancel_event.is_set():
+					if self.game.events['game_cancelled'].is_set():
 						break
-					await self.notify_ball_position()
+					await self.notify_ball_position(game_state)
+					await asyncio.sleep(0.5)
 			except asyncio.CancelledError:
-				print('send ball task cancelled')
+				print('send ball cancelled')
 			except Exception as e:
-				print(f'Error in send_ball_position with game:{self.game_id}: {e}')
-				await self.cleanup()
+				print(f'Error in send_ball_position: {e}')
 
 	async def move_player(self, data):
+		if not self.game and not self.game.can_move:
+			return
 		if data['instruction'] == 'start':
 			self.moving_direction = data['direction']
 			asyncio.create_task(self.handle_continuous_movement())
+			await self.notify_start_move(self.moving_direction)
 		if data['instruction'] == 'stop':
 			self.moving_direction = None
+			await self.notify_stop_move()
 
 	async def handle_continuous_movement(self):
-		while self.moving_direction and not self.game_cancel_event.is_set():
+		while (
+			self.moving_direction 
+			and not self.game.events['game_cancelled'].is_set()
+			and not self.game.events['game_finished'].is_set()
+		):
 			player = await self.game.move_player(self.player_id, self.moving_direction)
-			if player:
-				await self.notify_player_move(player)
-			await asyncio.sleep(0.05)
+			await asyncio.sleep(0.0166)
 
 	async def _redis_listener(self):
 		try:
 			print(f'pubsub: {self.pubsub}')
 			async for message in self.pubsub.listen():
-				if self.game_cancel_event.is_set():
+				if self.game.events['game_cancelled'].is_set():
 					break
 				if message['type'] == 'message':
 					await self.handle_redis_message(message['data'])
@@ -276,7 +302,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 			if data.startswith(b"score_updated_"):
 				await self.handle_score_update(data)
 			elif data.startswith(b"game_finish_"):
-				self.game.set_can_move(False)
+				self.game.can_move = False
 				if not self.is_cleaning_up:
 					await self.handle_game_finish(data)
 		except Exception as e:
@@ -295,12 +321,25 @@ class PongConsumer(AsyncWebsocketConsumer):
 		await self.game.save_to_cache()
 
 		await self.send_game_finish(winning_session)
-		print('in game finish', self.listen_task)
 		await self.cleanup()
 
-	# async def set_game_to_cache(self, game_id, game_data):
-	# 	cache = caches['default']
-	# 	await sync_to_async(cache.set)(f'game_{game_id}', game_data, timeout=60 * 30)
+
+	async def notify_start_move(self, direction):
+		message = {
+			'type': 'player_movement_start',
+			'player_id': self.player_id, 
+			'direction': direction
+		}
+		await self.channel_layer.group_send(self.game.group_name, message)
+
+	async def notify_stop_move(self):
+		player = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
+		message = {
+			'type': 'player_movement_stop',
+			'player_id': self.player_id,
+			'finalY': player.y
+		}
+		await self.channel_layer.group_send(self.game.group_name, message)
 
 	async def notify_need_wait(self, data):
 		message = {
@@ -315,27 +354,17 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 
 	async def notify_player_ready(self):
-		player_number = 0
-		if self.player_id == self.game.p1.id:
-			player_number = 1
-		else:
-			player_number = 2
-		print(f'notify player ready: {player_number}')
+		player_number = 1 if self.player_id == self.game.p1.id else 2
 		message = {
 			'type': 'player_ready',
 			'player_number': player_number,
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
 
-	async def notify_ball_position(self):
+	async def notify_ball_position(self, state):
 		message = {
 			'type': 'ball_position',
-			'x': self.game.ball.x,
-			'y': self.game.ball.y,
-			'vx': self.game.ball.vx,
-			'vy': self.game.ball.vy,
-			'bound_wall': self.game.bound_wall, 
-			'bound_player': self.game.bound_player,
+			**state
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
 
@@ -376,6 +405,22 @@ class PongConsumer(AsyncWebsocketConsumer):
 			'player2_avatar': p2.avatar,
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
+
+	async def player_movement_start(self, event):
+		message = {
+			'type': event['type'],
+			'player_id': event['player_id'],
+			'direction': event['direction']
+		}
+		await self.send(text_data=json.dumps(message))
+
+	async def player_movement_stop(self, event):
+		message = {
+			'type': event['type'],
+			'player_id': event['player_id'],
+			'finalY': event['finalY']
+		}
+		await self.send(text_data=json.dumps(message))
 
 	async def game_cancel(self, event):
 		message = {
@@ -419,18 +464,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 		}
 		await self.send(text_data=json.dumps(message))
 
-	# async def waiting_tournament(self, event):
-	# 	message = {
-	# 		'type': 'waiting_tournament',
-	# 		'player_id': event['player_id'],
-	# 		'player_name': event['player_name'],
-	# 		'player_avatar': event['player_avatar'],
-	# 		'in_tournament': event['in_tournament'],
-	# 		'opponent': event['opponent'],
-	# 		'create': event['createGame'],
-	# 	}
-		# await self.send(text_data=json.dumps(message))
-
 	async def ball_position(self, event):
 		message = {
 			'x': event['x'],
@@ -460,11 +493,10 @@ class PongConsumer(AsyncWebsocketConsumer):
 		await self.send(text_data=json.dumps(message))
 
 	async def game_finish(self, event):
-		message = {
+		await self.send(text_data=json.dumps({
 			'type': 'game_finish',
 			'winning_session': event['winning_session']
-		}
-		await self.send(text_data=json.dumps(message))
+		}))
 
 	async def score_update(self, event):
 		message = {
