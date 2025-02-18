@@ -367,9 +367,34 @@ def get_tournament_players(request, tournament_code):
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def erase_user(request):
-	user = request.user
-	user.delete()
-	return Response({'message': 'User deleted successfully'}, status=status.HTTP_200_OK)
+    try:
+        user = request.user
+        
+        # Get all users who have this user in their pending friends
+        users_with_pending = MyUser.objects.filter(pending_friends=user)
+        for other_user in users_with_pending:
+            other_user.pending_friends.remove(user)
+            
+        # Clear the user's own pending friends
+        user.pending_friends.clear()
+        
+        # Clear friends (symmetrical relationship will handle both sides)
+        user.friends.clear()
+        
+        # Finally delete the user
+        user.delete()
+        
+        return Response(
+            {'message': 'User and associated friend relationships deleted successfully'}, 
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        # Log the specific error for debugging
+        print(f"Error in erase_user: {str(e)}")
+        return Response(
+            {'error': 'An error occurred while deleting the user'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 @api_view(['POST'])
