@@ -1,3 +1,5 @@
+import { getCSRFToken } from '/js/utils.js';
+
 class Router {
     constructor(routes) {
         if (window.routerInstance) {
@@ -78,6 +80,11 @@ class Router {
 
     async handleLocation() {
         const path = window.location.pathname;
+
+        if (!this.isPublicPath(path)) {
+            const isAuthenticated = await this.checkUserAuth();
+            if (!isAuthenticated) return;
+        }
         
         if (!this.isPublicPath(path) && !this.isAuthenticated()) {
             // Redirect to login if not authenticated
@@ -150,7 +157,32 @@ class Router {
             window.routerInitialized = true;
         }
     }
+    async checkUserAuth() {
+        try {
+            const response = await fetch('/api/get-my-info/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                    'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                },
+                credentials: 'include',
+            });
+        
+            if (!response.ok) {
+                console.log('User not authenticated, redirecting to /home/');
+                this.navigateTo('/home/');
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.error('Error checking user authentication:', error);
+            this.navigateTo('/home/');
+            return false;
+        }
+    }
 }
+
 
 // Route definitions with HTML files
 const routes = {
