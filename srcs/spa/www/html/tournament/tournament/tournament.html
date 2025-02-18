@@ -1,0 +1,43 @@
+<!-- <!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="utf-8">
+	<title>Tournament</title>
+</head>
+	<body>
+		<h1>Tournament</h1>
+		<button id="create-button">Create tournament</button>
+		<form id="userForm" method="POST">
+			<label for="tournament_code">Who do you want to join ?</label>
+			<input type="text" id="tournament_code" name="tournament_code" required><br><br>
+			<button type="submit" id="join-button">Add</button>
+		</form>
+	</body>
+	<script type="module" src="/js/tournament/tournament.js"></script>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Tournament</title>
+</head>
+<body>
+	<div class="tournament-container">
+		<h1>Tournament</h1>
+        <div id="message"></div>
+        <div class="button-container">
+			<button id="create-button">Create Tournament</button>
+			<button id="quit-button" style="display: none;">Quit Tournament</button>
+        </div>
+        <form id="userForm" method="POST">
+			<div class="form-group">
+				<label for="tournament_code">Enter tournament code:</label>
+                <input type="text" id="tournament_code" name="tournament_code" required>
+            </div>
+            <button type="submit" id="join-button">Join Tournament</button>
+        </form>
+    </div>
+	<script src="/js/tournament/tournament.js" defer></script>
+</body>
+</html>

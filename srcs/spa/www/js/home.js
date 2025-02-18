@@ -25,6 +25,31 @@ document.getElementById('logout-button').addEventListener('click', async () => {
     window.location.reload();
 });
 
+document.getElementById('erase-button').addEventListener('click', async () => {
+	console.log('Erasing...');
+    // Remove the token from sessionStorage
+    
+    // Optional: Make a backend call to invalidate the token if needed
+    const response = await fetch('/api/erase/', {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+        },
+        credentials: 'include',
+    });
+    sessionStorage.removeItem('token_key');
+
+    if (response.ok) {
+        console.log('Erased successfully');
+    } else {
+        console.error('Error erasing:', response);
+    }
+
+    // Reload the page
+    window.location.reload();
+});
+
 
 document.getElementById('loseLp').addEventListener('click', async () => {
 	fetch('/api/change_lp/', {
@@ -95,19 +120,24 @@ if (response.ok) {
 	const pongbtn = document.getElementById('pong-button');
 	const historybtn = document.getElementById('history-button');
 	const logoutbtn = document.getElementById('logout-button');
+	const erasebtn = document.getElementById('erase-button');
 	const editbtn = document.getElementById('edit-button');
 	const pixelbtn = document.getElementById('pixel-button');
 	const friendsbtn = document.getElementById('friend-button');
 	const avatarImg = document.getElementById('user-avatar');
+	const tournamentbtn = document.getElementById('tournament-button');
 
 	localbtn.style.display = 'none';
 	pongbtn.style.display = 'none';
 	historybtn.style.display = 'none';
 	logoutbtn.style.display = 'none';
+	erasebtn.style.display = 'none';
 	editbtn.style.display = 'none';
 	pixelbtn.style.display = 'none';
 	friendsbtn.style.display = 'none';
 	avatarImg.style.display = 'none';
+	tournamentbtn.style.display = 'none';
+
 	
 	console.error('Erreur lors de la requête de récupération des informations :', response);
 }

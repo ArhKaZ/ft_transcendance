@@ -37,6 +37,7 @@ class Game:
 		return self.game_id
 	
 	def both_players_ready(self):
+		print(f'p1_r : {self.p1.ready} p2_r : {self.p2.ready}')
 		return self.p1.ready and self.p2.ready
 	
 	def remove_from_cache(self):

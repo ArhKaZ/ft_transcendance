@@ -13,8 +13,15 @@ urlpatterns = [
 	path('get_history/', views.get_history),
 	path('get-my-info/', views.get_my_info),
 	path('logout/', views.logout_user),
+	path('erase/', views.erase_user),
 	path('add_friend/', views.add_friend),
 	path('get_friends/', views.get_friends),
 	path('get_pending_friends/', views.get_pending_friends),
     path('change_lp/', views.change_lp),
+	path('join_tournament/', views.join_tournament),
+	path('create_tournament/', views.create_tournament),
+	path('quit_tournament/<str:tournament_code>/', views.quit_tournament),
+	
+	path('tournament_status/<str:tournament_code>/', views.tournament_status, name='tournament_status'),
+	path('tournament/<str:tournament_code>/players/', views.get_tournament_players, name='tournament_players'),
 ]

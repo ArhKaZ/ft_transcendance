@@ -18,6 +18,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny
 from django.views.decorators.csrf import ensure_csrf_cookie
 from .serializers import UserInfoSerializer
+from .models import Tournament
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -97,6 +98,7 @@ def get_history(request):
 	return Response(serializer.data)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_my_info(request):
 	user = request.user
 	serializer = UserInfoSerializer(user)
@@ -127,6 +129,9 @@ def edit_user_api(request):
 	
 	if request.data.get('description'):
 		data['description'] = request.data['description']
+
+	if request.data.get('pseudo'):
+		data['pseudo'] = request.data['pseudo']
 		
 	if request.FILES.get('avatar'):
 		data['avatar'] = request.FILES['avatar']
@@ -229,3 +234,197 @@ def add_friend(request):
 			{'error': 'User not found'}, 
 			status=status.HTTP_404_NOT_FOUND
 		)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def join_tournament(request):
+    try:
+        tournament_code = request.data.get('tournament_code')
+        if not tournament_code:
+            return Response(
+                {'error': 'Tournament code is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        tournament = Tournament.objects.get(code=tournament_code)
+        
+        # Check if tournament has already started
+        if tournament.started:
+            return Response(
+                {'error': 'Tournament has already started'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        # Check if user is already in tournament
+        if request.user in tournament.players.all():
+            return Response(
+                {'error': 'You are already in this tournament'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        # Try to add player
+        try:
+            tournament.add_player(request.user)
+            
+            response_data = {
+                'message': 'Successfully joined tournament',
+                'tournament_code': tournament.code,
+                'players_count': tournament.players.count(),
+                'started': tournament.started
+            }
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+            
+        except ValidationError as e:
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+    except Tournament.DoesNotExist:
+        return Response(
+            {'error': 'Tournament not found'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_tournament(request):
+    # Check if user is already in an active tournament
+    active_tournaments = Tournament.objects.filter(
+        players=request.user,
+        started=False
+    )
+    
+    if active_tournaments.exists():
+        return Response({
+            'error': 'You are already in an active tournament'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Create new tournament
+        tournament = Tournament.objects.create()
+        
+        # Add creator as first player
+        tournament.add_player(request.user)
+        
+        return Response({
+            'message': 'Tournament created successfully',
+            'tournament_code': tournament.code,
+            'players_count': tournament.players.count(),
+            'max_players': 4
+        }, status=status.HTTP_201_CREATED)
+        
+    except Exception as e:
+        return Response({
+            'error': 'Failed to create tournament'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def tournament_status(request, tournament_code):
+    try:
+        tournament = Tournament.objects.get(code=tournament_code)
+        players = tournament.players.all()
+        
+        # Serialize player information
+        player_data = []
+        for player in players:
+            player_data.append({
+                'username': player.username,
+                'status': 'ready'  # You can add more status logic here
+            })
+        
+        return Response({
+            'players_count': len(players),
+            'players': player_data,
+            'started': tournament.started,
+            'is_full': len(players) >= 4,
+            'is_active': True  # You can add logic to determine if tournament is still active
+        })
+    except Tournament.DoesNotExist:
+        return Response({
+            'error': 'Tournament not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_tournament_players(request, tournament_code):
+    try:
+        tournament = Tournament.objects.get(code=tournament_code)
+        players = tournament.players.all()
+        serializer = UserInfoSerializer(players, many=True)
+        return Response({
+            'tournament_code': tournament_code,
+            'players': serializer.data
+        })
+    except Tournament.DoesNotExist:
+        return Response({
+            'error': 'Tournament not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+	
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def erase_user(request):
+    try:
+        user = request.user
+        
+        # Get all users who have this user in their pending friends
+        users_with_pending = MyUser.objects.filter(pending_friends=user)
+        for other_user in users_with_pending:
+            other_user.pending_friends.remove(user)
+            
+        # Clear the user's own pending friends
+        user.pending_friends.clear()
+        
+        # Clear friends (symmetrical relationship will handle both sides)
+        user.friends.clear()
+        
+        # Finally delete the user
+        user.delete()
+        
+        return Response(
+            {'message': 'User and associated friend relationships deleted successfully'}, 
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        # Log the specific error for debugging
+        print(f"Error in erase_user: {str(e)}")
+        return Response(
+            {'error': 'An error occurred while deleting the user'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def quit_tournament(request, tournament_code):
+    try:
+        tournament = Tournament.objects.get(code=tournament_code)
+        user = request.user
+        
+        if user not in tournament.players.all():
+            return Response({'error': 'You are not in this tournament'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Remove player from tournament
+        tournament.players.remove(user)
+        deleted = False
+        
+        # Delete tournament if no players left
+        if tournament.players.count() == 0:
+            tournament.delete()
+            deleted = True
+        else:
+            # If tournament creator left, assign new creator
+            if tournament.creator == user:
+                tournament.creator = tournament.players.first()
+                tournament.save()
+        
+        return Response({
+            'message': 'Successfully left tournament',
+            'deleted': deleted
+        }, status=status.HTTP_200_OK)
+        
+    except Tournament.DoesNotExist:
+        return Response({'error': 'Tournament not found'}, status=status.HTTP_404_NOT_FOUND)
