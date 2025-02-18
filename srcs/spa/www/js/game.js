@@ -22,12 +22,12 @@ document.getElementById('logout-button').addEventListener('click', async () => {
     }
 
     // Reload the page
-    window.location.reload();
+    window.location.href = "/home/";
 });
 
-// document.getElementById('return-button').addEventListener('click', () => {
-//     window.history.back();
-// });
+document.getElementById('return-button').addEventListener('click', () => {
+    window.history.back();
+});
 
 document.getElementById('loseLp').addEventListener('click', async () => {
 	fetch('/api/change_lp/', {
@@ -79,17 +79,9 @@ if (response.ok) {
 	const data = await response.json();
 	console.log(data);
 
-	const loginbtn = document.getElementById('login-button');
-	const registerbtn = document.getElementById('register-button');
 	const bottomBtns = document.getElementById('bottom-buttons');
 
-
-	bottomBtns.style.display = 'flex';
-	loginbtn.style.display = 'none';
-	registerbtn.style.display = 'none';
-
 	const welcomemsg = document.getElementById('welcome-msg');
-	welcomemsg.innerText = `Bienvenue, ${data.username} !`;
 	const avatarImg = document.getElementById('user-avatar');
 	avatarImg.src = data.avatar;
 	avatarImg.alt = 'avatar';
@@ -97,22 +89,16 @@ if (response.ok) {
 	lps.innerText += data.ligue_points;
 } else {
 	const bottomBtns = document.getElementById('bottom-buttons')
-	// const localbtn = document.getElementById('local-button');
-	const gamebtn = document.getElementById('Game-button');
-	const historybtn = document.getElementById('history-button');
 	const logoutbtn = document.getElementById('logout-button');
-	const editbtn = document.getElementById('edit-button');
-	// const pixelbtn = document.getElementById('pixel-button');
-	const friendsbtn = document.getElementById('friend-button');
 	const avatarImg = document.getElementById('user-avatar');
 
 	bottomBtns.style.display = 'none';
-	// localbtn.style.display = 'none';
-	gamebtn.style.display = 'none';
+	localbtn.style.display = 'none';
+	pongbtn.style.display = 'none';
 	historybtn.style.display = 'none';
 	logoutbtn.style.display = 'none';
 	editbtn.style.display = 'none';
-	// pixelbtn.style.display = 'none';
+	pixelbtn.style.display = 'none';
 	friendsbtn.style.display = 'none';
 	avatarImg.style.display = 'none';
 	

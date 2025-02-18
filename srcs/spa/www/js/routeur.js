@@ -128,20 +128,28 @@ const routes = {
     	const response = await fetch('/html/home.html');
     	return await response.text();
 	},
+    '/game/': async () => {
+    	const response = await fetch('/html/game/game.html');
+    	return await response.text();
+	},
+    '/pong/': async () => {
+    	const response = await fetch('/html/game/pong/pong.html');
+    	return await response.text();
+	},
 	'/onlinePong/': async () => {
-    	const response = await fetch('/html/onlinePong/index.html');
+    	const response = await fetch('/html/game/pong/onlinePong/index.html');
     	return await response.text();
 	},
     '/localPong/': async () => {
-        const response = await fetch('/html/localPong/index.html');
+        const response = await fetch('/html/game/pong/localPong/index.html');
         return await response.text();
     },
     '/localPongIa/': async () => {
-        const response = await fetch('/html/localPongIa/index.html');
+        const response = await fetch('/html/game/pong/localPongIa/index.html');
         return await response.text();
     },
 	'/magicDuel/': async () => {
-    	const response = await fetch('/html/magicDuel/index.html');
+    	const response = await fetch('/html/game/magicDuel/index.html');
     	return await response.text();
 	},
 	'/logged/': async () => {

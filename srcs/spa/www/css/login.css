@@ -1,0 +1,64 @@
+
+body {
+    background-color: black;
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    text-align: center;
+    padding-top: 50px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    border: 4px solid white;
+    padding: 30px;
+    width: 320px;
+    margin: auto;
+    background: none;
+}
+
+label {
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+input {
+    background: black;
+    color: white;
+    border: 2px solid white;
+    padding: 8px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 14px;
+    text-align: center;
+    width: 80%;
+}
+
+input:focus {
+    outline: none;
+    border-color: cyan;
+}
+
+button {
+    background: none;
+    border: 4px solid white;
+    padding: 10px 20px;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    transition: 0.2s;
+    text-transform: uppercase;
+    font-family: 'Press Start 2P', cursive;
+}
+
+button:hover {
+    background-color: white;
+    color: black;
+}
+
+#message {
+    margin-top: 20px;
+    color: red;
+    font-size: 14px;
+}
