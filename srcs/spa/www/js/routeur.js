@@ -189,54 +189,68 @@ class Router {
 
 // Route definitions with HTML files
 const routes = {
-    '/home/': async () => {
-        const response = await fetch('/html/home.html');
-        return await response.text();
-    },
-    '/onlinePong/': async (params) => {
-        const response = await fetch('/html/onlinePong/index.html');
-        return await response.text();
-    },
+    // '/': async () => {
+    //     router.navigateTo('/home/');
+    //     return '';
+    // },
+	'/home/': async () => {
+    	const response = await fetch('/html/home.html');
+    	return await response.text();
+	},
+    '/game/': async () => {
+    	const response = await fetch('/html/game/game.html');
+    	return await response.text();
+	},
+    '/pong/': async () => {
+    	const response = await fetch('/html/game/pong/pong.html');
+    	return await response.text();
+	},
+	'/onlinePong/': async () => {
+    	const response = await fetch('/html/game/pong/onlinePong/index.html');
+    	return await response.text();
+	},
+
     '/localPong/': async () => {
-        const response = await fetch('/html/localPong/index.html');
+        const response = await fetch('/html/game/pong/localPong/index.html');
         return await response.text();
     },
     '/localPongIa/': async () => {
-        const response = await fetch('/html/localPongIa/index.html');
+        const response = await fetch('/html/game/pong/localPongIa/index.html');
         return await response.text();
     },
-    '/magicDuel/': async () => {
-        const response = await fetch('/html/magicDuel/index.html');
-        return await response.text();
-    },
-    '/logged/': async () => {
-        const response = await fetch('/html/user/logged.html');
-        return await response.text();
-    },
-    '/user/add/': async () => {
-        const response = await fetch('/html/user/add.html');
-        return await response.text();
-    },
-    '/user/edit/': async () => {
-        const response = await fetch('/html/user/edit.html');
-        return await response.text();
-    },
-    '/user/edit_user/': async () => {
-        const response = await fetch('/html/user/edit_user.html');
-        return await response.text();
-    },
-    '/user/history/': async () => {
-        const response = await fetch('/html/user/history.html');
-        return await response.text();
-    },
-    '/user/friend/': async () => {
-        const response = await fetch('/html/user/friend.html');
-        return await response.text();
-    },
-    '/user/login/': async () => {
-        const response = await fetch('/html/user/login.html');
-        return await response.text();
-    },
+	'/magicDuel/': async () => {
+    	const response = await fetch('/html/game/magicDuel/index.html');
+    	return await response.text();
+	},
+	'/logged/': async () => {
+    	const response = await fetch('/html/user/logged.html');
+    	return await response.text();
+	},
+	'/user/add/': async () => {
+    	const response = await fetch('/html/user/add.html');
+    	return await response.text();
+	},
+	'/user/edit/': async () => {
+    	const response = await fetch('/html/user/edit.html');
+    	return await response.text();
+	},
+	'/user/edit_user/': async () => {
+    	const response = await fetch('/html/user/edit_user.html');
+    	return await response.text();
+	},
+	'/user/history/': async () => {
+    	const response = await fetch('/html/user/history.html');
+    	return await response.text();
+	},
+	'/user/friend/': async () => {
+    	const response = await fetch('/html/user/friend.html');
+    	return await response.text();
+	},
+	'/user/login/': async () => {
+		const response = await fetch('/html/user/login.html');
+		return await response.text();
+	},
+
     '/tournament/': async () => {
         const response = await fetch('/html/tournament/tournament.html');
         return await response.text();

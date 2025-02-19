@@ -32,13 +32,19 @@
         </div>
 
         <div>
-            <label for="avatar">Avatar (laisser vide si inchangé):</label>
-            <input type="file" id="avatar" name="avatar">
+            <label for="avatar">Avatar:</label>
+            <label for="avatar" class="custom-file-upload">Choose File</label>
+            <input type="file" id="avatar" name="avatar" accept="image/*">
+            <span id="file-chosen">(laisser vide si inchangé)</span>
         </div>
-
+        
+        
         <button type="submit">Mettre à jour</button>
+        <div class="bottom-buttons">
+            <button id="return-button">Return</button>
+        </div>
+        
     </form>
-
     <div id="message"></div>
 
     <script type="module" src="/js/user/edit_user.js"></script>
