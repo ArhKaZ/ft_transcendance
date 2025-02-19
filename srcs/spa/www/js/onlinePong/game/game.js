@@ -17,6 +17,9 @@ class Game {
         this.isStart = false;
         this.colorP1 = 'white';
         this.colorP2 = 'white';
+        this.isBoundPlayer = false;
+        this.isBoundWall = false;
+        this.canMove = false;
     }
 
     displayCanvas() {
@@ -39,21 +42,37 @@ class Game {
         this.ball.setInMiddle(this.canvas);
         this.ball.draw(this.context);
         this.isStart = true;
+        this.startGameLoop();
     }
 
     stop() {
         this.isStart = false;
     }
 
-    updateBallPosition(x, y) {
-        this.ball.assignPos(x, y);
+    updateBallPosition(data) {
+        this.canMove = true;
+        this.isBoundPlayer = data.bound_player;
+        this.isBoundWall = data.bound_wall;
+        this.ball.serverUpdate(data);
     }
 
-    drawGame(bound_wall, bound_player) {
+    startGameLoop() {
+        const gameLoop = () => {
+            if (!this.isStart) return;
+            this.ball.updatePosition();
+            this.P1.paddle.updatePosition(this.canMove);
+            this.P2.paddle.updatePosition(this.canMove);
+            this.drawGame();
+            requestAnimationFrame(gameLoop);
+        }
+        gameLoop();
+    }
+
+    drawGame() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawBorders(this.context, this.canvas);
         this.ball.draw(this.context);
-        this.activeBound(bound_wall, bound_player);
+        this.activeBound(this.isBoundWall, this.isBoundPlayer);
         this.P1.draw(this.context, this.colorP1);
         this.P2.draw(this.context, this.colorP2);
     }
@@ -65,7 +84,7 @@ class Game {
     }
 
 
-    animateBounce(ctx, canvas, x, side) {
+    animateBounce(ctx, canvas, side) {
         const animationTime = 1000;
         const startTime = Date.now();
     
@@ -95,18 +114,19 @@ class Game {
         drawFrame(); 
     }
 
-    updatePlayerPosition(player, y) {
-        if (player === 1) {
-            this.P1.paddle.assignPos(y);
-            this.P1.draw(this.context, this.colorP1);
-        }
-        else {
-            this.P2.paddle.assignPos(y);
-            this.P2.draw(this.context, this.colorP2);
-        }
-    }
+    // updatePlayerPosition(player, y) {
+    //     if (player === 1) {
+    //         this.P1.paddle.assignPos(y);
+    //         this.P1.draw(this.context, this.colorP1);
+    //     }
+    //     else {
+    //         this.P2.paddle.assignPos(y);
+    //         this.P2.draw(this.context, this.colorP2);
+    //     }
+    // }
 
     updateScores(data) {
+        this.canMove = false;
         const side = data.player_id === this.P1.id.toString() ? 'right' : 'left'; 
         createNeonExplosion(side, this.ball.y);
         this.score = data.scores;
@@ -135,21 +155,20 @@ class Game {
     }
 
     activeBound(bound_wall, bound_player) {
-        if (bound_wall) {
-            this.bound_wall();
-        }
-        else if (bound_player) {
-            this.bound_player();
-        }
+        // if (bound_wall) {
+        //     this.bound_wall();
+        // }
+        // else if (bound_player) {
+        //     this.bound_player();
+        // }
     }
 
     bound_wall() {
-        const x_ball = this.ball.x;
         const y_ball = this.ball.y;
         if (y_ball < this.canvas.height / 2) {
-            this.animateBounce(this.context, this.canvas, x_ball, "top");
+            this.animateBounce(this.context, this.canvas, "top");
         } else {
-           this.animateBounce(this.context, this.canvas, x_ball, "bottom");
+           this.animateBounce(this.context, this.canvas, "bottom");
         }
     }
 

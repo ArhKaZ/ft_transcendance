@@ -12,6 +12,8 @@ let currentGame = null;
 let currentCountdown = null;
 let currentGameId = null;
 let inTournament = false;
+let pressKey = false;
+let is_finished = false;
 
 function sendToBack(data) {
     if (socket?.readyState === WebSocket.OPEN) {
@@ -53,7 +55,8 @@ async function init() {
 function setupWebSocket(user) {
     currentPlayerId = user.id;
     const id = user.id.toString();
-    const socket = new WebSocket(`wss://127.0.0.1:8443/ws/onlinePong/${id}/`);
+    const currentUrl = window.location.host;
+    const socket = new WebSocket(`wss://${currentUrl}/ws/onlinePong/${id}/`);
     const urlParams = new URLSearchParams(window.location.search);
     inTournament = urlParams.get('tournament');
     
@@ -101,23 +104,19 @@ function setupKeyboardControls(playerId) {
     window.addEventListener('keydown', (event) => {
         if (!movementInterval) {
             const direction = event.key === 'ArrowUp' ? 'up' : event.key === 'ArrowDown' ? 'down' : null;
-            if (direction) {
-                sendMovement(direction, playerId);
-                movementInterval = setInterval(() => sendMovement(direction, playerId), 10);
+            if (direction && !pressKey) {
+                pressKey = true;
+                sendToBack({ action: 'move', instruction: 'start', direction, player_id: playerId});
             }
         }
     });
 
     window.addEventListener('keyup', (event) => {
         if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-            clearInterval(movementInterval);
-            movementInterval = null;
+            sendToBack({ action: 'move', instruction: 'stop', player_id: playerId});
+            pressKey = false;
         }
     });
-}
-
-function sendMovement(direction, playerId) {
-    sendToBack({ action: 'move', direction, player_id: playerId });
 }
 
 async function initGame(data) {
@@ -143,9 +142,7 @@ function createPlayers(data) {
 async function handleWebSocketMessage(e) {
     const data = JSON.parse(e.data);
     switch(data.type) {
-
         case 'players_info':
-            console.log('got player infos');
             handlePlayerInfo(data);
             break;
 
@@ -154,12 +151,7 @@ async function handleWebSocketMessage(e) {
             break;
 
         case 'ball_position':
-            currentGame.updateBallPosition(data.x, data.y);
-            currentGame.drawGame(data.bound_wall, data.bound_player);
-            break;
-
-        case 'player_move':
-            updatePlayerPosition(currentGame, data);
+            currentGame.updateBallPosition(data);
             break;
 
         case 'score_update':
@@ -167,6 +159,7 @@ async function handleWebSocketMessage(e) {
             break;
 
         case 'game_finish':
+            is_finished = true;
             handleGameFinish(currentGame, data.winning_session);
             gameStarted = false;
             currentGame.stop();
@@ -191,7 +184,26 @@ async function handleWebSocketMessage(e) {
         case 'waiting_tournament':
             await handleWaiting(data);
             break;
+
+        case 'player_movement_start':
+            handlePlayerStartMove(data);
+            break;
+
+        case 'player_movement_stop':
+            handlePlayerStopMove(data);
+            break;
     }
+}
+
+function handlePlayerStartMove(data) {
+    const player = data.player_id === currentGame.P1.id ? currentGame.P1 : currentGame.P2;
+    player.paddle.startMoving(data.direction);
+}
+
+function handlePlayerStopMove(data) {
+    const player = data.player_id === currentGame.P1.id ? currentGame.P1 : currentGame.P2;
+    player.paddle.stopMoving();
+    player.paddle.serverUpdate(data.finalY);
 }
 
 async function handleWaiting(data) {
@@ -207,6 +219,7 @@ async function handleWaiting(data) {
 }
 
 function handleErrors(data) {
+    if (is_finished) return;
     const infoMain = document.getElementById('info-main-player');
     const infop1 = document.getElementById('infoP1');
     const infop2 = document.getElementById('infoP2');
@@ -267,7 +280,6 @@ async function handleGameStart(data) {
 }
 
 function handleGameCancel(data) {
-    sendToBack({action: 'cancel'});
     handleErrors(data);
 }
 
@@ -307,7 +319,6 @@ function handleGameFinish(game, winningId) {
     }).then(response => response.json())
     .then(data => {
         console.log('Match enregistrer ', data);
-        
     }).catch(error => console.error(error));
 }
 

@@ -43,7 +43,6 @@ export function createNeonExplosion(side, ball_y) {
     
     const x = side === 'left' ? 0 : canvas.width;
     const y = ball_y;
-
     const colors = [
         '234, 170, 231',
         '140, 40, 136', 
