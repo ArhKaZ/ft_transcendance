@@ -115,6 +115,8 @@ class TournamentManager {
             this.messageDiv.innerHTML = `<div class="error-message">Error creating tournament</div>`;
         }
     }
+
+    
     
     async joinTournament(event) {
         console.log("je veux rejoindre un nouveau tournois");
@@ -266,6 +268,10 @@ class TournamentManager {
 		return sessionStorage.getItem('username');
 	}
 }
+
+document.getElementById('return-button').addEventListener('click', () => {
+    window.history.back();
+});
 
 console.log("Script starting...");
 if (document.readyState === 'loading') {

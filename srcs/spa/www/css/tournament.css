@@ -84,51 +84,54 @@ button:hover {
     color: black;
 }
 
+
 input[type="file"] {
     display: none;
 }
 
-.custom-file-upload {
-    display: inline-block;
-    border: 4px solid white;
-    padding: 10px 20px;
+.form-group {
+    display: flex;
+    flex-direction: column; /* Place le label et l'input l'un en dessous de l'autre */
+    align-items: center;
+    margin-bottom: 20px; /* Espace sous l'input */
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Espacement entre le form et le bouton Create */
+    margin-top: 20px;
+}
+
+.input-group {
+    display: flex;
+    align-items: center; /* Aligne parfaitement Join et l'input */
+    gap: 10px;
+}
+
+#tournament_code {
+    padding: 8px; /* Ajuste le padding pour mieux aligner */
+    border: 4px solid white; /* Conserve ton style */
+    background: black;
     color: white;
-    font-size: 12px;
-    cursor: pointer;
-    transition: 0.2s;
-    text-transform: uppercase;
     font-family: 'Press Start 2P', cursive;
-    background: none;
+    font-size: 14px;
     text-align: center;
+    line-height: normal; /* Évite un décalage interne */
 }
 
-.custom-file-upload:hover {
-    background-color: white;
-    color: black;
+#join-button {
+    position: relative;
+    top: -4px; /* Ajuste cette valeur si besoin */
 }
 
-#file-chosen {
-    display: block;
-    font-size: 12px;
-    margin-top: 5px;
-    color: white;
+
+
+#create-button {
+    margin-top: 10px;
 }
 
-#erase-button {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    background: none;
-    border: none;
-    cursor: pointer;
-}
 
-#erase-button img {
-    width: 150px;
-    height: 150px;
-    transition: transform 0.2s ease-in-out;
-}
 
-#erase-button:hover img {
-    transform: scale(1.2);
-}
+

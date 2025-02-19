@@ -21,23 +21,25 @@
 <head>
     <meta charset="utf-8">
     <title>Tournament</title>
+    <link rel="stylesheet" href="/css/tournament.css">
 </head>
 <body>
 	<div class="tournament-container">
 		<h1>Tournament</h1>
         <div id="message"></div>
-        <div class="button-container">
-			<button id="create-button">Create Tournament</button>
-			<button id="quit-button" style="display: none;">Quit Tournament</button>
-        </div>
-        <form id="userForm" method="POST">
-			<div class="form-group">
-				<label for="tournament_code">Enter tournament code:</label>
-                <input type="text" id="tournament_code" name="tournament_code" required>
-            </div>
-            <button type="submit" id="join-button">Join Tournament</button>
-        </form>
-    </div>
+	</div>
+	<div class="button-container">
+		<form id="userForm" method="POST">
+			<div class="input-group">
+				<button type="submit" id="join-button">Join</button>
+				<input type="text" id="tournament_code" name="tournament_code" required>
+			</div>
+		</form>
+		<button id="create-button">Create Tournament</button>
+		<button id="quit-button" style="display: none;">Quit Tournament</button>
+		<button id="return-button">Return</button>
+	</div>
+
 	<script src="/js/tournament/tournament.js" defer></script>
 </body>
 </html>

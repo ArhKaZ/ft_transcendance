@@ -26,31 +26,6 @@ document.getElementById('logout-button').addEventListener('click', async () => {
 });
 
 
-document.getElementById('erase-button').addEventListener('click', async () => {
-	console.log('Erasing...');
-    // Remove the token from sessionStorage
-    
-    // Optional: Make a backend call to invalidate the token if needed
-    const response = await fetch('/api/erase/', {
-        method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
-        },
-        credentials: 'include',
-    });
-    sessionStorage.removeItem('token_key');
-
-    if (response.ok) {
-        console.log('Erased successfully');
-    } else {
-        console.error('Error erasing:', response);
-    }
-
-    // Reload the page
-    window.location.reload();
-});
-
 document.getElementById('loseLp').addEventListener('click', async () => {
 	fetch('/api/change_lp/', {
         method: 'POST',
@@ -132,11 +107,9 @@ if (response.ok) {
 	// const editbtn = document.getElementById('edit-button');
 	// const pixelbtn = document.getElementById('pixel-button');
 
-	const erasebtn = document.getElementById('erase-button');
 
 	const friendsbtn = document.getElementById('friend-button');
 	const avatarImg = document.getElementById('user-avatar');
-	const tournamentbtn = document.getElementById('tournament-button');
 
 	bottomBtns.style.display = 'none';
 	// localbtn.style.display = 'none';
@@ -144,10 +117,8 @@ if (response.ok) {
 	historybtn.style.display = 'none';
 	logoutbtn.style.display = 'none';
 
-	erasebtn.style.display = 'none';
 	friendsbtn.style.display = 'none';
 	avatarImg.style.display = 'none';
-	tournamentbtn.style.display = 'none';
 
 	
 	console.error('Erreur lors de la requête de récupération des informations :', response);

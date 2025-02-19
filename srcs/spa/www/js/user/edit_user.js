@@ -26,6 +26,31 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
     }
 });
 
+document.getElementById('erase-button').addEventListener('click', async () => {
+	console.log('Erasing...');
+    // Remove the token from sessionStorage
+    
+    // Optional: Make a backend call to invalidate the token if needed
+    const response = await fetch('/api/erase/', {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+        },
+        credentials: 'include',
+    });
+    sessionStorage.removeItem('token_key');
+
+    if (response.ok) {
+        console.log('Erased successfully');
+    } else {
+        console.error('Error erasing:', response);
+    }
+
+    // Reload the page
+    window.location.reload();
+});
+
 document.getElementById('avatar').addEventListener('change', function() {
     const fileName = this.files[0] ? this.files[0].name : "No file chosen";
     document.getElementById('file-chosen').textContent = fileName;

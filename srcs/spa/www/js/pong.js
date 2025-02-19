@@ -93,6 +93,7 @@ if (response.ok) {
 	const bottomBtns = document.getElementById('bottom-buttons')
 	const logoutbtn = document.getElementById('logout-button');
 	const avatarImg = document.getElementById('user-avatar');
+    const tournamentbtn = document.getElementById('tournament-button');
 
 	bottomBtns.style.display = 'none';
 	localbtn.style.display = 'none';
