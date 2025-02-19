@@ -12,11 +12,13 @@ class TournamentGame {
 
 	async init() {
 		await this.loadPlayers();
-		sessionStorage.setItem('tournament_code', this.tournamentCode);
-		const data = await this.getUserFromBack();
-		this.currentPlayer = data;
-		await sleep(5000);
-		this.launchGame();
+		if (!sessionStorage.getItem('as_play')) {
+			sessionStorage.setItem('tournament_code', this.tournamentCode);
+			await sleep(5000);
+			window.location.href = `/onlinePong/?tournament=true`;
+		} else {
+			//creer final
+		}
 	}
 
 	async getUserFromBack() {
@@ -35,44 +37,11 @@ class TournamentGame {
 				// handleErrors({message: 'You need to be logged before playing'});
 			}
 			const data = await response.json();
-			return await data;
+			return data;
 		} catch (error) {
 			console.log("You need to be logged before playing", error);
 			// handleErrors({message: 'You need to be logged before playing'});
 		}
-	}
-
-	launchGame() {
-		const playerIndex = this.players.findIndex(player => player.id === this.currentPlayer.id);
-		switch (playerIndex) {
-			case 0:
-				this.redirPlayerToGame(this.players[1], true);
-				break;
-			case 1: 
-				this.redirPlayerToGame(this.players[0], false);
-				break;
-			case 2:
-				this.redirPlayerToGame(this.players[3], true);
-				break;
-			case 3:
-				this.redirPlayerToGame(this.players[2], false);
-				break;
-		}
-	}
-
-	redirPlayerToGame(opp, create) {
-		const params = new URLSearchParams({
-			tournament: 'true',
-			create_game: create,
-		});
-
-		if (create) {
-			params.append('opp_id', opp.id);
-			params.append('opp_name', opp.name);
-			params.append('opp_avatar', opp.img);
-		}
-
-		window.location.href = `/onlinePong/?${params.toString()}`;
 	}
 
 	async loadPlayers() {

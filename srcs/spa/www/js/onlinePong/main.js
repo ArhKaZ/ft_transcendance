@@ -38,43 +38,72 @@ async function getUserFromBack() {
             handleErrors({message: 'You need to be logged before playing'});
         }
         const data = await response.json();
-        return await data;
+        return data;
     } catch (error) {
         handleErrors({message: 'You need to be logged before playing'});
     }
 }
     
+async function getInfoMatchTournament(user) {
+    try {
+        const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/get_opponent`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+            },
+            credentials: 'include',
+        });
+        if (!response.ok) {
+            console.log(`Error get opponent : ${response.error}`);
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        handleErrors({message: 'You need to be logged before playing'});
+    }
+}
+
 async function init() {
     const user = await getUserFromBack();
 
     displayWhenLoad(user);
     
-    socket = setupWebSocket(user);
+    const urlParams = new URLSearchParams(window.location.search);
+    let infos = null;
+    inTournament = urlParams.get('tournament');
+    if (inTournament) {
+        infos = await getInfoMatchTournament(user);
+        console.log('info : ', infos);
+    }
+    socket = setupWebSocket(user, infos);
 }
 
-function setupWebSocket(user) {
+function setupWebSocket(user, infos) {
     currentPlayerId = user.id;
     const id = user.id.toString();
     const currentUrl = window.location.host;
     const socket = new WebSocket(`wss://${currentUrl}/ws/onlinePong/${id}/`);
-    const urlParams = new URLSearchParams(window.location.search);
-    inTournament = urlParams.get('tournament');
     
     socket.onopen = () => {
         console.log("WebSocket connected");
-        if (inTournament) {
-            sendToBack({
+        if (inTournament && infos) {
+            let objToSend = {
                 action: 'tournament',
                 player_id: user.id,
                 player_name: user.username,
                 player_avatar: user.avatar,
-                create: urlParams.get('create_game'),
-                opponent: {
-                    id: urlParams.get('opp_id'),
-                    name: urlParams.get('opp_name'),
-                    avatar: urlParams.get('opp_avatar'),
-                }
-            })
+                create: infos.create,
+                ... (infos.create && {
+                    opponent: {
+                        id: infos.opp_id,
+                        name: infos.opp_name,
+                        avatar: infos.opp_avatar,
+                    }
+                })
+            }
+            sendToBack(objToSend);
         } else {
             sendToBack({
                 action: 'search', 
@@ -220,6 +249,11 @@ async function handleWaiting(data) {
 
 function handleErrors(data) {
     if (is_finished) return;
+    const errorContainer = document.getElementById('error-container');
+    
+    if (!errorContainer.classList.contains('hidden'))
+		return;
+
     const infoMain = document.getElementById('info-main-player');
     const infop1 = document.getElementById('infoP1');
     const infop2 = document.getElementById('infoP2');
@@ -230,7 +264,6 @@ function handleErrors(data) {
     const game = document.getElementById('gameCanvas');
     const countdown = document.getElementById('countdownCanvas');
     const button = document.getElementById('button-ready');
-    const errorContainer = document.getElementById('error-container');
     const errorMessage = document.getElementById('error-message');
 
     if (!infoMain.classList.contains('hidden'))
@@ -298,6 +331,15 @@ async function handleCountdown(countdown) {
 }
 
 function handleGameFinish(game, winningId) {
+    const btnBack = document.getElementById('button-home');
+    if (inTournament) {
+        sessionStorage.setItem('as_play', true);
+        btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+        btnBack.innerText = "Back to Tournament";
+        //SetTimeout
+    }
+    else
+        btnBack.innerText += "Back to Home";
     const opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
     setTimeout(() => {
         game.displayWinner(winningId);

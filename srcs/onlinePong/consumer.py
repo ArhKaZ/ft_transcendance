@@ -120,7 +120,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 # GAME INIT
 	async def handle_tournament_game(self, data):
-		if data['create'] == 'false':
+		if data['create'] == False:
 			await asyncio.sleep(0.1)
 			player_game_key = f'player_current_game_{self.player_id}'
 			current_game = await sync_to_async(cache.get)(player_game_key)
@@ -129,7 +129,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 			else:
 				await self.notify_need_wait(data)
 			return
-
 		player_info = {
 			'id': self.player_id,
 			'username': data['player_name'],
@@ -137,12 +136,17 @@ class PongConsumer(AsyncWebsocketConsumer):
 		}
 		self.username = data['player_name']
 
+		# opponent_info = None
+		# if data.get('opponent'):
 		opponent_info = {
 			'id': data['opponent']['id'],
 			'username': data['opponent']['name'],
 			'avatar': data['opponent']['avatar']
 		}
 
+		if opponent_info is None:
+			print('Error')
+			return
 		self.game, self.game_id = await pong_server.initialize_game(player_info, opponent_info)
 		if self.game:
 			await self._setup_game()
@@ -185,6 +189,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 	async def _watch_game_events(self):
 		try:
 			while True:
+				if not self.game:
+					break
 				if await self._wait_for_event(self.game.events['game_cancelled']):
 					print(f"Game cancelled for player {self.player_id}")
 					break
@@ -199,8 +205,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 		finally:
 			if self.game and self.game.events['game_cancelled'].is_set():
 				await pong_server.cleanup_player(self.player_id, self.username, self.game_id)
-			else:
-				print('coucou')
+		
 
 	async def _wait_for_event(self, event):
 		try:

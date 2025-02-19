@@ -76,20 +76,10 @@ class Ball:
             max_bounce_angle = math.pi / 4
             bounce_angle = normalized_point * max_bounce_angle
             
-            direction = -math.copysign(1, self.vx)
-
-            self.vx = direction * self.speed * math.cos(bounce_angle)
+            self.vx = -math.copysign(1, self.vx) * self.speed * math.cos(bounce_angle)
             self.vy = self.speed * math.sin(bounce_angle)
             if abs(normalized_point) > 0.9:
                 self.vy *= 0.5
-            if direction == 1:
-                self.x = 3
-            elif direction == -1:
-                self.x = 97
-            if self.speed < 0.80:
-                self.speed += 0.04
-        else:
-            self.x = nextX
             
 
     @sync_to_async
