@@ -86,7 +86,8 @@ class PongGame:
 
 	async def _run_ball_updates(self):
 		try:
-			while not self.events['game_cancelled'].is_set():
+			while (not self.events['game_cancelled'].is_set()
+				and not self.events['game_finished'].is_set()):
 				if not self.events['ball_reset'].is_set():
 					await self.events['ball_reset'].wait()
 					continue
@@ -142,8 +143,11 @@ class PongGame:
 			return self.get_current_state()
 		return None
 
-	async def cleanup(self):
-		self.game['game_cancelled'].set()
+	async def cleanup(self, is_end):
+		if is_end:
+			self.events['game_finished'].set()
+		else:
+			self.events['game_cancelled'].set()
 		if self.ball_update_task:
 			self.ball_update_task.cancel()
 			try:
@@ -236,3 +240,14 @@ class PongGame:
 			self.p1.y = p1_data['y']
 		if p2_data:
 			self.p2.y = p2_data['y']
+
+	# async def game_finish(self):
+	# 	self.events['game_finished'].set()
+	# 	if self.ball_update_task:
+	# 		self.ball_update_task.cancel()
+	# 		try:
+	# 			await self.ball_update_task
+	# 		except asyncio.CancelledError:
+	# 			pass
+
+

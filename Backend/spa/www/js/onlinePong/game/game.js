@@ -19,6 +19,7 @@ class Game {
         this.colorP2 = 'white';
         this.isBoundPlayer = false;
         this.isBoundWall = false;
+        this.canMove = false;
     }
 
     displayCanvas() {
@@ -49,6 +50,7 @@ class Game {
     }
 
     updateBallPosition(data) {
+        this.canMove = true;
         this.isBoundPlayer = data.bound_player;
         this.isBoundWall = data.bound_wall;
         this.ball.serverUpdate(data);
@@ -58,8 +60,8 @@ class Game {
         const gameLoop = () => {
             if (!this.isStart) return;
             this.ball.updatePosition();
-            this.P1.paddle.updatePosition();
-            this.P2.paddle.updatePosition();
+            this.P1.paddle.updatePosition(this.canMove);
+            this.P2.paddle.updatePosition(this.canMove);
             this.drawGame();
             requestAnimationFrame(gameLoop);
         }
@@ -124,6 +126,7 @@ class Game {
     // }
 
     updateScores(data) {
+        this.canMove = false;
         const side = data.player_id === this.P1.id.toString() ? 'right' : 'left'; 
         createNeonExplosion(side, this.ball.y);
         this.score = data.scores;

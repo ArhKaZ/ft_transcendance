@@ -42,7 +42,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 			print(f"Error during disconnect: {e}")
 
 	async def _handle_disconnect(self, close_code):
-		if self.game_id:
+		print('in handle_disconnect')
+		if self.game_id and self.game and not self.game.events['game_finished'].is_set():
 			await pong_server.cleanup_player(self.player_id, self.username, self.game_id)
 		await self.cleanup()
 
@@ -196,7 +197,10 @@ class PongConsumer(AsyncWebsocketConsumer):
 		except Exception as e:
 			print(f"Error in game events watcher: {e}")
 		finally:
-			await pong_server.cleanup_player(self.player_id, self.username, self.game_id)
+			if self.game and self.game.events['game_cancelled'].is_set():
+				await pong_server.cleanup_player(self.player_id, self.username, self.game_id)
+			else:
+				print('coucou')
 
 	async def _wait_for_event(self, event):
 		try:
@@ -314,11 +318,10 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 	async def handle_game_finish(self, data):
 		winning_session = data.decode().split('_')[-1]
-		if hasattr(self, 'send_ball_task') and self.send_ball_task is not None:
-			self.send_ball_task.cancel()
 
 		self.game.status = 'FINISHED'
 		await self.game.save_to_cache()
+		await self.game.cleanup(True)
 
 		await self.send_game_finish(winning_session)
 		await self.cleanup()

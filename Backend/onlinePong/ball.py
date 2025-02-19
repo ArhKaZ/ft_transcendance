@@ -17,6 +17,7 @@ class Ball:
         self.vx = self.speed * math.cos(angle) * direction
         self.vy = self.speed * math.sin(angle)
         self.is_resetting = False
+        self.as_reset = False
 
     def __repr__(self):
         return f"Ball(x:{self.x}, y:{self.y})"
@@ -39,32 +40,37 @@ class Ball:
         return
 
     async def update_position(self, game):
-        self.x += self.vx
-        self.y += self.vy
-        await self.check_boundaries(game)
-        await self.check_boundaries_player(game)
+        self.as_reset = False
+        next_x = self.x + self.vx
+        next_y = self.y + self.vy
+        await self.check_boundaries(next_x, next_y, game)
+        await self.check_boundaries_player(next_x, next_y, game)
+        if not self.as_reset:
+            self.y = next_y
+            self.x = next_x
         if game.bound_wall or game.bound_player:
             await self.save_to_cache()
             return True
         return False
 
-    async def check_boundaries(self, game):
-        if self.y <= 1 or self.y >= 99:
+    async def check_boundaries(self, next_x, next_y, game):
+        if next_y <= 1 or next_y >= 99:
             self.vy = -self.vy
             game.bound_wall = True
-        if self.x <= 1 or self.x >= 99:
-            player_as_score = 1 if self.x >= 99 else 2
+        elif next_x <= 1 or next_x >= 99:
+            player_as_score = 1 if next_x >= 99 else 2
             await self.reset(player_as_score, game)
+            self.as_reset = True
 
-    async def check_boundaries_player(self, game):
+    async def check_boundaries_player(self, next_x, next_y, game):
         await game.update_players()
-        if self.x <= 3 and game.p1.y <= self.y <= game.p1.y + 16 or \
-                self.x >= 97 and game.p2.y <= self.y <= game.p2.y + 16:
+        if next_x <= 3 and game.p1.y <= next_y <= game.p1.y + 16 or \
+                next_x >= 97 and game.p2.y <= next_y <= game.p2.y + 16:
             game.bound_player = True
-            if self.x <= 3 and game.p1.y <= self.y <= game.p1.y + 16:
-                colission_point = (self.y + 1) - (game.p1.y + 8)
-            elif self.x >= 95 and game.p2.y <= self.y <= game.p2.y + 16:
-                colission_point = (self.y + 1) - (game.p2.y + 8)
+            if next_x <= 3 and game.p1.y <= next_y <= game.p1.y + 16:
+                colission_point = (next_y + 1) - (game.p1.y + 8)
+            elif next_x >= 95 and game.p2.y <= next_y <= game.p2.y + 16:
+                colission_point = (next_y + 1) - (game.p2.y + 8)
             normalized_point = colission_point / 8
             max_bounce_angle = math.pi / 4
             bounce_angle = normalized_point * max_bounce_angle

@@ -30,8 +30,8 @@ class Paddle {
         this.isMoving = false;
     }
 
-    updatePosition() {
-        if (!this.isMoving) return;
+    updatePosition(canMove) {
+        if (!this.isMoving || !canMove) return;
 
         if (this.direction === 'up' && this.y > 0.5 * (this.canvas.height / 100)) {
             this.yPercent -= this.speed;

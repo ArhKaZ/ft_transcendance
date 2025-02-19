@@ -13,6 +13,7 @@ let currentCountdown = null;
 let currentGameId = null;
 let inTournament = false;
 let pressKey = false;
+let is_finished = false;
 
 function sendToBack(data) {
     if (socket?.readyState === WebSocket.OPEN) {
@@ -153,15 +154,12 @@ async function handleWebSocketMessage(e) {
             currentGame.updateBallPosition(data);
             break;
 
-        // case 'player_move':
-        //     updatePlayerPosition(currentGame, data);
-        //     break;
-
         case 'score_update':
             currentGame.updateScores(data);
             break;
 
         case 'game_finish':
+            is_finished = true;
             handleGameFinish(currentGame, data.winning_session);
             gameStarted = false;
             currentGame.stop();
@@ -221,6 +219,7 @@ async function handleWaiting(data) {
 }
 
 function handleErrors(data) {
+    if (is_finished) return;
     const infoMain = document.getElementById('info-main-player');
     const infop1 = document.getElementById('infoP1');
     const infop2 = document.getElementById('infoP2');
