@@ -21,8 +21,11 @@ document.getElementById('logout-button').addEventListener('click', async () => {
         console.error('Error logging out:', response);
     }
 
-    // Reload the page
     window.location.href = "/home/";
+});
+
+document.getElementById('user-avatar').addEventListener('click', () => {
+    window.location.href = "/user/edit_user/";
 });
 
 document.getElementById('return-button').addEventListener('click', () => {

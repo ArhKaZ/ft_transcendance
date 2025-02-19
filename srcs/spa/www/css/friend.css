@@ -93,7 +93,7 @@ button:hover {
 }
 
 input[type="file"] {
-    display: none; /* Cache l'input natif */
+    display: none; 
 }
 
 .custom-file-upload {
