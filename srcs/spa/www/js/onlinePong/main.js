@@ -332,14 +332,6 @@ async function handleCountdown(countdown) {
 
 function handleGameFinish(game, winningId) {
     const btnBack = document.getElementById('button-home');
-    if (inTournament) {
-        sessionStorage.setItem('as_play', true);
-        btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
-        btnBack.innerText = "Back to Tournament";
-        //SetTimeout
-    }
-    else
-        btnBack.innerText += "Back to Home";
     const opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
     setTimeout(() => {
         game.displayWinner(winningId);
@@ -358,10 +350,18 @@ function handleGameFinish(game, winningId) {
             'opponent_name': opponentName,
             'won': asWin
         })
-    }).then(response => response.json())
-    .then(data => {
-        console.log('Match enregistrer ', data);
-    }).catch(error => console.error(error));
+    }).then(data => {
+        if (inTournament) {
+            sessionStorage.setItem('asWin', asWin);
+            btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+            btnBack.innerText = "Back to Tournament";
+            setTimeout(() => {
+                window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+            }, 3000);
+        }
+        else
+            btnBack.innerText += "Back to Home";
+    });
 }
 
 function resizeCanvasGame() {

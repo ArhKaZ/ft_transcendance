@@ -12,7 +12,7 @@ class TournamentGame {
 
 	async init() {
 		await this.loadPlayers();
-		if (!sessionStorage.getItem('as_play')) {
+		if (!sessionStorage.getItem('asWin')) {
 			sessionStorage.setItem('tournament_code', this.tournamentCode);
 			await sleep(5000);
 			window.location.href = `/onlinePong/?tournament=true`;
