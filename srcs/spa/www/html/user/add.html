@@ -3,7 +3,10 @@
 <head>
     <meta charset="utf-8">
     <title>Add a user</title>
+	<link rel="stylesheet" href="/css/register.css">
 	<link rel="stylesheet" href="/css/global.css">
+
+	<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
     <h1>Add a new user</h1>
@@ -31,7 +34,9 @@
 		
 		<div>
 			<label for="avatar">Avatar:</label>
+			<label for="avatar" class="custom-file-upload">Choose File</label>
 			<input type="file" id="avatar" name="avatar" accept="image/*">
+			<span id="file-chosen">No file chosen</span>
 		</div>
 	
 		<button type="submit">Submit</button>
