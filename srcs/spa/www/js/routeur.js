@@ -1,6 +1,7 @@
+import { getCSRFToken } from '/js/utils.js';
+
 class Router {
     constructor(routes) {
-        // Prevent multiple router instances
         if (window.routerInstance) {
             return window.routerInstance;
         }
@@ -10,15 +11,14 @@ class Router {
         this.loadedStylesheets = new Set();
         this.baseUrl = window.location.origin;
         // Only add event listeners if this is the first instance
+        this.publicPaths = ['/home/', '/user/login/', '/user/add/'];
         window.addEventListener('popstate', this.handleLocation.bind(this));
         this.initLinks();
 
-        // Store the instance globally
         window.routerInstance = this;
     }
 
     initLinks() {
-        // Remove previous event listeners to prevent multiple bindings
         document.removeEventListener('click', this.linkHandler);
         
         this.linkHandler = (e) => {
@@ -41,7 +41,6 @@ class Router {
         this.handleLocation();
     }
 
-// NEW 
     async loadStylesheet(href) {
         if (this.loadedStylesheets.has(href)) {
             return;
@@ -74,13 +73,59 @@ class Router {
         return doc.body.innerHTML;
     }
 
+    isAuthenticated() {
+        return sessionStorage.getItem('token_key') !== null;
+    }
+
+    isPublicPath(path) {
+        return this.publicPaths.includes(path);
+    }
+
     async handleLocation() {
         const path = window.location.pathname;
+
+        if (!this.isPublicPath(path)) {
+            const isAuthenticated = await this.checkUserAuth();
+            if (!isAuthenticated) return;
+        }
         
+        if (!this.isPublicPath(path) && !this.isAuthenticated()) {
+            // Redirect to login if not authenticated
+            console.log('Unauthorized access, redirecting to login');
+            window.history.pushState({}, '', '/user/login/');
+            const loginRoute = this.routes['/user/login/'];
+            const htmlContent = await loginRoute();
+            const processedContent = await this.parseHTML(htmlContent);
+            this.rootElement.innerHTML = processedContent;
+            this.executeScripts(this.rootElement);
+            return;
+        }
+
+
+        // Check for dynamic tournament game route
+        const tournamentGameMatch = path.match(/^\/tournament\/game\/([a-zA-Z0-9-]+)\/?$/);
+        if (tournamentGameMatch) {
+            const tournamentCode = tournamentGameMatch[1];
+            // Use the dynamic tournament game route handler
+            const route = this.routes['/tournament/game/:code'];
+            if (route) {
+                try {
+                    const htmlContent = await route(tournamentCode);
+                    const processedContent = await this.parseHTML(htmlContent);
+                    this.rootElement.innerHTML = processedContent;
+                    this.executeScripts(this.rootElement);
+                    return;
+                } catch (error) {
+                    console.error('Error loading tournament game page:', error);
+                }
+            }
+        }
+        
+        // Handle regular routes
         const route = this.routes[path] || this.routes['/404'];
         
         if (!route) {
-            console.error('Route non trouvée');
+            console.error('Route not found');
             return;
         }
 
@@ -90,8 +135,8 @@ class Router {
             this.rootElement.innerHTML = processedContent;
             this.executeScripts(this.rootElement);
         } catch (error) {
-            console.error('Erreur de chargement de la page', error);
-            this.rootElement.innerHTML = '<h1>Erreur de chargement</h1>';
+            console.error('Error loading page', error);
+            this.rootElement.innerHTML = '<h1>Loading Error</h1>';
         }
     }
 
@@ -110,15 +155,39 @@ class Router {
     }
 
     init() {
-        // Only handle location if this is the first instance
         if (!window.routerInitialized) {
             this.handleLocation();
             window.routerInitialized = true;
         }
     }
+    async checkUserAuth() {
+        try {
+            const response = await fetch('/api/get-my-info/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                    'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                },
+                credentials: 'include',
+            });
+        
+            if (!response.ok) {
+                console.log('User not authenticated, redirecting to /home/');
+                this.navigateTo('/home/');
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.error('Error checking user authentication:', error);
+            this.navigateTo('/home/');
+            return false;
+        }
+    }
 }
 
-// Définition des routes avec des fichiers HTML
+
+// Route definitions with HTML files
 const routes = {
     // '/': async () => {
     //     router.navigateTo('/home/');
@@ -140,6 +209,7 @@ const routes = {
     	const response = await fetch('/html/game/pong/onlinePong/index.html');
     	return await response.text();
 	},
+
     '/localPong/': async () => {
         const response = await fetch('/html/game/pong/localPong/index.html');
         return await response.text();
@@ -180,10 +250,19 @@ const routes = {
 		const response = await fetch('/html/user/login.html');
 		return await response.text();
 	},
-    // '/user/invite/': () => '<h1>ERROR</h1>',
-    '/404': () => '<h1>Page Non Trouvée</h1>'
+
+    '/tournament/': async () => {
+        const response = await fetch('/html/tournament/tournament.html');
+        return await response.text();
+    },
+    // New dynamic route for tournament game
+    '/tournament/game/:code': async (tournamentCode) => {
+        const response = await fetch('/html/tournament/tournament_game.html');
+        return await response.text();
+    },
+    '/404': () => '<h1>Page Not Found</h1>'
 };
 
-// Instanciation du routeur
+// Router instantiation
 const router = new Router(routes);
 router.init();

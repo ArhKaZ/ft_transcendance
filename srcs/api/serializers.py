@@ -6,7 +6,7 @@ class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     class Meta:
         model = MyUser
-        fields = ['username', 'password', 'description', 'avatar', 'ligue_points']
+        fields = ['username', 'password', 'description', 'avatar', 'ligue_points', 'pseudo']
         extra_kwargs = {'password': {'write_only': True}}
     def create(self, validated_data):
         password = validated_data.pop('password', None)
@@ -25,4 +25,4 @@ class MatchHistorySerializer(serializers.ModelSerializer):
 class UserInfoSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = MyUser
-		fields = ['id', 'username', 'description', 'avatar', 'ligue_points']
+		fields = ['id', 'username', 'description', 'avatar', 'ligue_points', 'pseudo']
