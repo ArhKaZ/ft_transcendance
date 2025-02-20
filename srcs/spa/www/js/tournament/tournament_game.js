@@ -17,6 +17,11 @@ class TournamentGame {
 			await sleep(5000);
 			window.location.href = `/onlinePong/?tournament=true`;
 		} else {
+			if (sessionStorage.getItem('asWin') == "true") {
+				console.log("je participe a la finale");
+				await sleep(5000);
+				window.location.href = `/onlinePong/?tournament=true`;
+			}
 			//creer final
 		}
 	}
