@@ -55,10 +55,6 @@ button:hover {
     color: black;
 }
 
-#avatar {
-    margin-top: 10px;
-}
-
 #message {
     margin-top: 20px;
     font-size: 14px;
@@ -91,42 +87,40 @@ input[type="file"] {
 
 .form-group {
     display: flex;
-    flex-direction: column; /* Place le label et l'input l'un en dessous de l'autre */
+    flex-direction: column;
     align-items: center;
-    margin-bottom: 20px; /* Espace sous l'input */
+    margin-bottom: 20px
 }
 
 .button-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px; /* Espacement entre le form et le bouton Create */
+    gap: 20px;
     margin-top: 20px;
 }
 
 .input-group {
     display: flex;
-    align-items: center; /* Aligne parfaitement Join et l'input */
+    align-items: center;
     gap: 10px;
 }
 
 #tournament_code {
-    padding: 8px; /* Ajuste le padding pour mieux aligner */
-    border: 4px solid white; /* Conserve ton style */
+    padding: 8px;
+    border: 4px solid white;
     background: black;
     color: white;
     font-family: 'Press Start 2P', cursive;
     font-size: 14px;
     text-align: center;
-    line-height: normal; /* Évite un décalage interne */
+    line-height: normal;
 }
 
 #join-button {
     position: relative;
-    top: -4px; /* Ajuste cette valeur si besoin */
+    top: -4px;
 }
-
-
 
 #create-button {
     margin-top: 10px;
