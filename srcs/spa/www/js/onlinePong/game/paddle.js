@@ -16,10 +16,6 @@ class Paddle {
         this.lastUpdateTime = Date.now();
     }
 
-    // assignPos(y) {
-    //     this.y = y * this.canvas.height / 100;
-    // }
-
     startMoving(direction) {
         this.direction = direction;
         this.isMoving = true;
@@ -33,12 +29,12 @@ class Paddle {
     updatePosition(canMove) {
         if (!this.isMoving || !canMove) return;
 
-        if (this.direction === 'up' && this.y > 0.5 * (this.canvas.height / 100)) {
+        if (this.direction === 'up' && this.y > 2 * (this.canvas.height / 100)) {
             this.yPercent -= this.speed;
-        } else if (this.direction === 'down' && this.y + this.height < 99.5 * (this.canvas.height / 100)) {
+        } else if (this.direction === 'down' && this.y + this.height < 98 * (this.canvas.height / 100)) {
             this.yPercent += this.speed;
         }
-
+        console.log(this.yPercent);
         this.y = this.yPercent * this.canvas.height / 100;
     }
 

@@ -121,12 +121,15 @@ class PongServer:
 			current_waiting_players = [p for p in current_waiting_players if p['id'] != player_id]
 		await sync_to_async(cache.set)(key, current_waiting_players)
 
-	async def cleanup_player(self, player_id: int, username: str, game_id: str):
+	async def cleanup_player(self, player_id: int, username: str, game_id: str, is_end: bool):
 		await self.initialize()
 		async with self._lock:
 			if game_id in self.games:
 				game = self.games[game_id]
-				await game.cancel_game(player_id, username)
+				if is_end:
+					await game.cleanup(player_id)
+				else:
+					await game.cancel_game(player_id, username)
 
 				if game.is_empty():
 					del self.games[game_id]

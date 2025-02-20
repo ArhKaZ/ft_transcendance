@@ -44,7 +44,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 	async def _handle_disconnect(self, close_code):
 		print('in handle_disconnect')
 		if self.game_id and self.game and not self.game.events['game_finished'].is_set():
-			await pong_server.cleanup_player(self.player_id, self.username, self.game_id)
+			await pong_server.cleanup_player(self.player_id, self.username, self.game_id, False)
 		await self.cleanup()
 
 	async def cleanup(self):
@@ -204,7 +204,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 			print(f"Error in game events watcher: {e}")
 		finally:
 			if self.game and self.game.events['game_cancelled'].is_set():
-				await pong_server.cleanup_player(self.player_id, self.username, self.game_id)
+				await pong_server.cleanup_player(self.player_id, self.username, self.game_id, False)
 		
 
 	async def _wait_for_event(self, event):
@@ -288,7 +288,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 			and not self.game.events['game_cancelled'].is_set()
 			and not self.game.events['game_finished'].is_set()
 		):
-			player = await self.game.move_player(self.player_id, self.moving_direction)
+			await self.game.move_player(self.player_id, self.moving_direction)
 			await asyncio.sleep(0.0166)
 
 	async def _redis_listener(self):
@@ -326,8 +326,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 		self.game.status = 'FINISHED'
 		await self.game.save_to_cache()
-		await self.game.cleanup(True)
-
+		await pong_server.cleanup_player(self.player_id, self.username, self.game_id, True)
 		await self.send_game_finish(winning_session)
 		await self.cleanup()
 

@@ -14,6 +14,8 @@ let currentGameId = null;
 let inTournament = false;
 let pressKey = false;
 let is_finished = false;
+let keyUpHandler = null;
+let keyDownHandler = null;
 
 function sendToBack(data) {
     if (socket?.readyState === WebSocket.OPEN) {
@@ -128,24 +130,24 @@ function setupWebSocket(user, infos) {
 
 
 function setupKeyboardControls(playerId) {
-    let movementInterval = null;
 
-    window.addEventListener('keydown', (event) => {
-        if (!movementInterval) {
-            const direction = event.key === 'ArrowUp' ? 'up' : event.key === 'ArrowDown' ? 'down' : null;
-            if (direction && !pressKey) {
-                pressKey = true;
-                sendToBack({ action: 'move', instruction: 'start', direction, player_id: playerId});
-            }
+    keyDownHandler = (event) => {
+        const direction = event.key === 'ArrowUp' ? 'up' : event.key === 'ArrowDown' ? 'down' : null;
+        if (direction && !pressKey) {
+            pressKey = true;
+            sendToBack({ action: 'move', instruction: 'start', direction, player_id: playerId});
         }
-    });
+    };
 
-    window.addEventListener('keyup', (event) => {
+    keyUpHandler = (event) => {
         if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
             sendToBack({ action: 'move', instruction: 'stop', player_id: playerId});
             pressKey = false;
         }
-    });
+    };
+
+    window.addEventListener('keydown', keyDownHandler);
+    window.addEventListener('keyup', keyUpHandler);
 }
 
 async function initGame(data) {
@@ -189,9 +191,13 @@ async function handleWebSocketMessage(e) {
 
         case 'game_finish':
             is_finished = true;
+            currentGame.stop();
+            removeEventListener('keydown', keyDownHandler);
+            removeEventListener('keyup', keyUpHandler);
+            keyDownHandler = null;
+            keyUpHandler = null;
             handleGameFinish(currentGame, data.winning_session);
             gameStarted = false;
-            currentGame.stop();
             break;
 
         case 'game_start':
@@ -248,6 +254,9 @@ async function handleWaiting(data) {
 }
 
 function handleErrors(data) {
+    if (currentGame) {
+        currentGame.stop();
+    }
     if (is_finished) return;
     const errorContainer = document.getElementById('error-container');
     

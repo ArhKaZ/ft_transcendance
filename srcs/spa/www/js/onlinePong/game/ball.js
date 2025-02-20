@@ -15,8 +15,7 @@ class Ball {
         this.lastServerUpdate = Date.now();
         this.lastUpdateTime = Date.now();
         this.interpolFactor = 0.3;
-        
-        this.speedMultiplier = 58;
+        this.speedMultiplier = 1 / (0.016);
     }
 
     serverUpdate(data) {

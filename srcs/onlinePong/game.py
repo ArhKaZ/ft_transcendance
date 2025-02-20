@@ -46,17 +46,8 @@ class PongGame:
 					'game_status': self.status
 				}
 			)
-
-			if self.ball_update_task:
-				self.ball_update_task.cancel()
-
-			if self.p1 and player_id == self.p1.id:
-				await self.p1.delete_from_cache()
-				self.p1 = None
-			elif self.p2 and player_id == self.p2.id:
-				await self.p2.delete_from_cache()
-				self.p2 = None
-
+			await self.cleanup(player_id)
+	
 	@classmethod 
 	async def create_from_cache(cls, game_data):
 		player_info = {
@@ -143,17 +134,18 @@ class PongGame:
 			return self.get_current_state()
 		return None
 
-	async def cleanup(self, is_end):
-		if is_end:
-			self.events['game_finished'].set()
-		else:
-			self.events['game_cancelled'].set()
+	async def cleanup(self, player_id):
+
 		if self.ball_update_task:
-			self.ball_update_task.cancel()
-			try:
-				await self.ball_update_task
-			except asyncio.CancelledError:
-				pass
+				self.ball_update_task.cancel()
+
+		if self.p1 and player_id == self.p1.id:
+			await self.p1.delete_from_cache()
+			self.p1 = None
+		elif self.p2 and player_id == self.p2.id:
+			await self.p2.delete_from_cache()
+			self.p2 = None
+
 
 	def get_current_state(self):
 		return {

@@ -20,6 +20,7 @@ class Game {
         this.isBoundPlayer = false;
         this.isBoundWall = false;
         this.canMove = false;
+        this.animationId = null;
     }
 
     displayCanvas() {
@@ -46,6 +47,10 @@ class Game {
     }
 
     stop() {
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
         this.isStart = false;
     }
 
@@ -63,9 +68,9 @@ class Game {
             this.P1.paddle.updatePosition(this.canMove);
             this.P2.paddle.updatePosition(this.canMove);
             this.drawGame();
-            requestAnimationFrame(gameLoop);
+            this.animationId = requestAnimationFrame(gameLoop);
         }
-        gameLoop();
+        this.animationId = requestAnimationFrame(gameLoop);
     }
 
     drawGame() {
@@ -84,51 +89,39 @@ class Game {
     }
 
 
-    animateBounce(ctx, canvas, side) {
-        const animationTime = 1000;
-        const startTime = Date.now();
+    // animateBounce(ctx, canvas, side) {
+    //     const animationTime = 1000;
+    //     let startTime = null;
     
-        function drawFrame() {
-            const elapsedTime = Date.now() - startTime;
-            const progress = elapsedTime / animationTime;
+    //     function drawFrame(timeStamp) {
+    //         if (!startTime) 
+    //             startTime = timeStamp
+    //         const progress = timeStamp - startTime;
     
-            if (progress > 1) return;
-    
-            const alpha = 1 - progress; 
-            ctx.strokeStyle = `rgba(138, 43, 226, ${alpha})`;
-            ctx.lineWidth = 4;
-    
-            ctx.beginPath();
-            if (side === "top") {
-                ctx.moveTo(0, 0);
-                ctx.lineTo(canvas.width, 0);
-            } else if (side === "bottom") {
-                ctx.moveTo(0, ctx.canvas.height);
-                ctx.lineTo(canvas.width, ctx.canvas.height);
-            }
-            ctx.stroke();
-    
-            requestAnimationFrame(drawFrame); 
-        }
-
-        drawFrame(); 
-    }
-
-    // updatePlayerPosition(player, y) {
-    //     if (player === 1) {
-    //         this.P1.paddle.assignPos(y);
-    //         this.P1.draw(this.context, this.colorP1);
+    //         if (progress < animationTime) {
+    //             const alpha = 1 - progress; 
+    //             ctx.strokeStyle = `rgba(138, 43, 226, ${alpha})`;
+    //             ctx.lineWidth = 4;
+                
+    //             ctx.beginPath();
+    //             if (side === "top") {
+    //                 ctx.moveTo(0, 0);
+    //                 ctx.lineTo(canvas.width, 0);
+    //             } else if (side === "bottom") {
+    //                 ctx.moveTo(0, ctx.canvas.height);
+    //                 ctx.lineTo(canvas.width, ctx.canvas.height);
+    //             }
+    //             ctx.stroke();
+    //             requestAnimationFrame(drawFrame);
+    //         }
     //     }
-    //     else {
-    //         this.P2.paddle.assignPos(y);
-    //         this.P2.draw(this.context, this.colorP2);
-    //     }
+    //     requestAnimationFrame(drawFrame);
     // }
 
     updateScores(data) {
         this.canMove = false;
         const side = data.player_id === this.P1.id.toString() ? 'right' : 'left'; 
-        createNeonExplosion(side, this.ball.y);
+        // createNeonExplosion(side, this.ball.y);
         this.score = data.scores;
         this.scoreP1Element.textContent = this.score[0].toString();
         this.scoreP2Element.textContent = this.score[1].toString();
@@ -182,31 +175,26 @@ class Game {
         }
     }
 
-    startPulseEffect(player) {
-        let opacity = 0.2; 
-        let increasing = true; 
-        const duration = 1000; 
-        const intervalSpeed = 30; 
+    // startPulseEffect(player) {
+    //     let opacity = 0.2; 
+    //     let startTime = null;
+    //     const duration = 1000; 
     
-        const intervalId = setInterval(() => {
+    //     const animate = (timeStamp) => {
+    //         if (!startTime)
+    //             startTime = timeStamp;
+    //         const progress = timeStamp - startTime;
 
-            if (increasing) {
-                opacity += 0.2;
-                if (opacity >= 1) increasing = false; 
-            } else {
-                opacity -= 0.2;
-                if (opacity <= 0.2) increasing = true;
-            }
-    
-            this[`color${player}`] = `rgba(138, 43, 226, ${opacity.toFixed(2)})`;
-        }, intervalSpeed);
-    
-
-        setTimeout(() => {
-            clearInterval(intervalId);
-            this[`color${player}`] = 'white';
-        }, duration);
-    }
+    //         if (progress < duration) {
+    //             opacity = 0.2 + 0.8 * Math.abs(Math.sin(progress * Math.PI / duration));
+    //             this[`color${player}`] = `rgba(138, 43, 226, ${opacity})`;
+    //             requestAnimationFrame(animate);
+    //         } else {
+    //             this[`color${player}`] = 'white';
+    //         }
+    //     };
+    //     requestAnimationFrame(animate);
+    // }
 
     displayWinner(winner) {
         

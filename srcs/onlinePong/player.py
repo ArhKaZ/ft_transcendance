@@ -32,6 +32,7 @@ class Player:
         if self.y + 15 < 98:
             if direction == 'down':
                 self.y += self.speed
+        print(f'y: {self.y}')
 
     async def save_to_cache(self):
         cache_key = f'player_{self.id}_{self.game_id}'
