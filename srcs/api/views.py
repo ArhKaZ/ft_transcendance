@@ -473,3 +473,48 @@ def get_match_opponent(request, tournament_code):
 	else:
 		return Response({"error": "No match found"},status=404)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_final_opponent(request, tournament_code):
+    user = request.user
+    try:
+        tournament = Tournament.objects.get(code=tournament_code)
+    except Tournament.DoesNotExist:
+        return Response({"error": f"Tournament {tournament_code} does not exist"}, status=404)
+    
+    # Get all non-final matches
+    initial_matches = tournament.all_matches.filter(is_final=False)
+    
+    # Check if both initial matches have winners
+    if initial_matches.count() == 2 and all(match.winner for match in initial_matches):
+        winners = [match.winner for match in initial_matches]
+        
+        # Check if final match already exists
+        final_match = tournament.all_matches.filter(is_final=True).first()
+        
+        if not final_match:
+            # Create final match if it doesn't exist
+            tournament.create_final(winners[0], winners[1])
+            final_match = tournament.all_matches.filter(is_final=True).first()
+        
+        # Serialize the final match data
+        match_data = TournamentMatchSerializer(final_match).data
+        
+        # Determine if current user is player1 (creator) or player2
+        create = match_data['player1']['id'] == user.id
+        
+        if not create:
+            return Response({
+                'create': create
+            })
+        else:
+            # Get opponent info based on user's position
+            opponent = match_data['player2'] if match_data['player1']['id'] == user.id else match_data['player1']
+            return Response({
+                'opp_id': opponent['id'],
+                'opp_name': opponent['username'],
+                'opp_avatar': opponent['avatar'],
+                'create': create
+            })
+    
+    return Response({"error": "Final match cannot be created yet - waiting for initial matches to complete"}, status=400)

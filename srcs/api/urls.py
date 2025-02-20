@@ -26,4 +26,5 @@ urlpatterns = [
 	path('tournament/<str:tournament_code>/players/', views.get_tournament_players, name='tournament_players'),
 	path('tournament/<str:tournament_code>/matches/', views.get_tournament_matches, name='tournament_matches'),
     path('tournament/<str:tournament_code>/get_opponent', views.get_match_opponent, name='tournament_match_opponent'),
+	path('tournament/<str:tournament_code>/get_final_opponent', views.get_final_opponent, name='tournament_final_opponent'),
 ]
