@@ -49,6 +49,7 @@ class Ball:
         if not self.as_reset:
             self.y = next_y
             self.x = next_x
+            print(f"pos : {self.x} {self.y}")
         if game.bound_wall or game.bound_player:
             await self.save_to_cache()
             return True

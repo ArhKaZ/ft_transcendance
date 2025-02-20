@@ -2,8 +2,10 @@ class Ball {
     constructor(canvas) {
         this.canvas = canvas;
         this.size = Math.min(canvas.width, canvas.height) * 0.01;
-        this.x = 50;
-        this.y = 50;
+        this.xPercent = 50;
+        this.yPercent = 50;
+        this.x = this.xPercent * canvas.width / 100;
+        this.y = this.yPercent * canvas.height / 100;
         this.vx = 0;
         this.vy = 0;
         
@@ -19,43 +21,46 @@ class Ball {
     }
 
     serverUpdate(data) {
+            // Convertir les positions normalisées en coordonnées canvas
         this.serverX = data.x;
         this.serverY = data.y;
-        this.vx = data.vx * this.speedMultiplier;
-        this.vy = data.vy * this.speedMultiplier;
 
+        // Convertir les vitesses normalisées en unités canvas
+        this.vx = data.vx;
+        this.vy = data.vy;
+        console.log('sX: ', this.serverX, 'sY: ', this.serverY, 'vx: ', this.vx, 'vy: ', this.vy);
         this.lastServerUpdate = Date.now();
 
-        const diffX = Math.abs(this.x - this.serverX);
-        const diffY = Math.abs(this.y - this.serverY);
-        if (diffX > 5 || diffY > 5) {
-            this.x = this.serverX;
-            this.y = this.serverY;
+        // Correction immédiate si l'écart est significatif
+        const diffX = Math.abs(this.xPercent - this.serverX);
+        const diffY = Math.abs(this.yPercent - this.serverY);
+        if (diffX > 2 || diffY > 2) {
+            this.xPercent = this.serverX;
+            this.yPercent = this.serverY;
+            this.x = this.xPercent * this.canvas.width / 100;
+            this.y = this.yPercent * this.canvas.height / 100;
         }
     }
 
     
     updatePosition() {
-        const now = Date.now();
-        const deltaTime = (now - this.lastUpdateTime) / 1000;
-        this.lastUpdateTime = now;
-        
         if (this.vx === 0 && this.vy === 0) return;
+        // const now = Date.now();
+        // const serverDiff = (now - this.lastServerUpdate) / 1000;
+        
+        // console.log('serverdiff :', serverDiff);
+        // this.x = this.serverX + this.vx * serverDiff;
+        // this.y = this.serverY + this.vy * serverDiff;
+        this.xPercent += this.vx;
+        this.yPercent += this.vy;
 
-        const nextX = this.x + this.vx * deltaTime;
-        const nextY = this.y + this.vy * deltaTime;
-        
-        const serverDiff = (now - this.lastServerUpdate) / 1000;
-        const predictedX = this.serverX + this.vx * serverDiff;
-        const predictedY = this.serverY + this.vy * serverDiff;
-        
-        this.x = nextX + (predictedX - nextX) * this.interpolFactor;
-        this.y = nextY + (predictedY - nextY) * this.interpolFactor;
+        this.x = this.xPercent * this.canvas.width / 100;
+        this.y = this.yPercent * this.canvas.height / 100;
     }
 
     setInMiddle() {
-        this.x = 50;
-        this.y = 50;
+        this.x = (50 / 100) * this.canvas.width; // Convertir en unités canvas
+        this.y = (50 / 100) * this.canvas.height; // Convertir en unités canvas
         this.vx = 0;
         this.vy = 0;
         this.serverX = 50;
@@ -65,13 +70,11 @@ class Ball {
     }
     
     draw(context) {
-        let xCanvas = this.x * this.canvas.width / 100;
-        let yCanvas = this.y * this.canvas.height / 100;
         context.shadowBlur = 20; 
         context.shadowColor = '#8a2be2'; 
         context.fillStyle = '#8a2be2';
         context.beginPath();
-        context.arc(xCanvas, yCanvas, this.size, 0, 2 * Math.PI);
+        context.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
         context.fill();
         context.shadowBlur = 0;
         context.shadowColor = 'transparent';
