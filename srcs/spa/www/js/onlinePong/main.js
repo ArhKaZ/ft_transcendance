@@ -71,13 +71,12 @@ async function init() {
     const user = await getUserFromBack();
 
     displayWhenLoad(user);
-    
+    // console.log('handlers : ', keyUpHandler, keyDownHandler);
     const urlParams = new URLSearchParams(window.location.search);
     let infos = null;
     inTournament = urlParams.get('tournament');
     if (inTournament) {
         infos = await getInfoMatchTournament(user);
-        console.log('info : ', infos);
     }
     socket = setupWebSocket(user, infos);
 }
@@ -130,10 +129,11 @@ function setupWebSocket(user, infos) {
 
 
 function setupKeyboardControls(playerId) {
-
+    console.log('je creer down');
     keyDownHandler = (event) => {
         const direction = event.key === 'ArrowUp' ? 'up' : event.key === 'ArrowDown' ? 'down' : null;
         if (direction && !pressKey) {
+            console.log('in event');
             pressKey = true;
             sendToBack({ action: 'move', instruction: 'start', direction, player_id: playerId});
         }
@@ -141,13 +141,32 @@ function setupKeyboardControls(playerId) {
 
     keyUpHandler = (event) => {
         if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+            console.log('in event');
             sendToBack({ action: 'move', instruction: 'stop', player_id: playerId});
             pressKey = false;
         }
     };
 
-    window.addEventListener('keydown', keyDownHandler);
-    window.addEventListener('keyup', keyUpHandler);
+    window.addEventListener('keydown',keyDownHandler);
+    window.addEventListener('keyup',keyUpHandler);
+}
+
+function cleanKeyboardControls() {
+    console.log('je clean');
+    window.removeEventListener('keydown', keyDownHandler);
+    window.removeEventListener('keyup', keyUpHandler);
+    keyDownHandler = null;
+    keyUpHandler = null;
+    socket = null;
+    oldHeight = null;
+    gameStarted = false;
+    currentPlayerId = null;
+    currentGame = null;
+    currentCountdown = null;
+    currentGameId = null;
+    // inTournament = false;
+    pressKey = false;
+    is_finished = false;
 }
 
 async function initGame(data) {
@@ -192,10 +211,6 @@ async function handleWebSocketMessage(e) {
         case 'game_finish':
             is_finished = true;
             currentGame.stop();
-            removeEventListener('keydown', keyDownHandler);
-            removeEventListener('keyup', keyUpHandler);
-            keyDownHandler = null;
-            keyUpHandler = null;
             handleGameFinish(currentGame, data.winning_session);
             gameStarted = false;
             break;
@@ -322,6 +337,7 @@ async function handleGameStart(data) {
 }
 
 function handleGameCancel(data) {
+    cleanKeyboardControls();
     handleErrors(data);
 }
 
@@ -331,8 +347,10 @@ function updatePlayerPosition(game, data) {
 }
 
 async function handleCountdown(countdown) {
+    console.log(`countdown ${countdown}`);
     await currentCountdown.displayNumber(countdown);
     if (countdown === 0) {
+        console.log('je passe dans la creation');
         setupKeyboardControls(currentPlayerId);
         currentCountdown.stopDisplay();
         currentGame.start();
@@ -360,6 +378,7 @@ function handleGameFinish(game, winningId) {
             'won': asWin
         })
     }).then(data => {
+        cleanKeyboardControls();
         if (inTournament) {
             sessionStorage.setItem('asWin', asWin);
             btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
