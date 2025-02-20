@@ -12,6 +12,7 @@ let currentGame = null;
 let currentCountdown = null;
 let currentGameId = null;
 let inTournament = false;
+let inFinal = false;
 let pressKey = false;
 let is_finished = false;
 let keyUpHandler = null;
@@ -97,6 +98,7 @@ async function init() {
     let infos = null;
     inTournament = urlParams.get('tournament');
     if (inTournament && sessionStorage.getItem('asWin') == 'true') {
+        inFinal = true;
         await getInfoFinale(user);
     }
     else if (inTournament) {
@@ -384,12 +386,21 @@ function handleGameFinish(game, winningId) {
             'won': asWin
         })
     }).then(data => {
-        if (inTournament) {
+        if (inTournament && inFinal == false) {
             sessionStorage.setItem('asWin', asWin);
             btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
             btnBack.innerText = "Back to Tournament";
             setTimeout(() => {
                 window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+            }, 3000);
+        }
+        else if (inTournament && inFinal) {
+            sessionStorage.removeItem('asWin');
+            sessionStorage.removeItem('tournament_code');
+            btnBack.href = `/home/`;
+            btnBack.innerText = "Final finished, back to home ?";
+            setTimeout(() => {
+                window.location.href = `/home/`;
             }, 3000);
         }
         else
