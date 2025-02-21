@@ -7,29 +7,29 @@
     <link rel="stylesheet" href="/css/global.css">
 </head>
 <body>
-    <h1>Modifier l'utilisateur</h1>
+    <h1>Change your infomations</h1>
 
     <form id="userForm" enctype="multipart/form-data">
 
         <div>
-            <label for="username">Nom d'utilisateur (laisser vide si inchangé):</label>
+            <label for="username">Username (Leave blank if no change):</label>
             <input type="text" id="username" name="username">
         </div>
 
 		<div>
-            <label for="pseudo">Tournament pseudo (laisser vide si inchangé):</label>
+            <label for="pseudo">Tournament pseudo (Leave blank if no change):</label>
             <input type="text" id="pseudo" name="pseudo">
         </div>
 
         <div>
-            <label for="password">Nouveau mot de passe (laisser vide si inchangé) :</label>
+            <label for="password">New password (Leave blank if no change) :</label>
             <input type="password" id="password" name="password">
         </div>
         <button id="erase-button">
             <img src="../../css/ico/earse.png" alt="Erase" width="30" height="30">
         </button>        
         <div>
-            <label for="description">Description (laisser vide si inchangé):</label>
+            <label for="description">Description (Leave blank if no change):</label>
             <textarea id="description" name="description"></textarea>
         </div>
         
@@ -37,14 +37,13 @@
             <label for="avatar">Avatar:</label>
             <label for="avatar" class="custom-file-upload">Choose File</label>
             <input type="file" id="avatar" name="avatar" accept="image/*">
-            <span id="file-chosen">(laisser vide si inchangé)</span>
+            <span id="file-chosen">(Leave blank if no change)</span>
         </div>
         
         
-        <button type="submit">Mettre à jour</button>
+        <button type="submit">Update</button>
         <div class="bottom-buttons">
-            <button id="return-button">Return</button>
-        </div>
+            <button type="button" id="return-button">Return</button>        </div>
         
     </form>
     <div id="message"></div>

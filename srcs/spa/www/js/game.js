@@ -29,7 +29,7 @@ document.getElementById('user-avatar').addEventListener('click', () => {
 });
 
 document.getElementById('return-button').addEventListener('click', () => {
-    window.history.back();
+    window.location.href = "/home/"; // ou une autre URL qui gère correctement l'accès
 });
 
 document.getElementById('loseLp').addEventListener('click', async () => {
