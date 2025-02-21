@@ -143,7 +143,7 @@ class TournamentGame {
 			
 			const data = await response.json();
 			console.log(data);
-			this.displayTournamentInfo(data);
+			// this.displayTournamentInfo(data);
 			this.populatePlayers(data);
 		} catch (error) {
 			this.displayError('Error loading tournament data');
