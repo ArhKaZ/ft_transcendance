@@ -27,6 +27,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 		self.in_tournament = False
 		self.game = None
 		self.game_id = None
+		self._countdown_task = None
 
 	async def connect(self):
 		self.player_id = int(self.scope['url_route']['kwargs']['player_id'])
@@ -237,7 +238,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 	async def start_game_sequence(self):
 		await self.notify_game_start(self.game.p1, self.game.p2)
-		self._countdown_task = asyncio.create_task(self.run_countdown_sequence())
+		if not self._countdown_task:
+			self._countdown_task = asyncio.create_task(self.run_countdown_sequence())
 		asyncio.create_task(self.launch_game_after_countdown())
 
 	async def launch_game_after_countdown(self):
@@ -375,6 +377,13 @@ class PongConsumer(AsyncWebsocketConsumer):
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
 
+	async def notify_countdown(self, countdown):
+		message = {
+			'type': 'countdown',
+			'countdown': countdown,
+		}
+		await self.channel_layer.group_send(self.game.group_name, message)
+
 	async def notify_score_update(self, scores, p_id):
 		message = {
 			'type': 'score_update',
@@ -437,13 +446,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 			'game_status': event['game_status']
 		}
 		await self.send(text_data=json.dumps(message))
-
-	async def notify_countdown(self, countdown):
-		message = {
-			'type': 'countdown',
-			'countdown': countdown,
-		}
-		await self.channel_layer.group_send(self.game.group_name, message)
 
 	async def countdown(self, event): 
 		message = {

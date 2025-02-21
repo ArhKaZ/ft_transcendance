@@ -61,7 +61,6 @@ class PongServer:
 		game_id = str(uuid.uuid4())
 		game = PongGame(player_info, opp_info, game_id)
 		self.games[game_id] = game
-
 		active_games = await sync_to_async(cache.get)('active_pong_games') or []
 		active_games.append(game_id)
 		await sync_to_async(cache.set)('active_pong_games', active_games)
