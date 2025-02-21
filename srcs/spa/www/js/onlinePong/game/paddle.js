@@ -4,6 +4,7 @@ class Paddle {
         this.player = player;
         this.width = canvas.width * 0.01;
         this.height = canvas.height * 0.16;
+        console.log(this.height, this.width);
         if (this.player === 1)
             this.x = canvas.width * (1 / 100);
         if (this.player === 2)
@@ -28,9 +29,9 @@ class Paddle {
     updatePosition(canMove) {
         if (!this.isMoving || !canMove) return;
 
-        if (this.direction === 'up' && this.yPercent > 2) {
+        if (this.direction === 'up' && this.yPercent > 1.5) {
             this.yPercent -= this.speed;
-        } else if (this.direction === 'down' && this.yPercent + 16 < 98 ) {
+        } else if (this.direction === 'down' && this.yPercent + 16 < 99.5 ) {
             this.yPercent += this.speed;
         }
         this.y = this.yPercent * this.canvas.height / 100;

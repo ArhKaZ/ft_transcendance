@@ -417,6 +417,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				finally:
 					await self.cleanup_round()
 					await asyncio.sleep(1)
+					await self.game.save_to_cache()
 		except asyncio.TimeoutError:
 				print('Round timeout - ')
 				self._round_complete_event.set()

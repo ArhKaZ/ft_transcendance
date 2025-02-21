@@ -91,7 +91,7 @@ class PongGame:
 						await queue.put(game_state)
 				# end_time = time.time()  # ⏱️ Fin du chronomètre
 				# print(f"Temps d'exécution : {end_time - start_time:.5f} secondes")
-				await asyncio.sleep(0.016)
+				await asyncio.sleep(1/60)
 		except asyncio.CancelledError:
 			print("ball update task cancelled")
 		except Exception as e: 
@@ -136,7 +136,7 @@ class PongGame:
 		if (has_collision 
 	  		or self.is_first_update or
 			self.ball.vector_as_change or
-			time.time() - self.last_update_time > 0.1):
+			time.time() - self.last_update_time > 0.1): 
 			self.ball.vector_as_change = False
 			self.is_first_update = False
 			self.last_update_time = time.time()
