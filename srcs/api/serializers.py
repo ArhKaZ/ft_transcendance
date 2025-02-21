@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from .models import MyUser
-from .models import MatchHistory
+from .models import MyUser, MatchHistory, TournamentMatch
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -26,3 +25,13 @@ class UserInfoSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = MyUser
 		fields = ['id', 'username', 'description', 'avatar', 'ligue_points', 'pseudo']
+
+class TournamentMatchSerializer(serializers.ModelSerializer):
+    player1 = UserInfoSerializer()
+    player2 = UserInfoSerializer()
+    winner = UserInfoSerializer(allow_null=True)
+
+    class Meta:
+        model = TournamentMatch
+        fields = ['id', 'player1', 'player2', 'score', 'winner', 'is_final']
+

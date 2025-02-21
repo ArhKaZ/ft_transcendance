@@ -12,6 +12,10 @@ let currentGame = null;
 let currentCountdown = null;
 let currentGameId = null;
 let inTournament = false;
+let pressKey = false;
+let is_finished = false;
+let keyUpHandler = null;
+let keyDownHandler = null;
 
 function sendToBack(data) {
     if (socket?.readyState === WebSocket.OPEN) {
@@ -36,42 +40,71 @@ async function getUserFromBack() {
             handleErrors({message: 'You need to be logged before playing'});
         }
         const data = await response.json();
-        return await data;
+        return data;
     } catch (error) {
         handleErrors({message: 'You need to be logged before playing'});
     }
 }
     
+async function getInfoMatchTournament(user) {
+    try {
+        const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/get_opponent`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+            },
+            credentials: 'include',
+        });
+        if (!response.ok) {
+            console.log(`Error get opponent : ${response.error}`);
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        handleErrors({message: 'You need to be logged before playing'});
+    }
+}
+
 async function init() {
     const user = await getUserFromBack();
 
     displayWhenLoad(user);
-    
-    socket = setupWebSocket(user);
+    // console.log('handlers : ', keyUpHandler, keyDownHandler);
+    const urlParams = new URLSearchParams(window.location.search);
+    let infos = null;
+    inTournament = urlParams.get('tournament');
+    if (inTournament) {
+        infos = await getInfoMatchTournament(user);
+    }
+    socket = setupWebSocket(user, infos);
 }
 
-function setupWebSocket(user) {
+function setupWebSocket(user, infos) {
     currentPlayerId = user.id;
     const id = user.id.toString();
-    const socket = new WebSocket(`wss://127.0.0.1:8443/ws/onlinePong/${id}/`);
-    const urlParams = new URLSearchParams(window.location.search);
-    inTournament = urlParams.get('tournament');
+    const currentUrl = window.location.host;
+    const socket = new WebSocket(`wss://${currentUrl}/ws/onlinePong/${id}/`);
     
     socket.onopen = () => {
         console.log("WebSocket connected");
-        if (inTournament) {
-            sendToBack({
+        if (inTournament && infos) {
+            let objToSend = {
                 action: 'tournament',
                 player_id: user.id,
                 player_name: user.username,
                 player_avatar: user.avatar,
-                create: urlParams.get('create_game'),
-                opponent: {
-                    id: urlParams.get('opp_id'),
-                    name: urlParams.get('opp_name'),
-                    avatar: urlParams.get('opp_avatar'),
-                }
-            })
+                create: infos.create,
+                ... (infos.create && {
+                    opponent: {
+                        id: infos.opp_id,
+                        name: infos.opp_name,
+                        avatar: infos.opp_avatar,
+                    }
+                })
+            }
+            sendToBack(objToSend);
         } else {
             sendToBack({
                 action: 'search', 
@@ -96,28 +129,44 @@ function setupWebSocket(user) {
 
 
 function setupKeyboardControls(playerId) {
-    let movementInterval = null;
-
-    window.addEventListener('keydown', (event) => {
-        if (!movementInterval) {
-            const direction = event.key === 'ArrowUp' ? 'up' : event.key === 'ArrowDown' ? 'down' : null;
-            if (direction) {
-                sendMovement(direction, playerId);
-                movementInterval = setInterval(() => sendMovement(direction, playerId), 10);
-            }
+    console.log('je creer down');
+    keyDownHandler = (event) => {
+        const direction = event.key === 'ArrowUp' ? 'up' : event.key === 'ArrowDown' ? 'down' : null;
+        if (direction && !pressKey) {
+            console.log('in event');
+            pressKey = true;
+            sendToBack({ action: 'move', instruction: 'start', direction, player_id: playerId});
         }
-    });
+    };
 
-    window.addEventListener('keyup', (event) => {
+    keyUpHandler = (event) => {
         if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-            clearInterval(movementInterval);
-            movementInterval = null;
+            console.log('in event');
+            sendToBack({ action: 'move', instruction: 'stop', player_id: playerId});
+            pressKey = false;
         }
-    });
+    };
+
+    window.addEventListener('keydown',keyDownHandler);
+    window.addEventListener('keyup',keyUpHandler);
 }
 
-function sendMovement(direction, playerId) {
-    sendToBack({ action: 'move', direction, player_id: playerId });
+function cleanKeyboardControls() {
+    console.log('je clean');
+    window.removeEventListener('keydown', keyDownHandler);
+    window.removeEventListener('keyup', keyUpHandler);
+    keyDownHandler = null;
+    keyUpHandler = null;
+    socket = null;
+    oldHeight = null;
+    gameStarted = false;
+    currentPlayerId = null;
+    currentGame = null;
+    currentCountdown = null;
+    currentGameId = null;
+    // inTournament = false;
+    pressKey = false;
+    is_finished = false;
 }
 
 async function initGame(data) {
@@ -143,9 +192,7 @@ function createPlayers(data) {
 async function handleWebSocketMessage(e) {
     const data = JSON.parse(e.data);
     switch(data.type) {
-
         case 'players_info':
-            console.log('got player infos');
             handlePlayerInfo(data);
             break;
 
@@ -154,12 +201,7 @@ async function handleWebSocketMessage(e) {
             break;
 
         case 'ball_position':
-            currentGame.updateBallPosition(data.x, data.y);
-            currentGame.drawGame(data.bound_wall, data.bound_player);
-            break;
-
-        case 'player_move':
-            updatePlayerPosition(currentGame, data);
+            currentGame.updateBallPosition(data);
             break;
 
         case 'score_update':
@@ -167,9 +209,10 @@ async function handleWebSocketMessage(e) {
             break;
 
         case 'game_finish':
+            is_finished = true;
+            currentGame.stop();
             handleGameFinish(currentGame, data.winning_session);
             gameStarted = false;
-            currentGame.stop();
             break;
 
         case 'game_start':
@@ -191,7 +234,26 @@ async function handleWebSocketMessage(e) {
         case 'waiting_tournament':
             await handleWaiting(data);
             break;
+
+        case 'player_movement_start':
+            handlePlayerStartMove(data);
+            break;
+
+        case 'player_movement_stop':
+            handlePlayerStopMove(data);
+            break;
     }
+}
+
+function handlePlayerStartMove(data) {
+    const player = data.player_id === currentGame.P1.id ? currentGame.P1 : currentGame.P2;
+    player.paddle.startMoving(data.direction);
+}
+
+function handlePlayerStopMove(data) {
+    const player = data.player_id === currentGame.P1.id ? currentGame.P1 : currentGame.P2;
+    player.paddle.stopMoving();
+    player.paddle.serverUpdate(data.finalY);
 }
 
 async function handleWaiting(data) {
@@ -207,6 +269,15 @@ async function handleWaiting(data) {
 }
 
 function handleErrors(data) {
+    if (currentGame) {
+        currentGame.stop();
+    }
+    if (is_finished) return;
+    const errorContainer = document.getElementById('error-container');
+    
+    if (!errorContainer.classList.contains('hidden'))
+		return;
+
     const infoMain = document.getElementById('info-main-player');
     const infop1 = document.getElementById('infoP1');
     const infop2 = document.getElementById('infoP2');
@@ -217,7 +288,6 @@ function handleErrors(data) {
     const game = document.getElementById('gameCanvas');
     const countdown = document.getElementById('countdownCanvas');
     const button = document.getElementById('button-ready');
-    const errorContainer = document.getElementById('error-container');
     const errorMessage = document.getElementById('error-message');
 
     if (!infoMain.classList.contains('hidden'))
@@ -267,7 +337,7 @@ async function handleGameStart(data) {
 }
 
 function handleGameCancel(data) {
-    sendToBack({action: 'cancel'});
+    cleanKeyboardControls();
     handleErrors(data);
 }
 
@@ -277,8 +347,10 @@ function updatePlayerPosition(game, data) {
 }
 
 async function handleCountdown(countdown) {
+    console.log(`countdown ${countdown}`);
     await currentCountdown.displayNumber(countdown);
     if (countdown === 0) {
+        console.log('je passe dans la creation');
         setupKeyboardControls(currentPlayerId);
         currentCountdown.stopDisplay();
         currentGame.start();
@@ -286,6 +358,7 @@ async function handleCountdown(countdown) {
 }
 
 function handleGameFinish(game, winningId) {
+    const btnBack = document.getElementById('button-home');
     const opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
     setTimeout(() => {
         game.displayWinner(winningId);
@@ -304,11 +377,19 @@ function handleGameFinish(game, winningId) {
             'opponent_name': opponentName,
             'won': asWin
         })
-    }).then(response => response.json())
-    .then(data => {
-        console.log('Match enregistrer ', data);
-        
-    }).catch(error => console.error(error));
+    }).then(data => {
+        cleanKeyboardControls();
+        if (inTournament) {
+            sessionStorage.setItem('asWin', asWin);
+            btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+            btnBack.innerText = "Back to Tournament";
+            setTimeout(() => {
+                window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+            }, 3000);
+        }
+        else
+            btnBack.innerText += "Back to Home";
+    });
 }
 
 function resizeCanvasGame() {

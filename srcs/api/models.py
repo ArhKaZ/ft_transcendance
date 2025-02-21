@@ -64,6 +64,7 @@ class Tournament(models.Model):
     players = models.ManyToManyField('MyUser', blank=True, related_name='tournaments')
     started = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    all_matches = models.ManyToManyField('TournamentMatch', blank=True, related_name='tournament_matches')
 
     def save(self, *args, **kwargs):
         if not self.code:
@@ -81,7 +82,49 @@ class Tournament(models.Model):
         # """Starts the tournament if 4 players have joined."""
         if self.players.count() == 4:
             self.started = True
+            self.create_matchs()
             self.save()
+
+    def create_matchs(self):
+        players = list(self.players.all())
+        if len(players) != 4:
+            raise ValidationError("Tournament need 4 players")
+        
+        match1 = TournamentMatch.objects.create(
+            tournament=self, player1=players[0], player2=players[1]
+        )
+
+        match2 = TournamentMatch.objects.create(
+            tournament=self, player1=players[2], player2=players[3]
+        )
+        self.all_matches.add(match1, match2)
+
+    def create_final(self, winner1, winner2):
+        final = TournamentMatch.objects.create(
+            tournament=self, player1=winner1, player2=winner2, is_final=True
+        )
+        self.all_matches.add(final)
+        self.save()
 
     def __str__(self):
         return f"Tournament {self.code} - Players: {self.players.count()}/4 - Started: {self.started}"
+
+
+class TournamentMatch(models.Model):
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='matches')
+    player1 = models.ForeignKey('MyUser', on_delete=models.CASCADE, related_name='match_player1')
+    player2 = models.ForeignKey('MyUser', on_delete=models.CASCADE, related_name='match_player2')
+    score = models.CharField(max_length=10, blank=True, null=True)
+    winner = models.ForeignKey('MyUser', on_delete=models.SET_NULL, blank=True, null=True, related_name='match_winner')
+    is_final = models.BooleanField(default=False)
+
+    def set_winner(self, winner, score):
+        if winner not in [self.player1, self.player2]:
+            raise ValidationError("Winner must be in the match")
+
+        self.winner = winner
+        self.score = score
+        self.save()
+
+    def __str__(self):
+        return f"Match {self.tournament.code} - {self.player1} vs {self.player2} - Winner: {self.winner}"

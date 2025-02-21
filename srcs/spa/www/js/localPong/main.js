@@ -26,7 +26,7 @@ async function getUserFromBack() {
             handleErrors({message: 'You need to be logged before playing'});
         }
         const data = await response.json();
-        return await data;
+        return data;
     } catch (error) {
         handleErrors({message: 'You need to be logged before playing'});
     }

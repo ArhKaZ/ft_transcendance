@@ -56,7 +56,7 @@ class Player:
 
             redis = await aioredis.from_url(f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}')
             await redis.publish(f"game_update:{self.game_id}", f"score_updated_{self.id}")
-            if self.score >= 5:
+            if self.score >= 1:
                 await redis.publish(f"game_update:{self.game_id}", f"game_finish_{self.id}")
             await redis.close()
         except aioredis.RedisError as e:
