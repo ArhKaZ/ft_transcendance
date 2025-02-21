@@ -10,6 +10,11 @@ if (loginbtn) {
 	});
 }
 
+document.getElementById('return-button').addEventListener('click', () => {
+    console.log("return click");
+    window.history.back();
+});
+
 async function loginUser() {
 	const form = document.getElementById('userForm');
 	const messageDiv = document.getElementById('message');

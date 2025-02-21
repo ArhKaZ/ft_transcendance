@@ -44,6 +44,11 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
     }
 });
 
+document.getElementById('return-button').addEventListener('click', () => {
+    console.log("return click");
+    window.history.back();
+});
+
 document.getElementById('avatar').addEventListener('change', function() {
     const fileName = this.files[0] ? this.files[0].name : "No file chosen";
     document.getElementById('file-chosen').textContent = fileName;

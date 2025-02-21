@@ -25,47 +25,9 @@ document.getElementById('logout-button').addEventListener('click', async () => {
     window.location.reload();
 });
 
-
-document.getElementById('loseLp').addEventListener('click', async () => {
-	fetch('/api/change_lp/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-            'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-            'won': false
-        })
-    }).then(response => response.json())
-	.then(data => {
-		const lps = document.getElementById('lps').innerText = `Ligue Points: ${data}`;
-	});
-})
-
 document.getElementById('user-avatar').addEventListener('click', () => {
     window.location.href = "/user/edit_user/";
 });
-
-
-document.getElementById('addLp').addEventListener('click', async () => {
-	fetch('/api/change_lp/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-            'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-            'won': true
-        })
-    }).then(response => response.json())
-	.then(data => {
-		const lps = document.getElementById('lps').innerText = `Ligue Points: ${data}`;
-	});
-})
 
 const response = await fetch('/api/get-my-info/', {
 	method: 'GET',
@@ -111,6 +73,8 @@ if (response.ok) {
 	const friendsbtn = document.getElementById('friend-button');
 	const avatarImg = document.getElementById('user-avatar');
 
+	const userInfo = document.querySelector('.user-info');
+    userInfo.style.display = 'none';
 	bottomBtns.style.display = 'none';
 	// localbtn.style.display = 'none';
 	gamebtn.style.display = 'none';

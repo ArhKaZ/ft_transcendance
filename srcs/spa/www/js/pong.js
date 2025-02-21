@@ -97,6 +97,7 @@ if (response.ok) {
 
 	bottomBtns.style.display = 'none';
 	localbtn.style.display = 'none';
+    userInfo.style.display = 'none';
 	pongbtn.style.display = 'none';
 	historybtn.style.display = 'none';
 	logoutbtn.style.display = 'none';
