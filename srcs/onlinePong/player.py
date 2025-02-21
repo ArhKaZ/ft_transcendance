@@ -29,7 +29,7 @@ class Player:
         if self.y > 2 :
             if direction == 'up':
                 self.y -= self.speed
-        if self.y + 15 < 98:
+        if self.y + 16 < 98:
             if direction == 'down':
                 self.y += self.speed
 

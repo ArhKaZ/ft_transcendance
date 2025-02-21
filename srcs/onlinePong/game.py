@@ -1,4 +1,5 @@
 import asyncio
+import time
 
 from channels.layers import get_channel_layer
 from django.core.cache import cache
@@ -24,7 +25,7 @@ class PongGame:
 		}
 		self.events['ball_reset'].set()
 		self.can_move = False
-		# self.is_finished = False
+		self.last_update_time = time.time()
 		self.ball_update_task = None
 		self.ball_update_callbacks = set()
 
@@ -79,6 +80,7 @@ class PongGame:
 		try:
 			while (not self.events['game_cancelled'].is_set()
 				and not self.events['game_finished'].is_set()):
+				# start_time = time.time()  # ⏳ Début du chronomètre
 				if not self.events['ball_reset'].is_set():
 					await self.events['ball_reset'].wait()
 					continue
@@ -87,6 +89,8 @@ class PongGame:
 				if game_state:
 					for queue in self.ball_update_callbacks:
 						await queue.put(game_state)
+				# end_time = time.time()  # ⏱️ Fin du chronomètre
+				# print(f"Temps d'exécution : {end_time - start_time:.5f} secondes")
 				await asyncio.sleep(0.016)
 		except asyncio.CancelledError:
 			print("ball update task cancelled")
@@ -122,15 +126,20 @@ class PongGame:
 		await self.update_players()
 		self.reset_bounds()
 
+		has_collision = await self.ball.update_position(self)
+
 		if self.ball.is_resetting:
 			self.ball.is_resetting = False
 			await self.ball.save_to_cache()
 			await self.handle_reset_delay()
 			return self.get_current_state()
-		
-		has_collision = await self.ball.update_position(self)
-		if has_collision or self.is_first_update:
+		if (has_collision 
+	  		or self.is_first_update or
+			self.ball.vector_as_change or
+			time.time() - self.last_update_time > 0.1):
+			self.ball.vector_as_change = False
 			self.is_first_update = False
+			self.last_update_time = time.time()
 			return self.get_current_state()
 		return None
 

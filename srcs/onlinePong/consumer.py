@@ -267,7 +267,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 					if self.game.events['game_cancelled'].is_set():
 						break
 					await self.notify_ball_position(game_state)
-					await asyncio.sleep(0.5)
+					await asyncio.sleep(0.1)
 			except asyncio.CancelledError:
 				print('send ball cancelled')
 			except Exception as e:
