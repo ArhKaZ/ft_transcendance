@@ -8,21 +8,53 @@ class TournamentGame {
 		this.init();
 		this.players = [];
 		this.currentPlayer;
+		this.quitButton = document.getElementById('quit-button');
+		this.messageDiv = document.getElementById('messageDiv');
+		document.getElementById('quit-button').addEventListener('click', () => this.quitTournament());
+	}
+
+	async quitTournament() {
+		if (!this.tournamentCode) return;
+
+		try {
+			console.log("je forfeit");
+			const response = await fetch(`/api/forfeit_tournament/${this.tournamentCode}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken(),
+                    'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                },
+				credentials: 'include',
+            });
+
+			const data = await response.json();
+
+            if (response.ok) {
+                sessionStorage.removeItem('asWin');
+            	sessionStorage.removeItem('tournament_code');
+				setTimeout(() => {
+					window.location.href = `/home/`;
+				}, 3000);
+            } else {
+                this.messageDiv.innerHTML = `<div class="error-message">${data.error}</div>`;
+            }
+        } catch (error) {
+            this.messageDiv.innerHTML = `<div class="error-message">Error quitting tournament</div>`;
+        }
 	}
 
 	async init() {
 		await this.loadPlayers();
+		console.log("final status in the init ", sessionStorage.getItem('finalDone'));
 		if (!sessionStorage.getItem('asWin')) {
 			sessionStorage.setItem('tournament_code', this.tournamentCode);
 			await sleep(5000);
 			window.location.href = `/onlinePong/?tournament=true`;
-		} else {
-			if (sessionStorage.getItem('asWin') == "true") {
+		} else if (sessionStorage.getItem('asWin') == "true" && sessionStorage.getItem('finalDone') != "true") {
 				console.log("je participe a la finale");
 				await sleep(5000);
 				window.location.href = `/onlinePong/?tournament=true`;
-			}
-			//creer final
 		}
 	}
 

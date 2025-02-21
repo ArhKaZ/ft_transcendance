@@ -395,12 +395,14 @@ function handleGameFinish(game, winningId) {
             }, 3000);
         }
         else if (inTournament && inFinal) {
-            sessionStorage.removeItem('asWin');
-            sessionStorage.removeItem('tournament_code');
-            btnBack.href = `/home/`;
-            btnBack.innerText = "Final finished, back to home ?";
+            console.log()
+            // sessionStorage.removeItem('asWin');
+            // sessionStorage.removeItem('tournament_code');
+            sessionStorage.setItem('finalDone', true);
+            btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+            btnBack.innerText = "Back to Tournament";
             setTimeout(() => {
-                window.location.href = `/home/`;
+                window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
             }, 3000);
         }
         else
