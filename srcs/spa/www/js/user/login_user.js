@@ -11,8 +11,7 @@ if (loginbtn) {
 }
 
 document.getElementById('return-button').addEventListener('click', () => {
-    console.log("return click");
-    window.history.back();
+    window.location.href = "/home/"; // ou une autre URL qui gère correctement l'accès
 });
 
 async function loginUser() {

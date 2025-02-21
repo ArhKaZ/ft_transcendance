@@ -77,12 +77,15 @@ class TournamentGame {
 			`Tournament Code: ${data.tournament_code}`;
 
 		// Display players
-		const playersList = document.getElementById('playersList');
-		playersList.innerHTML = data.players.map(player => 
-			`<li class="player-item">
-				<span class="player-name">${player.username}</span>
-			</li>`
-		).join('');
+		if (data.players.length >= 4) {
+            document.getElementById('player1').textContent = data.players[0].username;
+            document.getElementById('player2').textContent = data.players[1].username;
+            document.getElementById('player3').textContent = data.players[2].username;
+            document.getElementById('player4').textContent = data.players[3].username;
+        } else {
+            // S'il y a moins de 4 joueurs, afficher un message d'erreur ou adapter l'affichage.
+            console.error("Nombre insuffisant de joueurs");
+        }
 
 	}
 

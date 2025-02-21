@@ -53,7 +53,7 @@ if (response.ok) {
 	registerbtn.style.display = 'none';
 
 	const welcomemsg = document.getElementById('welcome-msg');
-	welcomemsg.innerText = `Bienvenue, ${data.username} !`;
+	welcomemsg.innerText = `Welcome, ${data.username} !`;
 	const avatarImg = document.getElementById('user-avatar');
 	avatarImg.src = data.avatar;
 	avatarImg.alt = 'avatar';

@@ -86,13 +86,13 @@ async function addFriend() {
             console.log("add friend call worked");
             window.location.reload();
         } else {
-            sessionStorage.setItem('friend_error_msg', `Erreur lors de l'ajout d'un ami: ${response.status}`);
-            window.location.reload();
+            const data = await response.json();
+            const errorMessage = data.error || `Erreur lors de l'ajout d'un ami : ${response.status}`;
+            displayAddFriendError(errorMessage);
         }
     } catch (error) {
-        sessionStorage.setItem('friend_error_msg', `Erreur lors de l'ajout d'un ami: ${error.message}`);
+        displayAddFriendError(`Erreur lors de l'ajout d'un ami: ${error.message}`);
         console.log("add friend call failed", error);
-        window.location.reload();
     }
 }
 
@@ -120,6 +120,13 @@ async function fetchPendingFriend() {
     catch {
         console.log("get pending friends call failed");
     }
+}
+
+function displayAddFriendError(message) {
+    const addmsg = document.getElementById('add-friend-msg');
+    addmsg.innerText = message;
+    addmsg.style.display = "block";
+    addmsg.style.color = "red";
 }
 
 fetchPendingFriend();

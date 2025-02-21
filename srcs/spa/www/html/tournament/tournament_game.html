@@ -2,52 +2,8 @@
 <html>
 <head>
     <title>Tournament Game</title>
-    <style>
-        .tournament-container {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            background-color: white;
-        }
-        .tournament-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .tournament-code {
-            color: #666;
-            font-size: 1.2em;
-        }
-        .players-list {
-            list-style: none;
-            padding: 0;
-        }
-        .player-item {
-            padding: 15px;
-            margin: 10px 0;
-            background-color: #f5f5f5;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-        }
-        .player-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 15px;
-        }
-        .player-name {
-            font-size: 1.1em;
-            color: #333;
-        }
-        .error-message {
-            color: #dc3545;
-            text-align: center;
-            padding: 20px;
-        }
     </style>
-    		<link rel="stylesheet" href="/css/global.css">
+    		<link rel="stylesheet" href="/css/tournament_game.css">
             <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -56,8 +12,25 @@
             <h2>Tournament Players</h2>
             <div class="tournament-code" id="tournamentCode"></div>
         </div>
-        <ul class="players-list" id="playersList">
-            <!-- Players will be inserted here -->
+        <div class="tournament-bracket">
+            <div class="round semi-finals">
+                <div class="match">
+                    <div class="player" id="player1"></div>
+                    <div class="player" id="player2"></div>
+                </div>
+                <div class="match">
+                    <div class="player" id="player3"></div>
+                    <div class="player" id="player4"></div>
+                </div>
+            </div>
+            <div class="round final">
+                <div class="match">
+                    <div class="player" id="winner1"></div>
+                    <div class="player" id="winner2"></div>
+                </div>
+            </div>
+        </div>
+        
         </ul>
     </div>
 
