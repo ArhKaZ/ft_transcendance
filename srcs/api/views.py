@@ -236,6 +236,58 @@ def add_friend(request):
 			status=status.HTTP_404_NOT_FOUND
 		)
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def join_final(request, tournament_code):
+	try:
+		tournament = Tournament.objects.get(code=tournament_code)
+		try:
+			tournament.add_finalist(request.user)
+			
+			response_data = {
+				'message': 'Successfully joined final',
+			}
+			
+			return Response(response_data, status=status.HTTP_200_OK)
+			
+		except ValidationError as e:
+			return Response(
+				{'error': str(e)}, 
+				status=status.HTTP_400_BAD_REQUEST
+			)
+			
+	except Tournament.DoesNotExist:
+		return Response(
+			{'error': 'Tournament not found'}, 
+			status=status.HTTP_404_NOT_FOUND
+		)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def join_winner(request, tournament_code):
+	try:
+		tournament = Tournament.objects.get(code=tournament_code)
+		try:
+			tournament.add_winner(request.user)
+			
+			response_data = {
+				'message': 'You won !!',
+			}
+			
+			return Response(response_data, status=status.HTTP_200_OK)
+			
+		except ValidationError as e:
+			return Response(
+				{'error': str(e)}, 
+				status=status.HTTP_400_BAD_REQUEST
+			)
+			
+	except Tournament.DoesNotExist:
+		return Response(
+			{'error': 'Tournament not found'}, 
+			status=status.HTTP_404_NOT_FOUND
+		)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -472,4 +524,171 @@ def get_match_opponent(request, tournament_code):
 			})
 	else:
 		return Response({"error": "No match found"},status=404)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_final_opponent(request, tournament_code):
+	user = request.user
+	try:
+		tournament = Tournament.objects.get(code=tournament_code)
+	except Tournament.DoesNotExist:
+		return Response({"error": f"Tournament {tournament_code} does not exist"}, status=404)
+	
+	# Get all non-final matches
+	initial_matches = tournament.all_matches.filter(is_final=False)
+	
+	# Check if both initial matches have winners
+	if initial_matches.count() == 2 and all(match.winner for match in initial_matches):
+		winners = [match.winner for match in initial_matches]
+		
+		# Check if final match already exists
+		final_match = tournament.all_matches.filter(is_final=True).first()
+		
+		if not final_match:
+			# Create final match if it doesn't exist
+			tournament.create_final(winners[0], winners[1])
+			final_match = tournament.all_matches.filter(is_final=True).first()
+		
+		# Serialize the final match data
+		match_data = TournamentMatchSerializer(final_match).data
+		
+		# Determine if current user is player1 (creator) or player2
+		create = match_data['player1']['id'] == user.id
+		
+		if not create:
+			return Response({
+				'create': create
+			})
+		else:
+			# Get opponent info based on user's position
+			opponent = match_data['player2'] if match_data['player1']['id'] == user.id else match_data['player1']
+			return Response({
+				'opp_id': opponent['id'],
+				'opp_name': opponent['username'],
+				'opp_avatar': opponent['avatar'],
+				'create': create
+			})
+	
+	return Response({"error": "Final match cannot be created yet - waiting for initial matches to complete"}, status=400)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def forfeit_tournament(request, tournament_code):
+	print("je forfeit python") 
+	try:
+		# Get the tournament and verify it exists
+		tournament = Tournament.objects.get(code=tournament_code)
+		user = request.user
+
+		# Verify user is in tournament
+		if user not in tournament.players.all():
+			return Response(
+				{'error': 'You are not in this tournament'}, 
+				status=status.HTTP_400_BAD_REQUEST
+			)
+
+		# Get all matches in the tournament
+		matches = tournament.all_matches.all()
+		
+		# Find the user's current match
+		current_match = matches.filter(
+			Q(player1=user) | Q(player2=user),
+			winner__isnull=True
+		).first()
+
+		if not current_match:
+			return Response(
+				{'error': 'No active match found'}, 
+				status=status.HTTP_400_BAD_REQUEST
+			)
+
+		# Determine the winner (the opponent)
+		winner = current_match.player2 if current_match.player1 == user else current_match.player1
+		
+		# Set the match as forfeited
+		current_match.set_winner(winner, "Forfeit")
+
+		if current_match.is_final:
+			# If this was the final match, the tournament is over
+			return Response({
+				'message': 'Tournament forfeited. The other player wins the tournament.',
+				'winner': winner.username
+			})
+		else:
+			# This was an initial match
+			# Check if both initial matches are complete
+			initial_matches = matches.filter(is_final=False)
+			if all(match.winner for match in initial_matches):
+				# Create the final match with the winners
+				winners = [match.winner for match in initial_matches]
+				tournament.create_final(winners[0], winners[1])
+
+			return Response({
+				'message': 'Match forfeited. The other player advances.',
+				'winner': winner.username
+			})
+
+	except Tournament.DoesNotExist:
+		return Response(
+			{'error': 'Tournament not found'}, 
+			status=status.HTTP_404_NOT_FOUND
+		)
+	except Exception as e:
+		return Response(
+			{'error': str(e)}, 
+			status=status.HTTP_500_INTERNAL_SERVER_ERROR
+		)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_final_players(request, tournament_code):
+	try:
+		tournament = Tournament.objects.get(code=tournament_code)
+		players = tournament.players.all()
+		
+		# Get initial matches to find winners who will be finalists
+		initial_matches = tournament.all_matches.filter(is_final=False)
+		finalists = []
+		
+		# Get winners from initial matches who will be finalists
+		for match in initial_matches:
+			if match.winner:
+				finalists.append(match.winner)
+		
+		# Serialize all players and finalists
+		all_players_serializer = UserInfoSerializer(players, many=True)
+		finalists_serializer = UserInfoSerializer(finalists, many=True)
+		
+		return Response({
+			'tournament_code': tournament_code,
+			'players': all_players_serializer.data,
+			'finalists': finalists_serializer.data
+		})
+	except Tournament.DoesNotExist:
+		return Response({
+			'error': 'Tournament not found'
+		}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_end_players(request, tournament_code):
+	try:
+		tournament = Tournament.objects.get(code=tournament_code)
+		
+		# Serialize all the data using UserInfoSerializer
+		players_serializer = UserInfoSerializer(tournament.players.all(), many=True)
+		finalists_serializer = UserInfoSerializer(tournament.finalist.all(), many=True)
+		winner_serializer = UserInfoSerializer(tournament.winner.all(), many=True)
+		
+		return Response({
+			'tournament_code': tournament_code,
+			'players': players_serializer.data,
+			'finalists': finalists_serializer.data,
+			'winner': winner_serializer.data
+		})
+	except Tournament.DoesNotExist:
+		return Response({
+			'error': 'Tournament not found'
+		}, status=status.HTTP_404_NOT_FOUND)
 

@@ -62,6 +62,8 @@ from django.core.exceptions import ValidationError
 class Tournament(models.Model):
     code = models.CharField(max_length=10, unique=True, editable=False, default=None)
     players = models.ManyToManyField('MyUser', blank=True, related_name='tournaments')
+    finalist = models.ManyToManyField('MyUser', blank=True, related_name='finalist')
+    winner = models.ManyToManyField('MyUser', blank=True, related_name='winner')
     started = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     all_matches = models.ManyToManyField('TournamentMatch', blank=True, related_name='tournament_matches')
@@ -77,6 +79,18 @@ class Tournament(models.Model):
             raise ValidationError("Tournament is full.")
         self.players.add(user)
         self.check_start()
+    
+    def add_finalist(self, user):
+        # """Adds a player to the tournament if there's space."""
+        if self.finalist.count() >= 2:
+            raise ValidationError("Final is full.")
+        self.finalist.add(user)
+
+    def add_winner(self, user):
+        # """Adds a player to the tournament if there's space."""
+        if self.winner.count() >= 1:
+            raise ValidationError("Already have a winner.")
+        self.winner.add(user)
 
     def check_start(self):
         # """Starts the tournament if 4 players have joined."""

@@ -1,0 +1,28 @@
+{% load i18n static i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="utf-8">
+    <title>{% trans "Transcendance" %}</title>
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="language-switcher">
+        <form action="{% url 'set_language' %}" method="post">
+            {% csrf_token %}
+            <input name="next" type="hidden" value="{{ redirect_to }}">
+            <select name="language" onchange="this.form.submit()">
+                {% get_current_language as LANGUAGE_CODE %}
+                {% get_available_languages as LANGUAGES %}
+                {% for code, name in LANGUAGES %}
+                    <option value="{{ code }}" {% if code == LANGUAGE_CODE %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+    {% block content %}{% endblock %}
+</body>
+</html>

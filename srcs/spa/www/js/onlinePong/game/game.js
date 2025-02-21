@@ -64,7 +64,7 @@ class Game {
     startGameLoop() {
         const gameLoop = () => {
             if (!this.isStart) return;
-            this.ball.updatePosition();
+            this.ball.updatePosition(this.P1.paddle, this.P2.paddle);
             this.P1.paddle.updatePosition(this.canMove);
             this.P2.paddle.updatePosition(this.canMove);
             this.drawGame();
@@ -126,6 +126,7 @@ class Game {
         this.scoreP1Element.textContent = this.score[0].toString();
         this.scoreP2Element.textContent = this.score[1].toString();
         this.drawGame(false, false);
+        // this.ball.setInMiddle();
     }
 
     updateScoreFontSize() {
