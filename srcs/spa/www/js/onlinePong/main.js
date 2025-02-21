@@ -156,11 +156,9 @@ function setupWebSocket(user, infos) {
 
 
 function setupKeyboardControls(playerId) {
-    console.log('je creer down');
     keyDownHandler = (event) => {
         const direction = event.key === 'ArrowUp' ? 'up' : event.key === 'ArrowDown' ? 'down' : null;
         if (direction && !pressKey) {
-            console.log('in event');
             pressKey = true;
             sendToBack({ action: 'move', instruction: 'start', direction, player_id: playerId});
         }
@@ -168,7 +166,6 @@ function setupKeyboardControls(playerId) {
 
     keyUpHandler = (event) => {
         if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-            console.log('in event');
             sendToBack({ action: 'move', instruction: 'stop', player_id: playerId});
             pressKey = false;
         }
