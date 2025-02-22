@@ -143,8 +143,8 @@ class TournamentGame {
 			
 			const data = await response.json();
 			console.log(data);
-			// this.displayTournamentInfo(data);
-			this.populatePlayers(data);
+			this.displayTournamentInfo(data);
+			// this.populatePlayers(data);
 		} catch (error) {
 			this.displayError('Error loading tournament data');
 			console.error('Error:', error);
@@ -203,6 +203,12 @@ class TournamentGame {
             // S'il y a moins de 4 joueurs, afficher un message d'erreur ou adapter l'affichage.
             console.error("Nombre insuffisant de joueurs");
         }
+		if (data.finalists.length >= 2)
+		{
+			document.getElementById('winner1').textContent = data.finalists[0].username;
+			document.getElementById('winner2').textContent = data.finalists[1].username;
+		}
+
 
 	}
 

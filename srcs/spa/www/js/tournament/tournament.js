@@ -75,7 +75,7 @@ class TournamentManager {
 		const createButton = document.getElementById('create-button');
 		const userForm = document.getElementById('userForm');
 		
-		if (createButton) createButton.disabled = inTournament;
+		if (createButton) createButton.style.display = inTournament ? 'none' : 'block';
 		if (userForm) userForm.style.display = inTournament ? 'none' : 'block';
 		if (this.quitButton) this.quitButton.style.display = inTournament ? 'block' : 'none';
 	}
