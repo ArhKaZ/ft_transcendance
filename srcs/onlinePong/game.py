@@ -35,7 +35,7 @@ class PongGame:
 	async def cancel_game(self, player_id, username):
 		async with self._lock:
 			if self.status == 'CANCELLED':
-				return 
+				return
 			self.status = 'CANCELLED'
 			self.events['game_cancelled'].set()
 			if not self.p1:

@@ -21,6 +21,12 @@ class Game {
         this.isBoundWall = false;
         this.canMove = false;
         this.animationId = null;
+        this.bounceAnimation = {
+            active: false,
+            startTime: null,
+            side: null,
+            duration: 1000
+        };
     }
 
     displayCanvas() {
@@ -77,6 +83,9 @@ class Game {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawBorders(this.context, this.canvas);
         this.ball.draw(this.context);
+        if (this.bounceAnimation.active) {
+            this.drawBounceAnimation();
+        }
         this.activeBound(this.isBoundWall, this.isBoundPlayer);
         this.P1.draw(this.context, this.colorP1);
         this.P2.draw(this.context, this.colorP2);
@@ -88,44 +97,97 @@ class Game {
         ctx.strokeRect(0, 0, canvas.width, canvas.height);
     }
 
+    activeBound(bound_wall, bound_player) {
+        if (bound_wall) {
+            this.bound_wall();
+        }
+        else if (bound_player) {
+            this.bound_player();
+        }
+    }
 
-    // animateBounce(ctx, canvas, side) {
-    //     const animationTime = 1000;
-    //     let startTime = null;
+    bound_wall() {
+        const y_ball = this.ball.y;
+        if (y_ball < this.canvas.height / 2) {
+            this.animateBounce(this.context, this.canvas, "top");
+        } else {
+           this.animateBounce(this.context, this.canvas, "bottom");
+        }
+    }
+
+    bound_player() {
+        const x_ball = this.ball.x;
+        
+        if (x_ball < this.canvas.width / 2) {
+            this.startPulseEffect('P1');
+        } else {
+            this.startPulseEffect('P2');
+        }
+    }
+
+    startPulseEffect(player) {
+        let opacity = 0.2; 
+        let startTime = null;
+        const duration = 1000; 
     
-    //     function drawFrame(timeStamp) {
-    //         if (!startTime) 
-    //             startTime = timeStamp
-    //         const progress = timeStamp - startTime;
+        const animate = (timeStamp) => {
+            if (!startTime)
+                startTime = timeStamp;
+            const progress = timeStamp - startTime;
+
+            if (progress < duration) {
+                opacity = 0.2 + 0.8 * Math.abs(Math.sin(progress * Math.PI / duration));
+                this[`color${player}`] = `rgba(138, 43, 226, ${opacity})`;
+                requestAnimationFrame(animate);
+            } else {
+                this[`color${player}`] = 'white';
+            }
+        };
+        requestAnimationFrame(animate);
+    }
+
+
+    drawBounceAnimation() {
+        const currentTime = performance.now();
+        if (!this.bounceAnimation.startTime) {
+            this.bounceAnimation.startTime = currentTime;
+        }
+
+        const progress = currentTime - this.bounceAnimation.startTime;
+        if (progress < this.bounceAnimation.duration) {
+            const alpha = 1 - (progress / this.bounceAnimation.duration);
+            this.context.strokeStyle = `rgba(138, 43, 226, ${alpha})`;
+            this.context.lineWidth = 4;
+            
+            this.context.beginPath();
+            if (this.bounceAnimation.side === "top") {
+                this.context.moveTo(0, 0);
+                this.context.lineTo(this.canvas.width, 0);
+            } else if (this.bounceAnimation.side === "bottom") {
+                this.context.moveTo(0, this.canvas.height);
+                this.context.lineTo(this.canvas.width, this.canvas.height);
+            }
+            this.context.stroke();
+        } else {
+            this.bounceAnimation.active = false;
+            this.bounceAnimation.startTime = null;
+        }
+    }
     
-    //         if (progress < animationTime) {
-    //             const alpha = 1 - progress; 
-    //             ctx.strokeStyle = `rgba(138, 43, 226, ${alpha})`;
-    //             ctx.lineWidth = 4;
-                
-    //             ctx.beginPath();
-    //             if (side === "top") {
-    //                 ctx.moveTo(0, 0);
-    //                 ctx.lineTo(canvas.width, 0);
-    //             } else if (side === "bottom") {
-    //                 ctx.moveTo(0, ctx.canvas.height);
-    //                 ctx.lineTo(canvas.width, ctx.canvas.height);
-    //             }
-    //             ctx.stroke();
-    //             requestAnimationFrame(drawFrame);
-    //         }
-    //     }
-    //     requestAnimationFrame(drawFrame);
-    // }
+    animateBounce(ctx, canvas, side) {
+        this.bounceAnimation.active = true;
+        this.bounceAnimation.startTime = null;
+        this.bounceAnimation.side = side;
+    }
 
     updateScores(data) {
-        this.ball.setInMiddle();
         this.canMove = false;
         const side = data.player_id === this.P1.id.toString() ? 'right' : 'left'; 
-        // createNeonExplosion(side, this.ball.y);
+        createNeonExplosion(side, this.ball.y);
         this.score = data.scores;
         this.scoreP1Element.textContent = this.score[0].toString();
         this.scoreP2Element.textContent = this.score[1].toString();
+        this.ball.setInMiddle();
         this.drawGame(false, false);
     }
 
@@ -148,54 +210,6 @@ class Game {
         this.scoreP2Element.style.fontSize = `${scoreFontSizeP2}px`;
     }
 
-    activeBound(bound_wall, bound_player) {
-        // if (bound_wall) {
-        //     this.bound_wall();
-        // }
-        // else if (bound_player) {
-        //     this.bound_player();
-        // }
-    }
-
-    bound_wall() {
-        const y_ball = this.ball.y;
-        if (y_ball < this.canvas.height / 2) {
-            this.animateBounce(this.context, this.canvas, "top");
-        } else {
-           this.animateBounce(this.context, this.canvas, "bottom");
-        }
-    }
-
-    bound_player() {
-        const x_ball = this.ball.x;
-        
-        if (x_ball < this.canvas.width / 2) {
-            this.startPulseEffect('P1');
-        } else {
-            this.startPulseEffect('P2');
-        }
-    }
-
-    // startPulseEffect(player) {
-    //     let opacity = 0.2; 
-    //     let startTime = null;
-    //     const duration = 1000; 
-    
-    //     const animate = (timeStamp) => {
-    //         if (!startTime)
-    //             startTime = timeStamp;
-    //         const progress = timeStamp - startTime;
-
-    //         if (progress < duration) {
-    //             opacity = 0.2 + 0.8 * Math.abs(Math.sin(progress * Math.PI / duration));
-    //             this[`color${player}`] = `rgba(138, 43, 226, ${opacity})`;
-    //             requestAnimationFrame(animate);
-    //         } else {
-    //             this[`color${player}`] = 'white';
-    //         }
-    //     };
-    //     requestAnimationFrame(animate);
-    // }
 
     displayWinner(winner) {
         

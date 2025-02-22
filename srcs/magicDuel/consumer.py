@@ -62,7 +62,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		print(current_waiting_players)
 		await sync_to_async(cache.set)(key, current_waiting_players)
 		if self.game_id:
-			# Faire le nettoyage du cache d'abord
 			await sync_to_async(cache.delete)(f"player_current_game_{self.player_id}")
 			await sync_to_async(cache.delete)(f"player_{self.player_id}_channel")
 

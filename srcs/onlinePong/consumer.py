@@ -189,9 +189,10 @@ class PongConsumer(AsyncWebsocketConsumer):
 		begin = time.time()
 		try:
 			while True:
-				now = time.time()
-				if now - begin >= 20:
-					await self.game_not_launch()
+				if self.game.status != 'IN_PROGRESS':
+					now = time.time()
+					if now - begin >= 20:
+						await self.game_not_launch()
 				if not self.game:
 					break
 				if await self._wait_for_event(self.game.events['game_cancelled']):
@@ -234,6 +235,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 		id = 0
 		username = None
 		is_end = False
+		if not self.game.p2 and self.in_tournament:
+			await pong_server.cleanup_player(-1, 'unknown', self.game_id, is_end)
 		if not self.game.p1.ready:
 			id = self.game.p1.id
 			username = self.game.p1.username
