@@ -39,10 +39,13 @@ class PongGame:
 			self.status = 'CANCELLED'
 			self.events['game_cancelled'].set()
 			if not self.p1:
+				print('not p1')
 				id_winner = self.p2.id
 			elif not self.p2:
+				print('not p2')
 				id_winner = self.p1.id
 			else:
+				print('got both')
 				id_winner = self.p1.id if self.p2.id == player_id else self.p2.id
 			channel_layer = get_channel_layer()
 			await channel_layer.group_send(

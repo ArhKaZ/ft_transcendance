@@ -235,14 +235,18 @@ class PongConsumer(AsyncWebsocketConsumer):
 		id = 0
 		username = None
 		is_end = False
-		if not self.game.p2 and self.in_tournament:
-			await pong_server.cleanup_player(-1, 'unknown', self.game_id, is_end)
-		if not self.game.p1.ready:
+		# if not self.game.p2 and self.in_tournament:
+		# 	await pong_server.cleanup_player(-1, 'unknown', self.game_id, is_end)
+		if not self.game.p1.ready and not self.game.p2.ready:
+			id = self.game.p2.id
+			username = self.game.p2.username
+		elif not self.game.p1.ready:
 			id = self.game.p1.id
 			username = self.game.p1.username
 		elif not self.game.p2.ready:
 			id = self.game.p2.id
 			username = self.game.p2.username
+
 		await pong_server.cleanup_player(id, username, self.game_id, is_end)
 
 # READY 

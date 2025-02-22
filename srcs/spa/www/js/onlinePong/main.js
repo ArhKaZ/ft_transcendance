@@ -453,8 +453,10 @@ function handleGameFinish(game, winningId, opponentName = null) {
 	}).then(data => {
 		if (inTournament && inFinal == false) {
 			sessionStorage.setItem('asWin', asWin);
-			if (sessionStorage.getItem('asWin') == "true")
+			if (sessionStorage.getItem('asWin') == "true") {
+				console.log('join finalist');
 				joinFinalist();
+			}
 			btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
 			btnBack.innerText = "Back to Tournament";
 			setTimeout(() => {
@@ -465,7 +467,6 @@ function handleGameFinish(game, winningId, opponentName = null) {
 			sessionStorage.setItem('asWin', asWin);
 			if (sessionStorage.getItem('asWin') == "true")
 				joinWinner();
-			console.log()
 			// sessionStorage.removeItem('asWin');
 			// sessionStorage.removeItem('tournament_code');
 			sessionStorage.setItem('finalDone', true);
