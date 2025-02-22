@@ -193,6 +193,7 @@ class TournamentManager {
 
                 if (data.is_full) {
                     // Redirect to game page when tournament is full
+                    sessionStorage.removeItem('current_tournament');
                     window.location.href = `/tournament/game/${this.currentTournamentCode}/`;
                 } else {
                     // Preserve the tournament code while updating player count

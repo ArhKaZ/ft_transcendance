@@ -64,6 +64,7 @@ class Tournament(models.Model):
     players = models.ManyToManyField('MyUser', blank=True, related_name='tournaments')
     finalist = models.ManyToManyField('MyUser', blank=True, related_name='finalist')
     winner = models.ManyToManyField('MyUser', blank=True, related_name='winner')
+    left = models.ManyToManyField('MyUser', blank=True, related_name='left')
     started = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     all_matches = models.ManyToManyField('TournamentMatch', blank=True, related_name='tournament_matches')
@@ -85,6 +86,12 @@ class Tournament(models.Model):
         if self.finalist.count() >= 2:
             raise ValidationError("Final is full.")
         self.finalist.add(user)
+
+    def add_left(self, user):
+        # """Adds a player to the tournament if there's space."""
+        if self.left.count() >= 4:
+            raise ValidationError("Everyone already left.")
+        self.left.add(user)
 
     def add_winner(self, user):
         # """Adds a player to the tournament if there's space."""
