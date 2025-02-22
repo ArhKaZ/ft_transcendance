@@ -34,9 +34,16 @@ class PongGame:
 
 	async def cancel_game(self, player_id, username):
 		async with self._lock:
+			if self.status == 'CANCELLED':
+				return
 			self.status = 'CANCELLED'
 			self.events['game_cancelled'].set()
-
+			if not self.p1:
+				id_winner = self.p2.id
+			elif not self.p2:
+				id_winner = self.p1.id
+			else:
+				id_winner = self.p1.id if self.p2.id == player_id else self.p2.id
 			channel_layer = get_channel_layer()
 			await channel_layer.group_send(
 				self.group_name,
@@ -44,7 +51,8 @@ class PongGame:
 					'type': 'game_cancel',
 					'message': f'Player {username} is gone, game is cancelled',
 					'username': username,
-					'game_status': self.status
+					'game_status': self.status,
+					'id': id_winner,
 				}
 			)
 			await self.cleanup(player_id)

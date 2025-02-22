@@ -21,6 +21,12 @@ class Game {
         this.isBoundWall = false;
         this.canMove = false;
         this.animationId = null;
+        this.bounceAnimation = {
+            active: false,
+            startTime: null,
+            side: null,
+            duration: 1000
+        };
     }
 
     displayCanvas() {
@@ -77,6 +83,9 @@ class Game {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawBorders(this.context, this.canvas);
         this.ball.draw(this.context);
+        if (this.bounceAnimation.active) {
+            this.drawBounceAnimation();
+        }
         this.activeBound(this.isBoundWall, this.isBoundPlayer);
         this.P1.draw(this.context, this.colorP1);
         this.P2.draw(this.context, this.colorP2);
@@ -88,73 +97,13 @@ class Game {
         ctx.strokeRect(0, 0, canvas.width, canvas.height);
     }
 
-
-    // animateBounce(ctx, canvas, side) {
-    //     const animationTime = 1000;
-    //     let startTime = null;
-    
-    //     function drawFrame(timeStamp) {
-    //         if (!startTime) 
-    //             startTime = timeStamp
-    //         const progress = timeStamp - startTime;
-    
-    //         if (progress < animationTime) {
-    //             const alpha = 1 - progress; 
-    //             ctx.strokeStyle = `rgba(138, 43, 226, ${alpha})`;
-    //             ctx.lineWidth = 4;
-                
-    //             ctx.beginPath();
-    //             if (side === "top") {
-    //                 ctx.moveTo(0, 0);
-    //                 ctx.lineTo(canvas.width, 0);
-    //             } else if (side === "bottom") {
-    //                 ctx.moveTo(0, ctx.canvas.height);
-    //                 ctx.lineTo(canvas.width, ctx.canvas.height);
-    //             }
-    //             ctx.stroke();
-    //             requestAnimationFrame(drawFrame);
-    //         }
-    //     }
-    //     requestAnimationFrame(drawFrame);
-    // }
-
-    updateScores(data) {
-        this.canMove = false;
-        const side = data.player_id === this.P1.id.toString() ? 'right' : 'left'; 
-        // createNeonExplosion(side, this.ball.y);
-        this.score = data.scores;
-        this.scoreP1Element.textContent = this.score[0].toString();
-        this.scoreP2Element.textContent = this.score[1].toString();
-        this.drawGame(false, false);
-        // this.ball.setInMiddle();
-    }
-
-    updateScoreFontSize() {
-        const hudP1 = document.getElementById('hud-p1');
-        const hudP2 = document.getElementById('hud-p2');
-        const nameP1 = document.getElementById('p1-hud-name');
-        const nameP2 = document.getElementById('p2-hud-name');
-    
-        const fontSizeP1 = Math.min(hudP1.offsetWidth, hudP1.offsetHeight) * 1.2;
-        const fontSizeP2 = Math.min(hudP2.offsetWidth, hudP2.offsetHeight) * 1.2;
-    
-        nameP1.style.fontSize = `${fontSizeP1}px`;
-        nameP2.style.fontSize = `${fontSizeP2}px`;
-    
-        const scoreFontSizeP1 = Math.min(hudP1.offsetWidth, hudP1.offsetHeight) * 1.3;
-        const scoreFontSizeP2 = Math.min(hudP2.offsetWidth, hudP2.offsetHeight) * 1.3;
-    
-        this.scoreP1Element.style.fontSize = `${scoreFontSizeP1}px`;
-        this.scoreP2Element.style.fontSize = `${scoreFontSizeP2}px`;
-    }
-
     activeBound(bound_wall, bound_player) {
-        // if (bound_wall) {
-        //     this.bound_wall();
-        // }
-        // else if (bound_player) {
-        //     this.bound_player();
-        // }
+        if (bound_wall) {
+            this.bound_wall();
+        }
+        else if (bound_player) {
+            this.bound_player();
+        }
     }
 
     bound_wall() {
@@ -176,26 +125,91 @@ class Game {
         }
     }
 
-    // startPulseEffect(player) {
-    //     let opacity = 0.2; 
-    //     let startTime = null;
-    //     const duration = 1000; 
+    startPulseEffect(player) {
+        let opacity = 0.2; 
+        let startTime = null;
+        const duration = 1000; 
     
-    //     const animate = (timeStamp) => {
-    //         if (!startTime)
-    //             startTime = timeStamp;
-    //         const progress = timeStamp - startTime;
+        const animate = (timeStamp) => {
+            if (!startTime)
+                startTime = timeStamp;
+            const progress = timeStamp - startTime;
 
-    //         if (progress < duration) {
-    //             opacity = 0.2 + 0.8 * Math.abs(Math.sin(progress * Math.PI / duration));
-    //             this[`color${player}`] = `rgba(138, 43, 226, ${opacity})`;
-    //             requestAnimationFrame(animate);
-    //         } else {
-    //             this[`color${player}`] = 'white';
-    //         }
-    //     };
-    //     requestAnimationFrame(animate);
-    // }
+            if (progress < duration) {
+                opacity = 0.2 + 0.8 * Math.abs(Math.sin(progress * Math.PI / duration));
+                this[`color${player}`] = `rgba(138, 43, 226, ${opacity})`;
+                requestAnimationFrame(animate);
+            } else {
+                this[`color${player}`] = 'white';
+            }
+        };
+        requestAnimationFrame(animate);
+    }
+
+
+    drawBounceAnimation() {
+        const currentTime = performance.now();
+        if (!this.bounceAnimation.startTime) {
+            this.bounceAnimation.startTime = currentTime;
+        }
+
+        const progress = currentTime - this.bounceAnimation.startTime;
+        if (progress < this.bounceAnimation.duration) {
+            const alpha = 1 - (progress / this.bounceAnimation.duration);
+            this.context.strokeStyle = `rgba(138, 43, 226, ${alpha})`;
+            this.context.lineWidth = 4;
+            
+            this.context.beginPath();
+            if (this.bounceAnimation.side === "top") {
+                this.context.moveTo(0, 0);
+                this.context.lineTo(this.canvas.width, 0);
+            } else if (this.bounceAnimation.side === "bottom") {
+                this.context.moveTo(0, this.canvas.height);
+                this.context.lineTo(this.canvas.width, this.canvas.height);
+            }
+            this.context.stroke();
+        } else {
+            this.bounceAnimation.active = false;
+            this.bounceAnimation.startTime = null;
+        }
+    }
+    
+    animateBounce(ctx, canvas, side) {
+        this.bounceAnimation.active = true;
+        this.bounceAnimation.startTime = null;
+        this.bounceAnimation.side = side;
+    }
+
+    updateScores(data) {
+        this.canMove = false;
+        const side = data.player_id === this.P1.id.toString() ? 'right' : 'left'; 
+        createNeonExplosion(side, this.ball.y);
+        this.score = data.scores;
+        this.scoreP1Element.textContent = this.score[0].toString();
+        this.scoreP2Element.textContent = this.score[1].toString();
+        this.ball.setInMiddle();
+        this.drawGame(false, false);
+    }
+
+    updateScoreFontSize() {
+        const hudP1 = document.getElementById('hud-p1');
+        const hudP2 = document.getElementById('hud-p2');
+        const nameP1 = document.getElementById('p1-hud-name');
+        const nameP2 = document.getElementById('p2-hud-name');
+    
+        const fontSizeP1 = Math.min(hudP1.offsetWidth, hudP1.offsetHeight) * 1.2;
+        const fontSizeP2 = Math.min(hudP2.offsetWidth, hudP2.offsetHeight) * 1.2;
+    
+        nameP1.style.fontSize = `${fontSizeP1}px`;
+        nameP2.style.fontSize = `${fontSizeP2}px`;
+    
+        const scoreFontSizeP1 = Math.min(hudP1.offsetWidth, hudP1.offsetHeight) * 1.3;
+        const scoreFontSizeP2 = Math.min(hudP2.offsetWidth, hudP2.offsetHeight) * 1.3;
+    
+        this.scoreP1Element.style.fontSize = `${scoreFontSizeP1}px`;
+        this.scoreP2Element.style.fontSize = `${scoreFontSizeP2}px`;
+    }
+
 
     displayWinner(winner) {
         

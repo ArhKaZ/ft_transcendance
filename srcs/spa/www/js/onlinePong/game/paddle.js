@@ -11,7 +11,7 @@ class Paddle {
             this.x = canvas.width - (canvas.width * (1 / 100) + this.width);
         this.yPercent = 42.5;
         this.y = this.yPercent * canvas.height / 100;
-        this.speed = 0.7;
+        this.speed = 0.9;
         this.isMoving = false;
         this.direction = null;
     }

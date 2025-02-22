@@ -94,13 +94,13 @@ function listenerLevelButtons() {
 
 async function startCountdown() {
     currentGame.displayCanvas();
-    for (let i = 3; i >= 0; i--) {
+    for (let i = 3; i > 0; i--) {
         await currentCountdown.displayNumber(i);
         await sleep(1000);
     }
+    resizeCanvasGame();
     currentCountdown.stopDisplay();
     await currentGame.start();
-    resizeCanvasGame();
 }
 
 async function initGame(user) {

@@ -40,21 +40,21 @@ async function init() {
     currentGame = await initGame(user);
     currentCountdown = new CountdownAnimation('countdownCanvas');
     window.addEventListener('resize', () => resizeCanvasGame());
-    document.getElementById('button-ready').addEventListener('click', () => {
+    document.getElementById('button-ready').addEventListener('click', async () => {
         gameStarted = true;
-        startCountdown();
+        await startCountdown();
     })
 }
 
 async function startCountdown() {
     currentGame.displayCanvas();
-    for (let i = 3; i >= 0; i--) {
+    for (let i = 3; i > 0; i--) {
         await currentCountdown.displayNumber(i);
         await sleep(1000);
     }
+    resizeCanvasGame();
     currentCountdown.stopDisplay();
     await currentGame.start();
-    resizeCanvasGame();
 }
 
 async function initGame(user) {

@@ -5,6 +5,7 @@ class Ball {
         this.size = Math.min(canvas.width, canvas.height) * 0.01;
         this.ballSpeed = 4;
         this.reset();
+        this.oldPositions = [];
     }
 
     async reset(asScore) {
@@ -28,6 +29,10 @@ class Ball {
     }
 
     update(paddle1, paddle2) {
+        if (this.oldPositions.length > 20) {
+            this.oldPositions.shift();
+        }
+        this.oldPositions.push({x: this.x, y: this.y});
         let bound = [false, false];
 
         const nextX = this.x + this.vx;
@@ -95,12 +100,13 @@ class Ball {
 
 
     setInMiddle(canvas) {
+        this.oldPositions = [];
         this.x = 50 * canvas.width / 100;
         this.y = 50 * canvas.height / 100;
     }
 
     draw(context) {
-        context.shadowBlur = 20; 
+        context.shadowBlur = 10; 
         context.shadowColor = '#8a2be2'; 
         context.fillStyle = '#8a2be2';
         context.beginPath();
@@ -108,6 +114,18 @@ class Ball {
         context.fill();
         context.shadowBlur = 0;
         context.shadowColor = 'transparent';
+        let reverse = this.oldPositions.reverse();
+        reverse.forEach((element, index) =>  {
+            context.beginPath();
+            let newSize = this.size * (1 - index / this.oldPositions.length);
+            newSize = Math.max(newSize, 1);
+            let alpha = 1 - index / this.oldPositions.length;
+            context.globalAlpha = Math.max(alpha, 0.1);
+            context.arc(element.x, element.y, newSize, 0, 2 * Math.PI);
+            context.fill();
+        });
+        context.globalAlpha = 1;
+        this.oldPositions.reverse();
     }
 }
 

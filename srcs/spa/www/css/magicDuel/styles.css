@@ -7,7 +7,22 @@ body {
     height: 100vh;
     margin: 0;
     background-color: black;
-    /*background-color: white;*/
+    background-image: url(../ico/bg.gif);
+    background-repeat: repeat;
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    z-index: -1;
 }
 
 .app {

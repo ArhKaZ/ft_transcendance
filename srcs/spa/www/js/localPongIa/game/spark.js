@@ -38,11 +38,21 @@ class NeonParticle {
 }
 
 export function createNeonExplosion(side, ball_y) {
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    const explosionCanvas = document.createElement('canvas');
+    const gameCanvas = document.getElementById('gameCanvas');
     
-    const x = side === 'left' ? 0 : canvas.width;
+    explosionCanvas.style.position = 'absolute';
+    explosionCanvas.style.left = gameCanvas.offsetLeft + 'px';
+    explosionCanvas.style.top = gameCanvas.offsetTop + 'px';
+    explosionCanvas.width = gameCanvas.width;
+    explosionCanvas.height = gameCanvas.height;
+    
+    document.getElementById('canvasContainer').appendChild(explosionCanvas);
+    
+    const ctx = explosionCanvas.getContext('2d');
+    const x = side === 'left' ? 0 : explosionCanvas.width;
     const y = ball_y;
+
     const colors = [
         '234, 170, 231',
         '140, 40, 136', 
@@ -54,11 +64,6 @@ export function createNeonExplosion(side, ball_y) {
     const particles = [];
     const particleCount = 100;
 
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = canvas.width;
-    tempCanvas.height = canvas.height;
-    const tempCtx = tempCanvas.getContext('2d');
-
     for (let i = 0; i < particleCount; i++) {
         const angle = (Math.random() * Math.PI * 2);
         const speed = Math.random() * 4 + 2;
@@ -66,18 +71,11 @@ export function createNeonExplosion(side, ball_y) {
         particles.push(new NeonParticle(x, y, angle, speed, color));
     }
 
-    let animationFrameId = null;
-
-    function cleanUp() {
-        if (animationFrameId) {
-            cancelAnimationFrame(animationFrameId);
-        }
-        tempCanvas.remove();
-    }
-
     function animate() {
-        tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
-
+        ctx.clearRect(0, 0, explosionCanvas.width, explosionCanvas.height);
+        
+        ctx.globalCompositionOperation = 'lighter';
+        
         for (let i = particles.length - 1; i >= 0; i--) {
             const particle = particles[i];
             particle.update();
@@ -88,15 +86,10 @@ export function createNeonExplosion(side, ball_y) {
             }
         }
 
-        ctx.save();
-        ctx.globalCompistionOperation = 'lighter';
-        ctx.drawImage(tempCanvas, 0, 0);
-        ctx.restore();
-
         if (particles.length > 0) {
             requestAnimationFrame(animate);
         } else {
-            cleanUp();
+            explosionCanvas.remove();
         }
     }
     

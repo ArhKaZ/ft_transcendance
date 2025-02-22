@@ -36,6 +36,7 @@ class Game {
 
     async start() {
         this.displayForStart();
+        await sleep(1000);
         this.isStart = true;
         await this.loop();
     }
@@ -106,6 +107,7 @@ class Game {
         this.P2.draw(this.context, this.colorP2);
         this.ball.draw(this.context);
         this.isStart = true;
+        console.log('game as start');
     }
 
     stop() {
@@ -162,17 +164,6 @@ class Game {
             return true;
         });
     }
-
-    // updatePlayerPosition(player, y) {
-    //     if (player === 1) {
-    //         this.P1.paddle.assignPos(y);
-    //         this.P1.draw(this.context, this.colorP1);
-    //     }
-    //     else {
-    //         this.P2.paddle.assignPos(y);
-    //         this.P2.draw(this.context, this.colorP2);
-    //     }
-    // }
 
     updateScores(side) {
         this.score = [this.P1.score, this.P2.score];

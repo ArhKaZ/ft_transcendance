@@ -62,7 +62,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		print(current_waiting_players)
 		await sync_to_async(cache.set)(key, current_waiting_players)
 		if self.game_id:
-			# Faire le nettoyage du cache d'abord
 			await sync_to_async(cache.delete)(f"player_current_game_{self.player_id}")
 			await sync_to_async(cache.delete)(f"player_{self.player_id}_channel")
 
@@ -464,13 +463,13 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def check_winner_round(self):
 		if self.game_cancel_event.is_set() or self.game.status == 'CANCELLED':
 			return
-		# ret = await self.game.check_players_have_played()
-		# if ret != None:
-		# 	self.game.status = 'CANCELLED'
-		# 	await self.notify_player_no_play(ret)
-		# 	await self.cleanup_round()
-		# 	await self.cleanup()
-		# 	return
+		ret = await self.game.check_players_have_played()
+		if ret != None:
+			self.game.status = 'CANCELLED'
+			await self.notify_player_no_play(ret)
+			await self.cleanup_round()
+			await self.cleanup()
+			return
 
 		result = self.resolve_power(self.game.p1.action, self.game.p2.action)
 		if result == 'Error interaction':

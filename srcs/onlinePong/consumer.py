@@ -1,7 +1,7 @@
 import asyncio
 import json
 import aioredis
-import uuid
+import time
 
 from asgiref.sync import sync_to_async
 from django.conf import settings
@@ -137,8 +137,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 			'avatar': data['player_avatar'],
 		}
 
-		# opponent_info = None
-		# if data.get('opponent'):
 		opponent_info = {
 			'id': data['opponent']['id'],
 			'username': data['opponent']['name'],
@@ -188,8 +186,13 @@ class PongConsumer(AsyncWebsocketConsumer):
 		asyncio.create_task(self._watch_game_events())
 
 	async def _watch_game_events(self):
+		begin = time.time()
 		try:
 			while True:
+				if self.game.status != 'IN_PROGRESS':
+					now = time.time()
+					if now - begin >= 20:
+						await self.game_not_launch()
 				if not self.game:
 					break
 				if await self._wait_for_event(self.game.events['game_cancelled']):
@@ -225,6 +228,22 @@ class PongConsumer(AsyncWebsocketConsumer):
 		await self.handle_find_game({
 			'game_id': event['game_id']
 		})
+
+	async def game_not_launch(self):
+		if not self.game or self.game.events['game_cancelled'].is_set() or self.game.events['game_finished'].is_set():
+			return
+		id = 0
+		username = None
+		is_end = False
+		if not self.game.p2 and self.in_tournament:
+			await pong_server.cleanup_player(-1, 'unknown', self.game_id, is_end)
+		if not self.game.p1.ready:
+			id = self.game.p1.id
+			username = self.game.p1.username
+		elif not self.game.p2.ready:
+			id = self.game.p2.id
+			username = self.game.p2.username
+		await pong_server.cleanup_player(id, username, self.game_id, is_end)
 
 # READY 
 	async def handle_player_ready(self, data):
@@ -401,15 +420,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
 
-	async def notify_game_cancel(self, username_gone):
-		message = {
-			'type': 'game_cancel',
-			'message': f'Player {username_gone} is gone, game is cancelled',
-			'username': username_gone,
-			'game_status': self.game.status
-		}
-		await self.channel_layer.group_send(self.game.group_name, message)
-
 	async def notify_game_start(self, p1, p2):
 		message = {
 			'type': 'game_start',
@@ -443,7 +453,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 			'type': 'game_cancel',
 			'message': event['message'],
 			'username': event['username'],
-			'game_status': event['game_status']
+			'game_status': event['game_status'],
+			'id': event['id']
 		}
 		await self.send(text_data=json.dumps(message))
 

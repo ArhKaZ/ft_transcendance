@@ -9,7 +9,8 @@ class Ball:
     def __init__(self, game_id):
         self.x = 50
         self.y = 50
-        self.speed = 0.55
+        self.speed = 0.5
+        self.old_speed = self.speed
         self.game_id = game_id
         rand = random.choice([1,2])
         angle = random.uniform(-math.pi / 4, math.pi / 4)
@@ -29,7 +30,7 @@ class Ball:
         self.is_resetting = True
         self.x = 50
         self.y = 50
-        self.speed = 0.55
+        self.speed = 0.4
         angle = random.uniform(-math.pi / 4, math.pi / 4)
         direction = -1 if player_as_score == 1 else 1
         self.vx = self.speed * math.cos(angle) * direction
@@ -59,7 +60,6 @@ class Ball:
 
     async def check_boundaries(self, next_x, next_y, game):
         if next_y < 1 or next_y > 99:
-            # if not self.check_time_collision():
             self.last_bound_wall = time.time()
             self.vy = -self.vy
             self.vector_as_change = True
@@ -77,16 +77,21 @@ class Ball:
         await game.update_players()
         colission_point = 0
         now = time.time()
-        if self.last_bound_player and now - self.last_bound_player < 0.1:
+        if self.last_bound_player and now - self.last_bound_player < 0.01:
+            print('cancel speed add')
+            self.speed = self.old_speed
             return
-            # print('cancel twerk')
-        if next_x < 3 and game.p1.y < next_y < game.p1.y + 16.5 or \
-                next_x > 97 and game.p2.y < next_y < game.p2.y + 16.5:
+        if next_x < 3 and game.p1.y < next_y + 0.5 < game.p1.y + 17 or \
+                next_x > 97 and game.p2.y < next_y - 0.5 < game.p2.y + 17:
             self.last_bound_player = time.time()
             game.bound_player = True
-            if next_x < 3 and game.p1.y < next_y < game.p1.y + 16.5:
+            if self.speed < 1:
+                print('add speed')
+                self.old_speed = self.speed
+                self.speed += 0.1
+            if next_x < 3 and game.p1.y < next_y < game.p1.y + 17:
                 colission_point = (next_y + 1) - (game.p1.y + 8)
-            elif next_x > 97 and game.p2.y < next_y < game.p2.y + 16.5:
+            elif next_x > 97 and game.p2.y < next_y < game.p2.y + 17:
                 colission_point = (next_y + 1) - (game.p2.y + 8)
             normalized_point = colission_point / 8
             max_bounce_angle = math.pi / 4
@@ -97,12 +102,10 @@ class Ball:
             if abs(normalized_point) > 0.9:
                 self.vy *= 0.5
 
-            if next_x < 4:
-                print('twerk 3')
-                next_x = 4
+            if next_x < 3:
+                next_x = 3
             else:
-                print('twerk 97')
-                next_x = 96
+                next_x = 97
             self.vector_as_change = True
             
 
