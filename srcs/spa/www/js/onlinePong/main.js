@@ -313,6 +313,7 @@ function handleErrors(data) {
 	const countdown = document.getElementById('countdownCanvas');
 	const button = document.getElementById('button-ready');
 	const errorMessage = document.getElementById('error-message');
+	const buttonError = document.getElementById('button-home-error');
 
 	if (!infoMain.classList.contains('hidden'))
 		infoMain.classList.add('hidden');
@@ -341,6 +342,11 @@ function handleErrors(data) {
 
 	errorContainer.classList.remove('hidden');
 	errorMessage.innerText += data.message;
+
+	if (inTournament) {
+		buttonError.innerText = "Back to Tournament"
+		buttonError.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+	}
 }
 
 function handlePlayerInfo(data) {
@@ -420,7 +426,7 @@ async function joinWinner() {
 
 function handleGameFinish(game, winningId) {
 	sessionStorage.setItem('asWin', false);
-	const btnBack = document.getElementById('button-home');
+	const btnBack = document.getElementById('button-home-end');
 	const opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
 	setTimeout(() => {
 		game.displayWinner(winningId);

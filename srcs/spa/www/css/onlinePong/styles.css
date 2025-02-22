@@ -338,7 +338,11 @@ body {
     font-size: clamp(1rem, 2vw, 1.5rem);
 }
 
-#button-home {
+#button-home-end {
+    font-size: clamp(0.5rem, 1vw, 1rem);
+}
+
+#button-home-error {
     font-size: clamp(0.5rem, 1vw, 1rem);
 }
 
@@ -346,7 +350,11 @@ body {
     display: inline-block;
 }
 
-#button-home:not(.hidden) {
+#button-home-end:not(.hidden) {
+    display: inline-block;
+}
+
+#button-home-error:not(.hidden) {
     display: inline-block;
 }
 

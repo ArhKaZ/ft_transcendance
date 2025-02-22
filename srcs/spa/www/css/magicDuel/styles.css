@@ -805,6 +805,7 @@ body {
     top: 10%;
     left: 20%;
     flex-wrap: wrap;
+    padding: 2%;
 }
 
 .overlay:not(.hidden) {
