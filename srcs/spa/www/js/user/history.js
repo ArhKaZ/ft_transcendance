@@ -15,7 +15,8 @@ async function fetchHistory() {
 		if (response.ok) {
 			console.log("get history call worked");
 			const data = await response.json();
-			
+
+			const sortedData = data.reverse();
 			// Génération du tableau HTML
 			let historyHtml = `
 				<table class="history-table">
@@ -23,17 +24,19 @@ async function fetchHistory() {
 						<tr>
 							<th>Date</th>
 							<th>Adversaire</th>
+							<th>Mode</th>
 							<th>Résultat</th>
 						</tr>
 					</thead>
 					<tbody>
 			`;
 			
-			data.forEach(item => {
+			sortedData.forEach(item => {
 				historyHtml += `
 					<tr>
 						<td>${item.date}</td>
 						<td>${item.opponent_name}</td>
+						<td>${item.type}</td>
 						<td>${item.won ? "Gagné" : "Perdu"}</td>
 					</tr>
 				`;
