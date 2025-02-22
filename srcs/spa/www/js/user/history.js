@@ -1,3 +1,5 @@
+import { getCSRFToken } from '/js/utils.js';
+
 const divHistory = document.getElementById("history");
 
 async function fetchHistory() {
@@ -12,18 +14,70 @@ async function fetchHistory() {
 		
 		if (response.ok) {
 			console.log("get history call worked");
-			const data =  await response.json();
-			const historyHtml = data.map(item => `
-				<p>Opponent: ${item.opponent_name}, Date: ${item.date}, Won: ${item.won ? "Yes" : "No"}</p>
-			`).join('');
+			const data = await response.json();
+			
+			// Génération du tableau HTML
+			let historyHtml = `
+				<table class="history-table">
+					<thead>
+						<tr>
+							<th>Date</th>
+							<th>Adversaire</th>
+							<th>Résultat</th>
+						</tr>
+					</thead>
+					<tbody>
+			`;
+			
+			data.forEach(item => {
+				historyHtml += `
+					<tr>
+						<td>${item.date}</td>
+						<td>${item.opponent_name}</td>
+						<td>${item.won ? "Gagné" : "Perdu"}</td>
+					</tr>
+				`;
+			});
+			
+			historyHtml += `
+					</tbody>
+				</table>
+			`;
+			
 			divHistory.innerHTML = historyHtml;
 		} else {
 			console.log("Erreur lors de la récupération de l'historique :", response.status);
 		}
-	}
-	catch {
-		console.log("history call failed");
+	} catch (error) {
+		console.log("history call failed", error);
 	}
 }
+
+document.getElementById('return-button').addEventListener('click', () => {
+    window.location.href = "/home/"; // ou une autre URL qui gère correctement l'accès
+});
+
+document.getElementById('logout-button').addEventListener('click', async () => {
+	console.log('Logging out...');
+	// Remove the token from sessionStorage
+	sessionStorage.removeItem('token_key');
+
+	// Optional: Make a backend call to invalidate the token if needed
+	const response = await fetch('/api/logout/', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			'X-CSRFToken': getCSRFToken(),
+		},
+		credentials: 'include',
+	});
+
+	if (response.ok) {
+		console.log('Logged out successfully');
+	} else {
+		console.error('Error logging out:', response);
+	}
+	window.location.href = "/home/";
+});
 
 fetchHistory();
