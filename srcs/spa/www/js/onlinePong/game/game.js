@@ -119,6 +119,7 @@ class Game {
     // }
 
     updateScores(data) {
+        this.ball.setInMiddle();
         this.canMove = false;
         const side = data.player_id === this.P1.id.toString() ? 'right' : 'left'; 
         // createNeonExplosion(side, this.ball.y);
@@ -126,7 +127,6 @@ class Game {
         this.scoreP1Element.textContent = this.score[0].toString();
         this.scoreP2Element.textContent = this.score[1].toString();
         this.drawGame(false, false);
-        // this.ball.setInMiddle();
     }
 
     updateScoreFontSize() {

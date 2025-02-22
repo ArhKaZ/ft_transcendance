@@ -137,8 +137,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 			'avatar': data['player_avatar'],
 		}
 
-		# opponent_info = None
-		# if data.get('opponent'):
 		opponent_info = {
 			'id': data['opponent']['id'],
 			'username': data['opponent']['name'],

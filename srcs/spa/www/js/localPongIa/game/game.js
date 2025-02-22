@@ -39,6 +39,7 @@ class Game {
 
     async start() {
         this.displayForStart();
+        await sleep(1000);
         this.isStart = true;
         await this.loop();
     }
