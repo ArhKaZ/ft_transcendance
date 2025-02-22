@@ -12,6 +12,15 @@ body {
     padding-top: 50px;
 }
 
+#messageDiv {
+  position: absolute;
+  top: 20px;  /* Ajustez selon la position désirée */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;  /* ou la largeur souhaitée */
+  text-align: center;
+  z-index: 100;  /* pour qu'il soit au-dessus des autres éléments */
+}
 body::before {
     content: "";
     position: fixed;
@@ -100,7 +109,7 @@ body::before {
     top: 50%;
     left: 50%;
     transform: translate(calc(-50% - 217px), -50%);
-    margin-top: 147px;
+    margin-top: 43px;
     margin-right: 120px;
 }
 
@@ -109,7 +118,7 @@ body::before {
   top: 50%;
   left: 50%;
   transform: translate(calc(23% - 219px), -50%);
-  margin-top: 145px;
+  margin-top: 40px;
   margin-right: 120px;
 }
 
@@ -118,7 +127,7 @@ body::before {
   top: 50%;
   left: 50%;
   transform: translate(calc(-50% + 505px), -50%);
-  margin-top: 131px;
+  margin-top: 32px;
   margin-right: 120px;
 }
 
@@ -126,7 +135,7 @@ body::before {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 50px; /* Ajuste l'espace entre la final et la boîte du finalwinner */
+  gap: 60px; /* Ajuste l'espace entre la final et la boîte du finalwinner */
 }
 
 .finalwinner-box {
@@ -137,4 +146,30 @@ body::before {
   padding: 10px;
   border: 2px solid #fbdb67;
   border-radius: 4px;
+}
+
+.bottom-buttons {
+  display: flex;
+  justify-content: center;
+  font-family: 'Press Start 2P', cursive;
+  width: 100%;
+  max-width: 320px;
+  margin: 10px auto 0; 
+  margin-top: 145px;
+  gap: 10px;
+}
+
+.bottom-buttons button {
+  flex: 1;
+  background: none;
+  border: 4px solid white;
+  font-family: 'Press Start 2P', cursive;
+  padding: 10px 20px;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  transition: 0.2s;
+  text-transform: uppercase;
+  text-decoration: none;
+  margin: 0 5px;
 }

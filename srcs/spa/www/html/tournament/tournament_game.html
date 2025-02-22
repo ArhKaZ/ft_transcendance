@@ -1,48 +1,50 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Tournament Game</title>
+    <head>
+        <title>Tournament Game</title>
     </style>
-    		<link rel="stylesheet" href="/css/tournament_game.css">
-            <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-            <div class="tournament-header">
-                <h2>Tournament Players</h2>
-                <div class="tournament-code" id="tournamentCode"></div>
-</head>
-<body>
-    <div class="tournament-container">
-        </div>
-        <div class="tournament-bracket">
-            <div class="round semi-finals">
-                <div class="match">
-                    <div class="player" id="player1"></div>
-                    <div class="player" id="player2"></div>
-                </div>
-                <div class="match">
-                    <div class="player" id="player3"></div>
-                    <div class="player" id="player4"></div>
-                </div>
-            </div>
-            <div class="round final">
-                <div class="match">
-                    <div class="player" id="winner1"></div>
-                    <div class="player" id="winner2"></div>
-                </div>
-            </div>
-            <div class="finalwinner-box">
-                    <div class="winnerplayer" id="finalwinner1"></div>
-                </div>
-            </div>
-        </div>
-        <img class="centered-image" src="/css/ico/line.png" alt="Lignes de tournoi">
-        <img class="centered-final" src="/css/ico/finalline.png" alt="Lignes de final">
-        <img class="centered-crown" src="/css/ico/winnercrown.png" alt="crown">
-        </ul>
+    <link rel="stylesheet" href="/css/tournament_game.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <div class="tournament-header">
+        <h2>Tournament Players</h2>
+        <div class="tournament-code" id="tournamentCode"></div>
         <div id="messageDiv"></div>
-        <button id="quit-button">Quit Tournament</button>
+    </head>
+    <body>
+    <div class="tournament-container">
     </div>
-          </div>
+    <div class="tournament-bracket">
+        <div class="round semi-finals">
+            <div class="match">
+                <div class="player" id="player1"></div>
+                <div class="player" id="player2"></div>
+            </div>
+            <div class="match">
+                <div class="player" id="player3"></div>
+                <div class="player" id="player4"></div>
+            </div>
+        </div>
+        <div class="round final">
+            <div class="match">
+                <div class="player" id="winner1"></div>
+                <div class="player" id="winner2"></div>
+            </div>
+        </div>
+        <div class="finalwinner-box">
+            <div class="winnerplayer" id="finalwinner1"></div>
+        </div>
     </div>
+</div>
+<img class="centered-image" src="/css/ico/line.png" alt="Lignes de tournoi">
+<img class="centered-final" src="/css/ico/finalline.png" alt="Lignes de final">
+<img class="centered-crown" src="/css/ico/winnercrown.png" alt="crown">
+</ul>
+<div class="bottom-buttons">
+    <button id="quit-button">Quit Tournament</button>
+</div>
+</div>
+</div>
+</div>
 
     <script type="module" src="/js/tournament/tournament_game.js"></script>
 </body>
