@@ -84,11 +84,57 @@ body::before {
     margin: auto;
 }
 
+.winnerplayer {
+  width: 180px;
+  padding: 10px;
+  background-color: #000;
+  color: #fbdb67;
+  border: 3px solid #fbdb67;
+  border-radius: 4px;
+  font-size: 0.8em;
+  margin: auto;
+}
 
 .centered-image {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(calc(-50% - 217px), -50%);
     margin-top: 147px;
+    margin-right: 120px;
+}
+
+.centered-final {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(calc(23% - 219px), -50%);
+  margin-top: 145px;
+  margin-right: 120px;
+}
+
+.centered-crown {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(calc(-50% + 505px), -50%);
+  margin-top: 131px;
+  margin-right: 120px;
+}
+
+.final-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 50px; /* Ajuste l'espace entre la final et la boîte du finalwinner */
+}
+
+.finalwinner-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Optionnel : Ajoute un fond, bordure, etc. pour visualiser la boîte */
+  padding: 10px;
+  border: 2px solid #fbdb67;
+  border-radius: 4px;
 }

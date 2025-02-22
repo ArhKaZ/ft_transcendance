@@ -24,7 +24,7 @@ document.getElementById('logout-button').addEventListener('click', async () => {
 });
 
 document.getElementById('return-button').addEventListener('click', () => {
-    window.history.back();
+    window.location.href = "/home/";
 });
 
 document.getElementById('user-avatar').addEventListener('click', () => {

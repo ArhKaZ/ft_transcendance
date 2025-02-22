@@ -195,21 +195,23 @@ class TournamentGame {
 
 		// Display players
 		if (data.players.length >= 4) {
-            document.getElementById('player1').textContent = data.players[0].username;
-            document.getElementById('player2').textContent = data.players[1].username;
-            document.getElementById('player3').textContent = data.players[2].username;
-            document.getElementById('player4').textContent = data.players[3].username;
+            document.getElementById('player1').textContent = data.players[0].pseudo;
+            document.getElementById('player2').textContent = data.players[1].pseudo;
+            document.getElementById('player3').textContent = data.players[2].pseudo;
+            document.getElementById('player4').textContent = data.players[3].pseudo;
         } else {
             // S'il y a moins de 4 joueurs, afficher un message d'erreur ou adapter l'affichage.
             console.error("Nombre insuffisant de joueurs");
         }
 		if (data.finalists.length >= 2)
 		{
-			document.getElementById('winner1').textContent = data.finalists[0].username;
-			document.getElementById('winner2').textContent = data.finalists[1].username;
+			document.getElementById('winner1').textContent = data.finalists[0].pseudo;
+			document.getElementById('winner2').textContent = data.finalists[1].pseudo;
 		}
-
-
+		if (data.winner.length >= 1)
+		{
+				document.getElementById('finalwinner1').textContent = data.winner[0].pseudo;
+		}
 	}
 
 	displayError(message) {
