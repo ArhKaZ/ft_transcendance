@@ -13,7 +13,35 @@ class TournamentGame {
 		document.getElementById('quit-button').addEventListener('click', () => this.quitTournament());
 	}
 
+	async checkLeft(tournamentCode) {
+		try {
+			const response = await fetch(`/api/tournament/${tournamentCode}/check_left/`, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': getCSRFToken(),
+					'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+				},
+				credentials: 'include',
+			});
+	
+			if (!response.ok) {
+				throw new Error('Failed to check left status');
+			}
+	
+			const data = await response.json();
+			return data.is_left;
+	
+		} catch (error) {
+			console.error('Error checking left status:', error);
+			return false;
+		}
+	}
+
 	async quitTournament() {
+		console.log("Tournament Code:", this.tournamentCode);
+		console.log("CSRF Token:", getCSRFToken());
+		console.log("Token Key:", sessionStorage.getItem('token_key'));
 		if (!this.tournamentCode) return;
 
 		try {
@@ -22,17 +50,18 @@ class TournamentGame {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': this.getCSRFToken(),
+                    'X-CSRFToken': getCSRFToken(),
                     'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
                 },
 				credentials: 'include',
             });
-
+			
 			const data = await response.json();
-
+			
             if (response.ok) {
-                sessionStorage.removeItem('asWin');
+				sessionStorage.removeItem('asWin');
             	sessionStorage.removeItem('tournament_code');
+				console.log("fetch no error worked");
 				setTimeout(() => {
 					window.location.href = `/home/`;
 				}, 3000);
@@ -45,6 +74,9 @@ class TournamentGame {
 	}
 
 	async init() {
+		if (this.checkLeft(this.tournamentCode) == true) {
+			window.location.href = `/home/`;
+		}
 		console.log("final status in the init ", sessionStorage.getItem('finalDone'));
 		await this.loadEnd();
 		if (!sessionStorage.getItem('asWin')) {
@@ -61,71 +93,6 @@ class TournamentGame {
 		}
 		else {
 			console.log("la finale est finie");
-		}
-	}
-
-	async getUserFromBack() {
-		try {
-			const response = await fetch('/api/get-my-info/', {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': getCSRFToken(),
-					'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
-				},
-				credentials: 'include',
-			});
-			if (!response.ok) {
-				console.log("You need to be logged before playing sisi");
-				// handleErrors({message: 'You need to be logged before playing'});
-			}
-			const data = await response.json();
-			return data;
-		} catch (error) {
-			console.log("You need to be logged before playing", error);
-			// handleErrors({message: 'You need to be logged before playing'});
-		}
-	}
-
-	async loadPlayers() {
-		try {
-			const response = await fetch(`/api/tournament/${this.tournamentCode}/players/`, {
-				headers: {
-					'Authorization': `Token ${sessionStorage.getItem('token_key')}`
-				}
-			});
-
-			if (!response.ok) {
-				throw new Error('Failed to load tournament data');
-			}
-
-			const data = await response.json();
-			this.createPlayers(data);
-			this.displayTournamentInfo(data);
-		} catch (error) {
-			this.displayError('Error loading tournament data');
-			console.error('Error:', error);
-		}
-	}
-
-	async loadFinal() {
-		try {
-			const response = await fetch(`/api/tournament/${this.tournamentCode}/final_players/`, {
-				headers: {
-					'Authorization': `Token ${sessionStorage.getItem('token_key')}`
-				}
-			});
-
-			if (!response.ok) {
-				throw new Error('Failed to load tournament data');
-			}
-
-			const data = await response.json();
-			this.createPlayers(data);
-			this.displayTournamentInfo(data);
-		} catch (error) {
-			this.displayError('Error loading tournament data');
-			console.error('Error:', error);
 		}
 	}
 	
@@ -179,12 +146,6 @@ class TournamentGame {
 			const li = document.createElement('li');
 			li.textContent = winner.username;
 			winnerList.appendChild(li);
-		});
-	}
-
-	createPlayers(data) {
-		data.players.forEach(element => {
-			this.players.push(new T_Player(element.id, element.username, element.avatar));
 		});
 	}
 

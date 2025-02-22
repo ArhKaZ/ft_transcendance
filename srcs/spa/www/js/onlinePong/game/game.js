@@ -206,7 +206,7 @@ class Game {
         const p1NameElement = document.getElementById('end-name-p1');
         const p2NameElement = document.getElementById('end-name-p2');
 
-        if (this.P1.id === winner) {
+        if (this.P1.id.toString() === winner) {
             document.getElementById('crown-img-p1').classList.remove('hidden');
         } else {
             document.getElementById('crown-img-p2').classList.remove('hidden');
