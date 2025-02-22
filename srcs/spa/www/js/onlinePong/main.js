@@ -17,6 +17,7 @@ let pressKey = false;
 let is_finished = false;
 let keyUpHandler = null;
 let keyDownHandler = null;
+let currentPseudo = null;
 
 function sendToBack(data) {
 	if (socket?.readyState === WebSocket.OPEN) {
@@ -110,6 +111,7 @@ async function init() {
 
 function setupWebSocket(user, infos) {
 	currentPlayerId = user.id;
+	currentPseudo = user.username;
 	const id = user.id.toString();
 	const currentUrl = window.location.host;
 	const socket = new WebSocket(`wss://${currentUrl}/ws/onlinePong/${id}/`);
@@ -176,7 +178,6 @@ function setupKeyboardControls(playerId) {
 }
 
 function cleanKeyboardControls() {
-    console.log('je clean');
     window.removeEventListener('keydown', keyDownHandler);
     window.removeEventListener('keyup', keyUpHandler);
     keyDownHandler = null;
@@ -188,7 +189,6 @@ function cleanKeyboardControls() {
     currentGame = null;
     currentCountdown = null;
     currentGameId = null;
-    // inTournament = false;
     pressKey = false;
     is_finished = false;
 }
@@ -367,13 +367,14 @@ async function handleGameStart(data) {
 }
 
 function handleGameCancel(data) {
-    cleanKeyboardControls();
-    handleErrors(data);
-}
-
-function updatePlayerPosition(game, data) {
-	const playerNumber = parseInt(data.player_id) === parseInt(game.P1.id) ? 1 : 2;
-	game.updatePlayerPosition(playerNumber, data.y);
+	handleErrors(data);
+	let p1Pseudo = document.getElementById('p1-username').innerText;
+	let p2Pseudo = document.getElementById('p2-username').innerText;
+	let pseudoAdv = p1Pseudo === currentPseudo ? p1Pseudo : p2Pseudo;
+	setTimeout(() => {
+		handleGameFinish(currentGame, data.id, pseudoAdv);
+		cleanKeyboardControls();
+	}, 1000);
 }
 
 async function handleCountdown(countdown) {
@@ -424,13 +425,17 @@ async function joinWinner() {
 	}
 }
 
-function handleGameFinish(game, winningId) {
+function handleGameFinish(game, winningId, opponentName = null) {
 	sessionStorage.setItem('asWin', false);
 	const btnBack = document.getElementById('button-home-end');
-	const opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
-	setTimeout(() => {
-		game.displayWinner(winningId);
-	}, 500);
+	if (opponentName === null)
+		opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
+	if (game) {
+		setTimeout(() => {
+			game.displayWinner(winningId);
+		}, 500);
+	}
+	console.log('ids', currentPlayerId, winningId);
 	const asWin = currentPlayerId === parseInt(winningId);
 	fetch('/api/add_match/', {
 		method: 'POST',

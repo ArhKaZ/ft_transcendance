@@ -20,7 +20,7 @@ class Player:
         self.ready = ready
 
     def __repr__(self):
-        return f"Player(id={self.player_id}, nb={self.nb}, y={self.y}, score={self.score})"
+        return f"Player(id={self.id}, nb={self.nb}, y={self.y}, score={self.score})"
 
     def set_y(self, y):
         self.y = y

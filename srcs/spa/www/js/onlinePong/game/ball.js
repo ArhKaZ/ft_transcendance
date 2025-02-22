@@ -117,7 +117,7 @@ class Ball {
             context.beginPath();
             let newSize = this.size * (1 - index / this.oldPositions.length);
             newSize = Math.max(newSize, 1);
-            let alpha = 1 - index / this.oldPositions.length;
+            let alpha = 0.9 - index / this.oldPositions.length;
             context.globalAlpha = Math.max(alpha, 0.1);
             context.arc(element.x, element.y, newSize, 0, 2 * Math.PI);
             context.fill();
