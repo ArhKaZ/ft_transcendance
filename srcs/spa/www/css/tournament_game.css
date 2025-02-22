@@ -73,7 +73,7 @@ body::before {
     gap: 10px;
   }
   
-.player {
+  .player {
     width: 180px;
     padding: 10px;
     background-color: #000;
@@ -82,7 +82,8 @@ body::before {
     border-radius: 4px;
     font-size: 0.8em;
     margin: auto;
-  }
+}
+
 
 .centered-image {
     position: absolute;

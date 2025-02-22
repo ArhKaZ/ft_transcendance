@@ -32,42 +32,6 @@ document.getElementById('return-button').addEventListener('click', () => {
     window.location.href = "/home/"; // ou une autre URL qui gère correctement l'accès
 });
 
-document.getElementById('loseLp').addEventListener('click', async () => {
-	fetch('/api/change_lp/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-            'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-            'won': false
-        })
-    }).then(response => response.json())
-	.then(data => {
-		const lps = document.getElementById('lps').innerText = `Ligue Points: ${data}`;
-	});
-})
-
-document.getElementById('addLp').addEventListener('click', async () => {
-	fetch('/api/change_lp/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-            'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-            'won': true
-        })
-    }).then(response => response.json())
-	.then(data => {
-		const lps = document.getElementById('lps').innerText = `Ligue Points: ${data}`;
-	});
-})
-
 const response = await fetch('/api/get-my-info/', {
 	method: 'GET',
 	headers: {
