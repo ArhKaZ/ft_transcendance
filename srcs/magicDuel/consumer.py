@@ -464,13 +464,13 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def check_winner_round(self):
 		if self.game_cancel_event.is_set() or self.game.status == 'CANCELLED':
 			return
-		# ret = await self.game.check_players_have_played()
-		# if ret != None:
-		# 	self.game.status = 'CANCELLED'
-		# 	await self.notify_player_no_play(ret)
-		# 	await self.cleanup_round()
-		# 	await self.cleanup()
-		# 	return
+		ret = await self.game.check_players_have_played()
+		if ret != None:
+			self.game.status = 'CANCELLED'
+			await self.notify_player_no_play(ret)
+			await self.cleanup_round()
+			await self.cleanup()
+			return
 
 		result = self.resolve_power(self.game.p1.action, self.game.p2.action)
 		if result == 'Error interaction':
