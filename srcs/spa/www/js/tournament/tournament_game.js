@@ -10,7 +10,19 @@ class TournamentGame {
 		this.currentPlayer;
 		this.quitButton = document.getElementById('quit-button');
 		this.messageDiv = document.getElementById('messageDiv');
+		window.history.pushState(null, null, window.location.href);
+		window.addEventListener('popstate', this.handleBackButton.bind(this));
 		document.getElementById('quit-button').addEventListener('click', () => this.quitTournament());
+	}
+
+	handleBackButton(event) {
+		console.log("return button click");
+		if (confirm('Are you sure you want to quit the tournament?')) {
+			this.quitTournament();
+		} else {
+			// Reset the history state if user cancels
+			window.history.pushState(null, null, window.location.href);
+		}
 	}
 
 	async checkLeft(tournamentCode) {
@@ -64,7 +76,7 @@ class TournamentGame {
 				console.log("fetch no error worked");
 				setTimeout(() => {
 					window.location.href = `/home/`;
-				}, 3000);
+				}, 0);
             } else {
                 this.messageDiv.innerHTML = `<div class="error-message">${data.error}</div>`;
             }
@@ -83,11 +95,11 @@ class TournamentGame {
 			console.log("premiere game");
 			// await this.loadPlayers();
 			sessionStorage.setItem('tournament_code', this.tournamentCode);
-			await sleep(5000);
+			// await sleep(5000);
 			window.location.href = `/onlinePong/?tournament=true`;
 		} else if (sessionStorage.getItem('asWin') == "true" && sessionStorage.getItem('finalDone') != "true") {
 			console.log("je participe a la finale");
-			await sleep(5000);
+			// await sleep(5000);
 			window.location.href = `/onlinePong/?tournament=true`;
 			// await this.loadFinal();
 		}

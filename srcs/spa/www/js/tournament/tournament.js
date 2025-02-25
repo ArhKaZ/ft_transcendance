@@ -14,13 +14,36 @@ class TournamentManager {
 		
 		this.currentTournamentCode = null;
 		this.setupTournamentPolling();
+
+        this.setupHistoryListener();
 	}
+
+    setupHistoryListener() {
+        window.addEventListener('popstate', (event) => {
+            // If user is in a tournament, intercept the back button
+            if (this.currentTournamentCode) {
+                // Prevent default navigation
+                event.preventDefault();
+                
+                // Show confirmation dialog
+                if (confirm('Do you want to quit the current tournament?')) {
+                    this.quitTournament(true);
+                } else {
+                    // If user cancels, push a new state to prevent navigation
+                    window.history.pushState({}, '', window.location.href);
+                }
+            }
+        });
+        
+        // Push an initial state to enable popstate detection
+        window.history.pushState({}, '', window.location.href);
+    }
 	
     setupEventListeners() {
 		// Create tournament button handler
         document.getElementById('create-button').addEventListener('click', () => this.createTournament());
 
-		document.getElementById('quit-button').addEventListener('click', () => this.quitTournament());
+		document.getElementById('quit-button').addEventListener('click', () => this.quitTournament(false));
         
         // Join tournament form handler
         document.getElementById('userForm').addEventListener('submit', (e) => this.joinTournament(e));
@@ -31,7 +54,7 @@ class TournamentManager {
 
     }
 
-	async quitTournament() {
+	async quitTournament(leave) {
         if (!this.currentTournamentCode) return;
 
         try {
@@ -47,7 +70,10 @@ class TournamentManager {
             const data = await response.json();
 
             if (response.ok) {
-                this.handleQuitSuccess(data);
+                if (leave == false)
+                    this.handleQuitSuccess(data);
+                else
+                    this.handleLeaveSuccess(data);
             } else {
                 this.messageDiv.innerHTML = `<div class="error-message">${data.error}</div>`;
             }
@@ -56,6 +82,21 @@ class TournamentManager {
         }
     }
 
+    handleLeaveSuccess(data) {
+        this.stopTournamentPolling();
+        sessionStorage.removeItem('current_tournament');
+        this.currentTournamentCode = null;
+        
+        this.updateUIState(false);
+        this.messageDiv.innerHTML = `<div class="success-message">${data.message}</div>`;
+        
+        if (data.deleted) {
+            setTimeout(() => {
+                window.location.href = `/home/`;
+            }, 0);
+        }
+    }
+    
 	handleQuitSuccess(data) {
         this.stopTournamentPolling();
         sessionStorage.removeItem('current_tournament');
@@ -67,7 +108,7 @@ class TournamentManager {
         if (data.deleted) {
             setTimeout(() => {
                 window.location.reload();
-            }, 2000);
+            }, 0);
         }
     }
 
@@ -271,7 +312,16 @@ class TournamentManager {
 }
 
 document.getElementById('return-button').addEventListener('click', () => {
-    window.history.back();
+    // Check if tournament manager exists and user is in a tournament
+    if (window.tournamentManager && window.tournamentManager.currentTournamentCode) {
+        // Show confirmation dialog
+        if (confirm('Do you want to quit the current tournament?')) {
+            window.tournamentManager.quitTournament(true);
+        }
+    } else {
+        // Regular back navigation if not in a tournament
+        window.history.back();
+    }
 });
 
 console.log("Script starting...");
