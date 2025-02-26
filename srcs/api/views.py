@@ -58,22 +58,20 @@ def login_user(request):
 		return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-def list_users(request):
-	users = MyUser.objects.all()
-	return render(request, 'api/list_users.html', {'users': users})
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_match(request):
 	data = request.data.copy()
 	data['user'] = request.user.id
 
-	if request.data['type'] == 'magicDuel':
-		if request.data['won']:
-			request.user.ligue_points += 15
-		else:
-			request.user.ligue_points -= 15
-		request.user.save()
+	# if request.data['type'] == 'magicDuel':
+	if request.data['won']:
+		request.user.wins += 1
+		request.user.ligue_points += 15
+	else:
+		request.user.looses += 1
+		request.user.ligue_points -= 15
+	request.user.save()
 
 	serializer = MatchHistorySerializer(data=data)
 	if serializer.is_valid():
@@ -734,6 +732,7 @@ def get_end_players(request, tournament_code):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_info_user(request, userName):
+<<<<<<< HEAD
 	try:
 		user = MyUser.objects.get(username=userName)
 		serializer = UserInfoSerializer(user)
@@ -741,3 +740,23 @@ def get_info_user(request, userName):
 	except MyUser.DoesNotExist:
 		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 	
+=======
+    try:
+        user = MyUser.objects.get(username=userName)
+        serializer = UserInfoSerializer(user)
+        return Response(serializer.data)
+    except MyUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_history(request, userName):
+    try:
+        user = MyUser.objects.get(username=userName)
+        matches = MatchHistory.objects.filter(user=user)
+        serializer = MatchHistorySerializer(matches, many=True)
+        return Response(serializer.data)
+    except MyUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+>>>>>>> 98372198769ed0d929bd3022f6bbe6531046a72f

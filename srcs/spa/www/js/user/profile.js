@@ -25,6 +25,14 @@ async function fetch_user() {
         document.getElementById('ligue-points').textContent = data.ligue_points;
         document.getElementById('user-description').textContent = data.description || "No description provided";
         document.getElementById('user-avatar').src = data.avatar || '/avatars/default.png';
+        document.getElementById('user-wins').textContent = data.wins;
+        document.getElementById('user-looses').textContent = data.looses;
+        const wins = parseInt(data.wins, 10); // Convertit en entier
+        const looses = parseInt(data.looses, 10);
+        if (wins === 0 && looses === 0)
+            document.getElementById('user-winrate').textContent = "0%";
+        else
+            document.getElementById('user-winrate').textContent = wins / (wins + looses);
         
         // Populate friends list
         const friendsList = document.getElementById('friends-list');
@@ -50,4 +58,69 @@ async function fetch_user() {
     }
 }
 
+async function fetchHistory() {
+    const pathSegments = window.location.pathname.split('/');
+    const userName = pathSegments[3];
+    try {
+        const response = await fetch(`/api/user/profile/get_history/${userName}/`, {
+            method: 'GET',
+            headers: {
+                'Content-type': 'application/json',
+                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+            }
+        });
+
+        if (response.ok) {
+            console.log("get history call worked");
+            const data = await response.json();
+
+            const sortedData = data.reverse();
+            // Génération du tableau HTML
+            let historyHtml = `
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Adversaire</th>
+                            <th>Mode</th>
+                            <th>Résultat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            sortedData.forEach(item => {
+                historyHtml += `
+                    <tr>
+                        <td>${item.date}</td>
+                        <td>${item.opponent_name}</td>
+                        <td>${item.type}</td>
+                        <td>${item.won ? "Gagné" : "Perdu"}</td>
+                    </tr>
+                `;
+            });
+
+            historyHtml += `
+                    </tbody>
+                </table>
+            `;
+
+            // Correctly target the history div
+            const historyDiv = document.getElementById('history');
+            if (historyDiv) {
+                historyDiv.innerHTML = historyHtml;
+            } else {
+                console.error("History div not found");
+            }
+        } else {
+            console.log("Erreur lors de la récupération de l'historique :", response.status);
+        }
+    } catch (error) {
+        console.log("history call failed", error);
+    }
+}
+
+// fetchStats();
+
 fetch_user();
+fetchHistory();

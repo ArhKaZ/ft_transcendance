@@ -7,6 +7,8 @@ class MyUser(AbstractUser):
     pseudo = models.CharField(max_length=100)
     avatar = models.ImageField(upload_to='avatars/', default='avatars/default.png')
     ligue_points = models.IntegerField(default=500)
+    wins = models.IntegerField(default=0)
+    looses = models.IntegerField(default=0)
     # Add related_name to avoid clashes
     groups = models.ManyToManyField(
         'auth.Group',

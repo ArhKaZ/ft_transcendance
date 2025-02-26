@@ -5,7 +5,6 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
 	path('add_user/', views.add_user),
-	path('list_users/', views.list_users),
 	path('login/', views.login_user, name='login_user'),
 	path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 	path('edit_user_api/', views.edit_user_api),
@@ -23,6 +22,7 @@ urlpatterns = [
 	path('quit_tournament/<str:tournament_code>/', views.quit_tournament),
 	path('forfeit_tournament/<str:tournament_code>/', views.forfeit_tournament, name='forfeit_tournament'),
 	path('user/profile/<str:userName>/', views.get_info_user),
+	path('user/profile/get_history/<str:userName>/', views.get_user_history),
 	
 	path('tournament_status/<str:tournament_code>/', views.tournament_status, name='tournament_status'),
 	path('tournament/<str:tournament_code>/players/', views.get_tournament_players, name='tournament_players'),

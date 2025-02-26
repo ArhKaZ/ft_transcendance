@@ -1,5 +1,9 @@
 import { getCSRFToken } from '/js/utils.js';
 
+const searchButton = document.getElementById('search-button');
+const searchInput = document.getElementById('search-input');
+const searchResults = document.getElementById('search-results');
+
 document.getElementById('logout-button').addEventListener('click', async () => {
 	console.log('Logging out...');
     // Remove the token from sessionStorage
@@ -75,6 +79,9 @@ if (response.ok) {
 
 	const userInfo = document.querySelector('.user-info');
     userInfo.style.display = 'none';
+	searchButton.style.display = 'none';
+	searchInput.style.display = 'none';
+	searchResults.style.display = 'none';
 	bottomBtns.style.display = 'none';
 	// localbtn.style.display = 'none';
 	gamebtn.style.display = 'none';
@@ -87,3 +94,22 @@ if (response.ok) {
 	
 	console.error('Erreur lors de la requête de récupération des informations :', response);
 }
+
+
+
+searchButton.addEventListener('click', async () => {
+    const userName = searchInput.value.trim(); // Get the username from the input
+
+    if (userName) {
+        // Navigate to the user profile page
+        window.location.href = `/user/profile/${userName}`;
+    } else {
+        searchResults.textContent = 'Please enter a username.'; // Show an error message
+    }
+});
+
+searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        searchButton.click(); // Trigger the search button click
+    }
+});
