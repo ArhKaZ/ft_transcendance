@@ -20,6 +20,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.db.models import Q
 from .serializers import UserInfoSerializer, TournamentMatchSerializer
 from .models import Tournament, TournamentMatch
+from .blockchain_storage import record_match
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -262,6 +263,33 @@ def join_final(request, tournament_code):
 			status=status.HTTP_404_NOT_FOUND
 		)
 
+def parse_tournament_data(tournament):
+	# Récupérer tous les joueurs et convertir en liste de pseudos
+	players = [
+		player.pseudo 
+		for player in tournament.players.all()
+	]
+	
+	# Récupérer les finalistes et convertir en liste de pseudos
+	finalists = [
+		finalist.pseudo
+		for finalist in tournament.finalist.all()
+	]
+
+	winner = [
+		winner.pseudo
+		for winner in tournament.winner.all()
+	]
+	# Créer le dictionnaire de données formaté
+	tournament_data = {
+		"tournament_code": tournament.code,
+		"players": players,
+		"finalists": finalists,
+		"winner": winner
+	}
+	
+	return tournament_data
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def join_winner(request, tournament_code):
@@ -269,11 +297,13 @@ def join_winner(request, tournament_code):
 		tournament = Tournament.objects.get(code=tournament_code)
 		try:
 			tournament.add_winner(request.user)
+			tournament_data = parse_tournament_data(tournament)
+			# record_match(tournament_data, tournament_code)
 
 			response_data = {
 				'message': 'You won !!',
 			}
-
+				
 			return Response(response_data, status=status.HTTP_200_OK)
 
 		except ValidationError as e:
@@ -704,10 +734,10 @@ def get_end_players(request, tournament_code):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_info_user(request, userName):
-    try:
-        user = MyUser.objects.get(username=userName)
-        serializer = UserInfoSerializer(user)
-        return Response(serializer.data)
-    except MyUser.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+	try:
+		user = MyUser.objects.get(username=userName)
+		serializer = UserInfoSerializer(user)
+		return Response(serializer.data)
+	except MyUser.DoesNotExist:
+		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 	

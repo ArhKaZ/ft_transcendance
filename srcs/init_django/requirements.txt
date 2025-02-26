@@ -39,4 +39,3 @@ typing_extensions==4.12.2
 urllib3==2.2.3
 websockets==13.1
 zope.interface==7.0.3
-web3
