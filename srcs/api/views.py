@@ -57,10 +57,6 @@ def login_user(request):
 		return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-def list_users(request):
-	users = MyUser.objects.all()
-	return render(request, 'api/list_users.html', {'users': users})
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_match(request):
