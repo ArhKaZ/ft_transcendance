@@ -20,22 +20,30 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.db.models import Q
 from .serializers import UserInfoSerializer, TournamentMatchSerializer
 from .models import Tournament, TournamentMatch
+import re
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def add_user(request):
-	data = request.data.copy()
-	avatar = request.FILES.get('avatar')
-	if avatar:
-		data['avatar'] = avatar
+	try:
+		data = request.data.copy()
+		avatar = request.FILES.get('avatar')
+		if avatar:
+			data['avatar'] = avatar
 
-	serializer = UserSerializer(data=data)
-	if serializer.is_valid():
-		user = serializer.save()
-		user.set_password(serializer.validated_data['password'])
-		user.save()
-		return Response(status=status.HTTP_201_CREATED)
-	return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+		serializer = UserSerializer(data=data)
+		if serializer.is_valid():
+			user = serializer.save()
+			user.set_password(serializer.validated_data['password'])
+			user.save()
+			return Response(status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	except Exception as e:
+		print(f"Error: {e}")  # Log the actual error
+		return Response(
+			{'error': str(e)},  # Return the actual error message
+			status=status.HTTP_400_BAD_REQUEST
+		)
 
 
 @api_view(['POST'])
@@ -702,21 +710,21 @@ def get_end_players(request, tournament_code):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_info_user(request, userName):
-    try:
-        user = MyUser.objects.get(username=userName)
-        serializer = UserInfoSerializer(user)
-        return Response(serializer.data)
-    except MyUser.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+	try:
+		user = MyUser.objects.get(username=userName)
+		serializer = UserInfoSerializer(user)
+		return Response(serializer.data)
+	except MyUser.DoesNotExist:
+		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_history(request, userName):
-    try:
-        user = MyUser.objects.get(username=userName)
-        matches = MatchHistory.objects.filter(user=user)
-        serializer = MatchHistorySerializer(matches, many=True)
-        return Response(serializer.data)
-    except MyUser.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+	try:
+		user = MyUser.objects.get(username=userName)
+		matches = MatchHistory.objects.filter(user=user)
+		serializer = MatchHistorySerializer(matches, many=True)
+		return Response(serializer.data)
+	except MyUser.DoesNotExist:
+		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 

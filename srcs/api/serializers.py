@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import MyUser, MatchHistory, TournamentMatch
+import bleach
+import re
 
 class UserSerializer(serializers.ModelSerializer):
 	password = serializers.CharField(write_only=True)
@@ -7,6 +9,21 @@ class UserSerializer(serializers.ModelSerializer):
 		model = MyUser
 		fields = ['username', 'password', 'description', 'avatar', 'ligue_points', 'pseudo', 'wins', 'looses']
 		extra_kwargs = {'password': {'write_only': True}}
+	
+	def validate_username(self, value):
+		return self.validate_text_field(value, "username")
+
+	def validate_pseudo(self, value):
+		return self.validate_text_field(value, "pseudo")
+
+	def validate_description(self, value):
+		return self.validate_text_field(value, "description")
+
+	def validate_text_field(self, value, field_name):
+		if not re.match(r'^[a-zA-Z0-9 ,.\s]+$', value):
+			raise serializers.ValidationError(f"Le champ {field_name} ne peut contenir que des lettres, chiffres, espaces, virgules et points.")
+		return value
+
 	def create(self, validated_data):
 		password = validated_data.pop('password', None)
 		validated_data['ligue_points'] = 500
