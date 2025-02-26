@@ -10,24 +10,83 @@ class TournamentGame {
 		this.quitButton = document.getElementById('quit-button');
 		this.messageDiv = document.getElementById('messageDiv');
 		document.getElementById('quit-button').addEventListener('click', () => this.quitTournament());
+		
+		// Call setupHistoryListener at the end of constructor
 		this.setupHistoryListener();
+		
+		// Backup protection - override browser back button behavior 
+		// using a custom keydown handler for the Backspace key
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Backspace' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+				console.log("Backspace key pressed outside input/textarea");
+				e.preventDefault();
+				if (confirm('Do you want to quit the current tournament?')) {
+					this.quitTournament();
+				}
+			}
+		});
+		
 		this.init();
 	}
 
 	setupHistoryListener() {
-        window.addEventListener('popstate', (event) => {
-			console.log("je veux revenir en arriere");
-            event.preventDefault();
-            if (confirm('Do you want to quit the current tournament?')) {
-                this.quitTournament();
-            } else {
-                // Replace with replaceState to avoid adding new entries
-                window.history.replaceState({}, '', window.location.href);
-            }
-        });
-        // Push initial state
-        window.history.pushState({}, '', window.location.href);
-    }
+		// Only use popstate event - it's triggered when the user clicks the back button
+		window.addEventListener('popstate', (event) => {
+			console.log("Back button detected via popstate");
+			
+			// Prevent the default navigation
+			event.preventDefault();
+			
+			// Save the tournamentCode for safety in case 'this' context is lost
+			const tournamentCode = this.tournamentCode;
+			
+			// Confirm with the user
+			if (confirm('Do you want to quit the current tournament?')) {
+				console.log("User confirmed tournament quit");
+				
+				// Clean up all tournament state
+				sessionStorage.removeItem('asWin');
+				sessionStorage.removeItem('tournament_code');
+				sessionStorage.removeItem('finalDone');
+				
+				// Redirect directly to home page
+				window.location.href = '/home/';
+			} else {
+				console.log("User canceled tournament quit");
+				
+				// Stay on the current page by pushing a new state
+				window.history.pushState({page: 'tournament'}, '', window.location.href);
+			}
+		});
+		
+		// Initial state push - tag it with a custom property
+		window.history.pushState({page: 'tournament'}, '', window.location.href);
+		
+		console.log("History listener setup complete");
+	}
+
+	handlePopState(event) {
+		console.log("Browser back button detected");
+		
+		// Prevent the default action
+		event.preventDefault();
+		
+		// Show confirmation dialog
+		if (confirm('Do you want to quit the current tournament?')) {
+			console.log("User confirmed quit");
+			// Clean up session storage before quitting
+			sessionStorage.removeItem('asWin');
+			sessionStorage.removeItem('tournament_code');
+			sessionStorage.removeItem('finalDone');
+			
+			// Force redirect to home
+			window.location.href = '/home/';
+		} else {
+			console.log("User canceled quit");
+			// Push a new state to prevent going back to the previous state
+			window.history.pushState({tournamentPage: true}, '', window.location.href);
+		}
+	}
 
 	async checkLeft(tournamentCode) {
 		try {
@@ -55,39 +114,39 @@ class TournamentGame {
 	}
 
 	async quitTournament() {
-		console.log("Tournament Code:", this.tournamentCode);
-		console.log("CSRF Token:", getCSRFToken());
-		console.log("Token Key:", sessionStorage.getItem('token_key'));
-		if (!this.tournamentCode) return;
-
+		console.log("Quitting tournament:", this.tournamentCode);
+		
+		if (!this.tournamentCode) {
+			console.error("No tournament code available");
+			window.location.href = '/home/';
+			return;
+		}
+	
+		// Clean up session storage immediately
+		sessionStorage.removeItem('asWin');
+		sessionStorage.removeItem('tournament_code');
+		sessionStorage.removeItem('finalDone');
+		
 		try {
-			sessionStorage.removeItem('asWin');
-			sessionStorage.removeItem('tournament_code');
-			sessionStorage.removeItem('finalDone');
-			console.log("je forfeit");
+			console.log("Sending forfeit request to API");
 			const response = await fetch(`/api/forfeit_tournament/${this.tournamentCode}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken(),
-                    'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
-                },
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': getCSRFToken(),
+					'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+				},
 				credentials: 'include',
-            });
+			});
 			
-			const data = await response.json();
-			
-            if (response.ok) {
-				console.log("fetch no error worked");
-				setTimeout(() => {
-					window.location.href = `/home/`;
-				}, 0);
-            } else {
-                this.messageDiv.innerHTML = `<div class="error-message">${data.error}</div>`;
-            }
-        } catch (error) {
-            this.messageDiv.innerHTML = `<div class="error-message">Error quitting tournament</div>`;
-        }
+			console.log("Forfeit API response status:", response.status);
+		} catch (error) {
+			console.error("Error in forfeit API call:", error);
+		} finally {
+			// Always navigate home
+			console.log("Navigating to home page");
+			window.location.href = '/home/';
+		}
 	}
 
 	async init() {
