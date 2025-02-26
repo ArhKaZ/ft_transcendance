@@ -710,4 +710,15 @@ def get_info_user(request, userName):
         return Response(serializer.data)
     except MyUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-	
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_history(request, userName):
+    try:
+        user = MyUser.objects.get(username=userName)
+        matches = MatchHistory.objects.filter(user=user)
+        serializer = MatchHistorySerializer(matches, many=True)
+        return Response(serializer.data)
+    except MyUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
