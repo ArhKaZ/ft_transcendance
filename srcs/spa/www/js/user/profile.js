@@ -25,6 +25,14 @@ async function fetch_user() {
         document.getElementById('ligue-points').textContent = data.ligue_points;
         document.getElementById('user-description').textContent = data.description || "No description provided";
         document.getElementById('user-avatar').src = data.avatar || '/avatars/default.png';
+        document.getElementById('user-wins').textContent = data.wins;
+        document.getElementById('user-looses').textContent = data.looses;
+        const wins = parseInt(data.wins, 10); // Convertit en entier
+        const looses = parseInt(data.looses, 10);
+        if (wins === 0 && looses === 0)
+            document.getElementById('user-winrate').textContent = "0%";
+        else
+            document.getElementById('user-winrate').textContent = wins / (wins + looses);
         
         // Populate friends list
         const friendsList = document.getElementById('friends-list');
@@ -111,6 +119,8 @@ async function fetchHistory() {
         console.log("history call failed", error);
     }
 }
+
+// fetchStats();
 
 fetch_user();
 fetchHistory();
