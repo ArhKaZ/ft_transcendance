@@ -701,3 +701,13 @@ def get_end_players(request, tournament_code):
 			'error': 'Tournament not found'
 		}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_info_user(request, userName):
+    try:
+        user = MyUser.objects.get(username=userName)
+        serializer = UserInfoSerializer(user)
+        return Response(serializer.data)
+    except MyUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+	

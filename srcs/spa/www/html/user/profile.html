@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <!-- <link rel="stylesheet" href="/css/profile.css"> -->
+</head>
+<body>
+    <div class="profile-container">
+        <div class="profile-header">
+            <img id="user-avatar" class="profile-avatar" src="" alt="User Avatar">
+            <div class="profile-info">
+                <h1 id="username"></h1>
+                <p class="pseudo" id="user-pseudo"></p>
+                <p class="league-points">League Points: <span id="ligue-points"></span></p>
+            </div>
+        </div>
+        
+        <div class="profile-section">
+            <h2>About</h2>
+            <p id="user-description" class="description"></p>
+        </div>
+
+        <div class="profile-section">
+            <h2>Friends</h2>
+            <div id="friends-list" class="friends-grid"></div>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+    </div>
+    <script type="module" src="/js/user/profile.js"></script>
+</body>
+</html>

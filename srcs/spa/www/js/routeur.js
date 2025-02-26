@@ -83,7 +83,7 @@ class Router {
 
     async handleLocation() {
         const path = window.location.pathname;
-
+    
         if (!this.isPublicPath(path)) {
             const isAuthenticated = await this.checkUserAuth();
             if (!isAuthenticated) return;
@@ -100,8 +100,7 @@ class Router {
             this.executeScripts(this.rootElement);
             return;
         }
-
-
+    
         // Check for dynamic tournament game route
         const tournamentGameMatch = path.match(/^\/tournament\/game\/([a-zA-Z0-9-]+)\/?$/);
         if (tournamentGameMatch) {
@@ -121,6 +120,25 @@ class Router {
             }
         }
         
+        // Check for dynamic user profile route
+        const userProfileMatch = path.match(/^\/user\/profile\/([a-zA-Z0-9_-]+)\/?$/);
+        if (userProfileMatch) {
+            const userName = userProfileMatch[1];
+            // Use the dynamic user profile route handler
+            const route = this.routes['/user/profile/:userName'];
+            if (route) {
+                try {
+                    const htmlContent = await route(userName);
+                    const processedContent = await this.parseHTML(htmlContent);
+                    this.rootElement.innerHTML = processedContent;
+                    this.executeScripts(this.rootElement);
+                    return;
+                } catch (error) {
+                    console.error('Error loading user profile page:', error);
+                }
+            }
+        }
+        
         // Handle regular routes
         const route = this.routes[path] || this.routes['/404'];
         
@@ -128,7 +146,7 @@ class Router {
             console.error('Route not found');
             return;
         }
-
+    
         try {
             const htmlContent = await route();
             const processedContent = await this.parseHTML(htmlContent);
@@ -258,6 +276,10 @@ const routes = {
     // New dynamic route for tournament game
     '/tournament/game/:code': async (tournamentCode) => {
         const response = await fetch('/html/tournament/tournament_game.html');
+        return await response.text();
+    },
+    '/user/profile/:userName': async (userName) => {
+        const response = await fetch('/html/user/profile.html');
         return await response.text();
     },
     '/404': () => '<h1>Page Not Found</h1>'
