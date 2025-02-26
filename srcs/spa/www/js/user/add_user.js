@@ -46,7 +46,7 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
 
 document.getElementById('return-button').addEventListener('click', () => {
     console.log("return click");
-    window.history.back();
+    window.location.href = "/home/";
 });
 
 document.getElementById('avatar').addEventListener('change', function() {

@@ -27,9 +27,9 @@ from django.core.exceptions import ObjectDoesNotExist
 import os
 
 User = get_user_model()
-username = os.getenv('DJANGO_SUPERUSER_USERNAME', 'admin')
-email = os.getenv('DJANGO_SUPERUSER_EMAIL', 'admin@example.com')
-password = os.getenv('DJANGO_SUPERUSER_PASSWORD', 'pwd')
+username = '$DJANGO_SUPERUSER_USERNAME'
+email = '$DJANGO_SUPERUSER_EMAIL'
+password = '$DJANGO_SUPERUSER_PASSWORD'
 
 try:
  User.objects.get(username=username)

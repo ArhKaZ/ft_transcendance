@@ -1,6 +1,7 @@
 import T_Player from './tournament_player.js';
 import { sleep } from '../utils.js';
 import { getCSRFToken } from '../utils.js';
+import { parseTournamentData } from './blockchain_storage.js';
 
 class TournamentGame {
 	constructor() {
@@ -95,7 +96,7 @@ class TournamentGame {
 			console.log("la finale est finie");
 		}
 	}
-	
+
 	async loadEnd() {
 		try {
 			const response = await fetch(`/api/tournament/${this.tournamentCode}/end_players/`, {
@@ -109,7 +110,12 @@ class TournamentGame {
 			}
 			
 			const data = await response.json();
-			console.log(data);
+			if (data.winner.length > 0)
+			{
+				blockchain_data = parseTournamentData(data);
+				
+			}
+			console.log("JSON Final du Tournoi :", JSON.stringify(data, null, 2));
 			this.displayTournamentInfo(data);
 			// this.populatePlayers(data);
 		} catch (error) {
