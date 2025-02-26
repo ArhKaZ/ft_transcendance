@@ -69,26 +69,26 @@ async function getInfoMatchTournament(user) {
 	}
 }
 
-// async function getInfoFinale(user) {
-// 	try {
-// 		const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/get_final_opponent`, {
-// 			method: 'GET',
-// 			headers: {
-// 				'Content-Type': 'application/json',
-// 				'X-CSRFToken': getCSRFToken(),
-// 				'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
-// 			},
-// 			credentials: 'include',
-// 		});
-// 		if (!response.ok) {
-// 			console.log(`Error get opponent : ${response.error}`);
-// 		}
-// 		const data = await response.json();
-// 		return data;
-// 	} catch (error) {
-// 		handleErrors({message: 'You need to be logged before playing'});
-// 	}
-// }
+async function getInfoFinale(user) {
+	try {
+		const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/get_final_opponent`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': getCSRFToken(),
+				'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+			},
+			credentials: 'include',
+		});
+		if (!response.ok) {
+			console.log(`Error get opponent : ${response.error}`);
+		}
+		const data = await response.json();
+		return data;
+	} catch (error) {
+		handleErrors({message: 'You need to be logged before playing'});
+	}
+}
 
 async function init() {
 	const user = await getUserFromBack();

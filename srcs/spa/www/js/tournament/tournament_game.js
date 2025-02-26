@@ -16,6 +16,7 @@ class TournamentGame {
 
 	setupHistoryListener() {
         window.addEventListener('popstate', (event) => {
+			console.log("je veux revenir en arriere");
             event.preventDefault();
             if (confirm('Do you want to quit the current tournament?')) {
                 this.quitTournament();
@@ -60,6 +61,9 @@ class TournamentGame {
 		if (!this.tournamentCode) return;
 
 		try {
+			sessionStorage.removeItem('asWin');
+			sessionStorage.removeItem('tournament_code');
+			sessionStorage.removeItem('finalDone');
 			console.log("je forfeit");
 			const response = await fetch(`/api/forfeit_tournament/${this.tournamentCode}/`, {
                 method: 'POST',
@@ -74,8 +78,6 @@ class TournamentGame {
 			const data = await response.json();
 			
             if (response.ok) {
-				sessionStorage.removeItem('asWin');
-            	sessionStorage.removeItem('tournament_code');
 				console.log("fetch no error worked");
 				setTimeout(() => {
 					window.location.href = `/home/`;
@@ -88,85 +90,85 @@ class TournamentGame {
         }
 	}
 
-	// async init() {
-	// 	if (this.checkLeft(this.tournamentCode) == true) {
-	// 		window.location.href = `/home/`;
-	// 	}
-	// 	console.log("final status in the init ", sessionStorage.getItem('finalDone'));
-	// 	await this.loadEnd();
-	// 	if (!sessionStorage.getItem('asWin')) {
-	// 		console.log("premiere game");
-	// 		// await this.loadPlayers();
-	// 		sessionStorage.setItem('tournament_code', this.tournamentCode);
-	// 		// await sleep(5000);
-	// 		window.location.href = `/onlinePong/?tournament=true`;
-	// 	} else if (sessionStorage.getItem('asWin') == "true" && sessionStorage.getItem('finalDone') != "true") {
-	// 		console.log("je participe a la finale");
-	// 		// await sleep(5000);
-	// 		window.location.href = `/onlinePong/?tournament=true`;
-	// 		// await this.loadFinal();
-	// 	}
-	// 	else {
-	// 		console.log("la finale est finie");
+	async init() {
+		if (this.checkLeft(this.tournamentCode) == true) {
+			window.location.href = `/home/`;
+		}
+		console.log("final status in the init ", sessionStorage.getItem('finalDone'));
+		await this.loadEnd();
+		if (!sessionStorage.getItem('asWin')) {
+			console.log("premiere game");
+			// await this.loadPlayers();
+			sessionStorage.setItem('tournament_code', this.tournamentCode);
+			// await sleep(5000);
+			window.location.href = `/onlinePong/?tournament=true`;
+		} else if (sessionStorage.getItem('asWin') == "true" && sessionStorage.getItem('finalDone') != "true") {
+			console.log("je participe a la finale");
+			// await sleep(5000);
+			window.location.href = `/onlinePong/?tournament=true`;
+			// await this.loadFinal();
+		}
+		else {
+			console.log("la finale est finie");
+		}
+	}
+
+	// async getInfoFinale() {
+	// 	try {
+	// 		const response = await fetch(`/api/tournament/${this.tournamentCode}/get_final_opponent/`, {
+	// 			method: 'GET',
+	// 			headers: {
+	// 				'Content-Type': 'application/json',
+	// 				'X-CSRFToken': getCSRFToken(),
+	// 				'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+	// 			},
+	// 			credentials: 'include'
+	// 		});
+	
+	// 		if (!response.ok) {
+	// 			throw new Error(`HTTP error! Status: ${response.status}`);
+	// 		}
+	
+	// 		return await response.json();
+	// 	} catch (error) {
+	// 		console.error("Failed to fetch final opponent:", error);
+	// 		sessionStorage.removeItem('tournament_code'); // Cleanup on failure
+	// 		window.location.href = "/home/"; // Redirect to prevent stuck state
+	// 		return null;
 	// 	}
 	// }
 
-	async getInfoFinale() {
-		try {
-			const response = await fetch(`/api/tournament/${this.tournamentCode}/get_final_opponent/`, {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': getCSRFToken(),
-					'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
-				},
-				credentials: 'include'
-			});
+	// async init() {
+	// 	const hasLeft = await this.checkLeft(this.tournamentCode);
+	// 	if (hasLeft) {
+	// 		window.location.href = `/home/`;
+	// 		return;
+	// 	}
 	
-			if (!response.ok) {
-				throw new Error(`HTTP error! Status: ${response.status}`);
-			}
+	// 	await this.loadEnd();
 	
-			return await response.json();
-		} catch (error) {
-			console.error("Failed to fetch final opponent:", error);
-			sessionStorage.removeItem('tournament_code'); // Cleanup on failure
-			window.location.href = "/home/"; // Redirect to prevent stuck state
-			return null;
-		}
-	}
-
-	async init() {
-		const hasLeft = await this.checkLeft(this.tournamentCode);
-		if (hasLeft) {
-			window.location.href = `/home/`;
-			return;
-		}
+	// 	// Add this check to ensure tournament code validity
+	// 	if (!this.tournamentCode || this.tournamentCode.length !== 8) { // Adjust length check as needed
+	// 		sessionStorage.removeItem('tournament_code');
+	// 		window.location.href = "/home/";
+	// 		return;
+	// 	}
 	
-		await this.loadEnd();
-	
-		// Add this check to ensure tournament code validity
-		if (!this.tournamentCode || this.tournamentCode.length !== 8) { // Adjust length check as needed
-			sessionStorage.removeItem('tournament_code');
-			window.location.href = "/home/";
-			return;
-		}
-	
-		if (!sessionStorage.getItem('asWin')) {
-			sessionStorage.setItem('tournament_code', this.tournamentCode);
-			window.location.href = `/onlinePong/?tournament=true`;
-		} else if (sessionStorage.getItem('asWin') === "true" && 
-				   sessionStorage.getItem('finalDone') !== "true") {
-			// Add opponent validation before redirect
-			const opponentData = await this.getInfoFinale();
-			if (!opponentData?.opponent_id) { // Check if valid opponent exists
-				sessionStorage.removeItem('asWin');
-				window.location.href = "/home/";
-				return;
-			}
-			window.location.href = `/onlinePong/?tournament=true`;
-		}
-	}
+	// 	if (!sessionStorage.getItem('asWin')) {
+	// 		sessionStorage.setItem('tournament_code', this.tournamentCode);
+	// 		window.location.href = `/onlinePong/?tournament=true`;
+	// 	} else if (sessionStorage.getItem('asWin') === "true" && 
+	// 			   sessionStorage.getItem('finalDone') !== "true") {
+	// 		// Add opponent validation before redirect
+	// 		const opponentData = await this.getInfoFinale();
+	// 		if (!opponentData?.opponent_id) { // Check if valid opponent exists
+	// 			sessionStorage.removeItem('asWin');
+	// 			window.location.href = "/home/";
+	// 			return;
+	// 		}
+	// 		window.location.href = `/onlinePong/?tournament=true`;
+	// 	}
+	// }
 	
 	async loadEnd() {
 		try {
