@@ -21,6 +21,13 @@ from django.db.models import Q
 from .serializers import UserInfoSerializer, TournamentMatchSerializer
 from .models import Tournament, TournamentMatch
 import re
+import os
+
+import magic  # pip install python-magic
+
+
+ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png'}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -29,6 +36,17 @@ def add_user(request):
 		data = request.data.copy()
 		avatar = request.FILES.get('avatar')
 		if avatar:
+			ext = os.path.splitext(avatar.name)[1].lower()
+			mime_type = magic.Magic(mime=True).from_buffer(avatar.read(1024))
+			avatar.seek(0)  # Rewind file after checking type
+
+			# Vérification de l'extension et du type MIME
+			if ext not in ALLOWED_EXTENSIONS or not mime_type.startswith('image/'):
+				return Response({'error': 'Format de fichier non autorisé'}, status=status.HTTP_400_BAD_REQUEST)
+			
+			# Vérification de la taille
+			if avatar.size > MAX_FILE_SIZE:
+				return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
 			data['avatar'] = avatar
 
 		serializer = UserSerializer(data=data)
@@ -142,6 +160,18 @@ def edit_user_api(request):
 
 	if request.FILES.get('avatar'):
 		data['avatar'] = request.FILES['avatar']
+		avatar = request.FILES['avatar']
+		ext = os.path.splitext(avatar.name)[1].lower()
+		mime_type = magic.Magic(mime=True).from_buffer(avatar.read(1024))
+		avatar.seek(0)  # Rewind file after checking type
+		# Vérification de l'extension et du type MIME
+		if ext not in ALLOWED_EXTENSIONS or not mime_type.startswith('image/'):
+			return Response({'error': 'Format de fichier non autorisé'}, status=status.HTTP_400_BAD_REQUEST)
+		
+		# Vérification de la taille
+		if avatar.size > MAX_FILE_SIZE:
+			return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
+		data['avatar'] = avatar
 
 	# Only proceed with update if there's data to update
 	if data:
