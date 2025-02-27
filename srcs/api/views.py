@@ -21,22 +21,48 @@ from django.db.models import Q
 from .serializers import UserInfoSerializer, TournamentMatchSerializer
 from .models import Tournament, TournamentMatch
 from .blockchain_storage import record_match
+import re
+import os
+
+import magic  # pip install python-magic
+
+
+ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png'}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def add_user(request):
-	data = request.data.copy()
-	avatar = request.FILES.get('avatar')
-	if avatar:
-		data['avatar'] = avatar
+	try:
+		data = request.data.copy()
+		avatar = request.FILES.get('avatar')
+		if avatar:
+			ext = os.path.splitext(avatar.name)[1].lower()
+			mime_type = magic.Magic(mime=True).from_buffer(avatar.read(1024))
+			avatar.seek(0)  # Rewind file after checking type
 
-	serializer = UserSerializer(data=data)
-	if serializer.is_valid():
-		user = serializer.save()
-		user.set_password(serializer.validated_data['password'])
-		user.save()
-		return Response(status=status.HTTP_201_CREATED)
-	return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+			# Vérification de l'extension et du type MIME
+			if ext not in ALLOWED_EXTENSIONS or not mime_type.startswith('image/'):
+				return Response({'error': 'Format de fichier non autorisé'}, status=status.HTTP_400_BAD_REQUEST)
+			
+			# Vérification de la taille
+			if avatar.size > MAX_FILE_SIZE:
+				return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
+			data['avatar'] = avatar
+
+		serializer = UserSerializer(data=data)
+		if serializer.is_valid():
+			user = serializer.save()
+			user.set_password(serializer.validated_data['password'])
+			user.save()
+			return Response(status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	except Exception as e:
+		print(f"Error: {e}")  # Log the actual error
+		return Response(
+			{'error': str(e)},  # Return the actual error message
+			status=status.HTTP_400_BAD_REQUEST
+		)
 
 
 @api_view(['POST'])
@@ -135,6 +161,18 @@ def edit_user_api(request):
 
 	if request.FILES.get('avatar'):
 		data['avatar'] = request.FILES['avatar']
+		avatar = request.FILES['avatar']
+		ext = os.path.splitext(avatar.name)[1].lower()
+		mime_type = magic.Magic(mime=True).from_buffer(avatar.read(1024))
+		avatar.seek(0)  # Rewind file after checking type
+		# Vérification de l'extension et du type MIME
+		if ext not in ALLOWED_EXTENSIONS or not mime_type.startswith('image/'):
+			return Response({'error': 'Format de fichier non autorisé'}, status=status.HTTP_400_BAD_REQUEST)
+		
+		# Vérification de la taille
+		if avatar.size > MAX_FILE_SIZE:
+			return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
+		data['avatar'] = avatar
 
 	# Only proceed with update if there's data to update
 	if data:
@@ -733,12 +771,16 @@ def get_end_players(request, tournament_code):
 @permission_classes([IsAuthenticated])
 def get_info_user(request, userName):
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> sanitize
 	try:
 		user = MyUser.objects.get(username=userName)
 		serializer = UserInfoSerializer(user)
 		return Response(serializer.data)
 	except MyUser.DoesNotExist:
 		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+<<<<<<< HEAD
 	
 =======
     try:
@@ -747,16 +789,18 @@ def get_info_user(request, userName):
         return Response(serializer.data)
     except MyUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+=======
+>>>>>>> sanitize
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_history(request, userName):
-    try:
-        user = MyUser.objects.get(username=userName)
-        matches = MatchHistory.objects.filter(user=user)
-        serializer = MatchHistorySerializer(matches, many=True)
-        return Response(serializer.data)
-    except MyUser.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+	try:
+		user = MyUser.objects.get(username=userName)
+		matches = MatchHistory.objects.filter(user=user)
+		serializer = MatchHistorySerializer(matches, many=True)
+		return Response(serializer.data)
+	except MyUser.DoesNotExist:
+		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 >>>>>>> 98372198769ed0d929bd3022f6bbe6531046a72f
