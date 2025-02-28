@@ -4,26 +4,29 @@
 	<meta charset="utf-8">
 	<title>Friend</title>
 	<link rel="stylesheet" href="../../css/friend.css">
-	<link rel="stylesheet" href="/css/global.css">
 </head>
 <body>
 	<h1><div id="friend-msg"></div></h1>
 	<h1><div id="pending-msg"></div></h1>
-	<form id="userForm" method="POST">
-		<label for="friend_name">Who do you want to invite ?</label>
-		<input type="text" id="friend_name" name="friend_name" required><br><br>
-		<button type="submit" id="add-button">Add</button>
-		<div class="bottom-buttons">
-			<button type="button" id="return-button">Return</button>
-			<button type="button" id="logout-button">Logout</button>
-		</div>
-	</form>
+
+	<!-- Barre de recherche + bouton Add -->
+	<div class="friend-search-container">
+		<input type="text" id="friend_name" name="friend_name" placeholder="Enter friend name" required>
+		<button id="add-button">Add</button>
+	</div>
+
 	<div id="add-friend-msg" style="display: none;"></div>
-	<!-- <h1>delete friend :</h1>
-	<form id="deleteForm" method="POST">
-		<label for="delete_name">Who do you want to delete ?</label>
-		<input type="text" id="delete_name" name="delete_name" required><br><br>
-		<button type="submit" id="delete-button">Delete</button>
-	</form> -->
+
+	<!-- Liste des amis -->
+	<div id="friends-list">
+		<!-- Les amis seront affichés ici dynamiquement -->
+	</div>
+	<div class="bottom-buttons">
+		<button type="button" id="return-button">Return</button>
+		<button type="button" id="logout-button">Logout</button>
+	</div>
+
+
 	<script type="module" src="/js/user/friend.js"></script>
 </body>
+</html>

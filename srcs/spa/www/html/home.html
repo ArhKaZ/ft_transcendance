@@ -12,9 +12,15 @@
 				<h1>Welcome on Transcendance !</h1>
 				<p>Are you ready ?</p>
 			</div>
-			<a id="friend-button" href="/user/friend/">
-				<img src="../css/ico/friendico.png" alt="Friends">
-			</a>
+			<div class="friend-search-container">
+				<a id="friend-button" href="/user/friend/">
+					<img src="../css/ico/friendico.png" alt="Friends">
+				</a>
+				<div class="search-container">
+					<input type="text" id="search-input" placeholder="Enter username...">
+					<button id="search-button">Search</button>
+				</div>
+			</div>			
 			<div class="choice-home">
 				<a id="register-button" href="/user/add/">Register</a>
 				<a id="login-button" href="/user/login/">Login</a>
@@ -25,10 +31,6 @@
 				</div>
 				<a id="Game-button" href="/game/">Game</a>
 				<a id="history-button" href="/user/history/">History</a>
-				<div class="search-container">
-					<input type="text" id="search-input" placeholder="Enter username...">
-					<button id="search-button">Search</button>
-				</div>
 			</div>
 			<div id="search-results"></div>
 			<div id="bottom-buttons" class="bottom-buttons">

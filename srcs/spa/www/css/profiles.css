@@ -112,6 +112,40 @@ button {
     transform: scale(1.1);
 }
 
+.profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px; /* Espacement entre l'avatar et les stats */
+}
+
+.avatar-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-friend-icon {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+    position: absolute;
+    top: 0;
+    right: -40px; /* Décale légèrement à droite de l'avatar */
+}
+
+.add-friend-icon.disabled {
+    cursor: default;
+    opacity: 0.6;
+    transform: none;
+}
+
+.add-friend-icon:hover {
+    transform: scale(1.1);
+}
+
 #user-avatar {
     width: 100px;
     height: 100px;
@@ -122,12 +156,6 @@ button {
     transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
 }
 
-#user-avatar:hover {
-    transform: scale(1.1);
-    filter: brightness(1.5);
-    border-color: #25fffc;
-}
-
 .user-info {
     display: flex;
     flex-direction: column;
@@ -135,66 +163,52 @@ button {
     gap: 10px; /* Espace entre l'avatar et le texte */
 }
 
-.friend-search-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px; /* Espace entre la barre et l'icône Friend */
+.history-table {
+    width: 80%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    font-family: 'Press Start 2P', cursive;
+    text-align: center;
 }
 
-#friend-button {
-    width: 80px; /* Garder la taille originale */
-    height: 80px;
-}
-
-#friend-button img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    cursor: pointer;
-    transition: transform 0.2s ease-in-out;
-}
-
-#friend-button img:hover {
-    transform: scale(1.1);
-}
-
-.search-container {
-    display: flex;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.8);
+.history-table th,
+.history-table td {
     border: 4px solid white;
-    padding: 5px 10px;
-    border-radius: 10px;
-    min-width: 200px;
-    margin-right: 95px;
-    margin-bottom: 20px;
+    padding: 10px;
 }
 
-#search-input {
-    background: none;
-    border: none;
-    color: white;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 14px;
-    padding: 5px;
-    outline: none;
-    width: 150px;
+.history-table th {
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
-#search-button {
-    background: none;
-    border: none;
-    color: white;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 14px;
-    cursor: pointer;
-    transition: 0.2s;
-    padding-left: 10px;
+.history-table tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
-#search-button:hover {
-    color: #25fffc;
+.info-section {
+    margin-bottom: 35px; /* Ajoute un espace entre chaque section */
+}
+
+.pseudo, .league-points, .wins-losses, .winrate {
+    margin: 10px 0; /* Un petit espace entre chaque ligne */
+}
+
+.win-text {
+    color: green;
+    font-weight: bold;
+}
+
+.lose-text {
+    color: red;
+    font-weight: bold;
+}
+
+.winrate-text.green {
+    color: green;
+    font-weight: bold;
+}
+
+.winrate-text.red {
+    color: red;
+    font-weight: bold;
 }

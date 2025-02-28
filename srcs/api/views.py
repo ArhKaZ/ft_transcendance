@@ -334,7 +334,7 @@ def join_winner(request, tournament_code):
 		try:
 			tournament.add_winner(request.user)
 			tournament_data = parse_tournament_data(tournament)
-			# record_match(tournament_data, tournament_code)
+			#record_match(tournament_data, tournament_code)
 
 			response_data = {
 				'message': 'You won !!',
@@ -770,26 +770,21 @@ def get_end_players(request, tournament_code):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_info_user(request, userName):
-	try:
-		user = MyUser.objects.get(username=userName)
-		serializer = UserInfoSerializer(user)
-		return Response(serializer.data)
-	except MyUser.DoesNotExist:
-		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-	try:
-		user = MyUser.objects.get(username=userName)
-		serializer = UserInfoSerializer(user)
-		return Response(serializer.data)
-	except MyUser.DoesNotExist:
-		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    try:
+        user = MyUser.objects.get(username=userName)
+        serializer = UserInfoSerializer(user)
+        return Response(serializer.data)
+    except MyUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_history(request, userName):
-	try:
-		user = MyUser.objects.get(username=userName)
-		matches = MatchHistory.objects.filter(user=user)
-		serializer = MatchHistorySerializer(matches, many=True)
-		return Response(serializer.data)
-	except MyUser.DoesNotExist:
-		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    try:
+        user = MyUser.objects.get(username=userName)
+        matches = MatchHistory.objects.filter(user=user)
+        serializer = MatchHistorySerializer(matches, many=True)
+        return Response(serializer.data)
+    except MyUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
