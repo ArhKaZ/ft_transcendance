@@ -90,12 +90,10 @@ export async function ensureValidToken() {
 async function checkTokenExpiry() {
     const accessExpiry = sessionStorage.getItem('access_expires');
     const refreshToken = sessionStorage.getItem('refresh_token');
-    
     if (!accessExpiry || !refreshToken) {
         redirectToLogin();
         return;
     }
-    
     if (new Date(accessExpiry) < new Date()) {
         try {
             const response = await fetch('/api/token/refresh/', {
@@ -125,5 +123,7 @@ async function checkTokenExpiry() {
 }
 
 function redirectToLogin() {
-    window.location.href = '/user/login/';
+    if (window.location.pathname !== '/home/') {
+        window.location.href = '/home/';
+    }
 }

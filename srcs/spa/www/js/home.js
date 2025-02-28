@@ -6,34 +6,41 @@ const searchInput = document.getElementById('search-input');
 const searchResults = document.getElementById('search-results');
 
 document.getElementById('logout-button').addEventListener('click', async () => {
-    console.log('Logging out...');
-    
-    // Remove all token-related items from storage
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('access_expires');
-    localStorage.removeItem('refresh_expires');
-    sessionStorage.removeItem('username');
+    try {
+        const response = await fetch('/api/logout/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            credentials: 'include',
+        });
 
-    // Optional: Make backend logout call
-	await ensureValidToken();
-    const response = await fetch('/api/logout/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        },
-        credentials: 'include',
-    });
-
-    window.location.reload();
+        if (response.ok) {
+            // Clear all client-side storage
+            sessionStorage.removeItem('access_token');
+            sessionStorage.removeItem('refresh_token');
+            sessionStorage.removeItem('access_expires');
+            sessionStorage.removeItem('refresh_expires');
+            sessionStorage.clear();
+            
+            // Redirect to login
+            window.location.href = '/home/';
+        } else {
+            console.error('Logout failed:', await response.json());
+        }
+    } catch (error) {
+        console.error('Network error during logout:', error);
+        window.location.href = '/home/';
+    }
 });
 
 document.getElementById('user-avatar').addEventListener('click', () => {
     window.location.href = "/user/edit_user/";
 });
 
+await ensureValidToken();
 const response = await fetch('/api/get-my-info/', {
 	method: 'GET',
 	headers: {

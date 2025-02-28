@@ -182,7 +182,7 @@ class AccessToken(models.Model):
         if not self.token:
             self.token = binascii.hexlify(os.urandom(32)).decode()
         if not self.expires_at:
-            self.expires_at = timezone.now() + timezone.timedelta(minutes=30)
+            self.expires_at = timezone.now() + timezone.timedelta(minutes=5)
         super().save(*args, **kwargs)
     
     def is_expired(self):

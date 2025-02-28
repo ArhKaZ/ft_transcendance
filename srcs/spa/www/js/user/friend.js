@@ -13,29 +13,34 @@ if (addbtn) {
 }
 
 document.getElementById('logout-button').addEventListener('click', async () => {
-    console.log('Logging out...');
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('access_expires');
-    localStorage.removeItem('refresh_expires');
-    sessionStorage.removeItem('username');
-    
-    const response = await fetch('/api/logout/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-        },
-        credentials: 'include',
-    });
+    try {
+        const response = await fetch('/api/logout/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            credentials: 'include',
+        });
 
-    if (response.ok) {
-        console.log('Logged out successfully');
-    } else {
-        console.error('Error logging out:', response);
+        if (response.ok) {
+            // Clear all client-side storage
+            sessionStorage.removeItem('access_token');
+            sessionStorage.removeItem('refresh_token');
+            sessionStorage.removeItem('access_expires');
+            sessionStorage.removeItem('refresh_expires');
+            sessionStorage.clear();
+            
+            // Redirect to login
+            window.location.href = '/home/';
+        } else {
+            console.error('Logout failed:', await response.json());
+        }
+    } catch (error) {
+        console.error('Network error during logout:', error);
+        window.location.href = '/home/';
     }
-
-    window.location.href = "/home/";
 });
 
 document.getElementById('return-button').addEventListener('click', () => {
