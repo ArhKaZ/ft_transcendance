@@ -18,13 +18,12 @@ function applyTranslations() {
     });
 }
 
-// Initialize language
+
 export function initI18n() {
     const savedLang = localStorage.getItem('preferredLang') || 
                      navigator.language.split('-')[0] || 'en';
     loadTranslations(savedLang);
     
-    // Add language switcher handlers
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             loadTranslations(btn.dataset.lang);

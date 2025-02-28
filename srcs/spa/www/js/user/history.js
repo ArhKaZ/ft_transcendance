@@ -17,7 +17,6 @@ async function fetchHistory() {
 			const data = await response.json();
 
 			const sortedData = data.reverse();
-			// Génération du tableau HTML
 			let historyHtml = `
 				<table class="history-table">
 					<thead>
@@ -57,15 +56,14 @@ async function fetchHistory() {
 }
 
 document.getElementById('return-button').addEventListener('click', () => {
-    window.location.href = "/home/"; // ou une autre URL qui gère correctement l'accès
+    window.location.href = "/home/"; 
 });
 
 document.getElementById('logout-button').addEventListener('click', async () => {
 	console.log('Logging out...');
-	// Remove the token from sessionStorage
+
 	sessionStorage.removeItem('token_key');
 
-	// Optional: Make a backend call to invalidate the token if needed
 	const response = await fetch('/api/logout/', {
 		method: 'POST',
 		headers: {

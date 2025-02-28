@@ -132,7 +132,7 @@ button {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px; /* Espace entre l'avatar et le texte */
+    gap: 10px;
 }
 
 .friend-search-container {
@@ -141,11 +141,11 @@ button {
     right: 20px;
     display: flex;
     align-items: center;
-    gap: 10px; /* Espace entre la barre et l'icône Friend */
+    gap: 10px;
 }
 
 #friend-button {
-    width: 80px; /* Garder la taille originale */
+    width: 80px;
     height: 80px;
 }
 
@@ -178,7 +178,7 @@ button {
     border: none;
     color: white;
     font-family: 'Press Start 2P', cursive;
-    font-size: 14px;
+    font-size: 9px;
     padding: 5px;
     outline: none;
     width: 150px;

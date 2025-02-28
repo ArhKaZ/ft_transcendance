@@ -53,13 +53,12 @@ async function fetchFriends() {
         if (response.ok) {
             const data = await response.json();
             const friendsList = document.getElementById('friends-list');
-            friendsList.innerHTML = ''; // Nettoyer avant d'ajouter de nouveaux amis
+            friendsList.innerHTML = '';
 
             data.forEach(friend => {
                 const friendCard = document.createElement('div');
                 friendCard.classList.add('friend-card');
 
-                // Rendre cliquable pour aller au profil
                 friendCard.addEventListener('click', () => {
                     window.location.href = `/user/profile/${friend.username}/`;
                 });

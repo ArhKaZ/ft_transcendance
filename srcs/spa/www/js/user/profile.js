@@ -17,18 +17,16 @@ async function isUserFriend(userName) {
         }
 
         const data = await response.json();
-        console.log("Données des amis reçues:", data); // Debugging
+        console.log("Données des amis reçues:", data);
 
-        // Vérifier que data est bien un tableau
         if (!Array.isArray(data)) {
             console.error("Le format des amis est incorrect:", data);
             return false;
         }
 
-        // Extraire uniquement les noms des amis si data contient des objets
-        const friendNames = data.map(friend => friend.username || friend.name); // Adapter selon le vrai champ
+        const friendNames = data.map(friend => friend.username || friend.name);
 
-        return friendNames.includes(userName); // Vérifie si userName est dans la liste des amis
+        return friendNames.includes(userName);
     } catch (error) {
         console.error("Échec de la récupération des amis", error);
         return false;
@@ -58,10 +56,8 @@ async function isFriendRequestPending(userName) {
             return false;
         }
 
-        // Récupérer l'utilisateur actuellement connecté
-        const currentUser = sessionStorage.getItem('username'); // Assure-toi que le username est stocké ici
+        const currentUser = sessionStorage.getItem('username');
         
-        // Vérifier si c'est currentUser qui a envoyé une demande à userName
         return data.some(request => request.sender === currentUser && request.receiver === userName);
     } catch (error) {
         console.error("Échec de la récupération des demandes en attente", error);
@@ -100,10 +96,8 @@ async function fetch_user() {
         document.getElementById('user-wins').textContent = data.wins;
         document.getElementById('user-looses').textContent = data.looses;
 
-        // Vérifier et mettre à jour l'état du bouton d'ami
         updateFriendButton(userName);
 
-        // Calcul du winrate
         const wins = parseInt(data.wins, 10) || 0;
         const looses = parseInt(data.looses, 10) || 0;
         let winrate = wins + looses > 0 ? (wins / (wins + looses)) * 100 : 0;
@@ -121,12 +115,10 @@ async function fetch_user() {
 async function addFriend(userName) {
     const addFriendBtn = document.getElementById('add-friend-btn');
 
-    // Désactiver immédiatement le bouton après le premier clic
-    addFriendBtn.src = "/css/ico/friend_pending_ico.png"; // Icône "En attente"
+    addFriendBtn.src = "/css/ico/friend_pending_ico.png";
     addFriendBtn.classList.add("disabled");
-    addFriendBtn.onclick = null; // Supprime l'event listener immédiatement
+    addFriendBtn.onclick = null;
 
-    // Sauvegarder dans le sessionStorage pour garder l'état après reload
     sessionStorage.setItem(`friendRequest_${userName}`, "pending");
 
     try {
@@ -142,7 +134,7 @@ async function addFriend(userName) {
 
         if (response.ok) {
             console.log("Ami ajouté !");
-            window.location.reload(); // Recharge pour bien refléter le statut
+            window.location.reload();
         } else {
             const data = await response.json();
             console.error("Erreur lors de l'ajout d'un ami :", data.error || response.status);
@@ -155,13 +147,11 @@ async function addFriend(userName) {
 async function updateFriendButton(userName) {
     const addFriendBtn = document.getElementById('add-friend-btn');
 
-    // Vérifier si une requête d'ami a déjà été envoyée
     const wasPending = sessionStorage.getItem(`friendRequest_${userName}`) === "pending";
     
     const isFriend = await isUserFriend(userName);
     const isPending = await isFriendRequestPending(userName);
 
-    // Si la requête était en attente avant le reload, on la garde désactivée
     if (wasPending || isFriend || isPending) {
         addFriendBtn.src = isFriend ? "/css/ico/friend_added_ico.png" : "/css/ico/friend_pending_ico.png";
         addFriendBtn.classList.add("disabled");
@@ -189,8 +179,7 @@ async function fetchHistory() {
             console.log("get history call worked");
             const data = await response.json();
 
-            const sortedData = data.reverse().slice(0, 5); // Prendre uniquement les 5 dernières parties
-            // Génération du tableau HTML
+            const sortedData = data.reverse().slice(0, 5);
             let historyHtml = `
                 <table class="history-table">
                     <thead>
@@ -220,7 +209,6 @@ async function fetchHistory() {
                 </table>
             `;
 
-            // Correctly target the history div
             const historyDiv = document.getElementById('history');
             if (historyDiv) {
                 historyDiv.innerHTML = historyHtml;
@@ -235,8 +223,6 @@ async function fetchHistory() {
     }
 }
 
-
-// fetchStats();
 
 fetch_user();
 fetchHistory();

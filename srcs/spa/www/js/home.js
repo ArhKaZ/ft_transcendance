@@ -4,15 +4,13 @@ const searchButton = document.getElementById('search-button');
 const searchInput = document.getElementById('search-input');
 const searchResults = document.getElementById('search-results');
 const searchContainer = document.querySelector('.search-container');
-const friendSearchContainer = document.querySelector('.friend-search-container'); // Ajout correct
+const friendSearchContainer = document.querySelector('.friend-search-container');
 
 
 document.getElementById('logout-button').addEventListener('click', async () => {
 	console.log('Logging out...');
-    // Remove the token from sessionStorage
     sessionStorage.removeItem('token_key');
 
-    // Optional: Make a backend call to invalidate the token if needed
     const response = await fetch('/api/logout/', {
         method: 'POST',
         headers: {
@@ -28,7 +26,6 @@ document.getElementById('logout-button').addEventListener('click', async () => {
         console.error('Error logging out:', response);
     }
 
-    // Reload the page
     window.location.reload();
 });
 
@@ -108,18 +105,17 @@ if (response.ok) {
 
 
 searchButton.addEventListener('click', async () => {
-    const userName = searchInput.value.trim(); // Get the username from the input
+    const userName = searchInput.value.trim();
 
     if (userName) {
-        // Navigate to the user profile page
         window.location.href = `/user/profile/${userName}`;
     } else {
-        searchResults.textContent = 'Please enter a username.'; // Show an error message
+        searchResults.textContent = 'Please enter a username.';
     }
 });
 
 searchInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
-        searchButton.click(); // Trigger the search button click
+        searchButton.click();
     }
 });

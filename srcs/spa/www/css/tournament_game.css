@@ -135,14 +135,13 @@ body::before {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 60px; /* Ajuste l'espace entre la final et la boîte du finalwinner */
+  gap: 60px;
 }
 
 .finalwinner-box {
   display: flex;
   justify-content: center;
   align-items: center;
-  /* Optionnel : Ajoute un fond, bordure, etc. pour visualiser la boîte */
   padding: 10px;
   border: 2px solid #fbdb67;
   border-radius: 4px;

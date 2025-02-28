@@ -28,9 +28,7 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
 
 document.getElementById('erase-button').addEventListener('click', async () => {
 	console.log('Erasing...');
-    // Remove the token from sessionStorage
     
-    // Optional: Make a backend call to invalidate the token if needed
     const response = await fetch('/api/erase/', {
         method: 'PATCH',
         headers: {
@@ -47,7 +45,6 @@ document.getElementById('erase-button').addEventListener('click', async () => {
         console.error('Error erasing:', response);
     }
 
-    // Reload the page
     window.location.reload();
 });
 

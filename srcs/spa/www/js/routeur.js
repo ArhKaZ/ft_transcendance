@@ -90,7 +90,6 @@ class Router {
         }
         
         if (!this.isPublicPath(path) && !this.isAuthenticated()) {
-            // Redirect to login if not authenticated
             console.log('Unauthorized access, redirecting to login');
             window.history.pushState({}, '', '/user/login/');
             const loginRoute = this.routes['/user/login/'];
@@ -101,11 +100,9 @@ class Router {
             return;
         }
     
-        // Check for dynamic tournament game route
         const tournamentGameMatch = path.match(/^\/tournament\/game\/([a-zA-Z0-9-]+)\/?$/);
         if (tournamentGameMatch) {
             const tournamentCode = tournamentGameMatch[1];
-            // Use the dynamic tournament game route handler
             const route = this.routes['/tournament/game/:code'];
             if (route) {
                 try {
@@ -120,11 +117,9 @@ class Router {
             }
         }
         
-        // Check for dynamic user profile route
         const userProfileMatch = path.match(/^\/user\/profile\/([a-zA-Z0-9_-]+)\/?$/);
         if (userProfileMatch) {
             const userName = userProfileMatch[1];
-            // Use the dynamic user profile route handler
             const route = this.routes['/user/profile/:userName'];
             if (route) {
                 try {
@@ -139,7 +134,6 @@ class Router {
             }
         }
         
-        // Handle regular routes
         const route = this.routes[path] || this.routes['/404'];
         
         if (!route) {
@@ -273,7 +267,6 @@ const routes = {
         const response = await fetch('/html/tournament/tournament.html');
         return await response.text();
     },
-    // New dynamic route for tournament game
     '/tournament/game/:code': async (tournamentCode) => {
         const response = await fetch('/html/tournament/tournament_game.html');
         return await response.text();

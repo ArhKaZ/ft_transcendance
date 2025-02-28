@@ -11,7 +11,7 @@ if (loginbtn) {
 }
 
 document.getElementById('return-button').addEventListener('click', () => {
-    window.location.href = "/home/"; // ou une autre URL qui gère correctement l'accès
+    window.location.href = "/home/";
 });
 
 async function loginUser() {
@@ -41,18 +41,16 @@ async function loginUser() {
 			console.log('after');
 			sessionStorage.setItem('token_key', data.token_key);
 			sessionStorage.setItem('username', username);
-			// Si la réponse est réussie, rediriger vers la page protégée
 			messageDiv.innerHTML = '<span style="color: green;">Connexion réussie. Redirection en cours...</span>';
 			setTimeout(() => {
-				window.location.href = "/home/";  // Redirection vers la page protégée
+				window.location.href = "/home/";
 			}, 1000);
 		} else {
-			// Si la réponse échoue, afficher le message d'erreur
 			const data = await response.json();
 			messageDiv.innerHTML = `<span style="color: red;">Erreur : ${data.error || 'Identifiants incorrects.'}</span>`;
 		}
 	} catch (error) {
-		// En cas d'erreur réseau ou autre, afficher un message générique
+
 		messageDiv.innerHTML = `<span style="color: red;">Une erreur s'est produite lors de la connexion. Veuillez réessayer plus tard.</span>`;
 		console.error('Erreur lors de la requête de connexion :', error);
 	};
