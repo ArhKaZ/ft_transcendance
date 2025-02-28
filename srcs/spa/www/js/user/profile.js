@@ -122,7 +122,7 @@ async function addFriend(userName) {
     const addFriendBtn = document.getElementById('add-friend-btn');
 
     // Désactiver immédiatement le bouton après le premier clic
-    addFriendBtn.src = "../../css/ico/friend_pending_ico.png"; // Icône "En attente"
+    addFriendBtn.src = "/css/ico/friend_pending_ico.png"; // Icône "En attente"
     addFriendBtn.classList.add("disabled");
     addFriendBtn.onclick = null; // Supprime l'event listener immédiatement
 
@@ -163,11 +163,11 @@ async function updateFriendButton(userName) {
 
     // Si la requête était en attente avant le reload, on la garde désactivée
     if (wasPending || isFriend || isPending) {
-        addFriendBtn.src = isFriend ? "../../css/ico/friend_added_ico.png" : "../../css/ico/friend_pending_ico.png";
+        addFriendBtn.src = isFriend ? "/css/ico/friend_added_ico.png" : "/css/ico/friend_pending_ico.png";
         addFriendBtn.classList.add("disabled");
         addFriendBtn.onclick = null;
     } else {
-        addFriendBtn.src = "../../css/ico/add_friend_ico.png";
+        addFriendBtn.src = "/css/ico/add_friend_ico.png";
         addFriendBtn.classList.remove("disabled");
         addFriendBtn.onclick = () => addFriend(userName);
     }
