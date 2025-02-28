@@ -20,6 +20,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.db.models import Q
 from .serializers import UserInfoSerializer, TournamentMatchSerializer
 from .models import Tournament, TournamentMatch
+import os
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -345,8 +346,8 @@ def join_tournament(request):
 		)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])ews.join_winner, name='join_winner'),
-	path("oauth/", views.OAuth, name="oauth"),ve tournament
+@permission_classes([IsAuthenticated])
+def create_tournament(request):
 	active_tournaments = Tournament.objects.filter(
 		players=request.user,
 		started=False
@@ -701,24 +702,92 @@ def get_end_players(request, tournament_code):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_info_user(request, userName):
-    try:
-        user = MyUser.objects.get(username=userName)
-        serializer = UserInfoSerializer(user)
-        return Response(serializer.data)
-    except MyUser.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+	try:
+		user = MyUser.objects.get(username=userName)
+		serializer = UserInfoSerializer(user)
+		return Response(serializer.data)
+	except MyUser.DoesNotExist:
+		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_history(request, userName):
-    try:
-        user = MyUser.objects.get(username=userName)
-        matches = MatchHistory.objects.filter(user=user)
-        serializer = MatchHistorySerializer(matches, many=True)
-        return Response(serializer.data)
-    except MyUser.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+	try:
+		user = MyUser.objects.get(username=userName)
+		matches = MatchHistory.objects.filter(user=user)
+		serializer = MatchHistorySerializer(matches, many=True)
+		return Response(serializer.data)
+	except MyUser.DoesNotExist:
+		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def oauth(request)
+def oauth(request):
+	try:
+		redirect_uri = "https://127.0.0.1:8443/oauth_callback"
+		code = request.data.get('code')
+		if not code:
+			return Response({"error": "Authorization code required"}, status=status.HTTP_400_BAD_REQUEST)
+
+		# Exchange code for access token with 42's API
+		token_response = requests.post(
+			'https://api.intra.42.fr/oauth/token',
+			data={
+				'grant_type': 'authorization_code',
+				'client_id': os.environ.get("OAUTH42_UID"),
+				'client_secret': os.environ.get("OAUTH42_SECRET"),
+				'code': code,
+				'redirect_uri': redirect_uri
+			}
+		)
+		
+		if token_response.status_code == 200:
+			access_token = token_response.json().get('access_token')
+			
+			# Get user info from 42's API
+			user_response = requests.get(
+				'https://api.intra.42.fr/v2/me',
+				headers={'Authorization': f'Bearer {access_token}'}
+			)
+			
+			if user_response.status_code == 200:
+				user_data = user_response.json()
+				
+				# Create or update user
+				user, created = MyUser.objects.update_or_create(
+					email=user_data.get('email'),
+					defaults={
+						'username': user_data.get('login'),
+						'avatar': user_data.get('image', {}).get('link', 'default_avatar.png'),
+						'ligue_points': 500  # Initial points
+					}
+				)
+
+				# Generate JWT tokens
+				refresh = RefreshToken.for_user(user)
+				access_token = str(refresh.access_token)
+
+				response_data = {
+					"id": user.id,
+					"username": user.username,
+					"src_avatar": user.avatar.url,
+					"ligue_points": user.ligue_points
+				}
+
+				response = JsonResponse(response_data)
+				response.set_cookie(
+					'access_token',
+					access_token,
+					httponly=True,
+					secure=not settings.DEBUG,
+					samesite='Lax',
+					max_age=3600  # 1 hour
+				)
+				return response
+
+	except requests.RequestException as e:
+		return Response({"error": f"OAuth provider error: {str(e)}"}, status=502)
+	except KeyError as e:
+		return Response({"error": f"Invalid provider response: {str(e)}"}, status=502)
+	except Exception as e:
+		return Response({"error": f"Authentication error: {str(e)}"}, status=500)

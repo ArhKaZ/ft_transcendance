@@ -11,7 +11,7 @@ class Router {
         this.loadedStylesheets = new Set();
         this.baseUrl = window.location.origin;
         // Only add event listeners if this is the first instance
-        this.publicPaths = ['/home/', '/user/login/', '/user/add/'];
+        this.publicPaths = ['/home/', '/user/login/', '/user/add/', '/user/oauth_callback/'];
         window.addEventListener('popstate', this.handleLocation.bind(this));
         this.initLinks();
 
@@ -268,8 +268,8 @@ const routes = {
 		const response = await fetch('/html/user/login.html');
 		return await response.text();
 	},
-    '/user/oauth/': async () => {
-		const response = await fetch('/html/user/oauth.html');
+    '/user/oauth_callback/': async () => {
+		const response = await fetch('/html/user/oauth_callback.html');
 		return await response.text();
 	},
 

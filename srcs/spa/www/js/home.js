@@ -1,8 +1,11 @@
 import { getCSRFToken } from '/js/utils.js';
+import { redirectTo42OAuth } from '/js/user/oauth.js';
+import { handle42OAuthCallback } from '/js/user/oauth.js';
 
 const searchButton = document.getElementById('search-button');
 const searchInput = document.getElementById('search-input');
 const searchResults = document.getElementById('search-results');
+var oauthbtn = document.getElementById('oauth-button');
 
 document.getElementById('logout-button').addEventListener('click', async () => {
 	console.log('Logging out...');
@@ -50,11 +53,14 @@ if (response.ok) {
 	const loginbtn = document.getElementById('login-button');
 	const registerbtn = document.getElementById('register-button');
 	const bottomBtns = document.getElementById('bottom-buttons');
+	const oauthbtn = document.getElementById('oauth-button');
+
 
 
 	bottomBtns.style.display = 'flex';
 	loginbtn.style.display = 'none';
 	registerbtn.style.display = 'none';
+	oauthbtn.style.display = 'none';
 
 	const welcomemsg = document.getElementById('welcome-msg');
 	welcomemsg.innerText = `Welcome, ${data.username} !`;
@@ -70,6 +76,7 @@ if (response.ok) {
 	const historybtn = document.getElementById('history-button');
 	const logoutbtn = document.getElementById('logout-button');
 	const oauthbtn = document.getElementById('oauth-button');
+
 
 	// const editbtn = document.getElementById('edit-button');
 	// const pixelbtn = document.getElementById('pixel-button');
@@ -88,7 +95,6 @@ if (response.ok) {
 	gamebtn.style.display = 'none';
 	historybtn.style.display = 'none';
 	logoutbtn.style.display = 'none';
-	oauthbtn.style.display = 'block';
 
 	friendsbtn.style.display = 'none';
 	avatarImg.style.display = 'none';
@@ -115,3 +121,13 @@ searchInput.addEventListener('keypress', (e) => {
         searchButton.click(); // Trigger the search button click
     }
 });
+
+if (oauthbtn) {
+	oauthbtn.addEventListener('click', async function (event) {
+		event.preventDefault();
+		console.log('clicked');
+		redirectTo42OAuth();
+		if (window.location.pathname === '/oauth_callback')
+			handle42OAuthCallback();
+	});
+}

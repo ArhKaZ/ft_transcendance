@@ -1,33 +1,20 @@
 import { getCSRFToken } from '/js/utils.js';
 
-var oauthbtn = document.getElementById('oauth-button');
-
-if (oauthbtn) {
-	oauthbtn.addEventListener('click', async function (event) {
-		event.preventDefault();
-		console.log('clicked');
-		redirectTo42OAuth();
-		if (window.location.pathname === '/oauth_callback')
-			handle42OAuthCallback();
-	});
-}
-
-function redirectTo42OAuth()
+export function redirectTo42OAuth()
 {
     const clientId = 'u-s4t2ud-c3aad960cd36ac0f5ca04a7d2780e4d8f1dbc27481baec5b5cb571eceb694a81'; // Louis: c'est normal que le user ai acces a cette information car il est public
-    const redirectUri = encodeURIComponent('https://localhost:8443/oauth_callback');
+    const redirectUri = 'https%3A%2F%2F127.0.0.1%3A8443%2Fuser%2Foauth_callback%2F';
     const scope = 'public';
     const state = generateRandomString();
     const responseType = 'code';
 
     const authUrl = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&state=${state}`;
-
+    
     sessionStorage.setItem('oauth_state', state);
-
     window.location.href = authUrl;
 }
 
-function handle42OAuthCallback()
+export function handle42OAuthCallback()
 {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
