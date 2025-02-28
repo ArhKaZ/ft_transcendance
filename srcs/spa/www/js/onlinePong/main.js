@@ -3,6 +3,7 @@ import Game from "./game/game.js";
 import Player from "./game/player.js";
 import CountdownAnimation from "../countdownAnimation.js";
 import {creationGameDisplay, updatePlayerStatus, displayWhenLoad } from "./game/waitingRoom.js";
+import { ensureValidToken } from '/js/utils.js';
 
 let socket = null;
 let oldHeight = null;
@@ -29,12 +30,13 @@ function sendToBack(data) {
 
 async function getUserFromBack() {
 	try {
+		await ensureValidToken();
 		const response = await fetch('/api/get-my-info/', {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': getCSRFToken(),
-				'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+				'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 			},
 			credentials: 'include',
 		});
@@ -47,15 +49,16 @@ async function getUserFromBack() {
 		handleErrors({message: 'You need to be logged before playing'});
 	}
 }
-	
+
 async function getInfoMatchTournament(user) {
 	try {
+		await ensureValidToken();
 		const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/get_opponent`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': getCSRFToken(),
-				'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+				'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 			},
 			credentials: 'include',
 		});
@@ -71,12 +74,13 @@ async function getInfoMatchTournament(user) {
 
 async function getInfoFinale(user) {
 	try {
+		await ensureValidToken();
 		const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/get_final_opponent`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': getCSRFToken(),
-				'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+				'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 			},
 			credentials: 'include',
 		});
@@ -388,12 +392,13 @@ async function handleCountdown(countdown) {
 
 async function joinFinalist() {
 	try {
+		await ensureValidToken();
 		const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/join_final/`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
 			'X-CSRFToken': getCSRFToken(),
-			'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+			'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 		},
 		credentials: 'include',});
 		if (!response.ok) {
@@ -408,12 +413,13 @@ async function joinFinalist() {
 
 async function joinWinner() {
 	try {
+		await ensureValidToken();
 		const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/join_winner/`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
 			'X-CSRFToken': getCSRFToken(),
-			'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+			'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 		},
 		credentials: 'include',});
 		if (!response.ok) {
@@ -442,7 +448,7 @@ function handleGameFinish(game, winningId, opponentName = null) {
 		headers: {
 			'Content-Type': 'application/json',
 			'X-CSRFToken': getCSRFToken(),
-			'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+			'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 		},
 		credentials: 'include',
 		body: JSON.stringify({

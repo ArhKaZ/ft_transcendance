@@ -2,13 +2,29 @@ from rest_framework import serializers
 from .models import MyUser, MatchHistory, TournamentMatch
 import bleach
 import re
+from django.core.validators import MaxLengthValidator, MinLengthValidator
 
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(
+        write_only=True,
+        validators=[MinLengthValidator(8), MaxLengthValidator(128)]  # Example: Password length between 8 and 128 characters
+    )
+    
     class Meta:
         model = MyUser
         fields = ['username', 'password', 'description', 'avatar', 'ligue_points', 'pseudo', 'wins', 'looses']
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'username': {
+                'validators': [MinLengthValidator(3), MaxLengthValidator(30)]  # Example: Username length between 3 and 30 characters
+            },
+            'description': {
+                'validators': [MaxLengthValidator(500)]  # Example: Description max length of 500 characters
+            },
+            'pseudo': {
+                'validators': [MinLengthValidator(2), MaxLengthValidator(20)]  # Example: Pseudo length between 2 and 20 characters
+            },
+        }
     
     def validate_description(self, value):
         return bleach.clean(value)

@@ -1,3 +1,5 @@
+import { ensureValidToken } from '/js/utils.js';
+
 class T_Player {
     constructor(id, name, img) {
         this.name = name;

@@ -1,4 +1,5 @@
 import { getCSRFToken } from '../utils.js';
+import { ensureValidToken } from '/js/utils.js';
 
 async function isUserFriend(userName) {
     try {
@@ -71,15 +72,15 @@ async function fetch_user() {
     const pathSegments = window.location.pathname.split('/');
     const userName = pathSegments[3];
     try {
+        await ensureValidToken();
         const response = await fetch(`/api/user/profile/${userName}/`, {
             method: 'GET',
             headers: {
                 'Content-type': 'application/json',
                 'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
-            }
-        });
-
+				'Authorization' : `Bearer ${sessionStorage.getItem('access_token')}`,
+			}
+		});
         if (!response.ok) {
             if (response.status === 404) {
                 throw new Error('User not found');
@@ -167,11 +168,12 @@ async function fetchHistory() {
     const pathSegments = window.location.pathname.split('/');
     const userName = pathSegments[3];
     try {
+        await ensureValidToken();
         const response = await fetch(`/api/user/profile/get_history/${userName}/`, {
             method: 'GET',
             headers: {
                 'Content-type': 'application/json',
-                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
             }
         });
 
@@ -226,3 +228,25 @@ async function fetchHistory() {
 
 fetch_user();
 fetchHistory();
+
+// // Frontend call
+async function checkUserStatus(username) {
+    try {
+        const response = await fetch(`/api/check-online/${username}/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log(`${username} is ${data.is_online ? 'online' : 'offline'}`);
+        }
+    } catch (error) {
+        console.error('Error checking user status:', error);
+    }
+}
+
+// Check if "john_doe" is online
+checkUserStatus('2');

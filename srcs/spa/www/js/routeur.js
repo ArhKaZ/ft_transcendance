@@ -1,4 +1,5 @@
 import { getCSRFToken } from '/js/utils.js';
+import { ensureValidToken } from '/js/utils.js';
 
 class Router {
     constructor(routes) {
@@ -74,7 +75,7 @@ class Router {
     }
 
     isAuthenticated() {
-        return sessionStorage.getItem('token_key') !== null;
+        return sessionStorage.getItem('access_token') !== null;
     }
 
     isPublicPath(path) {
@@ -174,12 +175,13 @@ class Router {
     }
     async checkUserAuth() {
         try {
+            await ensureValidToken();
             const response = await fetch('/api/get-my-info/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCSRFToken(),
-                    'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                    'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
                 },
                 credentials: 'include',
             });
