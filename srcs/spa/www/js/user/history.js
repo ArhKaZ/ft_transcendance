@@ -1,4 +1,5 @@
 import { getCSRFToken } from '/js/utils.js';
+import { ensureValidToken } from '/js/utils.js';
 
 const divHistory = document.getElementById("history");
 
@@ -8,7 +9,7 @@ async function fetchHistory() {
 			method: 'GET',
 			headers: {
 				'Content-type' : 'application/json',
-				'Authorization' : `Token ${sessionStorage.getItem('token_key')}`,
+				'Authorization' : `Token ${sessionStorage.getItem('access_token')}`,
 			}
 		});
 		
@@ -63,7 +64,11 @@ document.getElementById('return-button').addEventListener('click', () => {
 document.getElementById('logout-button').addEventListener('click', async () => {
 	console.log('Logging out...');
 	// Remove the token from sessionStorage
-	sessionStorage.removeItem('token_key');
+	localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('access_expires');
+    localStorage.removeItem('refresh_expires');
+    sessionStorage.removeItem('username');
 
 	// Optional: Make a backend call to invalidate the token if needed
 	const response = await fetch('/api/logout/', {

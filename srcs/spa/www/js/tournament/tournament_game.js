@@ -1,6 +1,9 @@
 import T_Player from './tournament_player.js';
 import { sleep } from '../utils.js';
 import { getCSRFToken } from '../utils.js';
+import { getCSRFToken } from '../utils.js';
+import { ensureValidToken } from '/js/utils.js';
+
 
 
 class TournamentGame {
@@ -96,7 +99,7 @@ class TournamentGame {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-CSRFToken': getCSRFToken(),
-					'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+					'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 				},
 				credentials: 'include',
 			});
@@ -135,7 +138,7 @@ class TournamentGame {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-CSRFToken': getCSRFToken(),
-					'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+					'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 				},
 				credentials: 'include',
 			});
@@ -177,7 +180,7 @@ class TournamentGame {
 		try {
 			const response = await fetch(`/api/tournament/${this.tournamentCode}/end_players/`, {
 				headers: {
-					'Authorization': `Token ${sessionStorage.getItem('token_key')}`
+					'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
 				}
 			});
 			

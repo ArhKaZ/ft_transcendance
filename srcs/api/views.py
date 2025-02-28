@@ -23,6 +23,7 @@ from .models import Tournament, TournamentMatch
 from .blockchain_storage import record_match
 import re
 import os
+from .models import AccessToken, RefreshToken
 
 import magic  # pip install python-magic
 
@@ -65,23 +66,51 @@ def add_user(request):
 		)
 
 
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_user(request):
-	username = request.data.get('username')
-	password = request.data.get('password')
-	if not username or not password:
-		return Response({'error': 'Please provide both username and password.'}, status=status.HTTP_400_BAD_REQUEST)
-	user = authenticate(username=username, password=password)
-	if user is not None:
-		token, created = Token.objects.get_or_create(user=user)
-		if not created:
-			token.delete()
-			token = Token.objects.create(user=user)
-		response = Response({'detail': 'Success', 'token_key': token.key} , status=status.HTTP_200_OK)
-		return response
-	else:
-		return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+    username = request.data.get('username')
+    password = request.data.get('password')
+    user = authenticate(username=username, password=password)
+    
+    if user:
+        # Delete existing tokens
+        AccessToken.objects.filter(user=user).delete()
+        RefreshToken.objects.filter(user=user).delete()
+        
+        # Create new tokens
+        refresh_token = RefreshToken.objects.create(user=user)
+        access_token = AccessToken.objects.create(
+            user=user, 
+            refresh_token=refresh_token
+        )
+        
+        return Response({
+            'access_token': access_token.token,
+            'access_expires': access_token.expires_at,
+            'refresh_token': refresh_token.token,
+            'refresh_expires': refresh_token.expires_at
+        })
+    return Response({'error': 'Invalid credentials'}, status=401)
+
+# @authentication_classes([RefreshTokenAuthentication])
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def refresh_token(request):
+    user = request.user
+    old_refresh = RefreshToken.objects.get(token=request.data.get('refresh_token'))
+    
+    # Create new access token
+    new_access = AccessToken.objects.create(
+        user=user,
+        refresh_token=old_refresh
+    )
+    
+    return Response({
+        'access_token': new_access.token,
+        'access_expires': new_access.expires_at
+    })
 
 
 @api_view(['POST'])

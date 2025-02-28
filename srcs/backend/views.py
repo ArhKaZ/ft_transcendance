@@ -27,15 +27,15 @@ def index(request):
 
 # @api_view(['GET'])
 # def logged_get_user(request):
-#     token_key = request.COOKIES.get('access_token')  # Récupérer le token JWT du cookie
+#     access_token = request.COOKIES.get('access_token')  # Récupérer le token JWT du cookie
 
-#     if not token_key:
+#     if not access_token:
 #         return JsonResponse({"error": "No token"}, status=403)
 
 #     jwt_auth = JWTAuthentication()
 
 #     try:
-#         validated_token = jwt_auth.get_validated_token(token_key)  # Valider le token JWT
+#         validated_token = jwt_auth.get_validated_token(access_token)  # Valider le token JWT
 #         user = jwt_auth.get_user(validated_token) # Extraire l'utilisateur à partir du token validé
 #         return JsonResponse({
 #             "id": user.id,

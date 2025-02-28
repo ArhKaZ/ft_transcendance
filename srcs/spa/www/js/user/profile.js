@@ -1,4 +1,5 @@
 import { getCSRFToken } from '../utils.js';
+import { ensureValidToken } from '/js/utils.js';
 
 async function fetch_user() {
 
@@ -10,7 +11,7 @@ async function fetch_user() {
 			headers: {
                 'Content-type' : 'application/json',
                 'X-CSRFToken': getCSRFToken(),
-				'Authorization' : `Token ${sessionStorage.getItem('token_key')}`,
+				'Authorization' : `Token ${sessionStorage.getItem('access_token')}`,
 			}
 		});
         if (!response.ok) {
@@ -66,7 +67,7 @@ async function fetchHistory() {
             method: 'GET',
             headers: {
                 'Content-type': 'application/json',
-                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
             }
         });
 

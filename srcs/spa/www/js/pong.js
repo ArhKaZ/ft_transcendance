@@ -1,11 +1,17 @@
 import { getCSRFToken } from '/js/utils.js';
+import { ensureValidToken } from '/js/utils.js';
 
 document.getElementById('logout-button').addEventListener('click', async () => {
 	console.log('Logging out...');
     // Remove the token from sessionStorage
-    sessionStorage.removeItem('token_key');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('access_expires');
+    localStorage.removeItem('refresh_expires');
+    sessionStorage.removeItem('username');
 
     // Optional: Make a backend call to invalidate the token if needed
+	await ensureValidToken();
     const response = await fetch('/api/logout/', {
         method: 'POST',
         headers: {
@@ -31,12 +37,13 @@ document.getElementById('user-avatar').addEventListener('click', () => {
     window.location.href = "/user/edit_user/";
 });
 
+await ensureValidToken();
 const response = await fetch('/api/get-my-info/', {
 	method: 'GET',
 	headers: {
 		'Content-Type': 'application/json',
 		'X-CSRFToken': getCSRFToken(),
-		'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+		'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 	},
 	credentials: 'include',
 });

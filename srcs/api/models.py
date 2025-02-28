@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import binascii
+import os
+from django.utils import timezone
 
 
 class MyUser(AbstractUser):
@@ -151,3 +154,36 @@ class TournamentMatch(models.Model):
 
     def __str__(self):
         return f"Match {self.tournament.code} - {self.player1} vs {self.player2} - Winner: {self.winner}"
+
+class RefreshToken(models.Model):
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
+    token = models.CharField(max_length=64, unique=True)
+    created = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = binascii.hexlify(os.urandom(32)).decode()
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timezone.timedelta(days=15)
+        super().save(*args, **kwargs)
+    
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+class AccessToken(models.Model):
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
+    token = models.CharField(max_length=64, unique=True)
+    created = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    refresh_token = models.ForeignKey(RefreshToken, on_delete=models.CASCADE)
+    
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = binascii.hexlify(os.urandom(32)).decode()
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timezone.timedelta(minutes=30)
+        super().save(*args, **kwargs)
+    
+    def is_expired(self):
+        return timezone.now() > self.expires_at

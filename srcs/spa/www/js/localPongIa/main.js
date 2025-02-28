@@ -3,6 +3,7 @@ import Game from "./game/game.js";
 import Player from "./game/player.js";
 import CountdownAnimation from "../countdownAnimation.js";
 import { displayWhenLoad } from "./game/waitingRoom.js";
+import { ensureValidToken } from '/js/utils.js';
 
 let oldHeight = null;
 let gameStarted = false;
@@ -18,7 +19,7 @@ async function getUserFromBack() {
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
             },
             credentials: 'include',
         });

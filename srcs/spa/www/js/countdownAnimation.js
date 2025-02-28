@@ -1,4 +1,5 @@
 import Dot from './onlinePong/game/dot.js';
+import { ensureValidToken } from '/js/utils.js';
 import { sleep } from './utils.js';
 class CountdownAnimation {
     constructor(canvasId) {

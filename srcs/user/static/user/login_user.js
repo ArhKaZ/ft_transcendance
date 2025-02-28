@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				console.log('before');
 				const data = await response.json();
 				console.log('after');
-				sessionStorage.setItem('token_key', data.token_key);
+				sessionStorage.setItem('access_token', data.access_token);
                 // Si la réponse est réussie, rediriger vers la page protégée
                 messageDiv.innerHTML = '<span style="color: green;">Connexion réussie. Redirection en cours...</span>';
                 setTimeout(() => {

@@ -1,4 +1,5 @@
 import { getCSRFToken } from '/js/utils.js';
+import { ensureValidToken } from '/js/utils.js';
 
 const divFriends = document.getElementById("Friends");
 var addbtn = document.getElementById('add-button');
@@ -13,7 +14,11 @@ if (addbtn) {
 
 document.getElementById('logout-button').addEventListener('click', async () => {
     console.log('Logging out...');
-    sessionStorage.removeItem('token_key');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('access_expires');
+    localStorage.removeItem('refresh_expires');
+    sessionStorage.removeItem('username');
     
     const response = await fetch('/api/logout/', {
         method: 'POST',
@@ -46,7 +51,7 @@ async function fetchFriends() {
             headers: {
                 'Content-type': 'application/json',
                 'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
             }
         });
 
@@ -75,7 +80,7 @@ async function addFriend() {
             headers: {
                 'Content-type': 'application/json',
                 'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
             },
             body: JSON.stringify({
                 'friend_name': document.getElementById('friend_name').value,
@@ -104,7 +109,7 @@ async function fetchPendingFriend() {
             headers: {
                 'Content-type': 'application/json',
                 'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
             }
         });
         if (response.ok) {

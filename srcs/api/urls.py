@@ -18,6 +18,7 @@ urlpatterns = [
 	path('get_pending_friends/', views.get_pending_friends),
 	path('change_lp/', views.change_lp),
 	path('join_tournament/', views.join_tournament),
+	path('token/refresh/', views.refresh_token),
 	path('create_tournament/', views.create_tournament),
 	path('quit_tournament/<str:tournament_code>/', views.quit_tournament),
 	path('forfeit_tournament/<str:tournament_code>/', views.forfeit_tournament, name='forfeit_tournament'),

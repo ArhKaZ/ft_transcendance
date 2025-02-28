@@ -1,31 +1,32 @@
 import { getCSRFToken } from '/js/utils.js';
+import { ensureValidToken } from '/js/utils.js';
 
 const searchButton = document.getElementById('search-button');
 const searchInput = document.getElementById('search-input');
 const searchResults = document.getElementById('search-results');
 
 document.getElementById('logout-button').addEventListener('click', async () => {
-	console.log('Logging out...');
-    // Remove the token from sessionStorage
-    sessionStorage.removeItem('token_key');
+    console.log('Logging out...');
+    
+    // Remove all token-related items from storage
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('access_expires');
+    localStorage.removeItem('refresh_expires');
+    sessionStorage.removeItem('username');
 
-    // Optional: Make a backend call to invalidate the token if needed
+    // Optional: Make backend logout call
+	await ensureValidToken();
     const response = await fetch('/api/logout/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': getCSRFToken(),
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
         },
         credentials: 'include',
     });
 
-    if (response.ok) {
-        console.log('Logged out successfully');
-    } else {
-        console.error('Error logging out:', response);
-    }
-
-    // Reload the page
     window.location.reload();
 });
 
@@ -38,7 +39,7 @@ const response = await fetch('/api/get-my-info/', {
 	headers: {
 		'Content-Type': 'application/json',
 		'X-CSRFToken': getCSRFToken(),
-		'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+		'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 	},
 	credentials: 'include',
 });

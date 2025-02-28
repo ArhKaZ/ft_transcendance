@@ -3,6 +3,7 @@ import Player from "./game/player.js";
 import Game from "./game/game.js";
 import CountdownAnimation from "../countdownAnimation.js";
 import {creationGameDisplay, updatePlayerStatus, displayWhenLoad, playerLeave } from "./game/waitingRoom.js";
+import { ensureValidToken } from '/js/utils.js';
 
 let socket = null;
 let currentPlayerId = null;
@@ -65,7 +66,7 @@ async function getUserFromBack() {
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
             },
             credentials: 'include',
         });
@@ -349,7 +350,7 @@ function sendMatchApi(winningId) {
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': getCSRFToken(),
-            'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+            'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
         },
         credentials: 'include',
         body: JSON.stringify({

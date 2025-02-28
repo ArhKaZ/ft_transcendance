@@ -3,6 +3,7 @@ import Game from "./game/game.js";
 import Player from "./game/player.js";
 import CountdownAnimation from "../countdownAnimation.js";
 import {creationGameDisplay, updatePlayerStatus, displayWhenLoad } from "./game/waitingRoom.js";
+import { ensureValidToken } from '/js/utils.js';
 
 let socket = null;
 let oldHeight = null;
@@ -34,7 +35,7 @@ async function getUserFromBack() {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': getCSRFToken(),
-				'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+				'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 			},
 			credentials: 'include',
 		});
@@ -55,7 +56,7 @@ async function getInfoMatchTournament(user) {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': getCSRFToken(),
-				'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+				'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 			},
 			credentials: 'include',
 		});
@@ -76,7 +77,7 @@ async function getInfoFinale(user) {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': getCSRFToken(),
-				'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+				'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 			},
 			credentials: 'include',
 		});
@@ -393,7 +394,7 @@ async function joinFinalist() {
 		headers: {
 			'Content-Type': 'application/json',
 			'X-CSRFToken': getCSRFToken(),
-			'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+			'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 		},
 		credentials: 'include',});
 		if (!response.ok) {
@@ -413,7 +414,7 @@ async function joinWinner() {
 		headers: {
 			'Content-Type': 'application/json',
 			'X-CSRFToken': getCSRFToken(),
-			'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+			'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 		},
 		credentials: 'include',});
 		if (!response.ok) {
@@ -442,7 +443,7 @@ function handleGameFinish(game, winningId, opponentName = null) {
 		headers: {
 			'Content-Type': 'application/json',
 			'X-CSRFToken': getCSRFToken(),
-			'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+			'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 		},
 		credentials: 'include',
 		body: JSON.stringify({
