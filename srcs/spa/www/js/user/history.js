@@ -9,7 +9,7 @@ async function fetchHistory() {
 			method: 'GET',
 			headers: {
 				'Content-type' : 'application/json',
-				'Authorization' : `Token ${sessionStorage.getItem('access_token')}`,
+				'Authorization' : `Bearer ${sessionStorage.getItem('access_token')}`,
 			}
 		});
 		

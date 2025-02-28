@@ -94,6 +94,7 @@ class TournamentGame {
 
 	async checkLeft(tournamentCode) {
 		try {
+			await ensureValidToken();
 			const response = await fetch(`/api/tournament/${tournamentCode}/check_left/`, {
 				method: 'GET',
 				headers: {
@@ -133,6 +134,7 @@ class TournamentGame {
 		
 		try {
 			console.log("Sending forfeit request to API");
+			await ensureValidToken();
 			const response = await fetch(`/api/forfeit_tournament/${this.tournamentCode}/`, {
 				method: 'POST',
 				headers: {
@@ -178,6 +180,7 @@ class TournamentGame {
 
 	async loadEnd() {
 		try {
+			await ensureValidToken();
 			const response = await fetch(`/api/tournament/${this.tournamentCode}/end_players/`, {
 				headers: {
 					'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`

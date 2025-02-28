@@ -59,6 +59,7 @@ class TournamentManager {
         if (!this.currentTournamentCode) return;
 
         try {
+            await ensureValidToken();
             const response = await fetch(`/api/quit_tournament/${this.currentTournamentCode}/`, {
                 method: 'POST',
                 headers: {
@@ -210,6 +211,7 @@ class TournamentManager {
         if (!this.currentTournamentCode) return;
     
         try {
+            await ensureValidToken();
             const response = await fetch(`/api/tournament_status/${this.currentTournamentCode}/`, {
                 headers: {
                     'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,

@@ -66,7 +66,7 @@ export function sleep(ms) {
 //         }
         
 //         // If refresh failed, clear tokens and redirect
-//         localStorage.removeItem('access_token');
+//         localStorage.removeItem('access_token');local
 //         localStorage.removeItem('refresh_token');
 //         localStorage.removeItem('access_expires');
 //         redirectToLogin();
@@ -88,8 +88,8 @@ export async function ensureValidToken() {
 }
 
 async function checkTokenExpiry() {
-    const accessExpiry = localStorage.getItem('access_expires');
-    const refreshToken = localStorage.getItem('refresh_token');
+    const accessExpiry = sessionStorage.getItem('access_expires');
+    const refreshToken = sessionStorage.getItem('refresh_token');
     
     if (!accessExpiry || !refreshToken) {
         redirectToLogin();
@@ -111,15 +111,15 @@ async function checkTokenExpiry() {
             
             if (response.ok) {
                 const data = await response.json();
-                localStorage.setItem('access_token', data.access_token);
-                localStorage.setItem('access_expires', data.access_expires);
+                sessionStorage.setItem('access_token', data.access_token);
+                sessionStorage.setItem('access_expires', data.access_expires);
                 return;
             }
         } catch (error) {
             console.error('Token refresh failed:', error);
         }
         
-        localStorage.clear();
+        sessionStorage.clear();
         redirectToLogin();
     }
 }

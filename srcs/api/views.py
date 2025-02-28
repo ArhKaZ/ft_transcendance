@@ -66,6 +66,28 @@ def add_user(request):
 		)
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_user_online(request, username):
+    try:
+        user = MyUser.objects.get(username=username)
+        
+        # Check if user has valid access token
+        try:
+            access_token = AccessToken.objects.get(user=user)
+            is_online = not access_token.is_expired()
+        except AccessToken.DoesNotExist:
+            is_online = False
+            
+        return Response({
+            'username': username,
+            'is_online': is_online,
+            'last_active': access_token.expires_at if is_online else None
+        }, status=status.HTTP_200_OK)
+        
+    except MyUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

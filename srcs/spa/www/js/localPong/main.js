@@ -14,6 +14,7 @@ let currentGameId = null;
 
 async function getUserFromBack() {
     try {
+        await ensureValidToken();
         const response = await fetch('/api/get-my-info/', {
             method: 'GET',
             headers: {

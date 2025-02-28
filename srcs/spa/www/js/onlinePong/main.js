@@ -30,6 +30,7 @@ function sendToBack(data) {
 
 async function getUserFromBack() {
 	try {
+		await ensureValidToken();
 		const response = await fetch('/api/get-my-info/', {
 			method: 'GET',
 			headers: {
@@ -48,9 +49,10 @@ async function getUserFromBack() {
 		handleErrors({message: 'You need to be logged before playing'});
 	}
 }
-	
+
 async function getInfoMatchTournament(user) {
 	try {
+		await ensureValidToken();
 		const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/get_opponent`, {
 			method: 'GET',
 			headers: {
@@ -72,6 +74,7 @@ async function getInfoMatchTournament(user) {
 
 async function getInfoFinale(user) {
 	try {
+		await ensureValidToken();
 		const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/get_final_opponent`, {
 			method: 'GET',
 			headers: {
@@ -389,6 +392,7 @@ async function handleCountdown(countdown) {
 
 async function joinFinalist() {
 	try {
+		await ensureValidToken();
 		const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/join_final/`, {
 		method: 'POST',
 		headers: {
@@ -409,6 +413,7 @@ async function joinFinalist() {
 
 async function joinWinner() {
 	try {
+		await ensureValidToken();
 		const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/join_winner/`, {
 		method: 'POST',
 		headers: {

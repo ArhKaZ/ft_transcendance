@@ -6,12 +6,13 @@ async function fetch_user() {
     const pathSegments = window.location.pathname.split('/');
     const userName = pathSegments[3];
     try {
+        await ensureValidToken();
         const response = await fetch(`/api/user/profile/${userName}/`, {
             method: 'GET',
 			headers: {
                 'Content-type' : 'application/json',
                 'X-CSRFToken': getCSRFToken(),
-				'Authorization' : `Token ${sessionStorage.getItem('access_token')}`,
+				'Authorization' : `Bearer ${sessionStorage.getItem('access_token')}`,
 			}
 		});
         if (!response.ok) {
@@ -63,6 +64,7 @@ async function fetchHistory() {
     const pathSegments = window.location.pathname.split('/');
     const userName = pathSegments[3];
     try {
+        await ensureValidToken();
         const response = await fetch(`/api/user/profile/get_history/${userName}/`, {
             method: 'GET',
             headers: {
@@ -125,3 +127,25 @@ async function fetchHistory() {
 
 fetch_user();
 fetchHistory();
+
+// // Frontend call
+async function checkUserStatus(username) {
+    try {
+        const response = await fetch(`/api/check-online/${username}/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log(`${username} is ${data.is_online ? 'online' : 'offline'}`);
+        }
+    } catch (error) {
+        console.error('Error checking user status:', error);
+    }
+}
+
+// Check if "john_doe" is online
+checkUserStatus('2');

@@ -9,7 +9,7 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
         const response = await fetch('/api/edit_user_api/', {
             method: 'PATCH',
 			headers: {
-				'Authorization' : `Token ${sessionStorage.getItem('access_token')}`,
+				'Authorization' : `Bearer ${sessionStorage.getItem('access_token')}`,
 			},
             body: formData,
         });
