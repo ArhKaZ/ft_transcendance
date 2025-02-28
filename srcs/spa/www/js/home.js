@@ -3,6 +3,9 @@ import { getCSRFToken } from '/js/utils.js';
 const searchButton = document.getElementById('search-button');
 const searchInput = document.getElementById('search-input');
 const searchResults = document.getElementById('search-results');
+const searchContainer = document.querySelector('.search-container');
+const friendSearchContainer = document.querySelector('.friend-search-container'); // Ajout correct
+
 
 document.getElementById('logout-button').addEventListener('click', async () => {
 	console.log('Logging out...');
@@ -63,6 +66,9 @@ if (response.ok) {
 	avatarImg.alt = 'avatar';
 	const lps = document.getElementById('lps');
 	lps.innerText += data.ligue_points;
+	const friendSearchContainer = document.querySelector('.friend-search-container');
+
+
 } else {
 	const bottomBtns = document.getElementById('bottom-buttons')
 	// const localbtn = document.getElementById('local-button');
@@ -90,6 +96,10 @@ if (response.ok) {
 
 	friendsbtn.style.display = 'none';
 	avatarImg.style.display = 'none';
+	searchContainer.style.display = 'none';
+	friendSearchContainer.style.display = 'none';
+
+
 
 	
 	console.error('Erreur lors de la requête de récupération des informations :', response);

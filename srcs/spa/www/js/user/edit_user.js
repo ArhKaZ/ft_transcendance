@@ -57,7 +57,7 @@ document.getElementById('avatar').addEventListener('change', function() {
 });
 
 document.getElementById('return-button').addEventListener('click', () => {
-    window.history.back();
+    window.location.href = "/home/";
 });
 
 function displayMessage(message, type) {

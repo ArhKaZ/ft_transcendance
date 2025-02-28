@@ -320,7 +320,7 @@ document.getElementById('return-button').addEventListener('click', () => {
         }
     } else {
         // Regular back navigation if not in a tournament
-        window.history.back();
+        window.location.href = "/pong/";;
     }
 });
 

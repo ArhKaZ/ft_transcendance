@@ -52,18 +52,51 @@ async function fetchFriends() {
 
         if (response.ok) {
             const data = await response.json();
-            const friendmsg = document.getElementById('friend-msg');
-            const usernames = data.map(item => item.username).join(', ');
-            friendmsg.innerText = `Friends: ${usernames} !`;
+            const friendsList = document.getElementById('friends-list');
+            friendsList.innerHTML = ''; // Nettoyer avant d'ajouter de nouveaux amis
+
+            data.forEach(friend => {
+                const friendCard = document.createElement('div');
+                friendCard.classList.add('friend-card');
+
+                // Rendre cliquable pour aller au profil
+                friendCard.addEventListener('click', () => {
+                    window.location.href = `/user/profile/${friend.username}/`;
+                });
+
+                const avatar = document.createElement('img');
+                avatar.src = friend.avatar || '/avatars/default.png';
+                avatar.alt = 'Avatar';
+                avatar.classList.add('friend-avatar');
+
+                const friendInfo = document.createElement('div');
+                friendInfo.classList.add('friend-info');
+
+                const friendName = document.createElement('span');
+                friendName.classList.add('friend-name');
+                friendName.textContent = friend.username;
+
+                const statusIndicator = document.createElement('div');
+                statusIndicator.classList.add('status-indicator');
+                statusIndicator.classList.add(friend.online ? 'online' : 'offline');
+
+                friendInfo.appendChild(friendName);
+                friendCard.appendChild(avatar);
+                friendCard.appendChild(friendInfo);
+                friendCard.appendChild(statusIndicator);
+                friendsList.appendChild(friendCard);
+                console.log("Données reçues:", data);
+            });
+
             console.log("get friends call worked");
         } else {
             console.log("Erreur lors de la récupération de la liste d'amis :", response.status);
         }
-    }
-    catch {
-        console.log("get friends call failed");
+    } catch (error) {
+        console.log("get friends call failed", error);
     }
 }
+
 
 const addmsg = document.getElementById('add-friend-msg');
 
