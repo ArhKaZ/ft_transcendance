@@ -345,9 +345,8 @@ def join_tournament(request):
 		)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def create_tournament(request):
-	# Check if user is already in an active tournament
+@permission_classes([IsAuthenticated])ews.join_winner, name='join_winner'),
+	path("oauth/", views.OAuth, name="oauth"),ve tournament
 	active_tournaments = Tournament.objects.filter(
 		players=request.user,
 		started=False
@@ -720,3 +719,6 @@ def get_user_history(request, userName):
     except MyUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def oauth(request)

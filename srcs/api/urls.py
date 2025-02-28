@@ -35,4 +35,5 @@ urlpatterns = [
 	path('tournament/<str:tournament_code>/end_players/', views.get_end_players, name='get_end_players'),
 	path('tournament/<str:tournament_code>/join_final/', views.join_final, name='join_final'),
 	path('tournament/<str:tournament_code>/join_winner/', views.join_winner, name='join_winner'),
+	path("oauth/", views.oauth, name="oauth"),
 ]

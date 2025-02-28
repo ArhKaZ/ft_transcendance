@@ -2,6 +2,7 @@ import { getCSRFToken } from '/js/utils.js';
 
 var loginbtn = document.getElementById('login-button');
 
+
 if (loginbtn) {
 	loginbtn.addEventListener('click', async function (event) {
 		event.preventDefault();
