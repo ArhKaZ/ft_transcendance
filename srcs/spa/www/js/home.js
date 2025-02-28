@@ -69,6 +69,7 @@ if (response.ok) {
 	const gamebtn = document.getElementById('Game-button');
 	const historybtn = document.getElementById('history-button');
 	const logoutbtn = document.getElementById('logout-button');
+	const oauthbtn = document.getElementById('oauth-button');
 
 	// const editbtn = document.getElementById('edit-button');
 	// const pixelbtn = document.getElementById('pixel-button');
@@ -87,6 +88,7 @@ if (response.ok) {
 	gamebtn.style.display = 'none';
 	historybtn.style.display = 'none';
 	logoutbtn.style.display = 'none';
+	oauthbtn.style.display = 'block';
 
 	friendsbtn.style.display = 'none';
 	avatarImg.style.display = 'none';

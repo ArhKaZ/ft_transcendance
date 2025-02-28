@@ -268,6 +268,10 @@ const routes = {
 		const response = await fetch('/html/user/login.html');
 		return await response.text();
 	},
+    '/user/oauth/': async () => {
+		const response = await fetch('/html/user/oauth.html');
+		return await response.text();
+	},
 
     '/tournament/': async () => {
         const response = await fetch('/html/tournament/tournament.html');
