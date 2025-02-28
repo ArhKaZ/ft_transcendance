@@ -770,27 +770,18 @@ def get_end_players(request, tournament_code):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_info_user(request, userName):
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> sanitize
 	try:
 		user = MyUser.objects.get(username=userName)
 		serializer = UserInfoSerializer(user)
 		return Response(serializer.data)
 	except MyUser.DoesNotExist:
 		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-<<<<<<< HEAD
-	
-=======
-    try:
-        user = MyUser.objects.get(username=userName)
-        serializer = UserInfoSerializer(user)
-        return Response(serializer.data)
-    except MyUser.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-=======
->>>>>>> sanitize
+	try:
+		user = MyUser.objects.get(username=userName)
+		serializer = UserInfoSerializer(user)
+		return Response(serializer.data)
+	except MyUser.DoesNotExist:
+		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -802,5 +793,3 @@ def get_user_history(request, userName):
 		return Response(serializer.data)
 	except MyUser.DoesNotExist:
 		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-
->>>>>>> 98372198769ed0d929bd3022f6bbe6531046a72f
