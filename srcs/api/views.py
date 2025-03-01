@@ -782,7 +782,6 @@ def oauth(request):
 			'access_token',
 			access_token,
 			httponly=True,
-			secure=not settings.DEBUG,
 			samesite='Lax',
 			max_age=3600  # 1 hour
 		)

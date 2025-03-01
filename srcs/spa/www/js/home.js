@@ -41,7 +41,7 @@ const response = await fetch('/api/get-my-info/', {
 	headers: {
 		'Content-Type': 'application/json',
 		'X-CSRFToken': getCSRFToken(),
-		'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+		'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 	},
 	credentials: 'include',
 });

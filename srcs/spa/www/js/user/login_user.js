@@ -40,8 +40,10 @@ async function loginUser() {
 			console.log('before');
 			const data = await response.json();
 			console.log('after');
-			sessionStorage.setItem('token_key', data.token_key);
-			sessionStorage.setItem('username', username);
+			sessionStorage.setItem('access_token', data.access_token);
+    		sessionStorage.setItem('refresh_token', data.refresh_token);
+    		sessionStorage.setItem('access_expires', data.access_expires);
+    		sessionStorage.setItem('refresh_expires', data.refresh_expires);
 			// Si la réponse est réussie, rediriger vers la page protégée
 			messageDiv.innerHTML = '<span style="color: green;">Connexion réussie. Redirection en cours...</span>';
 			setTimeout(() => {
