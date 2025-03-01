@@ -1,3 +1,5 @@
+import { ensureValidToken } from '/js/utils.js';
+
 document.getElementById('userForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
@@ -7,7 +9,7 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
         const response = await fetch('/api/edit_user_api/', {
             method: 'PATCH',
 			headers: {
-				'Authorization' : `Token ${sessionStorage.getItem('token_key')}`,
+				'Authorization' : `Bearer ${sessionStorage.getItem('access_token')}`,
 			},
             body: formData,
         });
@@ -33,11 +35,11 @@ document.getElementById('erase-button').addEventListener('click', async () => {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+            'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
         },
         credentials: 'include',
     });
-    sessionStorage.removeItem('token_key');
+    sessionStorage.removeItem('access_token');
 
     if (response.ok) {
         console.log('Erased successfully');

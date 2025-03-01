@@ -6,7 +6,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 urlpatterns = [
 	path('add_user/', views.add_user),
 	path('login/', views.login_user, name='login_user'),
-	path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+	# path('token/refresh/', view.refresh_token, name='token_refresh'),
 	path('edit_user_api/', views.edit_user_api),
 	path('add_match/', views.add_match),
 	path('get_history/', views.get_history),
@@ -18,6 +18,7 @@ urlpatterns = [
 	path('get_pending_friends/', views.get_pending_friends),
 	path('change_lp/', views.change_lp),
 	path('join_tournament/', views.join_tournament),
+	path('token/refresh/', views.refresh_token),
 	path('create_tournament/', views.create_tournament),
 	path('quit_tournament/<str:tournament_code>/', views.quit_tournament),
 	path('forfeit_tournament/<str:tournament_code>/', views.forfeit_tournament, name='forfeit_tournament'),
@@ -35,4 +36,5 @@ urlpatterns = [
 	path('tournament/<str:tournament_code>/end_players/', views.get_end_players, name='get_end_players'),
 	path('tournament/<str:tournament_code>/join_final/', views.join_final, name='join_final'),
 	path('tournament/<str:tournament_code>/join_winner/', views.join_winner, name='join_winner'),
+	path('check-online/<str:username>/', views.check_user_online, name='check_user_online'),
 ]

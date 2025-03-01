@@ -1,4 +1,5 @@
 import { getCSRFToken } from '/js/utils.js';
+import { ensureValidToken } from '/js/utils.js';
 
 const divHistory = document.getElementById("history");
 
@@ -8,7 +9,7 @@ async function fetchHistory() {
 			method: 'GET',
 			headers: {
 				'Content-type' : 'application/json',
-				'Authorization' : `Token ${sessionStorage.getItem('token_key')}`,
+				'Authorization' : `Bearer ${sessionStorage.getItem('access_token')}`,
 			}
 		});
 		
@@ -60,25 +61,34 @@ document.getElementById('return-button').addEventListener('click', () => {
 });
 
 document.getElementById('logout-button').addEventListener('click', async () => {
-	console.log('Logging out...');
+    try {
+        const response = await fetch('/api/logout/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            credentials: 'include',
+        });
 
-	sessionStorage.removeItem('token_key');
-
-	const response = await fetch('/api/logout/', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			'X-CSRFToken': getCSRFToken(),
-		},
-		credentials: 'include',
-	});
-
-	if (response.ok) {
-		console.log('Logged out successfully');
-	} else {
-		console.error('Error logging out:', response);
-	}
-	window.location.href = "/home/";
+        if (response.ok) {
+            // Clear all client-side storage
+            sessionStorage.removeItem('access_token');
+            sessionStorage.removeItem('refresh_token');
+            sessionStorage.removeItem('access_expires');
+            sessionStorage.removeItem('refresh_expires');
+            sessionStorage.clear();
+            
+            // Redirect to login
+            window.location.href = '/home/';
+        } else {
+            console.error('Logout failed:', await response.json());
+        }
+    } catch (error) {
+        console.error('Network error during logout:', error);
+        window.location.href = '/home/';
+    }
 });
 
 fetchHistory();

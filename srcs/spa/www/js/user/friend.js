@@ -1,4 +1,5 @@
 import { getCSRFToken } from '/js/utils.js';
+import { ensureValidToken } from '/js/utils.js';
 
 const divFriends = document.getElementById("Friends");
 var addbtn = document.getElementById('add-button');
@@ -12,25 +13,34 @@ if (addbtn) {
 }
 
 document.getElementById('logout-button').addEventListener('click', async () => {
-    console.log('Logging out...');
-    sessionStorage.removeItem('token_key');
-    
-    const response = await fetch('/api/logout/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-        },
-        credentials: 'include',
-    });
+    try {
+        const response = await fetch('/api/logout/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            credentials: 'include',
+        });
 
-    if (response.ok) {
-        console.log('Logged out successfully');
-    } else {
-        console.error('Error logging out:', response);
+        if (response.ok) {
+            // Clear all client-side storage
+            sessionStorage.removeItem('access_token');
+            sessionStorage.removeItem('refresh_token');
+            sessionStorage.removeItem('access_expires');
+            sessionStorage.removeItem('refresh_expires');
+            sessionStorage.clear();
+            
+            // Redirect to login
+            window.location.href = '/home/';
+        } else {
+            console.error('Logout failed:', await response.json());
+        }
+    } catch (error) {
+        console.error('Network error during logout:', error);
+        window.location.href = '/home/';
     }
-
-    window.location.href = "/home/";
 });
 
 document.getElementById('return-button').addEventListener('click', () => {
@@ -46,7 +56,7 @@ async function fetchFriends() {
             headers: {
                 'Content-type': 'application/json',
                 'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
             }
         });
 
@@ -107,7 +117,7 @@ async function addFriend() {
             headers: {
                 'Content-type': 'application/json',
                 'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
             },
             body: JSON.stringify({
                 'friend_name': document.getElementById('friend_name').value,
@@ -136,7 +146,7 @@ async function fetchPendingFriend() {
             headers: {
                 'Content-type': 'application/json',
                 'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
             }
         });
         if (response.ok) {

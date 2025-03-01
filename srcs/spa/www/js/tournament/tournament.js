@@ -1,4 +1,5 @@
 console.log("Tournament script loaded!");
+import { ensureValidToken } from '/js/utils.js';
 
 class TournamentManager {
 	
@@ -58,12 +59,13 @@ class TournamentManager {
         if (!this.currentTournamentCode) return;
 
         try {
+            await ensureValidToken();
             const response = await fetch(`/api/quit_tournament/${this.currentTournamentCode}/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': this.getCSRFToken(),
-                    'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                    'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
                 }
             });
 
@@ -129,7 +131,7 @@ class TournamentManager {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': this.getCSRFToken(),
-                    'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                    'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
                 }
             });
     
@@ -170,7 +172,7 @@ class TournamentManager {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': this.getCSRFToken(),
-                    'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                    'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
                 },
                 body: JSON.stringify({ tournament_code: tournamentCode })
             });
@@ -209,9 +211,10 @@ class TournamentManager {
         if (!this.currentTournamentCode) return;
     
         try {
+            await ensureValidToken();
             const response = await fetch(`/api/tournament_status/${this.currentTournamentCode}/`, {
                 headers: {
-                    'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                    'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
                 }
             });
     

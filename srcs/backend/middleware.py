@@ -14,16 +14,16 @@ class JWTAuthRedirectMiddleware:
             return self.get_response(request)
 
         # Récupérer le token JWT dans les cookies
-        token_key = request.COOKIES.get('access_token')
+        access_token = request.COOKIES.get('access_token')
 
-        if not token_key:
+        if not access_token:
             # Rediriger vers la page de connexion si aucun token n'est fourni
             return redirect('/user/login/')  # Remplacez par l'URL ou le nom de votre vue de connexion
 
         # Valider le token JWT
         jwt_auth = JWTAuthentication()
         try:
-            validated_token = jwt_auth.get_validated_token(token_key)  # Valider le token
+            validated_token = jwt_auth.get_validated_token(access_token)  # Valider le token
             user = jwt_auth.get_user(validated_token)  # Obtenir l'utilisateur
             request.user = user  # Associer l'utilisateur à la requête
         except Exception:

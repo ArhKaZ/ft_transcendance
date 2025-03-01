@@ -23,6 +23,8 @@ from .models import Tournament, TournamentMatch
 from .blockchain_storage import record_match
 import re
 import os
+from .models import AccessToken, RefreshToken
+from django.utils import timezone
 
 import magic  # pip install python-magic
 
@@ -65,23 +67,84 @@ def add_user(request):
 		)
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_user_online(request, username):
+    try:
+        user = MyUser.objects.get(username=username)
+        
+        # Get the latest valid access token
+        valid_token = AccessToken.objects.filter(
+            user=user,
+            expires_at__gt=timezone.now()
+        ).order_by('-created').first()  # CHANGED
+        
+        is_online = valid_token is not None
+        
+        return Response({
+            'username': username,
+            'is_online': is_online,
+            'last_active': valid_token.expires_at if is_online else None
+        })
+        
+    except MyUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=404)
+
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_user(request):
 	username = request.data.get('username')
 	password = request.data.get('password')
-	if not username or not password:
-		return Response({'error': 'Please provide both username and password.'}, status=status.HTTP_400_BAD_REQUEST)
 	user = authenticate(username=username, password=password)
-	if user is not None:
-		token, created = Token.objects.get_or_create(user=user)
-		if not created:
-			token.delete()
-			token = Token.objects.create(user=user)
-		response = Response({'detail': 'Success', 'token_key': token.key} , status=status.HTTP_200_OK)
-		return response
-	else:
-		return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+	
+	if user:
+		# Delete existing tokens
+		AccessToken.objects.filter(user=user).delete()
+		RefreshToken.objects.filter(user=user).delete()
+		
+		# Create new tokens
+		refresh_token = RefreshToken.objects.create(user=user)
+		access_token = AccessToken.objects.create(
+			user=user, 
+			refresh_token=refresh_token
+		)
+		
+		return Response({
+			'access_token': access_token.token,
+			'access_expires': access_token.expires_at,
+			'refresh_token': refresh_token.token,
+			'refresh_expires': refresh_token.expires_at
+		})
+	return Response({'error': 'Invalid credentials'}, status=401)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def refresh_token(request):
+    try:
+        refresh_token = request.data.get('refresh_token')
+        if not refresh_token:
+            return Response({'error': 'Refresh token required'}, status=400)
+
+        # Get refresh token object
+        refresh_token_obj = RefreshToken.objects.get(token=refresh_token)
+        
+        # Delete existing access tokens for this user
+        AccessToken.objects.filter(user=refresh_token_obj.user).delete()  # NEW
+        
+        # Create new access token
+        new_access = AccessToken.objects.create(
+            user=refresh_token_obj.user,
+            refresh_token=refresh_token_obj
+        )
+        
+        return Response({
+            'access_token': new_access.token,
+            'access_expires': new_access.expires_at
+        })
+        
+    except RefreshToken.DoesNotExist:
+        return Response({'error': 'Invalid refresh token'}, status=401)
 
 
 @api_view(['POST'])
@@ -134,10 +197,21 @@ def get_my_info(request):
 		return Response({'error': 'User not found or not connected'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def logout_user(request):
-	# Delete the token
-	request.user.auth_token.delete()
-	return Response({'message': 'Logged out successfully'})
+	try:
+		# Delete access token
+		AccessToken.objects.filter(user=request.user).delete()
+		# Delete refresh token
+		RefreshToken.objects.filter(user=request.user).delete()
+		
+		return Response({'message': 'Logged out successfully'}, status=status.HTTP_200_OK)
+		
+	except Exception as e:
+		return Response(
+			{'error': 'Logout failed'},
+			status=status.HTTP_500_INTERNAL_SERVER_ERROR
+		)
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])

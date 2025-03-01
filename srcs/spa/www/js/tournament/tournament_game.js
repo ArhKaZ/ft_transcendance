@@ -1,6 +1,9 @@
 import T_Player from './tournament_player.js';
 import { sleep } from '../utils.js';
 import { getCSRFToken } from '../utils.js';
+import { getCSRFToken } from '../utils.js';
+import { ensureValidToken } from '/js/utils.js';
+
 
 
 class TournamentGame {
@@ -91,12 +94,13 @@ class TournamentGame {
 
 	async checkLeft(tournamentCode) {
 		try {
+			await ensureValidToken();
 			const response = await fetch(`/api/tournament/${tournamentCode}/check_left/`, {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json',
 					'X-CSRFToken': getCSRFToken(),
-					'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+					'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 				},
 				credentials: 'include',
 			});
@@ -130,12 +134,13 @@ class TournamentGame {
 		
 		try {
 			console.log("Sending forfeit request to API");
+			await ensureValidToken();
 			const response = await fetch(`/api/forfeit_tournament/${this.tournamentCode}/`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 					'X-CSRFToken': getCSRFToken(),
-					'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+					'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 				},
 				credentials: 'include',
 			});
@@ -175,9 +180,10 @@ class TournamentGame {
 
 	async loadEnd() {
 		try {
+			await ensureValidToken();
 			const response = await fetch(`/api/tournament/${this.tournamentCode}/end_players/`, {
 				headers: {
-					'Authorization': `Token ${sessionStorage.getItem('token_key')}`
+					'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
 				}
 			});
 			
