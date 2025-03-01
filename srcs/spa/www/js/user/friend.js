@@ -14,6 +14,7 @@ if (addbtn) {
 
 document.getElementById('logout-button').addEventListener('click', async () => {
     try {
+        await ensureValidToken();
         const response = await fetch('/api/logout/', {
             method: 'POST',
             headers: {
@@ -25,14 +26,12 @@ document.getElementById('logout-button').addEventListener('click', async () => {
         });
 
         if (response.ok) {
-            // Clear all client-side storage
             sessionStorage.removeItem('access_token');
             sessionStorage.removeItem('refresh_token');
             sessionStorage.removeItem('access_expires');
             sessionStorage.removeItem('refresh_expires');
             sessionStorage.clear();
             
-            // Redirect to login
             window.location.href = '/home/';
         } else {
             console.error('Logout failed:', await response.json());
@@ -51,6 +50,7 @@ document.getElementById('return-button').addEventListener('click', () => {
 async function fetchFriends() {
     console.log("fetching friends");
     try {
+        await ensureValidToken();
         const response = await fetch('/api/get_friends/', {
             method: 'GET',
             headers: {
@@ -85,16 +85,21 @@ async function fetchFriends() {
                 friendName.classList.add('friend-name');
                 friendName.textContent = friend.username;
 
+
                 const statusIndicator = document.createElement('div');
                 statusIndicator.classList.add('status-indicator');
-                statusIndicator.classList.add(friend.online ? 'online' : 'offline');
+                statusIndicator.classList.add('offline');
+                
+
+                statusIndicator.dataset.username = friend.username;
 
                 friendInfo.appendChild(friendName);
                 friendCard.appendChild(avatar);
                 friendCard.appendChild(friendInfo);
                 friendCard.appendChild(statusIndicator);
                 friendsList.appendChild(friendCard);
-                console.log("Données reçues:", data);
+                
+                updateFriendStatus(friend.username);
             });
 
             console.log("get friends call worked");
@@ -107,11 +112,38 @@ async function fetchFriends() {
 }
 
 
+async function updateFriendStatus(username) {
+    try {
+        const response = await fetch(`/api/check-online/${username}/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const isOnline = data.is_online;
+            console.log(`${username} is ${isOnline ? 'online' : 'offline'}`);
+            
+            const statusIndicators = document.querySelectorAll(`.status-indicator[data-username="${username}"]`);
+            
+            statusIndicators.forEach(indicator => {
+                indicator.classList.remove('online', 'offline');
+                indicator.classList.add(isOnline ? 'online' : 'offline');
+            });
+        }
+    } catch (error) {
+        console.error('Error checking user status:', error);
+    }
+}
+
 const addmsg = document.getElementById('add-friend-msg');
 
 async function addFriend() {
     console.log(document.getElementById('friend_name').value);
     try {
+        await ensureValidToken();
         const response = await fetch('/api/add_friend/', {
             method: 'POST',
             headers: {
@@ -141,6 +173,7 @@ async function addFriend() {
 async function fetchPendingFriend() {
     console.log("fetching pending friends");
     try {
+        await ensureValidToken();
         const response = await fetch('/api/get_pending_friends/', {
             method: 'GET',
             headers: {

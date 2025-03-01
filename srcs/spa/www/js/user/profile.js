@@ -3,12 +3,13 @@ import { ensureValidToken } from '/js/utils.js';
 
 async function isUserFriend(userName) {
     try {
+        await ensureValidToken();
         const response = await fetch('/api/get_friends/', {
             method: 'GET',
             headers: {
                 'Content-type': 'application/json',
                 'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
             }
         });
 
@@ -35,12 +36,13 @@ async function isUserFriend(userName) {
 }
 async function isFriendRequestPending(userName) {
     try {
+        await ensureValidToken();
         const response = await fetch('/api/get_pending_friends/', {
             method: 'GET',
             headers: {
                 'Content-type': 'application/json',
                 'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
             }
         });
 
@@ -123,12 +125,13 @@ async function addFriend(userName) {
     sessionStorage.setItem(`friendRequest_${userName}`, "pending");
 
     try {
+        await ensureValidToken();
         const response = await fetch('/api/add_friend/', {
             method: 'POST',
             headers: {
                 'Content-type': 'application/json',
                 'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Token ${sessionStorage.getItem('token_key')}`,
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
             },
             body: JSON.stringify({ 'friend_name': userName })
         });
@@ -233,24 +236,3 @@ document.getElementById('return-button').addEventListener('click', () => {
 fetch_user();
 fetchHistory();
 
-// // Frontend call
-async function checkUserStatus(username) {
-    try {
-        const response = await fetch(`/api/check-online/${username}/`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
-            }
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            console.log(`${username} is ${data.is_online ? 'online' : 'offline'}`);
-        }
-    } catch (error) {
-        console.error('Error checking user status:', error);
-    }
-}
-
-// Check if "john_doe" is online
-checkUserStatus('2');
