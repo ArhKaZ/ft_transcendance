@@ -862,3 +862,75 @@ def get_user_history(request, userName):
     except MyUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def oauth(request):
+	try:
+		code = request.data.get('code')
+		redirect_uri = "https://127.0.0.1:8443/oauth_callback/"
+		if not code:
+			return Response({"error": "Authorization code required"}, status=status.HTTP_400_BAD_REQUEST)
+
+		# Exchange code for access token with 42's API
+		token_response = requests.post(
+			'https://api.intra.42.fr/oauth/token',
+			data={
+				'grant_type': 'authorization_code',
+				'client_id': os.environ.get("OAUTH42_UID"),
+				'client_secret': os.environ.get("OAUTH42_SECRET"),
+				'code': code,
+				'redirect_uri': redirect_uri
+			}
+		)
+		token_response.raise_for_status() #raise http errors in case of failure
+		
+		access_token = token_response.json().get('access_token')
+			
+			# Get user info from 42's API
+		user_response = requests.get(
+			'https://api.intra.42.fr/v2/me',
+			headers={'Authorization': f'Bearer {access_token}'}
+		)
+		user_response.raise_for_status()
+			
+		user_data = user_response.json()
+			# Create or update user
+		user, created = MyUser.objects.update_or_create(
+			email=user_data.get('email'),
+			is_oauth=True,
+			defaults={
+				'username': user_data.get('login'),
+				'avatar': user_data.get('image', {}).get('link', 'default_avatar.png'),
+			}
+		)
+
+				# Generate JWT tokens
+		refresh = RefreshToken.for_user(user)
+		access_token = str(refresh.access_token)
+
+		response_data = {
+			"id": user.id,
+			"username": user.username,
+			"src_avatar": user.avatar.url,
+			"ligue_points": user.ligue_points
+		}
+
+		response = JsonResponse(response_data)
+		response.set_cookie(
+			'access_token',
+			access_token,
+			httponly=True,
+			samesite='Lax',
+			max_age=3600  # 1 hour
+		)
+		return response#Response(token_response.json(), status=token_response.status_code)
+	except requests.exceptions.RequestException as e:
+		return JsonResponse({'error': f'42 API Error: {str(e)}'}, status=500)
+	except Exception as e:
+		return JsonResponse({'error': f'Server Error: {str(e)}'}, status=500)
+	except IntegrityError as e:
+		return Response(
+			{"detail": "Failed to create user due to a conflict."},
+			status=status.HTTP_409_CONFLICT,
+        )

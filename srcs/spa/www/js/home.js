@@ -1,11 +1,13 @@
 import { getCSRFToken } from '/js/utils.js';
 import { ensureValidToken } from '/js/utils.js';
+import { redirectTo42OAuth } from '/js/user/oauth.js';
 
 const searchButton = document.getElementById('search-button');
 const searchInput = document.getElementById('search-input');
 const searchResults = document.getElementById('search-results');
 const searchContainer = document.querySelector('.search-container');
 const friendSearchContainer = document.querySelector('.friend-search-container');
+var oauthbtn = document.getElementById('oauth-button');
 
 
 document.getElementById('logout-button').addEventListener('click', async () => {
@@ -61,11 +63,15 @@ if (response.ok) {
 	const loginbtn = document.getElementById('login-button');
 	const registerbtn = document.getElementById('register-button');
 	const bottomBtns = document.getElementById('bottom-buttons');
+	const oauthbtn = document.getElementById('oauth-button');
+
 
 
 	bottomBtns.style.display = 'flex';
 	loginbtn.style.display = 'none';
 	registerbtn.style.display = 'none';
+	oauthbtn.style.display = 'none';
+
 
 	const welcomemsg = document.getElementById('welcome-msg');
 	welcomemsg.innerText = `Welcome, ${data.username} !`;
@@ -130,3 +136,11 @@ searchInput.addEventListener('keypress', (e) => {
         searchButton.click();
     }
 });
+
+if (oauthbtn) {
+	oauthbtn.addEventListener('click', async function (event) {
+		event.preventDefault();
+		console.log('clicked');
+		redirectTo42OAuth();
+	});
+}
