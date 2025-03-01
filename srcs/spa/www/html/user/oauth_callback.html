@@ -1,5 +1,38 @@
-<div class="row">
-    <center>
-        <h1 style="color: white;">Redirecting...</h1>
-    </center>
-</div>
+<!-- Add basic error visibility -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OAuth Redirect</title>
+</head>
+<body>
+    <div class="row">
+        <center>
+            <h1 style="color: white;">Redirecting...</h1>
+        </center>
+    </div>
+    
+    <!-- Add error display element -->
+    <div id="error-message" style="color: red; display: none;"></div>
+
+    <!-- Load scripts FIRST before DOM elements -->
+    <script type="module">
+        import { handle42OAuthCallback } from '/js/user/oauth.js';
+        
+        // Simple error handling for module loading
+        window.addEventListener('error', (event) => {
+            document.getElementById('error-message').style.display = 'block';
+            document.getElementById('error-message').textContent = 
+                `Script Error: ${event.message}`;
+        });
+
+        // Immediate execution with try-catch
+        try {
+            console.log('Callback page loaded'); // Should appear in console
+            handle42OAuthCallback();
+        } catch (error) {
+            console.error('OAuth Handling Error:', error);
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>

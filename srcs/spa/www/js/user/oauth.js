@@ -2,8 +2,9 @@ import { getCSRFToken } from '/js/utils.js';
 
 export function redirectTo42OAuth()
 {
+    console.log("redirect");
     const clientId = 'u-s4t2ud-c3aad960cd36ac0f5ca04a7d2780e4d8f1dbc27481baec5b5cb571eceb694a81'; // Louis: c'est normal que le user ai acces a cette information car il est public
-    const redirectUri = 'https%3A%2F%2F127.0.0.1%3A8443%2Fuser%2Foauth_callback%2F';
+    const redirectUri = 'https%3A%2F%2F127.0.0.1%3A8443%2Foauth_callback%2F';
     const scope = 'public';
     const state = generateRandomString();
     const responseType = 'code';
@@ -16,6 +17,7 @@ export function redirectTo42OAuth()
 
 export function handle42OAuthCallback()
 {
+    console.log('Handling OAuth callback at path:', window.location.pathname);
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     const state = urlParams.get('state');
@@ -38,6 +40,7 @@ export function handle42OAuthCallback()
 
 function generateRandomString(length = 32)
 {
+    console.log("random");
     let str = '';
     const alphanum = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -51,6 +54,7 @@ async function exchangeCodeForToken(code)
 {
     try
     {
+        console.log("exchange");
         const response = await fetch('/api/oauth/', {
             method: 'POST',
             headers: {

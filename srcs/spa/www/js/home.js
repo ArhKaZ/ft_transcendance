@@ -127,7 +127,5 @@ if (oauthbtn) {
 		event.preventDefault();
 		console.log('clicked');
 		redirectTo42OAuth();
-		if (window.location.pathname === '/oauth_callback')
-			handle42OAuthCallback();
 	});
 }
