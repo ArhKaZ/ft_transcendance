@@ -21,25 +21,51 @@ from django.db.models import Q
 from django.db import IntegrityError
 from .serializers import UserInfoSerializer, TournamentMatchSerializer
 from .models import Tournament, TournamentMatch
+from .blockchain_storage import record_match
+import re
 import os
 import requests
 from django.http import JsonResponse
 
+import magic  # pip install python-magic
+
+
+ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png'}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def add_user(request):
-	data = request.data.copy()
-	avatar = request.FILES.get('avatar')
-	if avatar:
-		data['avatar'] = avatar
+	try:
+		data = request.data.copy()
+		avatar = request.FILES.get('avatar')
+		if avatar:
+			ext = os.path.splitext(avatar.name)[1].lower()
+			mime_type = magic.Magic(mime=True).from_buffer(avatar.read(1024))
+			avatar.seek(0)  # Rewind file after checking type
 
-	serializer = UserSerializer(data=data)
-	if serializer.is_valid():
-		user = serializer.save()
-		user.set_password(serializer.validated_data['password'])
-		user.save()
-		return Response(status=status.HTTP_201_CREATED)
-	return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+			# Vérification de l'extension et du type MIME
+			if ext not in ALLOWED_EXTENSIONS or not mime_type.startswith('image/'):
+				return Response({'error': 'Format de fichier non autorisé'}, status=status.HTTP_400_BAD_REQUEST)
+			
+			# Vérification de la taille
+			if avatar.size > MAX_FILE_SIZE:
+				return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
+			data['avatar'] = avatar
+
+		serializer = UserSerializer(data=data)
+		if serializer.is_valid():
+			user = serializer.save()
+			user.set_password(serializer.validated_data['password'])
+			user.save()
+			return Response(status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	except Exception as e:
+		print(f"Error: {e}")  # Log the actual error
+		return Response(
+			{'error': str(e)},  # Return the actual error message
+			status=status.HTTP_400_BAD_REQUEST
+		)
 
 
 @api_view(['POST'])
@@ -138,6 +164,18 @@ def edit_user_api(request):
 
 	if request.FILES.get('avatar'):
 		data['avatar'] = request.FILES['avatar']
+		avatar = request.FILES['avatar']
+		ext = os.path.splitext(avatar.name)[1].lower()
+		mime_type = magic.Magic(mime=True).from_buffer(avatar.read(1024))
+		avatar.seek(0)  # Rewind file after checking type
+		# Vérification de l'extension et du type MIME
+		if ext not in ALLOWED_EXTENSIONS or not mime_type.startswith('image/'):
+			return Response({'error': 'Format de fichier non autorisé'}, status=status.HTTP_400_BAD_REQUEST)
+		
+		# Vérification de la taille
+		if avatar.size > MAX_FILE_SIZE:
+			return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
+		data['avatar'] = avatar
 
 	# Only proceed with update if there's data to update
 	if data:
@@ -264,6 +302,33 @@ def join_final(request, tournament_code):
 			status=status.HTTP_404_NOT_FOUND
 		)
 
+def parse_tournament_data(tournament):
+	# Récupérer tous les joueurs et convertir en liste de pseudos
+	players = [
+		player.pseudo 
+		for player in tournament.players.all()
+	]
+	
+	# Récupérer les finalistes et convertir en liste de pseudos
+	finalists = [
+		finalist.pseudo
+		for finalist in tournament.finalist.all()
+	]
+
+	winner = [
+		winner.pseudo
+		for winner in tournament.winner.all()
+	]
+	# Créer le dictionnaire de données formaté
+	tournament_data = {
+		"tournament_code": tournament.code,
+		"players": players,
+		"finalists": finalists,
+		"winner": winner
+	}
+	
+	return tournament_data
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def join_winner(request, tournament_code):
@@ -271,11 +336,13 @@ def join_winner(request, tournament_code):
 		tournament = Tournament.objects.get(code=tournament_code)
 		try:
 			tournament.add_winner(request.user)
+			tournament_data = parse_tournament_data(tournament)
+			# record_match(tournament_data, tournament_code)
 
 			response_data = {
 				'message': 'You won !!',
 			}
-
+				
 			return Response(response_data, status=status.HTTP_200_OK)
 
 		except ValidationError as e:
