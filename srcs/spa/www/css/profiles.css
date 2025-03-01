@@ -116,7 +116,7 @@ button {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px; /* Espacement entre l'avatar et les stats */
+    gap: 10px;
 }
 
 .avatar-container {
@@ -133,7 +133,7 @@ button {
     transition: transform 0.2s ease-in-out;
     position: absolute;
     top: 0;
-    right: -40px; /* Décale légèrement à droite de l'avatar */
+    right: -40px;
 }
 
 .add-friend-icon.disabled {
@@ -160,7 +160,7 @@ button {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px; /* Espace entre l'avatar et le texte */
+    gap: 10px;
 }
 
 .history-table {
@@ -186,11 +186,11 @@ button {
 }
 
 .info-section {
-    margin-bottom: 35px; /* Ajoute un espace entre chaque section */
+    margin-bottom: 35px;
 }
 
 .pseudo, .league-points, .wins-losses, .winrate {
-    margin: 10px 0; /* Un petit espace entre chaque ligne */
+    margin: 10px 0;
 }
 
 .win-text {
@@ -211,4 +211,27 @@ button {
 .winrate-text.red {
     color: red;
     font-weight: bold;
+}
+
+.bottom-buttons {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 20px auto;
+}
+
+#return-button {
+    padding: 10px 20px;
+    border: 4px solid white;
+    background: none;
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    cursor: pointer;
+    text-align: center;
+    width: fit-content;
+}
+
+#return-button:hover {
+    background: white;
+    color: black;
 }
