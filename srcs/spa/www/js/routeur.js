@@ -277,7 +277,14 @@ const routes = {
         const response = await fetch('/html/user/profile.html');
         return await response.text();
     },
-    '/404': () => '<h1>Page Not Found</h1>'
+    '/user_not_found/':  async () => {	
+        const response = await fetch('/html/user_not_found.html');
+        return await response.text();
+        },
+    '/404':  async () => {	
+    const response = await fetch('/html/not_found.html');
+    return await response.text();
+    },
 };
 
 // Router instantiation

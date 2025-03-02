@@ -112,6 +112,7 @@ async function fetch_user() {
         winrateSpan.classList.add(winrate > 49 ? "green" : "red");
     } catch (error) {
         console.log("API call failed", error);
+        window.location.href = '/user_not_found/';
     }
 }
 
