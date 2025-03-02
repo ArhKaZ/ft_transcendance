@@ -9,6 +9,7 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.cache import cache, caches
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from api.models import MyUser, MatchHistory
 
 from .ball import Ball
 from .player import Player
@@ -348,13 +349,60 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 	async def handle_game_finish(self, data):
 		winning_session = data.decode().split('_')[-1]
+	
+		# Get winner and loser from game logic
+		winner_user, loser_user = await self.get_players_users()
 
+		# Update stats and create match history
+		await self.update_stats_and_create_matches(winner_user, loser_user)
+	
+		# Existing cleanup logic
 		self.game.status = 'FINISHED'
 		await self.game.save_to_cache()
 		await pong_server.cleanup_player(self.player_id, self.username, self.game_id, True)
 		await self.send_game_finish(winning_session)
 		await self.cleanup()
 
+	@database_sync_to_async
+	def get_players_users(self):
+		winner = self.game.winner  # Assuming your game tracks winner/loser
+		loser = self.game.p1 if winner == self.game.p2 else self.game.p2
+		return (winner.user_model, loser.user_model)
+
+	@database_sync_to_async
+	def update_stats_and_create_matches(self, winner, loser):
+		current_player = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
+		current_user_is_winner = (current_player.user_model == winner)
+	
+		# If you only want to update stats from one player's connection
+		# to avoid duplicate updates, you could use something like:
+		if not current_user_is_winner:
+			return
+		# Update winner stats
+		winner.wins += 1
+		winner.ligue_points += 15
+	
+		# Update loser stats
+		loser.looses += 1
+		loser.ligue_points -= 15
+	
+		# Create match history entries
+		MatchHistory.objects.create(
+			user=winner,
+			opponent_name=loser.username,
+			type='Pong',
+			won=True
+		)
+		MatchHistory.objects.create(
+			user=loser,
+			opponent_name=winner.username,
+			type='Pong',
+			won=False
+		)
+	
+		# Save both users
+		winner.save()
+		loser.save()
 
 	async def notify_start_move(self, direction):
 		message = {

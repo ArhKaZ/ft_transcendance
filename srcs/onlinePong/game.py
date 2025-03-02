@@ -8,6 +8,15 @@ from .player import Player
 from .ball import Ball
 
 class PongGame:
+
+	@property
+	def winner(self):
+		return self.p1 if self.p1.score > self.p2.score else self.p2
+
+	@property
+	def loser(self):
+		return self.p2 if self.p1.score > self.p2.score else self.p1
+
 	def __init__(self, player_info, opponent_info, game_id, p1_ready = False, p2_ready = False):
 		self.game_id = game_id
 		self.p1 = Player(player_info, game_id, p1_ready)
