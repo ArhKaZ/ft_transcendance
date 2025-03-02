@@ -344,25 +344,25 @@ function handleNoPlay(data) {
 }
 
 function sendMatchApi(winningId) {
-	const opponentName = currentPlayerId === parseInt(currentGame.P1.id) ? currentGame.P2.name : currentGame.P1.name;
-    const asWin = currentPlayerId === parseInt(winningId);
-    fetch('/api/add_match/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-            'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-            'type': 'magicDuel',
-            'opponent_name': opponentName,
-            'won': asWin
-        })
-    }).then(response => response.json())
-    .then(data => {
-        console.log('Match enregistrer ', data);
-    }).catch(error => console.error(error));
+	// const opponentName = currentPlayerId === parseInt(currentGame.P1.id) ? currentGame.P2.name : currentGame.P1.name;
+    // const asWin = currentPlayerId === parseInt(winningId);
+    // fetch('/api/add_match/', {
+    //     method: 'POST',
+    //     headers: {
+    //         'Content-Type': 'application/json',
+    //         'X-CSRFToken': getCSRFToken(),
+    //         'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+    //     },
+    //     credentials: 'include',
+    //     body: JSON.stringify({
+    //         'type': 'magicDuel',
+    //         'opponent_name': opponentName,
+    //         'won': asWin
+    //     })
+    // }).then(response => response.json())
+    // .then(data => {
+    //     console.log('Match enregistrer ', data);
+    // }).catch(error => console.error(error));
 }
 
 function handleClick(choice) {
