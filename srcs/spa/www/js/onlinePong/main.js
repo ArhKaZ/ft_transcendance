@@ -443,48 +443,47 @@ function handleGameFinish(game, winningId, opponentName = null) {
 	}
 	console.log('ids', currentPlayerId, winningId);
 	const asWin = currentPlayerId === parseInt(winningId);
-	fetch('/api/add_match/', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			'X-CSRFToken': getCSRFToken(),
-			'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-		},
-		credentials: 'include',
-		body: JSON.stringify({
-			'type': 'Pong',
-			'opponent_name': opponentName,
-			'won': asWin
-		})
-	}).then(data => {
-		if (inTournament && inFinal == false) {
-			sessionStorage.setItem('asWin', asWin);
-			if (sessionStorage.getItem('asWin') == "true") {
-				console.log('join finalist');
-				joinFinalist();
-			}
-			btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
-			btnBack.innerText = "Back to Tournament";
-			setTimeout(() => {
-				window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
-			}, 3000);
+	// fetch('/api/add_match/', {
+	// 	method: 'POST',
+	// 	headers: {
+	// 		'Content-Type': 'application/json',
+	// 		'X-CSRFToken': getCSRFToken(),
+	// 		'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+	// 	},
+	// 	credentials: 'include',
+	// 	body: JSON.stringify({
+	// 		'type': 'Pong',
+	// 		'opponent_name': opponentName,
+	// 		'won': asWin
+	// 	})
+	// }).then(data => {
+	if (inTournament && inFinal == false) {
+		sessionStorage.setItem('asWin', asWin);
+		if (sessionStorage.getItem('asWin') == "true") {
+			console.log('join finalist');
+			joinFinalist();
 		}
-		else if (inTournament && inFinal) {
-			sessionStorage.setItem('asWin', asWin);
-			if (sessionStorage.getItem('asWin') == "true")
-				joinWinner();
-			// sessionStorage.removeItem('asWin');
-			// sessionStorage.removeItem('tournament_code');
-			sessionStorage.setItem('finalDone', true);
-			btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
-			btnBack.innerText = "Back to Tournament";
-			setTimeout(() => {
-				window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
-			}, 3000);
-		}
-		else
-			btnBack.innerText += "Back to Home";
-	});
+		btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+		btnBack.innerText = "Back to Tournament";
+		setTimeout(() => {
+			window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+		}, 3000);
+	}
+	else if (inTournament && inFinal) {
+		sessionStorage.setItem('asWin', asWin);
+		if (sessionStorage.getItem('asWin') == "true")
+			joinWinner();
+		// sessionStorage.removeItem('asWin');
+		// sessionStorage.removeItem('tournament_code');
+		sessionStorage.setItem('finalDone', true);
+		btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+		btnBack.innerText = "Back to Tournament";
+		setTimeout(() => {
+			window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+		}, 3000);
+	}
+	else
+		btnBack.innerText += "Back to Home";
 }
 
 function resizeCanvasGame() {

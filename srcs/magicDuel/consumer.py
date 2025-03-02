@@ -322,6 +322,47 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				print('je passe ici pour cleanUp')
 				await self.cleanup()
 
+	@database_sync_to_async
+	def update_magic_stats_and_history(self, winner, loser):
+		from api.models import MatchHistory  # Import MatchHistory model
+		current_player = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
+		current_user_is_winner = (current_player.id == winner.id)
+	
+		if not current_user_is_winner:
+			return  # Only the winner's connection updates the stats
+	
+		# Update winner stats
+		winner.wins += 1
+		winner.ligue_points += 15
+		# Update loser stats
+		loser.looses += 1
+		loser.ligue_points -= 15
+	
+		# Create MatchHistory entries
+		MatchHistory.objects.create(
+			user=winner,
+			opponent_name=loser.username,
+			type='MagicDuel',
+			won=True
+		)
+		MatchHistory.objects.create(
+			user=loser,
+			opponent_name=winner.username,
+			type='MagicDuel',
+			won=False
+		)
+	
+		# Save changes
+		winner.save()
+		loser.save()
+
+	@database_sync_to_async
+	def get_players_users(self, winner, loser):
+		from api.models import MyUser  # Import your User model
+		winner_user = MyUser.objects.get(id=winner.id)
+		loser_user = MyUser.objects.get(id=loser.id)
+		return (winner_user, loser_user)
+
 	async def monitor_game_state(self, game_over_event):
 		try:
 			while not game_over_event.is_set() and not self.game_cancel_event.is_set():
@@ -332,22 +373,22 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				if self.game.p1 is None or self.game.p2 is None:
 					game_over_event.set()
 					break
-				print(f'lifes: {self.game.p1.life}/{self.game.p2.life}')
 				if self.game.p1.life <= 0 or self.game.p2.life <= 0:
 					self.game.status = 'FINISHED'
 					await self.game.save_to_cache()
 					game_over_event.set()
+					# Determine winner and loser
+					winner = self.game.p2 if self.game.p1.life <= 0 else self.game.p1
+					loser = self.game.p1 if self.game.p1.life <= 0 else self.game.p2
+					# Get User instances and update stats
+					winner_user, loser_user = await self.get_players_users(winner, loser)
+					await self.update_magic_stats_and_history(winner_user, loser_user)
 					await self.notify_game_end()
 					break
-				try:
-					await asyncio.sleep(0.5) # Short sleep to prevent tight loop
-				except asyncio.CancelledError:
-					return
+				await asyncio.sleep(0.5)
 		except asyncio.CancelledError:
 			game_over_event.set()
-			print('Game cancel, cleanup launch')
 			await self.cleanup()
-			return
 		except Exception as e:
 			print(f"Error in monitor_game_state: {e}")
 			game_over_event.set()
