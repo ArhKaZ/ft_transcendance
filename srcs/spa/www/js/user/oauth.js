@@ -4,13 +4,14 @@ export function redirectTo42OAuth()
 {
     console.log("redirect");
     const clientId = 'u-s4t2ud-c3aad960cd36ac0f5ca04a7d2780e4d8f1dbc27481baec5b5cb571eceb694a81'; // Louis: c'est normal que le user ai acces a cette information car il est public
-    const redirectUri = 'https%3A%2F%2F127.0.0.1%3A8443%2Foauth_callback%2F';
+    const redirectUri = encodeURIComponent('https://127.0.0.1:8443/oauth_callback/');
     const scope = 'public';
     const state = generateRandomString();
     const responseType = 'code';
 
     const authUrl = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&state=${state}`;
     
+    console.log("Full Auth URL:", authUrl);
     sessionStorage.setItem('oauth_state', state);
     window.location.href = authUrl;
 }
@@ -34,7 +35,7 @@ export function handle42OAuthCallback()
         const state = sessionStorage.getItem('oauth_state');
         if (state)
             sessionStorage.removeItem('oauth_state');
-        window.location.href = '/login';
+        window.location.href = '/home/';
     }
 }
 
@@ -61,15 +62,21 @@ async function exchangeCodeForToken(code)
 				'Content-Type': 'application/json',
 				'X-CSRFToken': getCSRFToken(),
 			},
-            body: JSON.stringify({ code: code })
+            body: JSON.stringify({ code: code }),
+            credentials: 'include',
         });
 
 		if (response.ok) {
 			const data = await response.json();
-            const state = sessionStorage.getItem('oauth_state');
-            if (state)
-                sessionStorage.removeItem('oauth_state');
-            window.location.href = '/login/';
+            sessionStorage.setItem('access_token', data.access_token);
+            sessionStorage.setItem('refresh_token', data.refresh_token);
+            sessionStorage.setItem('access_expires', data.access_expires);
+            sessionStorage.setItem('refresh_expires', data.refresh_expires);
+            sessionStorage.setItem('username', data.user.username);
+            // const state = sessionStorage.getItem('oauth_state');
+            // if (state)
+            //     sessionStorage.removeItem('oauth_state');
+            window.location.href = '/home/';
         }
  
     }

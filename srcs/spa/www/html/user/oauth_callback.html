@@ -16,8 +16,8 @@
 
     <!-- Load scripts FIRST before DOM elements -->
     <script type="module">
+        console.log("Callback page script loaded");
         import { handle42OAuthCallback } from '/js/user/oauth.js';
-        
         // Simple error handling for module loading
         window.addEventListener('error', (event) => {
             document.getElementById('error-message').style.display = 'block';
@@ -34,5 +34,27 @@
             window.location.href = '/login';
         }
     </script>
+    <div id="oauth-status" style="text-align: center; margin-top: 2rem;">
+        <h2 style="color: white;">Authenticating with 42...</h2>
+        <div class="spinner"></div>
+        <p id="status-message" style="color: white;"></p>
+    </div>
+    
+    <style>
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </body>
 </html>

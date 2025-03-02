@@ -140,7 +140,7 @@ searchInput.addEventListener('keypress', (e) => {
 if (oauthbtn) {
 	oauthbtn.addEventListener('click', async function (event) {
 		event.preventDefault();
-		console.log('clicked');
+		console.log('clicked Oauth');
 		redirectTo42OAuth();
 	});
 }

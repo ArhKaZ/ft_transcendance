@@ -862,7 +862,6 @@ def get_user_history(request, userName):
     except MyUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def oauth(request):
@@ -924,7 +923,18 @@ def oauth(request):
 			samesite='Lax',
 			max_age=3600  # 1 hour
 		)
-		return response#Response(token_response.json(), status=token_response.status_code)
+
+		return Response({
+            "access_token": str(refresh.access_token),
+            "refresh_token": str(refresh),
+            "access_expires": refresh.access_token.payload['exp'],  # Add expiration
+            "refresh_expires": refresh.payload['exp'],
+            "user": {  # Mirror your login response
+                "username": user.username,
+                "id": user.id,
+                "avatar": user.avatar.url
+            }
+        })
 	except requests.exceptions.RequestException as e:
 		return JsonResponse({'error': f'42 API Error: {str(e)}'}, status=500)
 	except Exception as e:
