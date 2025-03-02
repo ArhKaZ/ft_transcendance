@@ -229,7 +229,8 @@ async function fetchHistory() {
 }
 
 document.getElementById('return-button').addEventListener('click', () => {
-    window.location.href = "/home/";
+    console.log("return click");
+    window.history.back();
 });
 
 
