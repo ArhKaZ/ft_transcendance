@@ -6,6 +6,7 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
     const formData = new FormData(this);
 
     try {
+        await ensureValidToken();
         const response = await fetch('/api/edit_user_api/', {
             method: 'PATCH',
 			headers: {
@@ -30,24 +31,27 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
 
 document.getElementById('erase-button').addEventListener('click', async () => {
 	console.log('Erasing...');
-    
-    const response = await fetch('/api/erase/', {
-        method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-        },
-        credentials: 'include',
-    });
-    sessionStorage.removeItem('access_token');
+    try {
+        await ensureValidToken();
+        const response = await fetch('/api/erase/', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+            },
+            credentials: 'include',
+        });
+        sessionStorage.removeItem('access_token');
 
-    if (response.ok) {
-        console.log('Erased successfully');
-    } else {
-        console.error('Error erasing:', response);
+        if (response.ok) {
+            console.log('Erased successfully');
+        } else {
+            console.error('Error erasing:', response);
+        }
+        window.location.reload();
+    } catch (error) {
+        console.error ('Error', error);
     }
-
-    window.location.reload();
 });
 
 document.getElementById('avatar').addEventListener('change', function() {

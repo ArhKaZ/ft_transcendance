@@ -1,10 +1,13 @@
 import Player from "./player.js";
 
-function displayWhenLoad(player) {
+function displayWhenLoad(player, tournament) {
     const nameElement = document.getElementById('mp-username');
     const avatarImg = document.getElementById('mp-avatar-img');
 
-    nameElement.innerText = player.username;
+    if (!tournament)
+        nameElement.innerText = player.username;
+    else
+        nameElement.innerText = player.pseudo;
     avatarImg.src = player.avatar;
 }
 
@@ -28,7 +31,7 @@ function creationGameDisplay(data, game) {
     const p2JoinedElement = document.getElementById('p2-joined-animation');
     const p2Avatar = document.getElementById('p2-avatar');
     const p2AvatarImg = document.getElementById('p2-avatar-img');
-
+    console.debug(data);
     // Mise à jour du joueur 1
     p1Element.innerText = data.player1_name || 'None';
     p1Element.classList.toggle('hidden', !data.player1_name);

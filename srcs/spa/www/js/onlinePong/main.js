@@ -96,9 +96,6 @@ async function getInfoFinale(user) {
 
 async function init() {
 	const user = await getUserFromBack();
-
-	displayWhenLoad(user);
-	
 	const urlParams = new URLSearchParams(window.location.search);
 	let infos = null;
 	inTournament = urlParams.get('tournament');
@@ -110,12 +107,18 @@ async function init() {
 		infos = await getInfoMatchTournament(user);
 		console.log('info : ', infos);
 	}
+
+	displayWhenLoad(user, inTournament);
+	
 	socket = setupWebSocket(user, infos);
 }
 
 function setupWebSocket(user, infos) {
 	currentPlayerId = user.id;
-	currentPseudo = user.username;
+	if (!inTournament)
+		currentPseudo = user.username;
+	else 
+		currentPseudo = user.pseudo;
 	const id = user.id.toString();
 	const currentUrl = window.location.host;
 	const socket = new WebSocket(`wss://${currentUrl}/ws/onlinePong/${id}/`);
@@ -126,7 +129,7 @@ function setupWebSocket(user, infos) {
 			let objToSend = {
 				action: 'tournament',
 				player_id: user.id,
-				player_name: user.username,
+				player_name: currentPseudo,
 				player_avatar: user.avatar,
 				create: infos.create,
 				... (infos.create && {
@@ -142,7 +145,7 @@ function setupWebSocket(user, infos) {
 			sendToBack({
 				action: 'search', 
 				player_id: user.id, 
-				player_name: user.username, 
+				player_name: currentPseudo, 
 				player_avatar: user.avatar,
 			});
 		}

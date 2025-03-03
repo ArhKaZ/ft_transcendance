@@ -10,6 +10,7 @@ const friendSearchContainer = document.querySelector('.friend-search-container')
 
 document.getElementById('logout-button').addEventListener('click', async () => {
     try {
+		await ensureValidToken();
         const response = await fetch('/api/logout/', {
             method: 'POST',
             headers: {
