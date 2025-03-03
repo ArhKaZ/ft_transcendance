@@ -147,27 +147,6 @@ def refresh_token(request):
         return Response({'error': 'Invalid refresh token'}, status=401)
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def add_match(request):
-	data = request.data.copy()
-	data['user'] = request.user.id
-
-	# if request.data['type'] == 'magicDuel':
-	if request.data['won']:
-		request.user.wins += 1
-		request.user.ligue_points += 15
-	else:
-		request.user.looses += 1
-		request.user.ligue_points -= 15
-	request.user.save()
-
-	serializer = MatchHistorySerializer(data=data)
-	if serializer.is_valid():
-		serializer.save(user=request.user)
-		return Response(serializer.data, status=status.HTTP_201_CREATED)
-	return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 # VUE DE TEST
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
