@@ -1,7 +1,6 @@
 import T_Player from './tournament_player.js';
 import { sleep } from '../utils.js';
 import { getCSRFToken } from '../utils.js';
-import { getCSRFToken } from '../utils.js';
 import { ensureValidToken } from '/js/utils.js';
 
 

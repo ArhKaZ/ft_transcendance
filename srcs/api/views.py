@@ -386,10 +386,8 @@ def parse_tournament_data(tournament):
 		for finalist in tournament.finalist.all()
 	]
 
-	winner = [
-		winner.pseudo
-		for winner in tournament.winner.all()
-	]
+	winner = tournament.winner.first().pseudo if tournament.winner.exists() else None
+	print(winner)
 	# Créer le dictionnaire de données formaté
 	tournament_data = {
 		"tournament_code": tournament.code,
