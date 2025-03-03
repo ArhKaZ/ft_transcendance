@@ -3,6 +3,7 @@ import { ensureValidToken } from '/js/utils.js';
 
 document.getElementById('logout-button').addEventListener('click', async () => {
     try {
+        await ensureValidToken();
         const response = await fetch('/api/logout/', {
             method: 'POST',
             headers: {

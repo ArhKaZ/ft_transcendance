@@ -1,4 +1,4 @@
-console.log("Tournament script loaded!");
+// console.log("Tournament script loaded!");
 import { ensureValidToken } from '/js/utils.js';
 
 class TournamentManager {
@@ -126,6 +126,7 @@ class TournamentManager {
     async createTournament() {
         console.log("je veux creer un nouveau tournois");
         try {
+            await ensureValidToken();
             const response = await fetch('/api/create_tournament/', {
                 method: 'POST',
                 headers: {
@@ -167,6 +168,7 @@ class TournamentManager {
         const tournamentCode = document.getElementById('tournament_code').value;
     
         try {
+            await ensureValidToken();
             const response = await fetch('/api/join_tournament/', {
                 method: 'POST',
                 headers: {

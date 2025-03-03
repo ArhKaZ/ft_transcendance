@@ -5,6 +5,7 @@ const divHistory = document.getElementById("history");
 
 async function fetchHistory() {
 	try {
+		await ensureValidToken();
 		const response = await fetch('/api/get_history/', {
 			method: 'GET',
 			headers: {
@@ -62,6 +63,7 @@ document.getElementById('return-button').addEventListener('click', () => {
 
 document.getElementById('logout-button').addEventListener('click', async () => {
     try {
+		await ensureValidToken();
         const response = await fetch('/api/logout/', {
             method: 'POST',
             headers: {

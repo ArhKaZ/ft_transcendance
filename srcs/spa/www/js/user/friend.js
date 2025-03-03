@@ -114,6 +114,7 @@ async function fetchFriends() {
 
 async function updateFriendStatus(username) {
     try {
+        await ensureValidToken();
         const response = await fetch(`/api/check-online/${username}/`, {
             method: 'GET',
             headers: {
