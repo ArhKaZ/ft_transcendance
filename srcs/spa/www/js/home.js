@@ -29,9 +29,8 @@ document.getElementById('logout-button').addEventListener('click', async () => {
             sessionStorage.removeItem('access_expires');
             sessionStorage.removeItem('refresh_expires');
             sessionStorage.clear();
-            
-            // Redirect to login
-            window.location.href = '/home/';
+
+			window.location.href = '/home/';
         } else {
             console.error('Logout failed:', await response.json());
         }

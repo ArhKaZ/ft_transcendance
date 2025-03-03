@@ -226,9 +226,13 @@ def edit_user_api(request):
 
 	# Only include fields that were actually sent
 	if request.data.get('username'):
+		if user.is_oauth == True:
+			return Response({'error': 'OAuth users are not allowed to change their username'}, status=status.HTTP_400_BAD_REQUEST)
 		data['username'] = request.data['username']
 
 	if request.data.get('password'):
+		if user.is_oauth == True:
+			return Response({'error': 'OAuth users are not allowed to change their password'}, status=status.HTTP_400_BAD_REQUEST)
 		user.set_password(request.data['password'])
 		user.save()
 
@@ -239,6 +243,8 @@ def edit_user_api(request):
 		data['pseudo'] = request.data['pseudo']
 
 	if request.FILES.get('avatar'):
+		if user.is_oauth == True:
+			return Response({'error': 'OAuth users are not allowed to change their avatar'}, status=status.HTTP_400_BAD_REQUEST)
 		data['avatar'] = request.FILES['avatar']
 		avatar = request.FILES['avatar']
 		ext = os.path.splitext(avatar.name)[1].lower()
@@ -875,7 +881,6 @@ def oauth(request):
 		redirect_uri = "https://127.0.0.1:8443/oauth_callback/"
 		if not code:
 			return Response({"error": "Authorization code required"}, status=status.HTTP_400_BAD_REQUEST)
-
 		client_id = os.getenv("OAUTH42_UID")
 		client_secret = os.getenv("OAUTH42_SECRET")
 		if not client_id or not client_secret:
@@ -891,169 +896,60 @@ def oauth(request):
 				'redirect_uri': redirect_uri
 			}
 		)
-		token_response.raise_for_status() #raise http errors in case of failure
+		token_response.raise_for_status() #Raise http errors in case of failure
 		access_token = token_response.json().get('access_token')
 			
-			# Get user info from 42's API
+		# Get user info from 42's API
 		user_response = requests.get(
 			'https://api.intra.42.fr/v2/me',
 			headers={'Authorization': f'Bearer {access_token}'}
 		)
 		user_response.raise_for_status()
 		user_data = user_response.json()
-				# Create or update user
-		# user, created = MyUser.objects.update_or_create(
-		# 	email=user_data.get('email'),
-		# 	defaults={
-		# 		'username': user_data.get('login'),
-		# 		'avatar': user_data.get('image', {}).get('link', 'default_avatar.png'),
-		# 		'ligue_points': 500  # Initial points
-		# 	}
-		# )
+			
+		pfp = user_data.get('image', {}).get('versions', {}).get('medium')
+		getpfp = requests.get(pfp)
+		pfp_name = "avatars/" + user_data.get('login') + ".jpg"
 
-				# Generate JWT tokens
+		if getpfp.status_code == 200:
+			with open(("media/" + pfp_name), "wb") as file:
+				file.write(getpfp.content)
+		else:
+			pfp_name = 'media/avatars/default.png'
+			
+		# Create or update user
+		try:																	# Check if user exists
+			user = MyUser.objects.get(email=user_data.get('email'))
+
+		except MyUser.DoesNotExist: 											# User does not exist, create a new user
+			user = MyUser.objects.create(
+				email=user_data.get('email'),
+				username=user_data.get('login'),
+				pseudo=user_data.get('login'),
+				avatar=pfp_name,
+				is_oauth=True
+			)
+
 		# Delete existing tokens
-		# AccessToken.objects.filter(user=user).delete()
-		# RefreshToken.objects.filter(user=user).delete()
+		AccessToken.objects.filter(user=user).delete()
+		RefreshToken.objects.filter(user=user).delete()
 		
-		# # Create new tokens
-		# refresh_token = RefreshToken.objects.create(user=user)
-		# access_token = AccessToken.objects.create(
-		# 	user=user, 
-		# 	refresh_token=refresh_token
-		# )
+		# Create new tokens
+		refresh_token = RefreshToken.objects.create(user=user)
+		access_token = AccessToken.objects.create(
+			user=user, 
+			refresh_token=refresh_token
+		)
 
 		return Response({
-			'username': user_data.get('login'),
-			'password': user_data.get('login'),
-			'description': '42 user',
-			'pseudo': user_data.get('login'),
-			'is_oauth': True,
+			'access_token': access_token.token,
+			'access_expires': access_token.expires_at,
+			'refresh_token': refresh_token.token,
+			'refresh_expires': refresh_token.expires_at
 		})
 
-		# response_data = {
-		# 	"id": user.id,
-		# 	"username": user.username,
-		# 	"src_avatar": user.avatar.url,
-		# 	"ligue_points": user.ligue_points
-		# }
-
-		# response = Response(response_data)
-		# response.set_cookie(
-		# 	'access_token',
-		# 	access_token,
-		# 	httponly=True,
-		# 	samesite='Lax',
-		# 	max_age=3600  # 1 hour
-		# )
-		# return Response(token_response.json(), status=token_response.status_code)
 	except HTTPError as e:
-		print(f"42 API Error: {str(e)}", file=sys.stderr)
-		return Response({"error": "Authentication provider error"}, status=502)
+		return Response({"error": "42 OAuth error"}, status=502)
 
 	except Exception as e:
-		print("\n\n=== ERROR STACK TRACE ===", file=sys.stderr)
-		print(traceback.format_exc(), file=sys.stderr)
-		print("=======================\n", file=sys.stderr)
 		return Response({"error": "Internal server error"}, status=500)
-# def oauth(request):
-# 		code = request.data.get("code")
-# 		redirect_uri = "https://127.0.0.1:8443/oauth_callback/"
-
-# 		if code is None:
-# 			return Response(
-# 				{"detail": "No code provided"}, status=status.HTTP_400_BAD_REQUEST
-# 			)
-
-# 		token_response = requests.post(
-# 			"https://api.intra.42.fr/oauth/token",
-# 			data={
-# 				"grant_type": "authorization_code",
-# 				"client_id": os.environ.get("OAUTH42_UID"),
-# 				"client_secret": os.environ.get("OAUTH42_SECRET"),
-# 				"code": code,
-# 				"redirect_uri": redirect_uri,
-# 			},
-# 		)
-# 		if token_response.status_code == 200:
-# 			access_token = token_response.json().get("access_token")
-
-# 			user_info_response = requests.get(
-# 				"https://api.intra.42.fr/v2/me",
-# 				headers={"Authorization": f"Bearer {access_token}"},
-# 			)
-# 			if user_info_response.status_code == 200:
-# 				user_info = user_info_response.json()
-# 				User = get_user_model()
-
-# 				existing_user = User.objects.filter(
-# 					Q(email=user_info["email"]) | Q(username=user_info["login"])
-# 				).first()
-# 				existing_oauth_user = User.objects.filter(
-# 					Q(email=user_info["email"])
-# 					& Q(username=user_info["login"])
-# 					& Q(is_oauth=True)
-# 				).first()
-# 				if existing_oauth_user:
-# 					token, created = Token.objects.get_or_create(
-# 						user=existing_oauth_user
-# 					)
-# 					if not created:
-# 						token.delete()
-# 						token = Token.objects.create(user=existing_oauth_user)
-# 					existing_oauth_user.online_status = datetime.now().timestamp()
-# 					existing_oauth_user.save()
-# 					return Response(
-# 						{"detail": "Success", "auth_token": token.key},
-# 						status=status.HTTP_200_OK,
-# 					)
-# 				elif existing_user:
-# 					return Response(
-# 						{
-# 							"detail": "A user with this email or username already exists."
-# 						},
-# 						status=status.HTTP_409_CONFLICT,
-# 					)
-# 				else:
-# 					avatar_response = requests.get(
-# 						user_info["image"]["versions"]["small"], stream=True
-# 					)
-# 					if avatar_response.status_code == 200:
-# 						avatar_file = ContentFile(
-# 							avatar_response.content,
-# 							name=user_info["login"] + "_avatar.jpg",
-# 						)
-# 					else:
-# 						avatar_file = None
-
-# 					try:
-# 						user = User.objects.create(
-# 							email=user_info["email"],
-# 							username=user_info["login"],
-# 							is_oauth=True,
-# 						)
-
-# 						if avatar_file:
-# 							user.avatar.save(
-# 								user.username + "_avatar.jpg", avatar_file, save=True
-# 							)
-
-# 					except IntegrityError as e:
-# 						return Response(
-# 							{"detail": "Failed to create user due to a conflict."},
-# 							status=status.HTTP_409_CONFLICT,
-# 						)
-
-# 					token, _ = Token.objects.get_or_create(user=user)
-# 					user.online_status = datetime.now().timestamp()
-# 					user.save()
-# 					return Response(
-# 						{"detail": "Success", "auth_token": token.key},
-# 						status=status.HTTP_200_OK,
-# 					)
-
-# 		return Response(token_response.json(), status=token_response.status_code)
-
-@ensure_csrf_cookie
-def get_csrf_token(request):
-	return JsonResponse({"success": True})

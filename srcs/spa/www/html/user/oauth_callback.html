@@ -14,25 +14,6 @@
     <div id="error-message" style="color: red; display: none;"></div>
 
     <!-- Load scripts FIRST before DOM elements -->
-    <script type="module">
-        console.log("Callback page script loaded");
-        import { handle42OAuthCallback } from '/js/user/oauth.js';
-        // Simple error handling for module loading
-        window.addEventListener('error', (event) => {
-            document.getElementById('error-message').style.display = 'block';
-            document.getElementById('error-message').textContent = 
-                `Script Error: ${event.message}`;
-        });
-
-        // Immediate execution with try-catch
-        try {
-            console.log('Callback page loaded'); // Should appear in console
-            handle42OAuthCallback();
-        } catch (error) {
-            console.error('OAuth Handling Error:', error);
-            window.location.href = '/login';
-        }
-    </script>
     <div id="oauth-status" style="text-align: center; margin-top: 2rem;">
         <h2 style="color: white;">Authenticating with 42...</h2>
         <div class="spinner"></div>
@@ -55,5 +36,6 @@
             100% { transform: rotate(360deg); }
         }
     </style>
+    <script type = "module" src = "/js/oauth_util.js"></script>
 </body>
 </html>
