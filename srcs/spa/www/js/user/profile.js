@@ -153,7 +153,7 @@ async function updateFriendButton(userName) {
     const addFriendBtn = document.getElementById('add-friend-btn');
 
     const wasPending = sessionStorage.getItem(`friendRequest_${userName}`) === "pending";
-    
+
     const isFriend = await isUserFriend(userName);
     const isPending = await isFriendRequestPending(userName);
 
