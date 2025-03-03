@@ -13,7 +13,7 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
 	else {
 		formData.append('pseudo', document.getElementById('pseudo').value);
 	}
-    
+
     const avatarInput = document.getElementById('avatar');
     if (avatarInput.files.length > 0) {
         formData.append('avatar', avatarInput.files[0]);

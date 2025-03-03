@@ -26,6 +26,11 @@ import os
 from .models import AccessToken, RefreshToken
 from django.utils import timezone
 
+from requests.exceptions import HTTPError, RequestException
+import traceback
+import sys
+import requests
+
 import magic  # pip install python-magic
 
 
@@ -70,25 +75,25 @@ def add_user(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def check_user_online(request, username):
-    try:
-        user = MyUser.objects.get(username=username)
-        
-        # Get the latest valid access token
-        valid_token = AccessToken.objects.filter(
-            user=user,
-            expires_at__gt=timezone.now()
-        ).order_by('-created').first()  # CHANGED
-        
-        is_online = valid_token is not None
-        
-        return Response({
-            'username': username,
-            'is_online': is_online,
-            'last_active': valid_token.expires_at if is_online else None
-        })
-        
-    except MyUser.DoesNotExist:
-        return Response({'error': 'User not found'}, status=404)
+	try:
+		user = MyUser.objects.get(username=username)
+		
+		# Get the latest valid access token
+		valid_token = AccessToken.objects.filter(
+			user=user,
+			expires_at__gt=timezone.now()
+		).order_by('-created').first()  # CHANGED
+		
+		is_online = valid_token is not None
+		
+		return Response({
+			'username': username,
+			'is_online': is_online,
+			'last_active': valid_token.expires_at if is_online else None
+		})
+		
+	except MyUser.DoesNotExist:
+		return Response({'error': 'User not found'}, status=404)
 
 
 @api_view(['POST'])
@@ -121,30 +126,30 @@ def login_user(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def refresh_token(request):
-    try:
-        refresh_token = request.data.get('refresh_token')
-        if not refresh_token:
-            return Response({'error': 'Refresh token required'}, status=400)
+	try:
+		refresh_token = request.data.get('refresh_token')
+		if not refresh_token:
+			return Response({'error': 'Refresh token required'}, status=400)
 
-        # Get refresh token object
-        refresh_token_obj = RefreshToken.objects.get(token=refresh_token)
-        
-        # Delete existing access tokens for this user
-        AccessToken.objects.filter(user=refresh_token_obj.user).delete()  # NEW
-        
-        # Create new access token
-        new_access = AccessToken.objects.create(
-            user=refresh_token_obj.user,
-            refresh_token=refresh_token_obj
-        )
-        
-        return Response({
-            'access_token': new_access.token,
-            'access_expires': new_access.expires_at
-        })
-        
-    except RefreshToken.DoesNotExist:
-        return Response({'error': 'Invalid refresh token'}, status=401)
+		# Get refresh token object
+		refresh_token_obj = RefreshToken.objects.get(token=refresh_token)
+		
+		# Delete existing access tokens for this user
+		AccessToken.objects.filter(user=refresh_token_obj.user).delete()  # NEW
+		
+		# Create new access token
+		new_access = AccessToken.objects.create(
+			user=refresh_token_obj.user,
+			refresh_token=refresh_token_obj
+		)
+		
+		return Response({
+			'access_token': new_access.token,
+			'access_expires': new_access.expires_at
+		})
+		
+	except RefreshToken.DoesNotExist:
+		return Response({'error': 'Invalid refresh token'}, status=401)
 
 
 @api_view(['POST'])
@@ -282,15 +287,15 @@ def get_friends(request):
 # @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 # def add_friend(request):
-#     try:
-#         friend = MyUser.objects.get(username=request.data['friend_name'])
-#         request.user.friends.add(friend)
-#         return Response({'message': 'Friend added successfully'}, status=status.HTTP_200_OK)
-#     except MyUser.DoesNotExist:
-#         return Response(
-#             {'error': 'User not found'},
-#             status=status.HTTP_404_NOT_FOUND
-#         )
+#	 try:
+#		 friend = MyUser.objects.get(username=request.data['friend_name'])
+#		 request.user.friends.add(friend)
+#		 return Response({'message': 'Friend added successfully'}, status=status.HTTP_200_OK)
+#	 except MyUser.DoesNotExist:
+#		 return Response(
+#			 {'error': 'User not found'},
+#			 status=status.HTTP_404_NOT_FOUND
+#		 )
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -844,23 +849,23 @@ def get_end_players(request, tournament_code):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_info_user(request, userName):
-    try:
-        user = MyUser.objects.get(username=userName)
-        serializer = UserInfoSerializer(user)
-        return Response(serializer.data)
-    except MyUser.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+	try:
+		user = MyUser.objects.get(username=userName)
+		serializer = UserInfoSerializer(user)
+		return Response(serializer.data)
+	except MyUser.DoesNotExist:
+		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_history(request, userName):
-    try:
-        user = MyUser.objects.get(username=userName)
-        matches = MatchHistory.objects.filter(user=user)
-        serializer = MatchHistorySerializer(matches, many=True)
-        return Response(serializer.data)
-    except MyUser.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+	try:
+		user = MyUser.objects.get(username=userName)
+		matches = MatchHistory.objects.filter(user=user)
+		serializer = MatchHistorySerializer(matches, many=True)
+		return Response(serializer.data)
+	except MyUser.DoesNotExist:
+		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -871,19 +876,22 @@ def oauth(request):
 		if not code:
 			return Response({"error": "Authorization code required"}, status=status.HTTP_400_BAD_REQUEST)
 
+		client_id = os.getenv("OAUTH42_UID")
+		client_secret = os.getenv("OAUTH42_SECRET")
+		if not client_id or not client_secret:
+			return Response({"error": "Server configuration error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 		# Exchange code for access token with 42's API
 		token_response = requests.post(
 			'https://api.intra.42.fr/oauth/token',
 			data={
 				'grant_type': 'authorization_code',
-				'client_id': os.environ.get("OAUTH42_UID"),
-				'client_secret': os.environ.get("OAUTH42_SECRET"),
+				'client_id': client_id,
+				'client_secret': client_secret,
 				'code': code,
 				'redirect_uri': redirect_uri
 			}
 		)
 		token_response.raise_for_status() #raise http errors in case of failure
-		
 		access_token = token_response.json().get('access_token')
 			
 			# Get user info from 42's API
@@ -892,55 +900,160 @@ def oauth(request):
 			headers={'Authorization': f'Bearer {access_token}'}
 		)
 		user_response.raise_for_status()
-			
 		user_data = user_response.json()
-			# Create or update user
-		user, created = MyUser.objects.update_or_create(
-			email=user_data.get('email'),
-			is_oauth=True,
-			defaults={
-				'username': user_data.get('login'),
-				'avatar': user_data.get('image', {}).get('link', 'default_avatar.png'),
-			}
-		)
+				# Create or update user
+		# user, created = MyUser.objects.update_or_create(
+		# 	email=user_data.get('email'),
+		# 	defaults={
+		# 		'username': user_data.get('login'),
+		# 		'avatar': user_data.get('image', {}).get('link', 'default_avatar.png'),
+		# 		'ligue_points': 500  # Initial points
+		# 	}
+		# )
 
 				# Generate JWT tokens
-		refresh = RefreshToken.for_user(user)
-		access_token = str(refresh.access_token)
-
-		response_data = {
-			"id": user.id,
-			"username": user.username,
-			"src_avatar": user.avatar.url,
-			"ligue_points": user.ligue_points
-		}
-
-		response = JsonResponse(response_data)
-		response.set_cookie(
-			'access_token',
-			access_token,
-			httponly=True,
-			samesite='Lax',
-			max_age=3600  # 1 hour
-		)
+		# Delete existing tokens
+		# AccessToken.objects.filter(user=user).delete()
+		# RefreshToken.objects.filter(user=user).delete()
+		
+		# # Create new tokens
+		# refresh_token = RefreshToken.objects.create(user=user)
+		# access_token = AccessToken.objects.create(
+		# 	user=user, 
+		# 	refresh_token=refresh_token
+		# )
 
 		return Response({
-            "access_token": str(refresh.access_token),
-            "refresh_token": str(refresh),
-            "access_expires": refresh.access_token.payload['exp'],  # Add expiration
-            "refresh_expires": refresh.payload['exp'],
-            "user": {  # Mirror your login response
-                "username": user.username,
-                "id": user.id,
-                "avatar": user.avatar.url
-            }
-        })
-	except requests.exceptions.RequestException as e:
-		return JsonResponse({'error': f'42 API Error: {str(e)}'}, status=500)
+			'username': user_data.get('login'),
+			'password': user_data.get('login'),
+			'description': '42 user',
+			'pseudo': user_data.get('login'),
+			'is_oauth': True,
+		})
+
+		# response_data = {
+		# 	"id": user.id,
+		# 	"username": user.username,
+		# 	"src_avatar": user.avatar.url,
+		# 	"ligue_points": user.ligue_points
+		# }
+
+		# response = Response(response_data)
+		# response.set_cookie(
+		# 	'access_token',
+		# 	access_token,
+		# 	httponly=True,
+		# 	samesite='Lax',
+		# 	max_age=3600  # 1 hour
+		# )
+		# return Response(token_response.json(), status=token_response.status_code)
+	except HTTPError as e:
+		print(f"42 API Error: {str(e)}", file=sys.stderr)
+		return Response({"error": "Authentication provider error"}, status=502)
+
 	except Exception as e:
-		return JsonResponse({'error': f'Server Error: {str(e)}'}, status=500)
-	except IntegrityError as e:
-		return Response(
-			{"detail": "Failed to create user due to a conflict."},
-			status=status.HTTP_409_CONFLICT,
-        )
+		print("\n\n=== ERROR STACK TRACE ===", file=sys.stderr)
+		print(traceback.format_exc(), file=sys.stderr)
+		print("=======================\n", file=sys.stderr)
+		return Response({"error": "Internal server error"}, status=500)
+# def oauth(request):
+# 		code = request.data.get("code")
+# 		redirect_uri = "https://127.0.0.1:8443/oauth_callback/"
+
+# 		if code is None:
+# 			return Response(
+# 				{"detail": "No code provided"}, status=status.HTTP_400_BAD_REQUEST
+# 			)
+
+# 		token_response = requests.post(
+# 			"https://api.intra.42.fr/oauth/token",
+# 			data={
+# 				"grant_type": "authorization_code",
+# 				"client_id": os.environ.get("OAUTH42_UID"),
+# 				"client_secret": os.environ.get("OAUTH42_SECRET"),
+# 				"code": code,
+# 				"redirect_uri": redirect_uri,
+# 			},
+# 		)
+# 		if token_response.status_code == 200:
+# 			access_token = token_response.json().get("access_token")
+
+# 			user_info_response = requests.get(
+# 				"https://api.intra.42.fr/v2/me",
+# 				headers={"Authorization": f"Bearer {access_token}"},
+# 			)
+# 			if user_info_response.status_code == 200:
+# 				user_info = user_info_response.json()
+# 				User = get_user_model()
+
+# 				existing_user = User.objects.filter(
+# 					Q(email=user_info["email"]) | Q(username=user_info["login"])
+# 				).first()
+# 				existing_oauth_user = User.objects.filter(
+# 					Q(email=user_info["email"])
+# 					& Q(username=user_info["login"])
+# 					& Q(is_oauth=True)
+# 				).first()
+# 				if existing_oauth_user:
+# 					token, created = Token.objects.get_or_create(
+# 						user=existing_oauth_user
+# 					)
+# 					if not created:
+# 						token.delete()
+# 						token = Token.objects.create(user=existing_oauth_user)
+# 					existing_oauth_user.online_status = datetime.now().timestamp()
+# 					existing_oauth_user.save()
+# 					return Response(
+# 						{"detail": "Success", "auth_token": token.key},
+# 						status=status.HTTP_200_OK,
+# 					)
+# 				elif existing_user:
+# 					return Response(
+# 						{
+# 							"detail": "A user with this email or username already exists."
+# 						},
+# 						status=status.HTTP_409_CONFLICT,
+# 					)
+# 				else:
+# 					avatar_response = requests.get(
+# 						user_info["image"]["versions"]["small"], stream=True
+# 					)
+# 					if avatar_response.status_code == 200:
+# 						avatar_file = ContentFile(
+# 							avatar_response.content,
+# 							name=user_info["login"] + "_avatar.jpg",
+# 						)
+# 					else:
+# 						avatar_file = None
+
+# 					try:
+# 						user = User.objects.create(
+# 							email=user_info["email"],
+# 							username=user_info["login"],
+# 							is_oauth=True,
+# 						)
+
+# 						if avatar_file:
+# 							user.avatar.save(
+# 								user.username + "_avatar.jpg", avatar_file, save=True
+# 							)
+
+# 					except IntegrityError as e:
+# 						return Response(
+# 							{"detail": "Failed to create user due to a conflict."},
+# 							status=status.HTTP_409_CONFLICT,
+# 						)
+
+# 					token, _ = Token.objects.get_or_create(user=user)
+# 					user.online_status = datetime.now().timestamp()
+# 					user.save()
+# 					return Response(
+# 						{"detail": "Success", "auth_token": token.key},
+# 						status=status.HTTP_200_OK,
+# 					)
+
+# 		return Response(token_response.json(), status=token_response.status_code)
+
+@ensure_csrf_cookie
+def get_csrf_token(request):
+	return JsonResponse({"success": True})

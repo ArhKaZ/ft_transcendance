@@ -70,6 +70,7 @@ REST_FRAMEWORK = {
 
 
 MIDDLEWARE = [
+    'backend.middleware.OAuthCSRFExemptMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -229,4 +230,4 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_HTTPONLY = False
 
-CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:8000"]
+CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:8000", "https://127.0.0.1:8443"]

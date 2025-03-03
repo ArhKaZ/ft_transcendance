@@ -1,5 +1,3 @@
-import { getCSRFToken } from '/js/utils.js';
-
 export function redirectTo42OAuth()
 {
     console.log("redirect");
@@ -56,23 +54,52 @@ async function exchangeCodeForToken(code)
     try
     {
         console.log("exchange");
-        const response = await fetch('/api/oauth/', {
+        const response = await fetch('/api/oauth_callback/', {
             method: 'POST',
             headers: {
 				'Content-Type': 'application/json',
-				'X-CSRFToken': getCSRFToken(),
 			},
             body: JSON.stringify({ code: code }),
-            credentials: 'include',
         });
 
+        console.log("response", response);
 		if (response.ok) {
 			const data = await response.json();
-            sessionStorage.setItem('access_token', data.access_token);
-            sessionStorage.setItem('refresh_token', data.refresh_token);
-            sessionStorage.setItem('access_expires', data.access_expires);
-            sessionStorage.setItem('refresh_expires', data.refresh_expires);
-            sessionStorage.setItem('username', data.user.username);
+            console.log("data", data);
+            const formData = new FormData();
+            formData.append('username', data.username);
+            formData.append('password', data.username);
+            formData.append('description', data.description);
+            formData.append('pseudo', data.username);
+            try {
+                const response = await fetch('/api/add_user/', {
+                    method: 'POST',
+                    body: formData,
+                });
+                const responseText = await response.text();
+                console.log('Server response:', responseText);
+
+                if (response.ok) {
+                    try {
+                        // const data = JSON.parse(response.JSON);
+                        window.location.href = '/home/';
+                    } catch (parseError) {
+                        displayMessage('JSON parsing error: ' + parseError.message, 'error');
+                        console.error('Response content:', responseText);
+                    }
+            } else {
+                displayMessage('HTTP error: ' + response.status + ' ' + response.statusText, 'error');
+                console.error('Error response content:', responseText);
+            }
+            } catch (error) {
+                displayMessage('A network error occurred: ' + error.message, 'error');
+                console.error('Error details:', error);
+            }
+            // sessionStorage.setItem('access_token', data.access_token);
+            // sessionStorage.setItem('refresh_token', data.refresh_token);
+            // sessionStorage.setItem('access_expires', data.access_expires);
+            // sessionStorage.setItem('refresh_expires', data.refresh_expires);
+            // sessionStorage.setItem('username', data.user.username);
             // const state = sessionStorage.getItem('oauth_state');
             // if (state)
             //     sessionStorage.removeItem('oauth_state');
@@ -82,6 +109,6 @@ async function exchangeCodeForToken(code)
     }
     catch (error)
     {
-        alert('Error: ' + error);
+        console.error('Error: ' + error);
     }
 }

@@ -32,3 +32,15 @@ class JWTAuthRedirectMiddleware:
 
         # Continuer la chaîne de traitement des requêtes
         return self.get_response(request)
+
+class OAuthCSRFExemptMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Exempt the OAuth endpoint from CSRF checks
+        if request.path == '/api/oauth/' and request.method == 'POST':
+            request._dont_enforce_csrf_checks = True
+        
+        response = self.get_response(request)
+        return response
