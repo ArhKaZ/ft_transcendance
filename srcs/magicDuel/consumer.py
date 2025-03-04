@@ -46,7 +46,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		
 	async def disconnect(self, close_code):
 		try:
-			if not await self.game.is_stocked():
+			if self.monitor_task is not None and self.round_task is not None and not await self.game.is_stocked():
 				loser = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
 				winner = self.game.p1 if self.player_id == self.game.p2.id else self.game.p2
 				winner_user, loser_user = await self.get_players_users(winner, loser)
@@ -574,6 +574,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 
 	async def notify_game_cancel(self, username_gone):
+		lose_lp = True if self.monitor_task is not None else False
+		print('lose lp', lose_lp)
 		await self.game.update_status_game()
 		if not self.game.status == 'FINISHED':
 			self.game_cancel_event.set()
@@ -582,6 +584,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				'message': f'Player {username_gone} is gone, game is cancelled',
 				'username': username_gone,
 				'game_status': self.game.status,
+				'lose_lp': lose_lp
 			}
 			await self.channel_layer.group_send(self.game.group_name, message)
 
@@ -721,7 +724,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			'type': 'game_cancel',
 			'username': event['username'],
 			'game_status': event['game_status'],
-			'message': event['message']
+			'message': event['message'],
+			'lose_lp': event['lose_lp']
 		}
 		await self.send(text_data=json.dumps(message))
 
