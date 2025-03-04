@@ -186,38 +186,60 @@ async function fetchHistory() {
             const data = await response.json();
 
             const sortedData = data.reverse().slice(0, 5);
-            let historyHtml = `
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Adversaire</th>
-                            <th>Mode</th>
-                            <th>Résultat</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
 
+            // Create the table element
+            const table = document.createElement('table');
+            table.className = 'history-table';
+
+            // Create the table header
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th>Date</th>
+                    <th>Adversaire</th>
+                    <th>Mode</th>
+                    <th>Résultat</th>
+                </tr>
+            `;
+            table.appendChild(thead);
+
+            // Create the table body
+            const tbody = document.createElement('tbody');
             sortedData.forEach(item => {
-                historyHtml += `
-                    <tr>
-                        <td>${item.date}</td>
-                        <td>${item.opponent_name}</td>
-                        <td>${item.type}</td>
-                        <td>${item.won ? "Gagné" : "Perdu"}</td>
-                    </tr>
-                `;
+                const row = document.createElement('tr');
+
+                // Create and append the date cell
+                const dateCell = document.createElement('td');
+                dateCell.textContent = item.date; // Safe
+                row.appendChild(dateCell);
+
+                // Create and append the opponent cell
+                const opponentCell = document.createElement('td');
+                opponentCell.textContent = item.opponent_name; // Safe
+                row.appendChild(opponentCell);
+
+                // Create and append the type cell
+                const typeCell = document.createElement('td');
+                typeCell.textContent = item.type; // Safe
+                row.appendChild(typeCell);
+
+                // Create and append the result cell
+                const resultCell = document.createElement('td');
+                resultCell.textContent = item.won ? "Gagné" : "Perdu"; // Safe
+                row.appendChild(resultCell);
+
+                // Append the row to the table body
+                tbody.appendChild(row);
             });
 
-            historyHtml += `
-                    </tbody>
-                </table>
-            `;
+            // Append the table body to the table
+            table.appendChild(tbody);
 
+            // Insert the table into the history div
             const historyDiv = document.getElementById('history');
             if (historyDiv) {
-                historyDiv.innerHTML = historyHtml;
+                historyDiv.innerHTML = ''; // Clear existing content
+                historyDiv.appendChild(table); // Append the new table
             } else {
                 console.error("History div not found");
             }
