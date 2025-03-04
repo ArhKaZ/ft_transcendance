@@ -19,6 +19,7 @@ from rest_framework.permissions import AllowAny
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.db.models import Q
 from .serializers import UserInfoSerializer, TournamentMatchSerializer
+from django.core.exceptions import ValidationError
 from .models import Tournament, TournamentMatch
 from .blockchain_storage import record_match
 import re

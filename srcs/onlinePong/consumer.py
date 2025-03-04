@@ -29,6 +29,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 		self.game = None
 		self.game_id = None
 		self._countdown_task = None
+		self.no_block_task = None
+		self.stop_waiting = False
 
 	async def connect(self):
 		self.player_id = int(self.scope['url_route']['kwargs']['player_id'])
@@ -126,21 +128,34 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 # GAME INIT
 	async def handle_tournament_game(self, data):
+		print('handle_tournament:', data)
 		self.username = data['player_name']
-		if data['create'] == False:
+		if data.get('create') == False:
+			print('create false')
 			await asyncio.sleep(0.1)
 			player_game_key = f'player_current_game_{self.player_id}'
 			current_game = await sync_to_async(cache.get)(player_game_key)
 			if current_game:
+				if self.no_block_task:
+					self.no_block_task.cancel()
 				await self.handle_find_game({"game_id": current_game})
 			else:
+				if self.stop_waiting:
+					return
 				await self.notify_need_wait(data)
+				if self.no_block_task == None:
+					self.no_block_task = asyncio.create_task(self._player_not_lock_in_game_tournament())
 			return
 		player_info = {
 			'id': self.player_id,
 			'username': data['player_name'],
 			'avatar': data['player_avatar'],
 		}
+
+		if 'opponent' not in data or not data['opponent']:
+			print('no opponent')
+			await self.game_not_launch()
+			return
 
 		opponent_info = {
 			'id': data['opponent']['id'],
@@ -149,7 +164,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 		}
 
 		if opponent_info is None:
-			print('Error')
 			return
 		self.game, self.game_id = await pong_server.initialize_game(player_info, opponent_info)
 		if self.game:
@@ -189,6 +203,21 @@ class PongConsumer(AsyncWebsocketConsumer):
 		await self.send_players_info(self.game.to_dict())
 
 		asyncio.create_task(self._watch_game_events())
+
+	async def _player_not_lock_in_game_tournament(self):
+		begin = time.time()
+		try:
+			while True:
+				now = time.time()
+				if now - begin >= 10:
+					self.stop_waiting = True
+					await self.notify_no_opp()
+					break
+				await asyncio.sleep(0.1)
+		except asyncio.CancelledError as e:
+			return
+		finally:
+			pass
 
 	async def _watch_game_events(self):
 		begin = time.time()
@@ -393,6 +422,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 		# to avoid duplicate updates, you could use something like:
 		if not current_user_is_winner and not p_is_quitting:
 			return False
+		print('pass return ')
 		# Update winner stats
 		winner.wins += 1
 	
@@ -437,13 +467,16 @@ class PongConsumer(AsyncWebsocketConsumer):
 		await self.channel_layer.group_send(self.game.group_name, message)
 
 	async def notify_need_wait(self, data):
+		opp = None
+		if data.get('opponent'):
+			opp = data.get('opponent')
 		message = {
 			'type': 'waiting_tournament',
 			'player_id': data['player_id'],
 			'player_name': data['player_name'],
 			'player_avatar': data['player_avatar'],
-			'opponent': data['opponent'],
 			'create': data['create'],
+			'opponent': opp,
 		}
 		await self.send(text_data=json.dumps(message))
 
@@ -486,6 +519,13 @@ class PongConsumer(AsyncWebsocketConsumer):
 			'player_id': player['id']
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
+
+	async def notify_no_opp(self):
+		message = {
+			'type': 'no_opp',
+			'player_id': self.player_id,
+		}
+		await self.send(text_data=json.dumps(message))
 
 	async def notify_game_start(self, p1, p2):
 		message = {

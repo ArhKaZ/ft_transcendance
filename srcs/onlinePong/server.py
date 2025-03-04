@@ -141,6 +141,23 @@ class PongServer:
 			self.active_connections.pop(player_id, None)
 			await self.remove_player_from_waiting(player_id)
 
+	# async def cleanup_special_case(self, game_id):
+	# 	await self.initialize()
+	# 	async with self._lock:
+	# 		if not game_id in self.games:
+
+				# print('got id in games')
+				# game = self.games[game_id]
+				# await game.cancel_game()
+
+				# if game.is_empty():
+				# 	del self.games[game_id]
+				# 	active_games = await sync_to_async(cache.get)('active_pong_games') or []
+				# 	active_games.remove(game_id)
+				# 	await sync_to_async(cache.set)('active_pong_games', active_games)
+				
+
+
 	async def game_is_stocked(self, game_id):
 		async with self._lock:
 			if game_id in self.games:

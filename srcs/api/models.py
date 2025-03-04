@@ -135,7 +135,6 @@ class Tournament(models.Model):
     def __str__(self):
         return f"Tournament {self.code} - Players: {self.players.count()}/4 - Started: {self.started}"
 
-
 class TournamentMatch(models.Model):
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='matches')
     player1 = models.ForeignKey('MyUser', on_delete=models.CASCADE, related_name='match_player1')

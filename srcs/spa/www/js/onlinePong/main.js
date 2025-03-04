@@ -64,18 +64,19 @@ async function getInfoMatchTournament(user) {
 		});
 		if (!response.ok) {
 			console.log(`Error get opponent : ${response.error}`);
+			return null;
 		}
 		const data = await response.json();
 		return data;
 	} catch (error) {
-		handleErrors({message: 'You need to be logged before playing'});
+		handleErrors({message: `You need to be logged before playing ${error}`});
 	}
 }
 
 async function getInfoFinale(user) {
 	try {
 		await ensureValidToken();
-		const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/get_final_opponent`, {
+		const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/get_opponent`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
@@ -86,6 +87,7 @@ async function getInfoFinale(user) {
 		});
 		if (!response.ok) {
 			console.log(`Error get opponent : ${response.error}`);
+			return null;
 		}
 		const data = await response.json();
 		return data;
@@ -101,10 +103,14 @@ async function init() {
 	inTournament = urlParams.get('tournament');
 	if (inTournament && sessionStorage.getItem('asWin') == 'true') {
 		inFinal = true;
-		await getInfoFinale(user);
+		infos = await getInfoFinale(user);
+		if (infos === null)
+			handleGameFinish(currentGame, currentPlayerId);
 	}
 	else if (inTournament) {
 		infos = await getInfoMatchTournament(user);
+		if (infos === null)
+			handleGameFinish(currentGame, currentPlayerId);
 		console.log('info : ', infos);
 	}
 
@@ -273,6 +279,22 @@ async function handleWebSocketMessage(e) {
 		case 'player_movement_stop':
 			handlePlayerStopMove(data);
 			break;
+		
+		case 'no_opp':
+			if (inTournament && inFinal) {
+				console.log('in t and final');
+				joinWinner();
+				window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+				break;
+			}
+			else if (inTournament) {
+				console.log('in t and final');
+				joinFinalist();
+				sessionStorage.setItem('asWin', true);
+				window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+				break;
+			}
+
 	}
 }
 
@@ -294,8 +316,8 @@ async function handleWaiting(data) {
 		player_id: data.player_id, 
 		player_name: data.player_name, 
 		player_avatar: data.player_avatar,
-		opponent: data.opponent,
-		create: data.create,
+		opponent: data.opponent || null,
+		create: data.create || false,
 	});
 }
 
@@ -374,6 +396,7 @@ async function handleGameStart(data) {
 }
 
 function handleGameCancel(data) {
+	console.log('handleGameCancel');
 	handleErrors(data);
 	let p1Pseudo = document.getElementById('p1-username').innerText;
 	let p2Pseudo = document.getElementById('p2-username').innerText;
@@ -436,17 +459,21 @@ async function joinWinner() {
 
 function handleGameFinish(game, winningId, opponentName = null) {
 	sessionStorage.setItem('asWin', false);
+	console.log('set asWin to false');
 	const btnBack = document.getElementById('button-home-end');
 	if (opponentName === null)
-		opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
+		if (game && game.p1 && game.p2)
+			opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
 	if (game) {
 		setTimeout(() => {
 			game.displayWinner(winningId);
 		}, 500);
 	}
 	const asWin = currentPlayerId === parseInt(winningId);
+	console.log('asWin is :', asWin);
 	if (inTournament && inFinal == false) {
 		sessionStorage.setItem('asWin', asWin);
+		console.log('in tournament not final');
 		if (sessionStorage.getItem('asWin') == "true") {
 			console.log('join finalist');
 			joinFinalist();
@@ -458,6 +485,7 @@ function handleGameFinish(game, winningId, opponentName = null) {
 		}, 3000);
 	}
 	else if (inTournament && inFinal) {
+		console.log('tournament final');
 		sessionStorage.setItem('asWin', asWin);
 		if (sessionStorage.getItem('asWin') == "true")
 			joinWinner();

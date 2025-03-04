@@ -42,11 +42,13 @@ class PongGame:
 	def __repr__(self):
 		return f"Game {self.game_id} {self.status}"
 
-	async def cancel_game(self, player_id, username):
+	async def cancel_game(self, player_id = -1, username = None):
 		async with self._lock:
+			print('in cancel_game')
 			if self.status == 'CANCELLED':
 				return
 			self.status = 'CANCELLED'
+			print('pass return')
 			self.events['game_cancelled'].set()
 			if not self.p1:
 				id_winner = self.p2.id
@@ -98,7 +100,6 @@ class PongGame:
 		try:
 			while (not self.events['game_cancelled'].is_set()
 				and not self.events['game_finished'].is_set()):
-				# start_time = time.time()  # ⏳ Début du chronomètre
 				if not self.events['ball_reset'].is_set():
 					await self.events['ball_reset'].wait()
 					continue
@@ -107,8 +108,6 @@ class PongGame:
 				if game_state:
 					for queue in self.ball_update_callbacks:
 						await queue.put(game_state)
-				# end_time = time.time()  # ⏱️ Fin du chronomètre
-				# print(f"Temps d'exécution : {end_time - start_time:.5f} secondes")
 				await asyncio.sleep(1/60)
 		except asyncio.CancelledError:
 			print("ball update task cancelled")
@@ -161,11 +160,13 @@ class PongGame:
 			return self.get_current_state()
 		return None
 
-	async def cleanup(self, player_id):
+	async def cleanup(self, player_id = -1):
 
 		if self.ball_update_task:
 				self.ball_update_task.cancel()
 
+		if player_id == -1:
+			return
 		if self.p1 and player_id == self.p1.id:
 			await self.p1.delete_from_cache()
 			self.p1 = None
