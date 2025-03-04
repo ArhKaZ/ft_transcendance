@@ -12,6 +12,7 @@ class MyUser(AbstractUser):
     ligue_points = models.IntegerField(default=500)
     wins = models.IntegerField(default=0)
     looses = models.IntegerField(default=0)
+    is_oauth = models.BooleanField(default=False)
     # Add related_name to avoid clashes
     groups = models.ManyToManyField(
         'auth.Group',

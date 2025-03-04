@@ -26,6 +26,11 @@ import os
 from .models import AccessToken, RefreshToken
 from django.utils import timezone
 
+from requests.exceptions import HTTPError, RequestException
+import traceback
+import sys
+import requests
+
 import magic  # pip install python-magic
 
 
@@ -70,25 +75,25 @@ def add_user(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def check_user_online(request, username):
-    try:
-        user = MyUser.objects.get(username=username)
-        
-        # Get the latest valid access token
-        valid_token = AccessToken.objects.filter(
-            user=user,
-            expires_at__gt=timezone.now()
-        ).order_by('-created').first()  # CHANGED
-        
-        is_online = valid_token is not None
-        
-        return Response({
-            'username': username,
-            'is_online': is_online,
-            'last_active': valid_token.expires_at if is_online else None
-        })
-        
-    except MyUser.DoesNotExist:
-        return Response({'error': 'User not found'}, status=404)
+	try:
+		user = MyUser.objects.get(username=username)
+		
+		# Get the latest valid access token
+		valid_token = AccessToken.objects.filter(
+			user=user,
+			expires_at__gt=timezone.now()
+		).order_by('-created').first()  # CHANGED
+		
+		is_online = valid_token is not None
+		
+		return Response({
+			'username': username,
+			'is_online': is_online,
+			'last_active': valid_token.expires_at if is_online else None
+		})
+		
+	except MyUser.DoesNotExist:
+		return Response({'error': 'User not found'}, status=404)
 
 
 @api_view(['POST'])
@@ -121,30 +126,30 @@ def login_user(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def refresh_token(request):
-    try:
-        refresh_token = request.data.get('refresh_token')
-        if not refresh_token:
-            return Response({'error': 'Refresh token required'}, status=400)
+	try:
+		refresh_token = request.data.get('refresh_token')
+		if not refresh_token:
+			return Response({'error': 'Refresh token required'}, status=400)
 
-        # Get refresh token object
-        refresh_token_obj = RefreshToken.objects.get(token=refresh_token)
-        
-        # Delete existing access tokens for this user
-        AccessToken.objects.filter(user=refresh_token_obj.user).delete()  # NEW
-        
-        # Create new access token
-        new_access = AccessToken.objects.create(
-            user=refresh_token_obj.user,
-            refresh_token=refresh_token_obj
-        )
-        
-        return Response({
-            'access_token': new_access.token,
-            'access_expires': new_access.expires_at
-        })
-        
-    except RefreshToken.DoesNotExist:
-        return Response({'error': 'Invalid refresh token'}, status=401)
+		# Get refresh token object
+		refresh_token_obj = RefreshToken.objects.get(token=refresh_token)
+		
+		# Delete existing access tokens for this user
+		AccessToken.objects.filter(user=refresh_token_obj.user).delete()  # NEW
+		
+		# Create new access token
+		new_access = AccessToken.objects.create(
+			user=refresh_token_obj.user,
+			refresh_token=refresh_token_obj
+		)
+		
+		return Response({
+			'access_token': new_access.token,
+			'access_expires': new_access.expires_at
+		})
+		
+	except RefreshToken.DoesNotExist:
+		return Response({'error': 'Invalid refresh token'}, status=401)
 
 
 # VUE DE TEST
@@ -200,9 +205,13 @@ def edit_user_api(request):
 
 	# Only include fields that were actually sent
 	if request.data.get('username'):
+		if user.is_oauth == True:
+			return Response({'error': 'OAuth users are not allowed to change their username'}, status=status.HTTP_400_BAD_REQUEST)
 		data['username'] = request.data['username']
 
 	if request.data.get('password'):
+		if user.is_oauth == True:
+			return Response({'error': 'OAuth users are not allowed to change their password'}, status=status.HTTP_400_BAD_REQUEST)
 		user.set_password(request.data['password'])
 		user.save()
 
@@ -213,6 +222,8 @@ def edit_user_api(request):
 		data['pseudo'] = request.data['pseudo']
 
 	if request.FILES.get('avatar'):
+		if user.is_oauth == True:
+			return Response({'error': 'OAuth users are not allowed to change their avatar'}, status=status.HTTP_400_BAD_REQUEST)
 		data['avatar'] = request.FILES['avatar']
 		avatar = request.FILES['avatar']
 		ext = os.path.splitext(avatar.name)[1].lower()
@@ -261,15 +272,15 @@ def get_friends(request):
 # @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 # def add_friend(request):
-#     try:
-#         friend = MyUser.objects.get(username=request.data['friend_name'])
-#         request.user.friends.add(friend)
-#         return Response({'message': 'Friend added successfully'}, status=status.HTTP_200_OK)
-#     except MyUser.DoesNotExist:
-#         return Response(
-#             {'error': 'User not found'},
-#             status=status.HTTP_404_NOT_FOUND
-#         )
+#	 try:
+#		 friend = MyUser.objects.get(username=request.data['friend_name'])
+#		 request.user.friends.add(friend)
+#		 return Response({'message': 'Friend added successfully'}, status=status.HTTP_200_OK)
+#	 except MyUser.DoesNotExist:
+#		 return Response(
+#			 {'error': 'User not found'},
+#			 status=status.HTTP_404_NOT_FOUND
+#		 )
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -823,21 +834,137 @@ def get_end_players(request, tournament_code):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_info_user(request, userName):
-    try:
-        user = MyUser.objects.get(username=userName)
-        serializer = UserInfoSerializer(user)
-        return Response(serializer.data)
-    except MyUser.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+	try:
+		user = MyUser.objects.get(username=userName)
+		serializer = UserInfoSerializer(user)
+		return Response(serializer.data)
+	except MyUser.DoesNotExist:
+		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_history(request, userName):
-    try:
-        user = MyUser.objects.get(username=userName)
-        matches = MatchHistory.objects.filter(user=user)
-        serializer = MatchHistorySerializer(matches, many=True)
-        return Response(serializer.data)
-    except MyUser.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+	try:
+		user = MyUser.objects.get(username=userName)
+		matches = MatchHistory.objects.filter(user=user)
+		serializer = MatchHistorySerializer(matches, many=True)
+		return Response(serializer.data)
+	except MyUser.DoesNotExist:
+		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def oauth(request):
+	try:
+		code = request.data.get('code')
+		state = request.data.get('state')
+		redirect_uri = "https://127.0.0.1:8443/oauth_callback/"
+		if not code:
+			return Response({"error": "Authorization code required"}, status=status.HTTP_400_BAD_REQUEST)
+		client_id = os.getenv("OAUTH42_UID")
+		client_secret = os.getenv("OAUTH42_SECRET")
+		if not client_id or not client_secret:
+			return Response({"error": "Server configuration error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+		# Exchange code for access token with 42's API
+		token_response = requests.post(
+			'https://api.intra.42.fr/oauth/token',
+			data={
+				'grant_type': 'authorization_code',
+				'client_id': client_id,
+				'client_secret': client_secret,
+				'code': code,
+				'redirect_uri': redirect_uri,
+				'state': state
+			}
+		)
+		token_response.raise_for_status() #Raise http errors in case of failure
+		access_token = token_response.json().get('access_token')
+			
+		# Get user info from 42's API
+		user_response = requests.get(
+			'https://api.intra.42.fr/v2/me',
+			headers={'Authorization': f'Bearer {access_token}'}
+		)
+		user_response.raise_for_status()
+		user_data = user_response.json()
+			
+		pfp = user_data.get('image', {}).get('versions', {}).get('medium')
+		getpfp = requests.get(pfp)
+		pfp_name = "avatars/" + user_data.get('login') + ".jpg"
+
+		if getpfp.status_code == 200:
+			with open(("media/" + pfp_name), "wb") as file:
+				file.write(getpfp.content)
+		else:
+			pfp_name = 'media/avatars/default.png'
+		
+
+		existing_user = MyUser.objects.filter(
+			Q(email=user_data["email"]) | Q(username=user_data["login"])
+		).first()
+		existing_oauth_user = MyUser.objects.filter(
+			Q(email=user_data["email"])
+			& Q(username=user_data["login"])
+			& Q(is_oauth=True)
+		).first()
+		if existing_oauth_user:
+			# Delete existing tokens
+			AccessToken.objects.filter(user=existing_oauth_user).delete()
+			RefreshToken.objects.filter(user=existing_oauth_user).delete()
+			
+			# Create new tokens
+			refresh_token = RefreshToken.objects.create(user=existing_oauth_user)
+			access_token = AccessToken.objects.create(
+				user=existing_oauth_user, 
+				refresh_token=refresh_token
+			)
+
+			return Response({
+				'access_token': access_token.token,
+				'access_expires': access_token.expires_at,
+				'refresh_token': refresh_token.token,
+				'refresh_expires': refresh_token.expires_at
+			})
+		elif existing_user:
+			return Response(
+				{ "error": "A user with this email or username already exists."},
+				status=status.HTTP_409_CONFLICT,
+			)
+		else:
+			# Create user
+			user = MyUser.objects.create(
+				email=user_data.get('email'),
+				username=user_data.get('login'),
+				pseudo=user_data.get('login'),
+				avatar=pfp_name,
+				is_oauth=True
+			)
+			# Delete existing tokens
+			AccessToken.objects.filter(user=user).delete()
+			RefreshToken.objects.filter(user=user).delete()
+			
+			# Create new tokens
+			refresh_token = RefreshToken.objects.create(user=user)
+			access_token = AccessToken.objects.create(
+				user=user, 
+				refresh_token=refresh_token
+			)
+
+			return Response({
+				'access_token': access_token.token,
+				'access_expires': access_token.expires_at,
+				'refresh_token': refresh_token.token,
+				'refresh_expires': refresh_token.expires_at
+			})
+	except Exception as e:
+		print(f"Error: {e}")  # Log the actual error
+		return Response(
+			{'error': str(e)},  # Return the actual error message
+			status=status.HTTP_400_BAD_REQUEST
+		)
+
+	except requests.HTTPError as e:
+		return Response({"error": "42 OAuth error"}, status=502)
+
+	except Exception as e:
+		return Response({"error": "Internal server error"}, status=500)
