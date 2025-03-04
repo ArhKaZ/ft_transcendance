@@ -18,10 +18,11 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.db.models import Q
-from .serializers import UserInfoSerializer, TournamentMatchSerializer
+from .serializers import UserInfoSerializer, TournamentMatchSerializer, SafePseudoValidator, StrongPasswordValidator
 from django.core.exceptions import ValidationError
 from .models import Tournament, TournamentMatch
 from .blockchain_storage import record_match
+import bleach
 import re
 import os
 from .models import AccessToken, RefreshToken
@@ -33,6 +34,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from api.serializers import UserInfoSerializer
+from rest_framework import serializers
 
 
 from requests.exceptions import HTTPError, RequestException
@@ -230,69 +232,86 @@ def logout_user(request):
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def edit_user_api(request):
-	user = request.user
-	data = {}
+    user = request.user
+    data = {}
 
-	# Only include fields that were actually sent
-	if request.data.get('username'):
-		if user.is_oauth == True:
-			return Response({'error': 'OAuth users are not allowed to change their username'}, status=status.HTTP_400_BAD_REQUEST)
-		data['username'] = request.data['username']
+    # Password update with strong validation
+    if request.data.get('password'):
+        if user.is_oauth == True:
+            return Response({'error': 'OAuth users are not allowed to change their password'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        password = request.data['password']
+        try:
+            StrongPasswordValidator()(password)
+        except serializers.ValidationError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user.set_password(password)
+        user.save()
 
-	if request.data.get('password'):
-		if user.is_oauth == True:
-			return Response({'error': 'OAuth users are not allowed to change their password'}, status=status.HTTP_400_BAD_REQUEST)
-		user.set_password(request.data['password'])
-		user.save()
+    # Description validation
+    if request.data.get('description'):
+        cleaned_description = bleach.clean(request.data['description'], strip=True)
+        if len(cleaned_description) > 500:
+            return Response({'error': 'Description cannot exceed 500 characters'}, status=status.HTTP_400_BAD_REQUEST)
+        data['description'] = cleaned_description
 
-	if request.data.get('description'):
-		data['description'] = request.data['description']
+    # Pseudo validation
+    if request.data.get('pseudo'):
+        pseudo = request.data['pseudo']
+        try:
+            SafePseudoValidator()(pseudo)
+        except serializers.ValidationError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if len(pseudo) < 2 or len(pseudo) > 20:
+            return Response({'error': 'Pseudo must be between 2 and 20 characters'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        data['pseudo'] = pseudo
 
-	if request.data.get('pseudo'):
-		data['pseudo'] = request.data['pseudo']
+    # Avatar validation
+    if request.FILES.get('avatar'):
+        if user.is_oauth == True:
+            return Response({'error': 'OAuth users are not allowed to change their avatar'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        avatar = request.FILES['avatar']
+        ext = os.path.splitext(avatar.name)[1].lower()
+        mime_type = magic.Magic(mime=True).from_buffer(avatar.read(1024))
+        avatar.seek(0)  # Rewind file after checking type
 
-	if request.FILES.get('avatar'):
-		if user.is_oauth == True:
-			return Response({'error': 'OAuth users are not allowed to change their avatar'}, status=status.HTTP_400_BAD_REQUEST)
-		# avatar = request.FILES['avatar']
-		# data['avatar'] = request.FILES['avatar']
-		avatar = request.FILES['avatar']
-		ext = os.path.splitext(avatar.name)[1].lower()
-		mime_type = magic.Magic(mime=True).from_buffer(avatar.read(1024))
-		avatar.seek(0)  # Rewind file after checking type
-		# Vérification de l'extension et du type MIME
-		if ext not in ALLOWED_EXTENSIONS or not mime_type.startswith('image/'):
-			return Response({'error': 'Format de fichier non autorisé'}, status=status.HTTP_400_BAD_REQUEST)
-		
-		# Vérification de la taille
-		if avatar.size > MAX_FILE_SIZE:
-			return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
-		data['avatar'] = avatar.read()
-		# data['avatar'] = avatar
+        # Extension and MIME type validation
+        if ext not in ALLOWED_EXTENSIONS or not mime_type.startswith('image/'):
+            return Response({'error': 'Only JPG and PNG files are allowed'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # File size validation
+        if avatar.size > MAX_FILE_SIZE:
+            return Response({'error': 'File size cannot exceed 5MB'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        data['avatar'] = avatar.read()
 
-	# Only proceed with update if there's data to update
-	if data:
-		serializer = UserSerializer(user, data=data, partial=True)
-		if serializer.is_valid():
-			serializer.save()
-			return Response({
-				'message': 'User updated successfully'
-			}, status=status.HTTP_200_OK)
-		return Response({
-			'message': 'Invalid data provided',
-			'errors': serializer.errors
-		}, status=status.HTTP_400_BAD_REQUEST)
+    # Only proceed with update if there's data to update
+    if data:
+        serializer = UserSerializer(user, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'message': 'User updated successfully'
+            }, status=status.HTTP_200_OK)
+        return Response({
+            'message': 'Invalid data provided',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
 
-	# If no data was provided but request was valid
-	if not data and not request.data.get('password'):
-		return Response({
-			'message': 'No changes were made'
-		}, status=status.HTTP_200_OK)
+    # If no data was provided but request was valid
+    if not data and not request.data.get('password'):
+        return Response({
+            'message': 'No changes were made'
+        }, status=status.HTTP_200_OK)
 
-	# If only password was changed
-	return Response({
-		'message': 'User updated successfully'
-	}, status=status.HTTP_200_OK)
+    # If only password was changed
+    return Response({
+        'message': 'User updated successfully'
+    }, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
