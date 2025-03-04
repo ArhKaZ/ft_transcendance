@@ -82,9 +82,28 @@ class MatchHistorySerializer(serializers.ModelSerializer):
 		fields = ['id', 'type', 'opponent_name', 'date', 'won']
 
 class UserInfoSerializer(serializers.ModelSerializer):
-	class Meta:
-		model = MyUser
-		fields = ['id', 'username', 'description', 'avatar', 'ligue_points', 'pseudo', 'wins', 'looses']
+    avatar = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MyUser
+        fields = ['id', 'username', 'description', 'avatar', 'ligue_points', 'pseudo', 'wins', 'looses']
+
+    def get_avatar(self, obj):
+        if obj.avatar:
+            try:
+                # Ensure the avatar is treated as bytes
+                if isinstance(obj.avatar, str):
+                    # If the avatar is a string (e.g., from the database), convert it to bytes
+                    avatar_bytes = obj.avatar.encode('utf-8')
+                else:
+                    avatar_bytes = obj.avatar
+                # Encode the binary data to base64
+                avatar_base64 = base64.b64encode(avatar_bytes).decode('utf-8')
+                return f"data:image/png;base64,{avatar_base64}"
+            except Exception as e:
+                print(f"Error encoding avatar for user {obj.username}: {e}")
+                return None
+        return None
 
 class TournamentMatchSerializer(serializers.ModelSerializer):
 	player1 = UserInfoSerializer()

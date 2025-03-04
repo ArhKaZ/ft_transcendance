@@ -284,30 +284,17 @@ def edit_user_api(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_friends(request):
-	friends = request.user.friends.all()
-	serializer = UserInfoSerializer(friends, many=True)
-	return Response(serializer.data)
-
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def add_friend(request):
-#     try:
-#         friend = MyUser.objects.get(username=request.data['friend_name'])
-#         request.user.friends.add(friend)
-#         return Response({'message': 'Friend added successfully'}, status=status.HTTP_200_OK)
-#     except MyUser.DoesNotExist:
-#         return Response(
-#             {'error': 'User not found'},
-#             status=status.HTTP_404_NOT_FOUND
-#         )
+def get_pending_friends(request):
+    pending_friends = request.user.pending_friends.all()
+    serializer = UserInfoSerializer(pending_friends, many=True)
+    return Response(serializer.data)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_pending_friends(request):
-	pending_friends = request.user.pending_friends.all()
-	serializer = UserInfoSerializer(pending_friends, many=True)
-	return Response(serializer.data)
+def get_friends(request):
+    friends = request.user.friends.all()
+    serializer = UserInfoSerializer(friends, many=True)
+    return Response(serializer.data)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
