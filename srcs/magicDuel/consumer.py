@@ -46,6 +46,13 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		
 	async def disconnect(self, close_code):
 		try:
+			if not await self.game.is_stocked():
+				loser = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
+				winner = self.game.p1 if self.player_id == self.game.p2.id else self.game.p2
+				winner_user, loser_user = await self.get_players_users(winner, loser)
+				if await self.update_magic_stats_and_history(winner_user, loser_user, True):
+					await self.game.set_stocked()
+
 			await asyncio.wait_for(self._handle_disconnect(close_code), timeout=5)
 		except asyncio.TimeoutError:
 			print("Disconnect operation timed out")
@@ -76,6 +83,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 	async def cleanup(self):
 		async with self.cleanup_lock:
+			print('cleanup')
 			if self.is_cleaning_up:
 				return
 			self.is_cleaning_up = True
@@ -320,14 +328,14 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				await self.cleanup()
 
 	@database_sync_to_async
-	def update_magic_stats_and_history(self, winner, loser):
+	def update_magic_stats_and_history(self, winner, loser, p_is_quitting):
 		from api.models import MatchHistory  # Import MatchHistory model
 		current_player = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
 		current_user_is_winner = (current_player.id == winner.id)
-	
-		if not current_user_is_winner:
-			return  # Only the winner's connection updates the stats
-	
+
+		if not current_user_is_winner and not p_is_quitting:
+			return False  # Only the winner's connection updates the stats
+		print('pass return ')
 		# Update winner stats
 		winner.wins += 1
 		winner.ligue_points += 15
@@ -352,6 +360,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		# Save changes
 		winner.save()
 		loser.save()
+		return True
 
 	@database_sync_to_async
 	def get_players_users(self, winner, loser):
@@ -379,7 +388,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 					loser = self.game.p1 if self.game.p1.life <= 0 else self.game.p2
 					# Get User instances and update stats
 					winner_user, loser_user = await self.get_players_users(winner, loser)
-					await self.update_magic_stats_and_history(winner_user, loser_user)
+					await self.update_magic_stats_and_history(winner_user, loser_user, False)
 					await self.notify_game_end()
 					break
 				await asyncio.sleep(0.5)

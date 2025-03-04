@@ -63,7 +63,6 @@ class Player:
 			self.nb_round_no_play = player_cache['no_play']
 			return 0
 		else:
-			print(f"Warning: No cache found for player {self.id}")
 			return -1
 		
 	async def check_have_played(self):
