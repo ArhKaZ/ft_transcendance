@@ -25,6 +25,14 @@ import re
 import os
 from .models import AccessToken, RefreshToken
 from django.utils import timezone
+from django.conf import settings
+import base64
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from api.serializers import UserInfoSerializer
+
 
 import magic  # pip install python-magic
 
@@ -50,7 +58,8 @@ def add_user(request):
 			# Vérification de la taille
 			if avatar.size > MAX_FILE_SIZE:
 				return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
-			data['avatar'] = avatar
+			data['avatar'] = avatar.read()
+			# data['avatar'] = avatar
 
 		serializer = UserSerializer(data=data)
 		if serializer.is_valid():
@@ -90,6 +99,14 @@ def check_user_online(request, username):
     except MyUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=404)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_avatar(request, user_id):
+    user = MyUser.objects.get(id=user_id)
+    if user.avatar:
+        return HttpResponse(user.avatar, content_type='image/png')  # Adjust MIME type
+    else:
+        return HttpResponseRedirect(settings.DEFAULT_AVATAR_URL)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -168,12 +185,24 @@ def get_history(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_my_info(request):
-	user = request.user
-	serializer = UserInfoSerializer(user)
-	if user:
-		return Response(serializer.data)
-	else:
-		return Response({'error': 'User not found or not connected'}, status=status.HTTP_404_NOT_FOUND)
+    user = request.user
+    serializer = UserInfoSerializer(user)
+
+    if user:
+        user_data = serializer.data
+
+        # Vérifier si l'avatar est stocké en binaire (BYTEA)
+        if user.avatar:  # S'assure qu'il y a bien un avatar
+            try:
+                avatar_base64 = base64.b64encode(user.avatar).decode('utf-8')
+                user_data['avatar'] = f"data:image/png;base64,{avatar_base64}"
+            except Exception as e:
+                return Response({'error': f'Error encoding avatar: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(user_data)
+    else:
+        return Response({'error': 'User not found or not connected'}, status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -213,7 +242,8 @@ def edit_user_api(request):
 		data['pseudo'] = request.data['pseudo']
 
 	if request.FILES.get('avatar'):
-		data['avatar'] = request.FILES['avatar']
+		avatar = request.FILES['avatar']
+		# data['avatar'] = request.FILES['avatar']
 		avatar = request.FILES['avatar']
 		ext = os.path.splitext(avatar.name)[1].lower()
 		mime_type = magic.Magic(mime=True).from_buffer(avatar.read(1024))
@@ -225,7 +255,8 @@ def edit_user_api(request):
 		# Vérification de la taille
 		if avatar.size > MAX_FILE_SIZE:
 			return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
-		data['avatar'] = avatar
+		data['avatar'] = avatar.read()
+		# data['avatar'] = avatar
 
 	# Only proceed with update if there's data to update
 	if data:
@@ -826,7 +857,17 @@ def get_info_user(request, userName):
     try:
         user = MyUser.objects.get(username=userName)
         serializer = UserInfoSerializer(user)
-        return Response(serializer.data)
+        user_data = serializer.data
+
+        # Encode avatar in base64 if it exists
+        if user.avatar:
+            try:
+                avatar_base64 = base64.b64encode(user.avatar).decode('utf-8')
+                user_data['avatar'] = f"data:image/png;base64,{avatar_base64}"
+            except Exception as e:
+                return Response({'error': f'Error encoding avatar: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(user_data)
     except MyUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
