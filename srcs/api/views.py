@@ -232,12 +232,6 @@ def edit_user_api(request):
 	user = request.user
 	data = {}
 
-	# Only include fields that were actually sent
-	if request.data.get('username'):
-		if user.is_oauth == True:
-			return Response({'error': 'OAuth users are not allowed to change their username'}, status=status.HTTP_400_BAD_REQUEST)
-		data['username'] = request.data['username']
-
 	if request.data.get('password'):
 		if user.is_oauth == True:
 			return Response({'error': 'OAuth users are not allowed to change their password'}, status=status.HTTP_400_BAD_REQUEST)
