@@ -46,6 +46,13 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		
 	async def disconnect(self, close_code):
 		try:
+			if self.monitor_task is not None and self.round_task is not None and not await self.game.is_stocked():
+				loser = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
+				winner = self.game.p1 if self.player_id == self.game.p2.id else self.game.p2
+				winner_user, loser_user = await self.get_players_users(winner, loser)
+				if await self.update_magic_stats_and_history(winner_user, loser_user, True):
+					await self.game.set_stocked()
+
 			await asyncio.wait_for(self._handle_disconnect(close_code), timeout=5)
 		except asyncio.TimeoutError:
 			print("Disconnect operation timed out")
@@ -57,9 +64,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		
 		key = 'waiting_wizard_duel_players'
 		current_waiting_players = await sync_to_async(cache.get)(key) or []
-		print(current_waiting_players)
 		current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
-		print(current_waiting_players)
 		await sync_to_async(cache.set)(key, current_waiting_players)
 		if self.game_id:
 			await sync_to_async(cache.delete)(f"player_current_game_{self.player_id}")
@@ -78,6 +83,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 	async def cleanup(self):
 		async with self.cleanup_lock:
+			print('cleanup')
 			if self.is_cleaning_up:
 				return
 			self.is_cleaning_up = True
@@ -196,8 +202,65 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			current_waiting_players = await sync_to_async(cache.get)(key) or []
 			current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
 			await sync_to_async(cache.set)(key, current_waiting_players)
+			asyncio.create_task(self._player_not_lock_in_game_tournament())
 		else:
 			pass
+
+	async def _player_not_lock_in_game_tournament(self):
+		begin = time.time()
+		try:
+			while True:
+				now = time.time()
+				if now - begin >= 20:
+					self.stop_waiting = True
+					
+					# Check if game exists and has players
+					if self.game and hasattr(self.game, 'p1') and hasattr(self.game, 'p2'):
+						p1_ready = self.game.p1.ready if hasattr(self.game.p1, 'ready') else False
+						p2_ready = self.game.p2.ready if hasattr(self.game.p2, 'ready') else False
+						
+						winner = None
+						loser = None
+						
+						# If one player is ready, they win
+						if p1_ready and not p2_ready:
+							winner = self.game.p1
+							loser = self.game.p2
+						elif p2_ready and not p1_ready:
+							winner = self.game.p2
+							loser = self.game.p1
+						
+						# Update stats only if there's a winner
+						if winner and loser and not await self.game.is_stocked():
+							winner_user, loser_user = await self.get_players_users(winner, loser)
+							await self.update_magic_stats_and_history(winner_user, loser_user, True)
+							await self.game.set_stocked()
+						
+						# Send game cancel notification to frontend
+						message = {
+							'type': 'game_cancel',
+							'message': 'Game cancelled due to timeout',
+							'username': 'System',
+							'game_status': 'CANCELLED',
+							'lose_lp': winner is not None  # True if someone loses LP
+						}
+						await self.channel_layer.group_send(self.game.group_name, message)
+				
+					break
+				
+				await asyncio.sleep(0.1)
+		except asyncio.CancelledError:
+			return
+		# finally:
+			# # Clean up after timeout
+			# if self.game:
+			# 	self.game.status = 'CANCELLED'
+			# 	await self.game.save_to_cache()
+			
+			# # Schedule cleanup
+			# asyncio.create_task(self.cleanup())
+
+
 
 	async def find_opponent(self, player_points):
 		key = 'waiting_wizard_duel_players'
@@ -319,18 +382,17 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			print(f"Error in game_loop {e}")
 		finally:
 			if self.game_cancel_event.is_set():
-				print('je passe ici pour cleanUp')
 				await self.cleanup()
 
 	@database_sync_to_async
-	def update_magic_stats_and_history(self, winner, loser):
+	def update_magic_stats_and_history(self, winner, loser, p_is_quitting):
 		from api.models import MatchHistory  # Import MatchHistory model
 		current_player = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
 		current_user_is_winner = (current_player.id == winner.id)
-	
-		if not current_user_is_winner:
-			return  # Only the winner's connection updates the stats
-	
+
+		if not current_user_is_winner and not p_is_quitting:
+			return False  # Only the winner's connection updates the stats
+		print('pass return ')
 		# Update winner stats
 		winner.wins += 1
 		winner.ligue_points += 15
@@ -355,6 +417,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		# Save changes
 		winner.save()
 		loser.save()
+		return True
 
 	@database_sync_to_async
 	def get_players_users(self, winner, loser):
@@ -382,7 +445,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 					loser = self.game.p1 if self.game.p1.life <= 0 else self.game.p2
 					# Get User instances and update stats
 					winner_user, loser_user = await self.get_players_users(winner, loser)
-					await self.update_magic_stats_and_history(winner_user, loser_user)
+					await self.update_magic_stats_and_history(winner_user, loser_user, False)
 					await self.notify_game_end()
 					break
 				await asyncio.sleep(0.5)
@@ -568,6 +631,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 
 	async def notify_game_cancel(self, username_gone):
+		lose_lp = True if self.monitor_task is not None else False
+		print('lose lp', lose_lp)
 		await self.game.update_status_game()
 		if not self.game.status == 'FINISHED':
 			self.game_cancel_event.set()
@@ -576,6 +641,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				'message': f'Player {username_gone} is gone, game is cancelled',
 				'username': username_gone,
 				'game_status': self.game.status,
+				'lose_lp': lose_lp
 			}
 			await self.channel_layer.group_send(self.game.group_name, message)
 
@@ -715,7 +781,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			'type': 'game_cancel',
 			'username': event['username'],
 			'game_status': event['game_status'],
-			'message': event['message']
+			'message': event['message'],
+			'lose_lp': event['lose_lp']
 		}
 		await self.send(text_data=json.dumps(message))
 

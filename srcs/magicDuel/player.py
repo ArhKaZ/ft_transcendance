@@ -1,7 +1,9 @@
 from asgiref.sync import sync_to_async
 from django.core.cache import cache
+from api.models import MyUser
 
 class Player:
+		
 	def __init__(self, nb, player_info, game_id, ready = False, action = None, life=3):
 		self.life = life
 		self.nb = nb
@@ -61,7 +63,6 @@ class Player:
 			self.nb_round_no_play = player_cache['no_play']
 			return 0
 		else:
-			print(f"Warning: No cache found for player {self.id}")
 			return -1
 		
 	async def check_have_played(self):

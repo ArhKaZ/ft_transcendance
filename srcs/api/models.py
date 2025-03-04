@@ -7,7 +7,7 @@ from django.utils import timezone
 
 class MyUser(AbstractUser):
 	description = models.TextField(blank=True)
-	pseudo = models.CharField(max_length=100)
+	pseudo = models.CharField(max_length=100, unique=True)
 	avatar = models.BinaryField(null=True, blank=True)
 	ligue_points = models.IntegerField(default=500)
 	wins = models.IntegerField(default=0)
@@ -133,9 +133,20 @@ class Tournament(models.Model):
 		self.all_matches.add(final)
 		self.save()
 
+	def all_matches_finished(self):
+		regular_matches = self.all_matches.filter(is_final=False)
+
+		all_finished = True
+
+		for match in regular_matches:
+			if match.winner is None:
+				all_finished = False
+				break
+		
+		return all_finished
+
 	def __str__(self):
 		return f"Tournament {self.code} - Players: {self.players.count()}/4 - Started: {self.started}"
-
 
 class TournamentMatch(models.Model):
 	tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='matches')
