@@ -34,7 +34,7 @@ document.getElementById('logout-button').addEventListener('click', async () => {
 });
 
 document.getElementById('return-button').addEventListener('click', () => {
-    window.location.href = "/home/";
+    window.location.href = "/game/";
 });
 
 document.getElementById('user-avatar').addEventListener('click', () => {

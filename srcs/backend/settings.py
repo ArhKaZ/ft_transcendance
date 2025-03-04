@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-qdom&c2+nmkyc2!pndizv(5=-!lp!t1v6&+&_kesk4zu-vpek*'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -136,11 +136,11 @@ DATABASES = {
 
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
 
-        'NAME':'db_trans',
+        'NAME': os.getenv('POSTGRES_DB'),
 
-        'USER': 'lgabet',
+        'USER': os.getenv('POSTGRES_USER'),
 
-        'PASSWORD': 'pwd',
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
 
         'HOST': 'db_postgre',
 
