@@ -223,7 +223,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 			while True:
 				if self.game and self.game.status != 'IN_PROGRESS':
 					now = time.time()
-					if now - begin >= 20:
+					if now - begin >= 10:
 						await self.game_not_launch()
 				if not self.game:
 					break

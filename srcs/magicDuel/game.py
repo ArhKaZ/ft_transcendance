@@ -18,7 +18,6 @@ class Game:
 		self.p2.save_to_cache()
 
 	def to_dict(self):
-		print('stocked: ', self.stocked)
 		return {
 			'id': self.game_id,
 			'p1_id': self.p1.id,
@@ -143,10 +142,8 @@ class Game:
 	
 	async def is_stocked(self):
 		await self.update_game()
-		print('is stocked : ', self.stocked)
 		return self.stocked
 	
 	async def set_stocked(self):
 		self.stocked = True
-		print('save is stocked')
 		await self.save_to_cache()
