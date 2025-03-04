@@ -1,13 +1,12 @@
 export function redirectTo42OAuth()
 {
-    const clientId = 'u-s4t2ud-c3aad960cd36ac0f5ca04a7d2780e4d8f1dbc27481baec5b5cb571eceb694a81'; // Louis: c'est normal que le user ai acces a cette information car il est public
+    const clientId = 'u-s4t2ud-c3aad960cd36ac0f5ca04a7d2780e4d8f1dbc27481baec5b5cb571eceb694a81'; // Louis: c'est normal que le user ait acces a cette information car il est public
     const redirectUri = encodeURIComponent('https://127.0.0.1:8443/oauth_callback/');
     const scope = 'public';
     const state = generateRandomString();
     const responseType = 'code';
-    const prompt = 'login';
 
-    const authUrl = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&state=${state}&prompt=${prompt}&approval_prompt=force`;
+    const authUrl = `https://api.intra.42.fr/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&state=${state}`;
 
     sessionStorage.setItem('oauth_state', state);
     window.location.href = authUrl;
@@ -23,7 +22,7 @@ export function handle42OAuthCallback()
     if (state === storedState)
     {
         sessionStorage.removeItem('oauth_state');
-        exchangeCodeForToken(code);
+        exchangeCodeForToken(code, state);
     } 
     else
     {
@@ -46,7 +45,7 @@ function generateRandomString(length = 32)
     return str;
 }
 
-async function exchangeCodeForToken(code)
+async function exchangeCodeForToken(code, state)
 {
     try
     {
@@ -55,7 +54,7 @@ async function exchangeCodeForToken(code)
             headers: {
 				'Content-Type': 'application/json',
 			},
-            body: JSON.stringify({ code: code }),
+            body: JSON.stringify({ code: code, state: state}),
         });
 
 		if (response.ok) {

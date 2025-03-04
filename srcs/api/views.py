@@ -878,6 +878,7 @@ def get_user_history(request, userName):
 def oauth(request):
 	try:
 		code = request.data.get('code')
+		state = request.data.get('state')
 		redirect_uri = "https://127.0.0.1:8443/oauth_callback/"
 		if not code:
 			return Response({"error": "Authorization code required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -893,7 +894,8 @@ def oauth(request):
 				'client_id': client_id,
 				'client_secret': client_secret,
 				'code': code,
-				'redirect_uri': redirect_uri
+				'redirect_uri': redirect_uri,
+				'state': state
 			}
 		)
 		token_response.raise_for_status() #Raise http errors in case of failure
