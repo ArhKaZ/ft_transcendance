@@ -918,12 +918,41 @@ def oauth(request):
 				file.write(getpfp.content)
 		else:
 			pfp_name = 'media/avatars/default.png'
-			
-		# Create or update user
-		try:																	# Check if user exists
-			user = MyUser.objects.get(email=user_data.get('email'))
+		
 
-		except MyUser.DoesNotExist: 											# User does not exist, create a new user
+		existing_user = MyUser.objects.filter(
+			Q(email=user_data["email"]) | Q(username=user_data["login"])
+		).first()
+		existing_oauth_user = MyUser.objects.filter(
+			Q(email=user_data["email"])
+			& Q(username=user_data["login"])
+			& Q(is_oauth=True)
+		).first()
+		if existing_oauth_user:
+			# Delete existing tokens
+			AccessToken.objects.filter(user=existing_oauth_user).delete()
+			RefreshToken.objects.filter(user=existing_oauth_user).delete()
+			
+			# Create new tokens
+			refresh_token = RefreshToken.objects.create(user=existing_oauth_user)
+			access_token = AccessToken.objects.create(
+				user=existing_oauth_user, 
+				refresh_token=refresh_token
+			)
+
+			return Response({
+				'access_token': access_token.token,
+				'access_expires': access_token.expires_at,
+				'refresh_token': refresh_token.token,
+				'refresh_expires': refresh_token.expires_at
+			})
+		elif existing_user:
+			return Response(
+				{ "error": "A user with this email or username already exists."},
+				status=status.HTTP_409_CONFLICT,
+			)
+		else:
+			# Create user
 			user = MyUser.objects.create(
 				email=user_data.get('email'),
 				username=user_data.get('login'),
@@ -931,26 +960,31 @@ def oauth(request):
 				avatar=pfp_name,
 				is_oauth=True
 			)
+			# Delete existing tokens
+			AccessToken.objects.filter(user=user).delete()
+			RefreshToken.objects.filter(user=user).delete()
+			
+			# Create new tokens
+			refresh_token = RefreshToken.objects.create(user=user)
+			access_token = AccessToken.objects.create(
+				user=user, 
+				refresh_token=refresh_token
+			)
 
-		# Delete existing tokens
-		AccessToken.objects.filter(user=user).delete()
-		RefreshToken.objects.filter(user=user).delete()
-		
-		# Create new tokens
-		refresh_token = RefreshToken.objects.create(user=user)
-		access_token = AccessToken.objects.create(
-			user=user, 
-			refresh_token=refresh_token
+			return Response({
+				'access_token': access_token.token,
+				'access_expires': access_token.expires_at,
+				'refresh_token': refresh_token.token,
+				'refresh_expires': refresh_token.expires_at
+			})
+	except Exception as e:
+		print(f"Error: {e}")  # Log the actual error
+		return Response(
+			{'error': str(e)},  # Return the actual error message
+			status=status.HTTP_400_BAD_REQUEST
 		)
 
-		return Response({
-			'access_token': access_token.token,
-			'access_expires': access_token.expires_at,
-			'refresh_token': refresh_token.token,
-			'refresh_expires': refresh_token.expires_at
-		})
-
-	except HTTPError as e:
+	except requests.HTTPError as e:
 		return Response({"error": "42 OAuth error"}, status=502)
 
 	except Exception as e:

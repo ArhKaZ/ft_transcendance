@@ -1,5 +1,3 @@
-import { ensureValidToken } from '/js/utils.js';
-
 document.getElementById('userForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 

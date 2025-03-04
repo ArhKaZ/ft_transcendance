@@ -4,5 +4,5 @@ try {
     handle42OAuthCallback();
 } catch (error) {
     console.error('OAuth Handling Error:', error);
-    window.location.href = '/login';
+    window.location.href = '/home/';
 }
