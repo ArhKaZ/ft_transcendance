@@ -37,6 +37,7 @@ class PongGame:
 		self.last_update_time = time.time()
 		self.ball_update_task = None
 		self.ball_update_callbacks = set()
+		self.is_stocked = False
 
 	def __repr__(self):
 		return f"Game {self.game_id} {self.status}"
@@ -48,13 +49,10 @@ class PongGame:
 			self.status = 'CANCELLED'
 			self.events['game_cancelled'].set()
 			if not self.p1:
-				print('not p1')
 				id_winner = self.p2.id
 			elif not self.p2:
-				print('not p2')
 				id_winner = self.p1.id
 			else:
-				print('got both')
 				id_winner = self.p1.id if self.p2.id == player_id else self.p2.id
 			channel_layer = get_channel_layer()
 			await channel_layer.group_send(

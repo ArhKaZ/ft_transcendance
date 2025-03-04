@@ -141,4 +141,15 @@ class PongServer:
 			self.active_connections.pop(player_id, None)
 			await self.remove_player_from_waiting(player_id)
 
+	async def game_is_stocked(self, game_id):
+		async with self._lock:
+			if game_id in self.games:
+				return self.games[game_id].is_stocked
+			
+	async def stock_game(self, game_id):
+		async with self._lock:
+			print('stock game')
+			if game_id in self.games:
+				self.games[game_id].is_stocked = True
+
 pong_server = PongServer()

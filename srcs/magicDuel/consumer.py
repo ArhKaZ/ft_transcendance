@@ -57,9 +57,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		
 		key = 'waiting_wizard_duel_players'
 		current_waiting_players = await sync_to_async(cache.get)(key) or []
-		print(current_waiting_players)
 		current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
-		print(current_waiting_players)
 		await sync_to_async(cache.set)(key, current_waiting_players)
 		if self.game_id:
 			await sync_to_async(cache.delete)(f"player_current_game_{self.player_id}")
@@ -319,7 +317,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			print(f"Error in game_loop {e}")
 		finally:
 			if self.game_cancel_event.is_set():
-				print('je passe ici pour cleanUp')
 				await self.cleanup()
 
 	@database_sync_to_async

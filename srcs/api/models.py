@@ -7,7 +7,7 @@ from django.utils import timezone
 
 class MyUser(AbstractUser):
     description = models.TextField(blank=True)
-    pseudo = models.CharField(max_length=100)
+    pseudo = models.CharField(max_length=100, unique=True)
     avatar = models.ImageField(upload_to='avatars/', default='avatars/default.png')
     ligue_points = models.IntegerField(default=500)
     wins = models.IntegerField(default=0)

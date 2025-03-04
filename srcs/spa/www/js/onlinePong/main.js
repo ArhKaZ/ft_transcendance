@@ -444,22 +444,7 @@ function handleGameFinish(game, winningId, opponentName = null) {
 			game.displayWinner(winningId);
 		}, 500);
 	}
-	console.log('ids', currentPlayerId, winningId);
 	const asWin = currentPlayerId === parseInt(winningId);
-	// fetch('/api/add_match/', {
-	// 	method: 'POST',
-	// 	headers: {
-	// 		'Content-Type': 'application/json',
-	// 		'X-CSRFToken': getCSRFToken(),
-	// 		'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-	// 	},
-	// 	credentials: 'include',
-	// 	body: JSON.stringify({
-	// 		'type': 'Pong',
-	// 		'opponent_name': opponentName,
-	// 		'won': asWin
-	// 	})
-	// }).then(data => {
 	if (inTournament && inFinal == false) {
 		sessionStorage.setItem('asWin', asWin);
 		if (sessionStorage.getItem('asWin') == "true") {
