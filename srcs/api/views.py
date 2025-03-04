@@ -662,7 +662,7 @@ def get_match_opponent(request, tournament_code):
 			opponent = match_data['player2'] if match_data['player1']['id'] == user.id else match_data['player1']
 			return Response({
 				'opp_id': opponent['id'],
-				'opp_name': opponent['username'],
+				'opp_name': opponent['pseudo'],
 				'opp_avatar': opponent['avatar'],
 				'create': create
 			})

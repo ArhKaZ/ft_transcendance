@@ -128,10 +128,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 # GAME INIT
 	async def handle_tournament_game(self, data):
-		print('handle_tournament:', data)
 		self.username = data['player_name']
 		if data.get('create') == False:
-			print('create false')
 			await asyncio.sleep(0.1)
 			player_game_key = f'player_current_game_{self.player_id}'
 			current_game = await sync_to_async(cache.get)(player_game_key)
