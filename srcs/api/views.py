@@ -25,6 +25,14 @@ import re
 import os
 from .models import AccessToken, RefreshToken
 from django.utils import timezone
+from django.conf import settings
+import base64
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from api.serializers import UserInfoSerializer
+
 
 from requests.exceptions import HTTPError, RequestException
 import traceback
@@ -55,7 +63,8 @@ def add_user(request):
 			# Vérification de la taille
 			if avatar.size > MAX_FILE_SIZE:
 				return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
-			data['avatar'] = avatar
+			data['avatar'] = avatar.read()
+			# data['avatar'] = avatar
 
 		serializer = UserSerializer(data=data)
 		if serializer.is_valid():
@@ -95,6 +104,14 @@ def check_user_online(request, username):
 	except MyUser.DoesNotExist:
 		return Response({'error': 'User not found'}, status=404)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_avatar(request, user_id):
+	user = MyUser.objects.get(id=user_id)
+	if user.avatar:
+		return HttpResponse(user.avatar, content_type='image/png')  # Adjust MIME type
+	else:
+		return HttpResponseRedirect(settings.DEFAULT_AVATAR_URL)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -175,10 +192,22 @@ def get_history(request):
 def get_my_info(request):
 	user = request.user
 	serializer = UserInfoSerializer(user)
+
 	if user:
-		return Response(serializer.data)
+		user_data = serializer.data
+
+		# Vérifier si l'avatar est stocké en binaire (BYTEA)
+		if user.avatar:  # S'assure qu'il y a bien un avatar
+			try:
+				avatar_base64 = base64.b64encode(user.avatar).decode('utf-8')
+				user_data['avatar'] = f"data:image/png;base64,{avatar_base64}"
+			except Exception as e:
+				return Response({'error': f'Error encoding avatar: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+		return Response(user_data)
 	else:
 		return Response({'error': 'User not found or not connected'}, status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -224,7 +253,8 @@ def edit_user_api(request):
 	if request.FILES.get('avatar'):
 		if user.is_oauth == True:
 			return Response({'error': 'OAuth users are not allowed to change their avatar'}, status=status.HTTP_400_BAD_REQUEST)
-		data['avatar'] = request.FILES['avatar']
+		# avatar = request.FILES['avatar']
+		# data['avatar'] = request.FILES['avatar']
 		avatar = request.FILES['avatar']
 		ext = os.path.splitext(avatar.name)[1].lower()
 		mime_type = magic.Magic(mime=True).from_buffer(avatar.read(1024))
@@ -236,7 +266,8 @@ def edit_user_api(request):
 		# Vérification de la taille
 		if avatar.size > MAX_FILE_SIZE:
 			return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
-		data['avatar'] = avatar
+		data['avatar'] = avatar.read()
+		# data['avatar'] = avatar
 
 	# Only proceed with update if there's data to update
 	if data:
@@ -264,80 +295,67 @@ def edit_user_api(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_friends(request):
-	friends = request.user.friends.all()
-	serializer = UserInfoSerializer(friends, many=True)
-	return Response(serializer.data)
-
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def add_friend(request):
-#	 try:
-#		 friend = MyUser.objects.get(username=request.data['friend_name'])
-#		 request.user.friends.add(friend)
-#		 return Response({'message': 'Friend added successfully'}, status=status.HTTP_200_OK)
-#	 except MyUser.DoesNotExist:
-#		 return Response(
-#			 {'error': 'User not found'},
-#			 status=status.HTTP_404_NOT_FOUND
-#		 )
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def get_pending_friends(request):
 	pending_friends = request.user.pending_friends.all()
 	serializer = UserInfoSerializer(pending_friends, many=True)
 	return Response(serializer.data)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_friends(request):
+	friends = request.user.friends.all()
+	serializer = UserInfoSerializer(friends, many=True)
+	return Response(serializer.data)
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_friend(request):
-    try:
-        potential_friend = MyUser.objects.get(username=request.data['friend_name'])
+	try:
+		potential_friend = MyUser.objects.get(username=request.data['friend_name'])
 
-        # Don't allow adding yourself
-        if potential_friend == request.user:
-            return Response(
-                {'error': 'You cannot add yourself as a friend'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+		# Don't allow adding yourself
+		if potential_friend == request.user:
+			return Response(
+				{'error': 'You cannot add yourself as a friend'},
+				status=status.HTTP_400_BAD_REQUEST
+			)
 
-        # Don't allow if already friends
-        if potential_friend in request.user.friends.all():
-            return Response(
-                {'error': 'You are already friends with this user'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+		# Don't allow if already friends
+		if potential_friend in request.user.friends.all():
+			return Response(
+				{'error': 'You are already friends with this user'},
+				status=status.HTTP_400_BAD_REQUEST
+			)
 
-        # Check if the sender has already sent a request to the recipient
-        if request.user in potential_friend.pending_friends.all():
-            return Response(
-                {'error': 'You have already sent a friend request to this user'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+		# Check if the sender has already sent a request to the recipient
+		if request.user in potential_friend.pending_friends.all():
+			return Response(
+				{'error': 'You have already sent a friend request to this user'},
+				status=status.HTTP_400_BAD_REQUEST
+			)
 
-        # Check if the recipient has sent a request to the sender
-        if potential_friend in request.user.pending_friends.all():
-            # Recipient has sent a request to the sender, so accept the request
-            request.user.pending_friends.remove(potential_friend)
-            request.user.friends.add(potential_friend)
-            return Response(
-                {'message': 'Friend request accepted! You are now friends.'},
-                status=status.HTTP_200_OK
-            )
-        else:
-            # If no pending requests exist, add to pending list
-            potential_friend.pending_friends.add(request.user)
-            return Response(
-                {'message': 'Friend request sent successfully'},
-                status=status.HTTP_200_OK
-            )
+		# Check if the recipient has sent a request to the sender
+		if potential_friend in request.user.pending_friends.all():
+			# Recipient has sent a request to the sender, so accept the request
+			request.user.pending_friends.remove(potential_friend)
+			request.user.friends.add(potential_friend)
+			return Response(
+				{'message': 'Friend request accepted! You are now friends.'},
+				status=status.HTTP_200_OK
+			)
+		else:
+			# If no pending requests exist, add to pending list
+			potential_friend.pending_friends.add(request.user)
+			return Response(
+				{'message': 'Friend request sent successfully'},
+				status=status.HTTP_200_OK
+			)
 
-    except MyUser.DoesNotExist:
-        return Response(
-            {'error': 'User not found'},
-            status=status.HTTP_404_NOT_FOUND
-        )
+	except MyUser.DoesNotExist:
+		return Response(
+			{'error': 'User not found'},
+			status=status.HTTP_404_NOT_FOUND
+		)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -837,7 +855,17 @@ def get_info_user(request, userName):
 	try:
 		user = MyUser.objects.get(username=userName)
 		serializer = UserInfoSerializer(user)
-		return Response(serializer.data)
+		user_data = serializer.data
+
+		# Encode avatar in base64 if it exists
+		if user.avatar:
+			try:
+				avatar_base64 = base64.b64encode(user.avatar).decode('utf-8')
+				user_data['avatar'] = f"data:image/png;base64,{avatar_base64}"
+			except Exception as e:
+				return Response({'error': f'Error encoding avatar: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+		return Response(user_data)
 	except MyUser.DoesNotExist:
 		return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -877,7 +905,7 @@ def oauth(request):
 				'state': state
 			}
 		)
-		token_response.raise_for_status() #Raise http errors in case of failure
+		token_response.raise_for_status()  # Raise HTTP errors
 		access_token = token_response.json().get('access_token')
 			
 		# Get user info from 42's API
@@ -888,16 +916,33 @@ def oauth(request):
 		user_response.raise_for_status()
 		user_data = user_response.json()
 			
+		# Handle Avatar
+		avatar_data = None
 		pfp = user_data.get('image', {}).get('versions', {}).get('medium')
-		getpfp = requests.get(pfp)
-		pfp_name = "avatars/" + user_data.get('login') + ".jpg"
+		if pfp:
+			getpfp = requests.get(pfp)
+			if getpfp.status_code == 200:
+				content = getpfp.content
+				# Check MIME type using first 1024 bytes
+				try:
+					mime_type = magic.Magic(mime=True).from_buffer(content[:1024])
+				except Exception:
+					mime_type = None
+				# Check file extension from URL
+				ext = os.path.splitext(pfp)[1].lower()
+				# Check size
+				if len(content) <= MAX_FILE_SIZE:
+					if ext in ALLOWED_EXTENSIONS and mime_type and mime_type.startswith('image/'):
+						avatar_data = content
 
-		if getpfp.status_code == 200:
-			with open(("media/" + pfp_name), "wb") as file:
-				file.write(getpfp.content)
-		else:
-			pfp_name = 'media/avatars/default.png'
-		
+		# Load default avatar if not set
+		if not avatar_data:
+			default_avatar_path = os.path.join(settings.MEDIA_ROOT, 'avatars', 'default.png')
+			try:
+				with open(default_avatar_path, 'rb') as f:
+					avatar_data = f.read()
+			except IOError:
+				avatar_data = b''  # Fallback to empty bytes
 
 		existing_user = MyUser.objects.filter(
 			Q(email=user_data["email"]) | Q(username=user_data["login"])
@@ -908,17 +953,14 @@ def oauth(request):
 			& Q(is_oauth=True)
 		).first()
 		if existing_oauth_user:
-			# Delete existing tokens
+			# Delete existing tokens and create new ones
 			AccessToken.objects.filter(user=existing_oauth_user).delete()
 			RefreshToken.objects.filter(user=existing_oauth_user).delete()
-			
-			# Create new tokens
 			refresh_token = RefreshToken.objects.create(user=existing_oauth_user)
 			access_token = AccessToken.objects.create(
 				user=existing_oauth_user, 
 				refresh_token=refresh_token
 			)
-
 			return Response({
 				'access_token': access_token.token,
 				'access_expires': access_token.expires_at,
@@ -927,44 +969,35 @@ def oauth(request):
 			})
 		elif existing_user:
 			return Response(
-				{ "error": "A user with this email or username already exists."},
+				{"error": "A user with this email or username already exists."},
 				status=status.HTTP_409_CONFLICT,
 			)
 		else:
-			# Create user
+			# Create new user with binary avatar data
 			user = MyUser.objects.create(
 				email=user_data.get('email'),
 				username=user_data.get('login'),
 				pseudo=user_data.get('login'),
-				avatar=pfp_name,
+				avatar=avatar_data,
 				is_oauth=True
 			)
-			# Delete existing tokens
+			# Create tokens
 			AccessToken.objects.filter(user=user).delete()
 			RefreshToken.objects.filter(user=user).delete()
-			
-			# Create new tokens
 			refresh_token = RefreshToken.objects.create(user=user)
 			access_token = AccessToken.objects.create(
 				user=user, 
 				refresh_token=refresh_token
 			)
-
 			return Response({
 				'access_token': access_token.token,
 				'access_expires': access_token.expires_at,
 				'refresh_token': refresh_token.token,
 				'refresh_expires': refresh_token.expires_at
 			})
-	except Exception as e:
-		print(f"Error: {e}")  # Log the actual error
-		return Response(
-			{'error': str(e)},  # Return the actual error message
-			status=status.HTTP_400_BAD_REQUEST
-		)
-
 	except requests.HTTPError as e:
-		return Response({"error": "42 OAuth error"}, status=502)
-
+		print(f"HTTP Error: {e}")
+		return Response({"error": "Failed to communicate with 42 API"}, status=status.HTTP_502_BAD_GATEWAY)
 	except Exception as e:
-		return Response({"error": "Internal server error"}, status=500)
+		print(f"Error: {e}")
+		return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
