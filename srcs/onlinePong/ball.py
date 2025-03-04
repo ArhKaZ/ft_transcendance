@@ -78,7 +78,6 @@ class Ball:
         colission_point = 0
         now = time.time()
         if self.last_bound_player and now - self.last_bound_player < 0.01:
-            print('cancel speed add')
             self.speed = self.old_speed
             return
         if next_x < 3 and game.p1.y < next_y + 0.5 < game.p1.y + 17 or \
@@ -86,7 +85,6 @@ class Ball:
             self.last_bound_player = time.time()
             game.bound_player = True
             if self.speed < 1:
-                print('add speed')
                 self.old_speed = self.speed
                 self.speed += 0.1
             if next_x < 3 and game.p1.y < next_y < game.p1.y + 17:

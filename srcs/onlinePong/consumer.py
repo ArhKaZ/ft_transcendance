@@ -32,6 +32,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 		self.no_block_task = None
 		self.stop_waiting = False
 		self.tournament_code = None
+		self.is_final_match = False
 
 	async def connect(self):
 		self.player_id = int(self.scope['url_route']['kwargs']['player_id'])
@@ -129,7 +130,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 # GAME INIT
 	async def handle_tournament_game(self, data):
-		print(data)
+		self.is_final_match = data.get('is_final_match', False)
+		self.in_tournament = True
 		self.username = data['player_name']
 		self.tournament_code = data['tournament_code']
 		if data.get('create') == False:
@@ -156,7 +158,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 		}
 
 		if 'opponent' not in data or not data['opponent']:
-			print('no opponent')
 			await self.game_not_launch()
 			return
 
@@ -208,12 +209,11 @@ class PongConsumer(AsyncWebsocketConsumer):
 		asyncio.create_task(self._watch_game_events())
 
 	async def _player_not_lock_in_game_tournament(self):
-		print('launch timer')
 		begin = time.time()
 		try:
 			while True:
 				now = time.time()
-				if now - begin >= 10:
+				if now - begin >= 30:
 					self.stop_waiting = True
 					await self.notify_no_opp()
 					break
@@ -273,6 +273,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 		id = 0
 		username = None
 		is_end = False
+
 		if not self.game.p1.ready and not self.game.p2.ready:
 			id = self.game.p2.id
 			username = self.game.p2.username
@@ -283,6 +284,9 @@ class PongConsumer(AsyncWebsocketConsumer):
 			id = self.game.p2.id
 			username = self.game.p2.username
 
+		winner_user, loser_user = await self.get_players_users(True)
+		if await self.update_stats_and_create_matches(winner_user, loser_user, True):
+			await pong_server.stock_game(self.game_id)
 		await pong_server.cleanup_player(id, username, self.game_id, is_end)
 
 # READY 
@@ -421,36 +425,59 @@ class PongConsumer(AsyncWebsocketConsumer):
 	def update_stats_and_create_matches(self, winner, loser, p_is_quitting):
 		current_player = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
 		current_user_is_winner = (current_player.user_model == winner)
-	
-		# If you only want to update stats from one player's connection
-		# to avoid duplicate updates, you could use something like:
 		if not current_user_is_winner and not p_is_quitting:
 			return False
-		print('pass return ')
-		# Update winner stats
+		# Update stats
 		winner.wins += 1
-	
-		# Update loser stats
 		loser.looses += 1
 	
-		# Create match history entries
+		# Create match history
 		MatchHistory.objects.create(
 			user=winner,
 			opponent_name=loser.username,
-			type='Pong',
+			type='Tournament' if self.in_tournament else 'Pong',
 			won=True
 		)
 		MatchHistory.objects.create(
 			user=loser,
 			opponent_name=winner.username,
-			type='Pong',
+			type='Tournament' if self.in_tournament else 'Pong',
 			won=False
 		)
-		print('create both history')
 	
-		# Save both users
+		# Save users
 		winner.save()
 		loser.save()
+	
+		# Tournament progression logic
+		# print('info tournament : ', self.in_tournament, self.tournament_code)
+		if self.in_tournament and self.tournament_code:
+			try:
+				tournament = Tournament.objects.get(code=self.tournament_code)
+	
+				if self.is_final_match:
+					# print(f'in final winner : {winner}')
+					# Handle tournament winner
+					tournament.add_winner(winner)
+					tournament.set_winner_for_a_match(winner.id)
+					tournament.started = False  # Mark tournament as completed
+					tournament.save()
+				else:
+					# Handle finalist progression
+					# print(f'not final add winner {winner}')
+					tournament.add_finalist(winner)
+					tournament.set_winner_for_a_match(winner.id)
+	
+					# Check if we have 2 finalists to create final match
+					if tournament.finalist.count() == 2:
+						# print('final is complete create it')
+						finalists = list(tournament.finalist.all())
+						tournament.create_final(finalists[0], finalists[1])
+	
+				tournament.save()
+			except Tournament.DoesNotExist:
+				print(f"Tournament {self.tournament_code} not found")
+	
 		return True
 
 	async def notify_start_move(self, direction):

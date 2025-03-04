@@ -3,7 +3,7 @@ import Player from "./game/player.js";
 import Game from "./game/game.js";
 import CountdownAnimation from "../countdownAnimation.js";
 import {creationGameDisplay, updatePlayerStatus, displayWhenLoad, playerLeave } from "./game/waitingRoom.js";
-import { ensureValidToken } from '/js/utils.js';
+import { getUserFromBack } from '/js/utils.js';
 
 let socket = null;
 let currentPlayerId = null;
@@ -57,28 +57,6 @@ function sendToBack(data) {
 	} else {
 		console.error("Websocket not ready");
 	}
-}
-
-async function getUserFromBack() {
-    try {
-		await ensureValidToken();
-        const response = await fetch('/api/get-my-info/', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-            },
-            credentials: 'include',
-        });
-        if (!response.ok) {
-            handleErrors({message: 'You need to be logged before playing'});
-        }
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        handleErrors({message: 'You need to be logged before playing'});
-    }
 }
 
 async function init() {

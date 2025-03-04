@@ -704,12 +704,16 @@ def get_final_opponent(request, tournament_code):
 	user = request.user
 	try:
 		tournament = Tournament.objects.get(code=tournament_code)
+		
 	except Tournament.DoesNotExist:
 		return Response({"error": f"Tournament {tournament_code} does not exist"}, status=404)
 
 	# Get all non-final matches
 	initial_matches = tournament.all_matches.filter(is_final=False)
 
+	print(f'nb match {initial_matches.count()} winners {all(match.winner for match in initial_matches)}')
+
+	print(initial_matches)
 	# Check if both initial matches have winners
 	if initial_matches.count() == 2 and all(match.winner for match in initial_matches):
 		winners = [match.winner for match in initial_matches]
@@ -742,7 +746,7 @@ def get_final_opponent(request, tournament_code):
 				'create': create
 			})
 
-	return Response({"error": "Final match cannot be created yet - waiting for initial matches to complete"}, status=400)
+	return Response({"error": "Final match cannot be created yet - waiting for initial matches to complete"}, status=380)
 
 
 @api_view(['POST'])

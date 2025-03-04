@@ -3,7 +3,7 @@ import Game from "./game/game.js";
 import Player from "./game/player.js";
 import CountdownAnimation from "../countdownAnimation.js";
 import {creationGameDisplay, updatePlayerStatus, displayWhenLoad } from "./game/waitingRoom.js";
-import { ensureValidToken } from '/js/utils.js';
+import { getUserFromBack, ensureValidToken } from '/js/utils.js';
 
 let socket = null;
 let oldHeight = null;
@@ -25,28 +25,6 @@ function sendToBack(data) {
 		socket.send(JSON.stringify(data));
 	} else {
 		console.error("WebSocket not ready");
-	}
-}
-
-async function getUserFromBack() {
-	try {
-		await ensureValidToken();
-		const response = await fetch('/api/get-my-info/', {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': getCSRFToken(),
-				'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-			},
-			credentials: 'include',
-		});
-		if (!response.ok) {
-			handleErrors({message: 'You need to be logged before playing'});
-		}
-		const data = await response.json();
-		return data;
-	} catch (error) {
-		handleErrors({message: 'You need to be logged before playing'});
 	}
 }
 
@@ -76,7 +54,7 @@ async function getInfoMatchTournament(user) {
 async function getInfoFinale(user) {
 	try {
 		await ensureValidToken();
-		const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/get_opponent`, {
+		const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/get_final_opponent`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
@@ -101,9 +79,10 @@ async function init() {
 	const urlParams = new URLSearchParams(window.location.search);
 	let infos = null;
 	inTournament = urlParams.get('tournament');
-	if (inTournament && sessionStorage.getItem('asWin') == 'true') {
+	if (inTournament && sessionStorage.getItem('inFinal')) {
 		inFinal = true;
 		infos = await getInfoFinale(user);
+		console.log(infos);
 		if (infos === null)
 			handleGameFinish(currentGame, currentPlayerId);
 	}
@@ -111,7 +90,6 @@ async function init() {
 		infos = await getInfoMatchTournament(user);
 		if (infos === null)
 			handleGameFinish(currentGame, currentPlayerId);
-		console.log('info : ', infos);
 	}
 
 	displayWhenLoad(user, inTournament);
@@ -138,6 +116,7 @@ function setupWebSocket(user, infos) {
 				player_name: currentPseudo,
 				player_avatar: user.avatar,
 				create: infos.create,
+				is_final_match: inFinal,
 				tournament_code: sessionStorage.getItem('tournament_code'),
 				... (infos.create && {
 					opponent: {
@@ -283,12 +262,12 @@ async function handleWebSocketMessage(e) {
 		
 		case 'no_opp':
 			if (inTournament && inFinal) {
-				joinWinner();
+				// joinWinner();
 				window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
 				break;
 			}
 			else if (inTournament) {
-				joinFinalist();
+				// joinFinalist();
 				sessionStorage.setItem('asWin', true);
 				window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
 				break;
@@ -416,47 +395,6 @@ async function handleCountdown(countdown) {
 	}
 }
 
-async function joinFinalist() {
-	try {
-		await ensureValidToken();
-		const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/join_final/`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			'X-CSRFToken': getCSRFToken(),
-			'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-		},
-		credentials: 'include',});
-		if (!response.ok) {
-			throw new Error('Failed to add finalist');
-		}
-	}
-	catch (error) {
-		console.log("erreur dans les finalist");
-		console.error('Error:', error);
-	}
-}
-
-async function joinWinner() {
-	try {
-		await ensureValidToken();
-		const response = await fetch(`/api/tournament/${sessionStorage.getItem('tournament_code')}/join_winner/`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			'X-CSRFToken': getCSRFToken(),
-			'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-		},
-		credentials: 'include',});
-		if (!response.ok) {
-			throw new Error('Failed to add winner');
-		}
-	}
-	catch (error) {
-		console.error('Error:', error);
-	}
-}
-
 function handleGameFinish(game, winningId, opponentName = null) {
 	sessionStorage.setItem('asWin', false);
 	console.log('set asWin to false');
@@ -474,10 +412,10 @@ function handleGameFinish(game, winningId, opponentName = null) {
 	if (inTournament && inFinal == false) {
 		sessionStorage.setItem('asWin', asWin);
 		console.log('in tournament not final');
-		if (sessionStorage.getItem('asWin') == "true") {
-			console.log('join finalist');
-			joinFinalist();
-		}
+		// if (sessionStorage.getItem('asWin') == "true") {
+			// console.log('join finalist');
+			// joinFinalist();
+		// }
 		btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
 		btnBack.innerText = "Back to Tournament";
 		setTimeout(() => {
@@ -487,8 +425,8 @@ function handleGameFinish(game, winningId, opponentName = null) {
 	else if (inTournament && inFinal) {
 		console.log('tournament final');
 		sessionStorage.setItem('asWin', asWin);
-		if (sessionStorage.getItem('asWin') == "true")
-			joinWinner();
+		// if (sessionStorage.getItem('asWin') == "true")
+			// joinWinner();
 		// sessionStorage.removeItem('asWin');
 		// sessionStorage.removeItem('tournament_code');
 		sessionStorage.setItem('finalDone', true);

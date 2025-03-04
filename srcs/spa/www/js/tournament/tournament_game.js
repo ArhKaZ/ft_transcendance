@@ -1,9 +1,9 @@
 import T_Player from './tournament_player.js';
 import { sleep } from '../utils.js';
 import { getCSRFToken } from '../utils.js';
-import { ensureValidToken } from '/js/utils.js';
+import { ensureValidToken, getUserFromBack } from '/js/utils.js';
 
-
+let user = null;
 
 class TournamentGame {
 	constructor() {
@@ -155,6 +155,9 @@ class TournamentGame {
 	}
 
 	async init() {
+		user = await getUserFromBack();
+		console.log(user);
+		sessionStorage.setItem('tournament_code', this.tournamentCode); // verifier si il est deja set
 		if (this.checkLeft(this.tournamentCode) == true) {
 			window.location.href = `/home/`;
 		}
@@ -165,20 +168,41 @@ class TournamentGame {
 			sessionStorage.removeItem('finalDone');
 			return;
 		}
-		if (!sessionStorage.getItem('asWin')) {
-			console.log("premiere game");
-			// await this.loadPlayers();
-			sessionStorage.setItem('tournament_code', this.tournamentCode);
-			// await sleep(5000);
-			window.location.href = `/onlinePong/?tournament=true`;
-		} else if (sessionStorage.getItem('asWin') == "true" && sessionStorage.getItem('finalDone') != "true") {
-			console.log("je participe a la finale");
-			// await sleep(5000);
-			window.location.href = `/onlinePong/?tournament=true`;
-			// await this.loadFinal();
+		else if (data.finalists.length > 0) {
+			this.verifUserInFinal(data);
 		}
 		else {
-			console.log("la finale est finie");
+			window.location.href = `/onlinePong/?tournament=true`;
+		}
+		// if (!sessionStorage.getItem('asWin')) {
+		// 	console.log("premiere game");
+		// 	// await this.loadPlayers();
+		// 	sessionStorage.setItem('tournament_code', this.tournamentCode);
+		// 	// await sleep(5000);
+		// 	window.location.href = `/onlinePong/?tournament=true`;
+		// } else if (sessionStorage.getItem('asWin') == "true" && sessionStorage.getItem('finalDone') != "true") {
+		// 	console.log("je participe a la finale");
+		// 	// await sleep(5000);
+		// 	window.location.href = `/onlinePong/?tournament=true`;
+		// 	// await this.loadFinal();
+		// }
+		// else {
+		// 	console.log("la finale est finie");
+		// }
+	}
+
+	verifUserInFinal(data) {
+		console.log('ccc')
+		for (const finalist of data.finalists) {
+			console.log(finalist);
+			console.log(user);
+			console.log(finalist.id == user.id);
+			if (finalist.id === user.id) {
+				sessionStorage.setItem('inFinal', true);
+				window.location.href = `/onlinePong/?tournament=true`;
+
+				break;
+			}
 		}
 	}
 

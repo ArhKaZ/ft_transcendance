@@ -27,60 +27,27 @@ export function sleep(ms) {
     );
 }
 
-// let tokenRefreshInProgress = false;
-
-// async function checkTokenExpiry() {
-//     const accessExpiry = localStorage.getItem('access_expires');
-//     const refreshToken = localStorage.getItem('refresh_token');
-    
-//     if (!accessExpiry || !refreshToken) {
-//         redirectToLogin();
-//         return;
-//     }
-    
-//     // Check if access token is expired
-//     if (new Date(accessExpiry) < new Date()) {
-//         if (tokenRefreshInProgress) return;
-//         tokenRefreshInProgress = true;
-        
-//         try {
-//             const response = await fetch('/api/refresh_token/', {
-//                 method: 'POST',
-//                 headers: {
-//                     'Content-Type': 'application/json',
-//                 },
-//                 body: JSON.stringify({
-//                     refresh_token: refreshToken
-//                 })
-//             });
-            
-//             if (response.ok) {
-//                 const data = await response.json();
-//                 localStorage.setItem('access_token', data.access_token);
-//                 localStorage.setItem('access_expires', data.access_expires);
-//                 tokenRefreshInProgress = false;
-//                 return;
-//             }
-//         } catch (error) {
-//             console.error('Token refresh failed:', error);
-//         }
-        
-//         // If refresh failed, clear tokens and redirect
-//         localStorage.removeItem('access_token');local
-//         localStorage.removeItem('refresh_token');
-//         localStorage.removeItem('access_expires');
-//         redirectToLogin();
-//     }
-// }
-
-// function redirectToLogin() {
-//     window.location.href = '/user/login/';
-// }
-
-// // Call this before making API requests
-// async function ensureValidToken() {
-//     await checkTokenExpiry();
-// }
+export async function getUserFromBack() {
+    try {
+        await ensureValidToken();
+        const response = await fetch('/api/get-my-info/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+            },
+            credentials: 'include',
+        });
+        if (!response.ok) {
+            handleErrors({message: 'You need to be logged before playing'});
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        handleErrors({message: 'You need to be logged before playing'});
+    }
+}
 
 // Add these helper functions
 export async function ensureValidToken() {
