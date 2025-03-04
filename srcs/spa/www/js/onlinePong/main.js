@@ -138,6 +138,7 @@ function setupWebSocket(user, infos) {
 				player_name: currentPseudo,
 				player_avatar: user.avatar,
 				create: infos.create,
+				tournament_code: sessionStorage.getItem('tournament_code'),
 				... (infos.create && {
 					opponent: {
 						id: infos.opp_id,
@@ -282,13 +283,11 @@ async function handleWebSocketMessage(e) {
 		
 		case 'no_opp':
 			if (inTournament && inFinal) {
-				console.log('in t and final');
 				joinWinner();
 				window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
 				break;
 			}
 			else if (inTournament) {
-				console.log('in t and final');
 				joinFinalist();
 				sessionStorage.setItem('asWin', true);
 				window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;

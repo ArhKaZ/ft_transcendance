@@ -158,10 +158,13 @@ class TournamentGame {
 		if (this.checkLeft(this.tournamentCode) == true) {
 			window.location.href = `/home/`;
 		}
-		console.log("final status in the init ", sessionStorage.getItem('finalDone'));
 		const data = await this.loadEnd();
-		if (data.winner.length !== 0)
+		if (data.winner.length !== 0) {
+			sessionStorage.removeItem('asWin');
+			sessionStorage.removeItem('tournament_code');
+			sessionStorage.removeItem('finalDone');
 			return;
+		}
 		if (!sessionStorage.getItem('asWin')) {
 			console.log("premiere game");
 			// await this.loadPlayers();

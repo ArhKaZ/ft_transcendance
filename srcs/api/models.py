@@ -132,6 +132,18 @@ class Tournament(models.Model):
         self.all_matches.add(final)
         self.save()
 
+    def all_matches_finished(self):
+        regular_matches = self.all_matches.filter(is_final=False)
+
+        all_finished = True
+
+        for match in regular_matches:
+            if match.winner is None:
+                all_finished = False
+                break
+        
+        return all_finished
+
     def __str__(self):
         return f"Tournament {self.code} - Players: {self.players.count()}/4 - Started: {self.started}"
 

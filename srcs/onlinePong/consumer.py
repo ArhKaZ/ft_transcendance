@@ -9,7 +9,7 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.cache import cache, caches
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from api.models import MyUser, MatchHistory
+from api.models import MyUser, MatchHistory, Tournament
 
 from .ball import Ball
 from .player import Player
@@ -31,6 +31,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 		self._countdown_task = None
 		self.no_block_task = None
 		self.stop_waiting = False
+		self.tournament_code = None
 
 	async def connect(self):
 		self.player_id = int(self.scope['url_route']['kwargs']['player_id'])
@@ -129,6 +130,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 # GAME INIT
 	async def handle_tournament_game(self, data):
 		self.username = data['player_name']
+		self.tournament_code = data['tournament_code']
 		if data.get('create') == False:
 			await asyncio.sleep(0.1)
 			player_game_key = f'player_current_game_{self.player_id}'
@@ -141,7 +143,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 				if self.stop_waiting:
 					return
 				await self.notify_need_wait(data)
-				if self.no_block_task == None:
+				tournament = Tournament.objects.get(code=self.tournament_code)
+				if self.no_block_task == None and tournament.all_matches_finished():
 					self.no_block_task = asyncio.create_task(self._player_not_lock_in_game_tournament())
 			return
 		player_info = {
@@ -203,6 +206,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 		asyncio.create_task(self._watch_game_events())
 
 	async def _player_not_lock_in_game_tournament(self):
+		print('launch timer')
 		begin = time.time()
 		try:
 			while True:
@@ -475,6 +479,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 			'player_avatar': data['player_avatar'],
 			'create': data['create'],
 			'opponent': opp,
+			'tournament_code': data['tournament_code']
 		}
 		await self.send(text_data=json.dumps(message))
 
