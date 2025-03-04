@@ -9,6 +9,7 @@ class Game:
 		self.group_name = f"wizard_duel_game_{self.game_id}"
 		self.p1 = Player(1, player_info, game_id, p1_ready)
 		self.p2 = Player(2, opponent_info, game_id, p2_ready)
+		self.stocked = False
 
 	async def save_to_cache(self):
 		cache_key = f'wizard_duel_game_{self.game_id}'
@@ -30,7 +31,8 @@ class Game:
 			'p1_ligue_points': self.p1.ligue_points,
 			'p2_ligue_points': self.p2.ligue_points,
 			'status': self.status,
-			'group_name': self.group_name
+			'group_name': self.group_name,
+			'stocked': self.stocked,
 		}
 
 	def get_game_id(self):
@@ -112,6 +114,7 @@ class Game:
 		if not newGame or not self.p1 or not self.p2:
 			return 
 		self.status = newGame['status']
+		self.stocked = newGame['stocked']
 		await self.update_players()
 
 	async def update_status_game(self):
@@ -136,3 +139,11 @@ class Game:
 		elif self.p2.nb_round_no_play >= 4:
 			return {"p_id": self.p1.id, "p2_id": None, "p_name": self.p1.username, "p2_name": None}
 		return None
+	
+	async def is_stocked(self):
+		await self.update_game()
+		return self.stocked
+	
+	async def set_stocked(self):
+		self.stocked = True
+		await self.save_to_cache()

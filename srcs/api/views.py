@@ -19,6 +19,7 @@ from rest_framework.permissions import AllowAny
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.db.models import Q
 from .serializers import UserInfoSerializer, TournamentMatchSerializer
+from django.core.exceptions import ValidationError
 from .models import Tournament, TournamentMatch
 from .blockchain_storage import record_match
 import re
@@ -671,7 +672,7 @@ def get_match_opponent(request, tournament_code):
 			opponent = match_data['player2'] if match_data['player1']['id'] == user.id else match_data['player1']
 			return Response({
 				'opp_id': opponent['id'],
-				'opp_name': opponent['username'],
+				'opp_name': opponent['pseudo'],
 				'opp_avatar': opponent['avatar'],
 				'create': create
 			})

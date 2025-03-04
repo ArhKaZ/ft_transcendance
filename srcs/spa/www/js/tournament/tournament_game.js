@@ -158,8 +158,13 @@ class TournamentGame {
 		if (this.checkLeft(this.tournamentCode) == true) {
 			window.location.href = `/home/`;
 		}
-		console.log("final status in the init ", sessionStorage.getItem('finalDone'));
-		await this.loadEnd();
+		const data = await this.loadEnd();
+		if (data.winner.length !== 0) {
+			sessionStorage.removeItem('asWin');
+			sessionStorage.removeItem('tournament_code');
+			sessionStorage.removeItem('finalDone');
+			return;
+		}
 		if (!sessionStorage.getItem('asWin')) {
 			console.log("premiere game");
 			// await this.loadPlayers();
@@ -193,6 +198,7 @@ class TournamentGame {
 			const data = await response.json();
 			console.log("JSON Final du Tournoi :", JSON.stringify(data, null, 2));
 			this.displayTournamentInfo(data);
+			return data;
 			// this.populatePlayers(data);
 		} catch (error) {
 			this.displayError('Error loading tournament data');

@@ -270,7 +270,7 @@ function handleErrors(data) {
 
 	if (!errorContainer.classList.contains('hidden'))
 		return;
-
+	console.log('pass return');
 	window.removeEventListener('beforeunload', handleQuitGame);
 	const infoMain = document.getElementById('info-main-player');
 	const infop1 = document.getElementById('infoP1');
@@ -294,6 +294,7 @@ function handleErrors(data) {
 		buttonStart.classList.add('hidden');
 	if (!canvas.classList.contains('hidden'))
 		canvas.classList.add('hidden');
+	console.log('countdown');
 	if (!countDown.classList.contains('hidden'))
 	{
 		if (currentCountdown)
@@ -309,7 +310,11 @@ function handleErrors(data) {
 
 	errorContainer.classList.remove('hidden');
 	errorMessage.innerHTML += data.message;
-	if (data.type === 'error' || data.game_status === 'WAITING')
+	console.log('debug:');
+	console.log(data.type === 'error');
+	console.log(data.game_status);
+	console.log(data.lose_lp);
+	if (data.type === 'error' || data.game_status === 'WAITING' || data.lose_lp === false)
 		lpMessage.classList.add('hidden');
 }
 
