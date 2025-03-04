@@ -2,15 +2,7 @@ import { getCSRFToken } from '/js/utils.js';
 import { ensureValidToken } from '/js/utils.js';
 
 const divFriends = document.getElementById("Friends");
-var addbtn = document.getElementById('add-button');
 
-if (addbtn) {
-    addbtn.addEventListener('click', async function (event) {
-        event.preventDefault();
-        console.log('clicked');
-        await addFriend();
-    });
-}
 
 document.getElementById('logout-button').addEventListener('click', async () => {
     try {

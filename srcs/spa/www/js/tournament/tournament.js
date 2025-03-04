@@ -322,6 +322,7 @@ document.getElementById('return-button').addEventListener('click', () => {
         // Show confirmation dialog
         if (confirm('Do you want to quit the current tournament?')) {
             window.tournamentManager.quitTournament(true);
+            window.location.href = "/pong/";
         }
     } else {
         // Regular back navigation if not in a tournament
