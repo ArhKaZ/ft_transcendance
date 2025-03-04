@@ -7,7 +7,6 @@ var addbtn = document.getElementById('add-button');
 if (addbtn) {
     addbtn.addEventListener('click', async function (event) {
         event.preventDefault();
-        console.log('clicked');
         await addFriend();
     });
 }
@@ -43,12 +42,10 @@ document.getElementById('logout-button').addEventListener('click', async () => {
 });
 
 document.getElementById('return-button').addEventListener('click', () => {
-    console.log("return click");
     window.history.back();
 });
 
 async function fetchFriends() {
-    console.log("fetching friends");
     try {
         await ensureValidToken();
         const response = await fetch('/api/get_friends/', {
@@ -102,12 +99,11 @@ async function fetchFriends() {
                 updateFriendStatus(friend.username);
             });
 
-            console.log("get friends call worked");
         } else {
-            console.log("Erreur lors de la récupération de la liste d'amis :", response.status);
+            console.error("Erreur lors de la récupération de la liste d'amis :", response.status);
         }
     } catch (error) {
-        console.log("get friends call failed", error);
+        console.error("get friends call failed", error);
     }
 }
 
@@ -124,9 +120,7 @@ async function updateFriendStatus(username) {
         
         if (response.ok) {
             const data = await response.json();
-            const isOnline = data.is_online;
-            console.log(`${username} is ${isOnline ? 'online' : 'offline'}`);
-            
+            const isOnline = data.is_online;            
             const statusIndicators = document.querySelectorAll(`.status-indicator[data-username="${username}"]`);
             
             statusIndicators.forEach(indicator => {
@@ -143,7 +137,6 @@ const addmsg = document.getElementById('add-friend-msg');
 
 async function addFriend() {
     const friendName = document.getElementById('friend_name').value;
-    console.log(friendName);
     try {
         await ensureValidToken();
         const response = await fetch('/api/add_friend/', {
@@ -159,30 +152,27 @@ async function addFriend() {
         });
 
         if (response.ok) {
-            console.log(`Friend request to ${friendName} sent`);
             window.location.reload();
         } else {
-            // Check content type before parsing
+            
             const contentType = response.headers.get("content-type");
             if (contentType && contentType.indexOf("application/json") !== -1) {
                 const data = await response.json();
                 const errorMessage = data.error || `Erreur lors de l'ajout d'un ami : ${response.status}`;
                 displayAddFriendError(errorMessage);
             } else {
-                // Handle non-JSON response
+                
                 const textResponse = await response.text();
                 displayAddFriendError(`Server returned an invalid response. Status: ${response.status}`);
-                console.error("Non-JSON response:", textResponse.substring(0, 100)); // Log the first 100 chars
+                console.error("Non-JSON response:", textResponse.substring(0, 100)); 
             }
         }
     } catch (error) {
         displayAddFriendError(`Erreur lors de l'ajout d'un ami: ${error.message}`);
-        console.log("add friend call failed", error);
     }
 }
 
 async function fetchPendingFriend() {
-    console.log("fetching pending friends");
     try {
         await ensureValidToken();
         const response = await fetch('/api/get_pending_friends/', {
@@ -196,7 +186,7 @@ async function fetchPendingFriend() {
         if (response.ok) {
             const data = await response.json();
             
-            // Create the pending-msg element if it doesn't exist
+            
             let pendingmsg = document.getElementById('pending-msg');
             if (!pendingmsg) {
                 pendingmsg = document.createElement('h2');
@@ -205,19 +195,19 @@ async function fetchPendingFriend() {
                 pendingList.parentNode.insertBefore(pendingmsg, pendingList);
             }
             
-            // Set the header text
+            
             pendingmsg.innerText = data.length > 0 ? "Pending Friend Requests" : "No pending friend requests";
             
-            // Get the container for pending friends
+            
             const pendingList = document.getElementById('pending-list');
             pendingList.innerHTML = '';
             
-            // Create cards for each pending friend
+            
             data.forEach(friend => {
                 const friendCard = document.createElement('div');
                 friendCard.classList.add('friend-card');
             
-                // Redirect to profile on click
+                
                 friendCard.addEventListener('click', () => {
                     window.location.href = `/user/profile/${friend.username}/`;
                 });
@@ -234,22 +224,22 @@ async function fetchPendingFriend() {
                 friendName.classList.add('friend-name');
                 friendName.textContent = friend.username;
             
-                // Create accept button (which now sends a new request)
+                
                 const acceptButton = document.createElement('button');
                 acceptButton.textContent = "Accept";
                 acceptButton.classList.add('accept-button');
                 acceptButton.addEventListener('click', (event) => {
-                    event.stopPropagation(); // Prevent card click from triggering
+                    event.stopPropagation(); 
                     sendFriendRequestToPendingUser(friend.username);
                 });
             
-                // Create status indicator
+                
                 const statusIndicator = document.createElement('div');
                 statusIndicator.classList.add('status-indicator');
                 statusIndicator.classList.add('offline');
                 statusIndicator.dataset.username = friend.username;
             
-                // Append everything to the card
+                
                 friendInfo.appendChild(friendName);
                 friendCard.appendChild(avatar);
                 friendCard.appendChild(friendInfo);
@@ -257,20 +247,19 @@ async function fetchPendingFriend() {
                 friendCard.appendChild(statusIndicator);
                 pendingList.appendChild(friendCard);
             
-                // Update status indicator
+                
                 updateFriendStatus(friend.username);
             });
             
-            console.log("get pending friends call worked");
         } else {
-            console.log("Erreur lors de la récupération de la liste d'amis en attente :", response.status);
+            console.error("Erreur lors de la récupération de la liste d'amis en attente :", response.status);
         }
     } catch (error) {
-        console.log("get pending friends call failed", error);
+        console.error("get pending friends call failed", error);
     }
 }
 
-// Function to accept a friend request
+
 async function sendFriendRequestToPendingUser(username) {
     try {
         await ensureValidToken();
@@ -282,13 +271,12 @@ async function sendFriendRequestToPendingUser(username) {
                 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
             },
             body: JSON.stringify({
-                'friend_name': username,  // Send a new friend request
+                'friend_name': username,  
             })
         });
 
         if (response.ok) {
-            console.log(`Friend request sent to ${username}`);
-            window.location.reload(); // Refresh to update UI
+            window.location.reload(); 
         } else {
             const contentType = response.headers.get("content-type");
             if (contentType && contentType.indexOf("application/json") !== -1) {
@@ -302,7 +290,7 @@ async function sendFriendRequestToPendingUser(username) {
         }
     } catch (error) {
         displayAddFriendError(`Error sending friend request: ${error.message}`);
-        console.log("Friend request sending failed", error);
+        console.error("Friend request sending failed", error);
     }
 }
 

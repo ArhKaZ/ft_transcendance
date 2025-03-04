@@ -21,16 +21,22 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
             displayMessage(data.message, 'success');
             setTimeout(() => window.location.href = '/home/', 2000);
         } else {
-            displayMessage(data.message || 'An error occurred', 'error');
+            let errorMessage = 'An error occurred';
+            if (data.errors) {
+                const errorParts = Object.entries(data.errors).map(
+                    ([field, messages]) => `'${field}': '${messages[0]}'`
+                );
+                errorMessage = `Error:<br>${errorParts.join('<br>')}`;
+            }
+            displayMessage(errorMessage, 'error');
         }
     } catch (error) {
-        displayMessage('A network error occurred: ' + error.message, 'error');
+        displayMessage('A network error occurred.', 'error');
         console.error('Error details:', error);
     }
 });
 
 document.getElementById('erase-button').addEventListener('click', async () => {
-	console.log('Erasing...');
     try {
         await ensureValidToken();
         const response = await fetch('/api/erase/', {
@@ -44,7 +50,6 @@ document.getElementById('erase-button').addEventListener('click', async () => {
         sessionStorage.removeItem('access_token');
 
         if (response.ok) {
-            console.log('Erased successfully');
         } else {
             console.error('Error erasing:', response);
         }
@@ -66,7 +71,7 @@ document.getElementById('return-button').addEventListener('click', () => {
 function displayMessage(message, type) {
     const messageDiv = document.getElementById('message');
     if (messageDiv) {
-        messageDiv.textContent = message;
+        messageDiv.innerHTML = message;
         messageDiv.style.color = type === 'error' ? 'red' : 'green';
     } else {
         console.error('Message div not found');

@@ -14,12 +14,12 @@ body {
 
 #messageDiv {
   position: absolute;
-  top: 20px;  /* Ajustez selon la position désirée */
+  top: 20px; 
   left: 50%;
   transform: translateX(-50%);
-  width: 90%;  /* ou la largeur souhaitée */
+  width: 90%; 
   text-align: center;
-  z-index: 100;  /* pour qu'il soit au-dessus des autres éléments */
+  z-index: 100; 
 }
 body::before {
     content: "";

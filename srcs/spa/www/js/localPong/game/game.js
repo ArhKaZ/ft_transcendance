@@ -107,7 +107,6 @@ class Game {
         this.P2.draw(this.context, this.colorP2);
         this.ball.draw(this.context);
         this.isStart = true;
-        console.log('game as start');
     }
 
     stop() {

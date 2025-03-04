@@ -62,9 +62,6 @@ async function getInfoMatchTournament(user) {
 			},
 			credentials: 'include',
 		});
-		if (!response.ok) {
-			console.log(`Error get opponent : ${response.error}`);
-		}
 		const data = await response.json();
 		return data;
 	} catch (error) {
@@ -84,9 +81,6 @@ async function getInfoFinale(user) {
 			},
 			credentials: 'include',
 		});
-		if (!response.ok) {
-			console.log(`Error get opponent : ${response.error}`);
-		}
 		const data = await response.json();
 		return data;
 	} catch (error) {
@@ -105,7 +99,6 @@ async function init() {
 	}
 	else if (inTournament) {
 		infos = await getInfoMatchTournament(user);
-		console.log('info : ', infos);
 	}
 
 	displayWhenLoad(user, inTournament);
@@ -124,7 +117,6 @@ function setupWebSocket(user, infos) {
 	const socket = new WebSocket(`wss://${currentUrl}/ws/onlinePong/${id}/`);
 	
 	socket.onopen = () => {
-		console.log("WebSocket connected");
 		if (inTournament && infos) {
 			let objToSend = {
 				action: 'tournament',
@@ -156,7 +148,6 @@ function setupWebSocket(user, infos) {
 	};
 
 	socket.onerror = (error) => console.error("WebSocket error:", error.type);
-	socket.onclose = () => console.log("WebSocket closed");
 
 	window.addEventListener("resize", () => resizeCanvasGame());
 
@@ -409,7 +400,6 @@ async function joinFinalist() {
 		}
 	}
 	catch (error) {
-		console.log("erreur dans les finalist");
 		console.error('Error:', error);
 	}
 }
@@ -444,26 +434,10 @@ function handleGameFinish(game, winningId, opponentName = null) {
 			game.displayWinner(winningId);
 		}, 500);
 	}
-	console.log('ids', currentPlayerId, winningId);
 	const asWin = currentPlayerId === parseInt(winningId);
-	// fetch('/api/add_match/', {
-	// 	method: 'POST',
-	// 	headers: {
-	// 		'Content-Type': 'application/json',
-	// 		'X-CSRFToken': getCSRFToken(),
-	// 		'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-	// 	},
-	// 	credentials: 'include',
-	// 	body: JSON.stringify({
-	// 		'type': 'Pong',
-	// 		'opponent_name': opponentName,
-	// 		'won': asWin
-	// 	})
-	// }).then(data => {
 	if (inTournament && inFinal == false) {
 		sessionStorage.setItem('asWin', asWin);
 		if (sessionStorage.getItem('asWin') == "true") {
-			console.log('join finalist');
 			joinFinalist();
 		}
 		btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
@@ -476,8 +450,6 @@ function handleGameFinish(game, winningId, opponentName = null) {
 		sessionStorage.setItem('asWin', asWin);
 		if (sessionStorage.getItem('asWin') == "true")
 			joinWinner();
-		// sessionStorage.removeItem('asWin');
-		// sessionStorage.removeItem('tournament_code');
 		sessionStorage.setItem('finalDone', true);
 		btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
 		btnBack.innerText = "Back to Tournament";

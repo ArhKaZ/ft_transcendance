@@ -44,7 +44,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 			print(f"Error during disconnect: {e}")
 
 	async def _handle_disconnect(self, close_code):
-		print('in handle_disconnect')
 		if self.game_id and self.game and not self.game.events['game_finished'].is_set():
 			await pong_server.cleanup_player(self.player_id, self.username, self.game_id, False)
 		await self.cleanup()
@@ -145,7 +144,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 		}
 
 		if opponent_info is None:
-			print('Error')
 			return
 		self.game, self.game_id = await pong_server.initialize_game(player_info, opponent_info)
 		if self.game:
@@ -325,8 +323,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 					break
 				if message['type'] == 'message':
 					await self.handle_redis_message(message['data'])
-		except asyncio.CancelledError:
-			print('Redis listenener cancelled')
 		except Exception as e:
 			print(f"Error in redis listener: {e}")
 			if not self.is_cleaning_up:

@@ -24,7 +24,7 @@ document.getElementById('logout-button').addEventListener('click', async () => {
         });
 
         if (response.ok) {
-            // Clear all client-side storage
+            
             sessionStorage.removeItem('access_token');
             sessionStorage.removeItem('refresh_token');
             sessionStorage.removeItem('access_expires');
@@ -58,7 +58,6 @@ const response = await fetch('/api/get-my-info/', {
 
 if (response.ok) {
 	const data = await response.json();
-	console.log(data);
 
 	const loginbtn = document.getElementById('login-button');
 	const registerbtn = document.getElementById('register-button');
@@ -85,13 +84,13 @@ if (response.ok) {
 
 } else {
 	const bottomBtns = document.getElementById('bottom-buttons')
-	// const localbtn = document.getElementById('local-button');
+	
 	const gamebtn = document.getElementById('Game-button');
 	const historybtn = document.getElementById('history-button');
 	const logoutbtn = document.getElementById('logout-button');
 
-	// const editbtn = document.getElementById('edit-button');
-	// const pixelbtn = document.getElementById('pixel-button');
+	
+	
 
 
 	const friendsbtn = document.getElementById('friend-button');
@@ -103,7 +102,7 @@ if (response.ok) {
 	searchInput.style.display = 'none';
 	searchResults.style.display = 'none';
 	bottomBtns.style.display = 'none';
-	// localbtn.style.display = 'none';
+	
 	gamebtn.style.display = 'none';
 	historybtn.style.display = 'none';
 	logoutbtn.style.display = 'none';

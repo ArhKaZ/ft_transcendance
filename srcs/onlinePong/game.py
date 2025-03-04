@@ -48,13 +48,10 @@ class PongGame:
 			self.status = 'CANCELLED'
 			self.events['game_cancelled'].set()
 			if not self.p1:
-				print('not p1')
 				id_winner = self.p2.id
 			elif not self.p2:
-				print('not p2')
 				id_winner = self.p1.id
 			else:
-				print('got both')
 				id_winner = self.p1.id if self.p2.id == player_id else self.p2.id
 			channel_layer = get_channel_layer()
 			await channel_layer.group_send(
@@ -100,7 +97,6 @@ class PongGame:
 		try:
 			while (not self.events['game_cancelled'].is_set()
 				and not self.events['game_finished'].is_set()):
-				# start_time = time.time()  # ⏳ Début du chronomètre
 				if not self.events['ball_reset'].is_set():
 					await self.events['ball_reset'].wait()
 					continue
@@ -109,11 +105,7 @@ class PongGame:
 				if game_state:
 					for queue in self.ball_update_callbacks:
 						await queue.put(game_state)
-				# end_time = time.time()  # ⏱️ Fin du chronomètre
-				# print(f"Temps d'exécution : {end_time - start_time:.5f} secondes")
 				await asyncio.sleep(1/60)
-		except asyncio.CancelledError:
-			print("ball update task cancelled")
 		except Exception as e: 
 			print(f"Error in ball update task : {e}")
 		finally:
@@ -261,14 +253,3 @@ class PongGame:
 			self.p1.y = p1_data['y']
 		if p2_data:
 			self.p2.y = p2_data['y']
-
-	# async def game_finish(self):
-	# 	self.events['game_finished'].set()
-	# 	if self.ball_update_task:
-	# 		self.ball_update_task.cancel()
-	# 		try:
-	# 			await self.ball_update_task
-	# 		except asyncio.CancelledError:
-	# 			pass
-
-

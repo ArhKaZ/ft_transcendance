@@ -25,19 +25,19 @@ from django.urls import re_path
 
 app_name = 'backend'
 
-# urlpatterns = [
-#     path('admin/', admin.site.urls),
-# 	# path('', include('api.urls')),
-#     path('onlinePong/', include('onlinePong.urls')),
-# 	path('api/', include('api.urls')),
-# 	path('user/', include('user.urls')),
-# 	path('home/', views.main),
-# 	path('logged/', views.logged, name='logged'),
-# 	path('pixelPaws/', include('pixelPaws.urls')),
-# 	path('onlinePong/logged_get_user/', views.logged_get_user, name='logged_get_user'),
-# 	path('pixelPaws/logged_get_user/', views.logged_get_user, name='logged_get_user'),
-# 	# path('dj-rest-auth/', include('dj_rest_auth.urls'))
-# ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+
+
+
+
+
+
+
+
+
+
+
 from django.contrib import admin
 from django.conf.urls.static import static
 
@@ -46,7 +46,7 @@ urlpatterns = [
     path('api/', include('api.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-# Add the catch-all route AFTER the static patterns
+
 urlpatterns += [
     re_path(r'^.*', views.index),
 ]

@@ -114,7 +114,6 @@ function setupWebSocket(user) {
 	const socket = new WebSocket(`wss://${currentUrl}/ws/magicDuel/${id}/`);
 	
 	socket.onopen = () => {
-		console.log("WEBSOCKET CONNECTED");
 		currentInverval = setInterval(() => sendSearch(user), 2000);
 	}
 
@@ -124,10 +123,6 @@ function setupWebSocket(user) {
 
 	socket.onerror = (error) => {
 		console.error("Websocket error:", error);
-	};
-
-	socket.onclose = () => {
-		console.log("WEBSOCKET CLOSED");
 	};
 
 	return socket;
@@ -183,10 +178,6 @@ async function handleWebSocketMessage(event) {
 
 		case 'game_end':
 			handleGameFinish(data);
-			break;
-
-		case 'debug':
-			console.log(data.from);
 			break;
 
 		case 'game_cancel':
@@ -343,28 +334,6 @@ function handleNoPlay(data) {
 	handleErrors(data);
 }
 
-function sendMatchApi(winningId) {
-	// const opponentName = currentPlayerId === parseInt(currentGame.P1.id) ? currentGame.P2.name : currentGame.P1.name;
-    // const asWin = currentPlayerId === parseInt(winningId);
-    // fetch('/api/add_match/', {
-    //     method: 'POST',
-    //     headers: {
-    //         'Content-Type': 'application/json',
-    //         'X-CSRFToken': getCSRFToken(),
-    //         'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-    //     },
-    //     credentials: 'include',
-    //     body: JSON.stringify({
-    //         'type': 'magicDuel',
-    //         'opponent_name': opponentName,
-    //         'won': asWin
-    //     })
-    // }).then(response => response.json())
-    // .then(data => {
-    //     console.log('Match enregistrer ', data);
-    // }).catch(error => console.error(error));
-}
-
 function handleClick(choice) {
 	sendToBack({ action: 'attack', choice: choice, player_id: currentPlayerId });
 	currentGame.toggleButtons(false);
@@ -396,7 +365,6 @@ function handleRoundInteraction(data) {
 		const pTakeDmg = currentGame.P1.id === data.player_id ? currentGame.P2 : currentGame.P1;
 		pTakeDmg.playAnimationAttack(data.power);
 		setTimeout(() => {
-			console.log(data);
 			pTakeDmg.loosePv();
 			if (pTakeDmg.lifes === 0) 
 				pTakeDmg.playAnimationPlayer('Death');

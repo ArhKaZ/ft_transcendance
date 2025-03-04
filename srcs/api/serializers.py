@@ -7,7 +7,7 @@ from django.core.validators import MaxLengthValidator, MinLengthValidator
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True,
-        validators=[MinLengthValidator(8), MaxLengthValidator(128)]  # Example: Password length between 8 and 128 characters
+        validators=[MinLengthValidator(8), MaxLengthValidator(128)]  
     )
     
     class Meta:
@@ -16,13 +16,13 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True},
             'username': {
-                'validators': [MinLengthValidator(3), MaxLengthValidator(30)]  # Example: Username length between 3 and 30 characters
+                'validators': [MinLengthValidator(3), MaxLengthValidator(30)]  
             },
             'description': {
-                'validators': [MaxLengthValidator(500)]  # Example: Description max length of 500 characters
+                'validators': [MaxLengthValidator(500)]  
             },
             'pseudo': {
-                'validators': [MinLengthValidator(2), MaxLengthValidator(20)]  # Example: Pseudo length between 2 and 20 characters
+                'validators': [MinLengthValidator(2), MaxLengthValidator(20)]  
             },
         }
     

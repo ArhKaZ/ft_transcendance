@@ -11,7 +11,7 @@ class Router {
         this.rootElement = document.getElementById('app');
         this.loadedStylesheets = new Set();
         this.baseUrl = window.location.origin;
-        // Only add event listeners if this is the first instance
+        
         this.publicPaths = ['/home/', '/user/login/', '/user/add/', '/oauth_callback/'];
         window.addEventListener('popstate', this.handleLocation.bind(this));
         this.initLinks();
@@ -91,7 +91,6 @@ class Router {
         }
         
         if (!this.isPublicPath(path) && !this.isAuthenticated()) {
-            console.log('Unauthorized access, redirecting to login');
             window.history.pushState({}, '', '/user/login/');
             const loginRoute = this.routes['/user/login/'];
             const htmlContent = await loginRoute();
@@ -187,7 +186,6 @@ class Router {
             });
         
             if (!response.ok) {
-                console.log('User not authenticated, redirecting to /home/');
                 this.navigateTo('/home/');
                 return false;
             }
@@ -201,12 +199,12 @@ class Router {
 }
 
 
-// Route definitions with HTML files
+
 const routes = {
-    // '/': async () => {
-    //     router.navigateTo('/home/');
-    //     return '';
-    // },
+    
+    
+    
+    
 	'/home/': async () => {
     	const response = await fetch('/html/home.html');
     	return await response.text();
@@ -290,6 +288,6 @@ const routes = {
     },
 };
 
-// Router instantiation
+
 const router = new Router(routes);
 router.init();
