@@ -9,53 +9,70 @@ async function fetchHistory() {
 		const response = await fetch('/api/get_history/', {
 			method: 'GET',
 			headers: {
-				'Content-type' : 'application/json',
-				'Authorization' : `Bearer ${sessionStorage.getItem('access_token')}`,
+				'Content-type': 'application/json',
+				'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
 			}
 		});
-		
+
 		if (response.ok) {
-			console.log("get history call worked");
+			console.log("Get history call worked");
 			const data = await response.json();
 
 			const sortedData = data.reverse();
-			let historyHtml = `
-				<table class="history-table">
-					<thead>
-						<tr>
-							<th>Date</th>
-							<th>Adversaire</th>
-							<th>Mode</th>
-							<th>Résultat</th>
-						</tr>
-					</thead>
-					<tbody>
+			const table = document.createElement("table");
+			table.classList.add("history-table");
+
+			// Create the header
+			const thead = document.createElement("thead");
+			thead.innerHTML = `
+				<tr>
+					<th>Date</th>
+					<th>Opponent</th>
+					<th>Mode</th>
+					<th>Result</th>
+				</tr>
 			`;
-			
+			table.appendChild(thead);
+
+			// Create the body
+			const tbody = document.createElement("tbody");
 			sortedData.forEach(item => {
-				historyHtml += `
-					<tr>
-						<td>${item.date}</td>
-						<td>${item.opponent_name}</td>
-						<td>${item.type}</td>
-						<td>${item.won ? "Gagné" : "Perdu"}</td>
-					</tr>
-				`;
+				const tr = document.createElement("tr");
+
+				const tdDate = document.createElement("td");
+				tdDate.textContent = item.date;
+
+				const tdOpponent = document.createElement("td");
+				tdOpponent.textContent = item.opponent_name;
+
+				const tdMode = document.createElement("td");
+				tdMode.textContent = item.type;
+
+				const tdResult = document.createElement("td");
+				tdResult.textContent = item.won ? "Won" : "Lost";
+
+				tr.appendChild(tdDate);
+				tr.appendChild(tdOpponent);
+				tr.appendChild(tdMode);
+				tr.appendChild(tdResult);
+
+				tbody.appendChild(tr);
 			});
-			
-			historyHtml += `
-					</tbody>
-				</table>
-			`;
-			
-			divHistory.innerHTML = historyHtml;
+			table.appendChild(tbody);
+
+			// Safely append to the div
+			const divHistory = document.getElementById("divHistory");
+			divHistory.innerHTML = ""; // Clear previous content safely
+			divHistory.appendChild(table);
+
 		} else {
-			console.log("Erreur lors de la récupération de l'historique :", response.status);
+			console.log("Error fetching history:", response.status);
 		}
 	} catch (error) {
-		console.log("history call failed", error);
+		console.log("History call failed", error);
 	}
 }
+
 
 document.getElementById('return-button').addEventListener('click', () => {
     window.location.href = "/home/"; 
