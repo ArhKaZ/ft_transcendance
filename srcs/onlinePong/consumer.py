@@ -50,10 +50,13 @@ class PongConsumer(AsyncWebsocketConsumer):
 	async def _handle_disconnect(self, close_code):
 		print('in handle_disconnect')
 		if self.game_id and self.game and not self.game.events['game_finished'].is_set():
-			if not await pong_server.game_is_stocked(self.game_id) and self.game.p1 and self.game.p2:
-				winner_user, loser_user = await self.get_players_users(True)
-				if await self.update_stats_and_create_matches(winner_user, loser_user, True):
-					await pong_server.stock_game(self.game_id)
+			if self.game_id not in pong_server._game_locks:
+				pong_server._game_locks[self.game_id] = asyncio.Lock()
+				async with pong_server._game_locks[self.game_id]:
+					if not await pong_server.game_is_stocked(self.game_id) and self.game.p1 and self.game.p2:
+						winner_user, loser_user = await self.get_players_users(True)
+						if await self.update_stats_and_create_matches(winner_user, loser_user, True):
+							await pong_server.stock_game(self.game_id)
 			await pong_server.cleanup_player(self.player_id, self.username, self.game_id, False)
 		await self.cleanup()
 
@@ -134,23 +137,24 @@ class PongConsumer(AsyncWebsocketConsumer):
 		self.in_tournament = True
 		self.username = data['player_name']
 		self.tournament_code = data['tournament_code']
+
 		if data.get('create') == False:
 			await asyncio.sleep(0.1)
-			player_game_key = f'player_current_game_{self.player_id}'
-			current_game = await sync_to_async(cache.get)(player_game_key)
+			current_game = await pong_server.is_in_game(self.player_id)
 			if current_game:
-				if self.no_block_task:
-					self.no_block_task.cancel()
 				await self.handle_find_game({"game_id": current_game})
+				# if self.no_block_task:
+				# 	self.no_block_task.cancel()
 			else:
-				if self.stop_waiting:
-					return
+				# if self.stop_waiting:
+				# 	return
 				await self.notify_need_wait(data)
-				tournament = await sync_to_async(Tournament.objects.get)(code=self.tournament_code)
-				all_matches_finished = await sync_to_async(tournament.all_matches_finished)()
-				if self.no_block_task == None and all_matches_finished:
-					self.no_block_task = asyncio.create_task(self._player_not_lock_in_game_tournament())
+				# tournament = await sync_to_async(Tournament.objects.get)(code=self.tournament_code)
+				# all_matches_finished = await sync_to_async(tournament.all_matches_finished)()
+				# if self.no_block_task == None and all_matches_finished:
+				# 	self.no_block_task = asyncio.create_task(self._player_not_lock_in_game_tournament())
 			return
+		
 		player_info = {
 			'id': self.player_id,
 			'username': data['player_name'],
@@ -169,7 +173,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 		if opponent_info is None:
 			return
-		self.game, self.game_id = await pong_server.initialize_game(player_info, opponent_info)
+		self.game, self.game_id = await pong_server.initialize_game(True, player_info, opponent_info)
 		if self.game:
 			await self._setup_game()
 
@@ -191,7 +195,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 		}
 		self.username = data['player_name']
 
-		self.game, self.game_id = await pong_server.initialize_game(player_info)
+		self.game, self.game_id = await pong_server.initialize_game(False, player_info)
 		if self.game:
 			await self._setup_game()
 		else:
@@ -283,10 +287,14 @@ class PongConsumer(AsyncWebsocketConsumer):
 		elif not self.game.p2.ready:
 			id = self.game.p2.id
 			username = self.game.p2.username
-
-		winner_user, loser_user = await self.get_players_users(True)
-		if await self.update_stats_and_create_matches(winner_user, loser_user, True):
-			await pong_server.stock_game(self.game_id)
+		
+		if self.game_id not in pong_server._game_locks:
+				pong_server._game_locks[self.game_id] = asyncio.Lock()
+				async with pong_server._game_locks[self.game_id]:
+					if not await pong_server.game_is_stocked(self.game_id) and self.game.p1 and self.game.p2:
+						winner_user, loser_user = await self.get_players_users(True)
+						if await self.update_stats_and_create_matches(winner_user, loser_user, True):
+							await pong_server.stock_game(self.game_id)
 		await pong_server.cleanup_player(id, username, self.game_id, is_end)
 
 # READY 
@@ -387,25 +395,28 @@ class PongConsumer(AsyncWebsocketConsumer):
 		await self.notify_score_update([self.game.p1.score, self.game.p2.score], p_as_score)
 
 	async def handle_game_finish(self, data):
-		if await pong_server.game_is_stocked(self.game_id):
-			return
-		
-		winning_session = data.decode().split('_')[-1]
-	
-		# Get winner and loser from game logic
-		winner_user, loser_user = await self.get_players_users(False)
+		if self.game_id not in pong_server._game_locks:
+				pong_server._game_locks[self.game_id] = asyncio.Lock()
+				async with pong_server._game_locks[self.game_id]:
+					if await pong_server.game_is_stocked(self.game_id):
+						return
+					
+					winning_session = data.decode().split('_')[-1]
+				
+					# Get winner and loser from game logic
+					winner_user, loser_user = await self.get_players_users(False)
 
-		# Update stats and create match history
-		await self.update_stats_and_create_matches(winner_user, loser_user, False)
+					# Update stats and create match history
+					await self.update_stats_and_create_matches(winner_user, loser_user, False)
 
-		await pong_server.stock_game(self.game_id)
+					await pong_server.stock_game(self.game_id)
 
-		# Existing cleanup logic
-		self.game.status = 'FINISHED'
-		await self.game.save_to_cache()
-		await pong_server.cleanup_player(self.player_id, self.username, self.game_id, True)
-		await self.send_game_finish(winning_session)
-		await self.cleanup()
+					# Existing cleanup logic
+					self.game.status = 'FINISHED'
+					await self.game.save_to_cache()
+					await pong_server.cleanup_player(self.player_id, self.username, self.game_id, True)
+					await self.send_game_finish(winning_session)
+					await self.cleanup()
 
 	@database_sync_to_async
 	def get_players_users(self, p_is_quitting):
@@ -454,27 +465,31 @@ class PongConsumer(AsyncWebsocketConsumer):
 		if self.in_tournament and self.tournament_code:
 			try:
 				tournament = Tournament.objects.get(code=self.tournament_code)
-	
+				print(f"in add winner: {winner}, {loser}")
+				for match in tournament.display_matches():
+					print(match)
 				if self.is_final_match:
-					# print(f'in final winner : {winner}')
+					print(f'pass in final_match')
 					# Handle tournament winner
-					tournament.add_winner(winner)
 					tournament.set_winner_for_a_match(winner.id)
 					tournament.started = False  # Mark tournament as completed
-					tournament.save()
+					for match in tournament.display_matches():
+						print(match)
 				else:
 					# Handle finalist progression
-					# print(f'not final add winner {winner}')
-					tournament.add_finalist(winner)
+					print(f'pass in not final')
 					tournament.set_winner_for_a_match(winner.id)
+					tournament.add_finalist(winner)
 	
 					# Check if we have 2 finalists to create final match
 					if tournament.finalist.count() == 2:
-						# print('final is complete create it')
+						print('final is complete create it')
 						finalists = list(tournament.finalist.all())
 						tournament.create_final(finalists[0], finalists[1])
 	
 				tournament.save()
+				for match in tournament.display_matches():
+					print(match)
 			except Tournament.DoesNotExist:
 				print(f"Tournament {self.tournament_code} not found")
 	

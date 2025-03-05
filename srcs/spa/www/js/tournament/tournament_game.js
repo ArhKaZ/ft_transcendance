@@ -51,7 +51,7 @@ class TournamentGame {
 				sessionStorage.removeItem('asWin');
 				sessionStorage.removeItem('tournament_code');
 				sessionStorage.removeItem('finalDone');
-				
+				sessionStorage.removeItem('inFinal');
 				// Redirect directly to home page
 				window.location.href = '/home/';
 			} else {
@@ -81,6 +81,7 @@ class TournamentGame {
 			sessionStorage.removeItem('asWin');
 			sessionStorage.removeItem('tournament_code');
 			sessionStorage.removeItem('finalDone');
+			sessionStorage.removeItem('inFinal');
 			
 			// Force redirect to home
 			window.location.href = '/home/';
@@ -130,6 +131,7 @@ class TournamentGame {
 		sessionStorage.removeItem('asWin');
 		sessionStorage.removeItem('tournament_code');
 		sessionStorage.removeItem('finalDone');
+		sessionStorage.removeItem('inFinal');
 		
 		try {
 			console.log("Sending forfeit request to API");
@@ -162,8 +164,10 @@ class TournamentGame {
 			window.location.href = `/home/`;
 		}
 		const data = await this.loadEnd();
-		if (data.winner.length !== 0) {
+		if (sessionStorage.getItem('finalDone')) {
+			console.log('tournoi fini');
 			sessionStorage.removeItem('asWin');
+			sessionStorage.removeItem('inFinal');
 			sessionStorage.removeItem('tournament_code');
 			sessionStorage.removeItem('finalDone');
 			return;
@@ -192,7 +196,6 @@ class TournamentGame {
 	}
 
 	verifUserInFinal(data) {
-		console.log('ccc')
 		for (const finalist of data.finalists) {
 			console.log(finalist);
 			console.log(user);
@@ -200,7 +203,6 @@ class TournamentGame {
 			if (finalist.id === user.id) {
 				sessionStorage.setItem('inFinal', true);
 				window.location.href = `/onlinePong/?tournament=true`;
-
 				break;
 			}
 		}

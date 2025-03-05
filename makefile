@@ -6,7 +6,7 @@ start:
 		docker compose -f $(NAME) up --build 
 
 logs:
-		docker compose -f $(NAME) logs --follow 
+		docker compose -f $(NAME) logs --follow django
 
 clear:
 		docker compose -f $(NAME) down -v

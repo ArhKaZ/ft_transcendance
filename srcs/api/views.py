@@ -724,6 +724,7 @@ def get_final_opponent(request, tournament_code):
 		if not final_match:
 			# Create final match if it doesn't exist
 			tournament.create_final(winners[0], winners[1])
+			print('after create_final', tournament.all_matches)
 			final_match = tournament.all_matches.filter(is_final=True).first()
 
 		# Serialize the final match data
@@ -741,7 +742,7 @@ def get_final_opponent(request, tournament_code):
 			opponent = match_data['player2'] if match_data['player1']['id'] == user.id else match_data['player1']
 			return Response({
 				'opp_id': opponent['id'],
-				'opp_name': opponent['username'],
+				'opp_name': opponent['pseudo'],
 				'opp_avatar': opponent['avatar'],
 				'create': create
 			})
@@ -851,6 +852,28 @@ def get_final_players(request, tournament_code):
 			'error': 'Tournament not found'
 		}, status=status.HTTP_404_NOT_FOUND)
 
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def get_end_players(request, tournament_code):
+# 	try:
+# 		tournament = Tournament.objects.get(code=tournament_code)
+
+# 		# Serialize all the data using UserInfoSerializer
+# 		players_serializer = UserInfoSerializer(tournament.players.all(), many=True)
+# 		finalists_serializer = UserInfoSerializer(tournament.finalist.all(), many=True)
+# 		winner_serializer = UserInfoSerializer(tournament.winner.all(), many=True)
+
+# 		return Response({
+# 			'tournament_code': tournament_code,
+# 			'players': players_serializer.data,
+# 			'finalists': finalists_serializer.data,
+# 			'winner': winner_serializer.data
+# 		})
+# 	except Tournament.DoesNotExist:
+# 		return Response({
+# 			'error': 'Tournament not found'
+# 		}, status=status.HTTP_404_NOT_FOUND)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_end_players(request, tournament_code):
@@ -858,12 +881,14 @@ def get_end_players(request, tournament_code):
 		tournament = Tournament.objects.get(code=tournament_code)
 
 		# Serialize all the data using UserInfoSerializer
+		match_serializer = TournamentMatchSerializer(tournament.all_matches.all(), many=True)
 		players_serializer = UserInfoSerializer(tournament.players.all(), many=True)
 		finalists_serializer = UserInfoSerializer(tournament.finalist.all(), many=True)
 		winner_serializer = UserInfoSerializer(tournament.winner.all(), many=True)
 
 		return Response({
 			'tournament_code': tournament_code,
+			'matches': match_serializer.data,
 			'players': players_serializer.data,
 			'finalists': finalists_serializer.data,
 			'winner': winner_serializer.data
@@ -872,6 +897,7 @@ def get_end_players(request, tournament_code):
 		return Response({
 			'error': 'Tournament not found'
 		}, status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

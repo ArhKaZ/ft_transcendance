@@ -14,6 +14,7 @@ class PongServer:
 	_instance = None
 	_lock = asyncio.Lock()
 	_initialized = False
+	_game_locks = {}
 
 	def __new__(cls):
 		if not cls._instance:
@@ -49,14 +50,18 @@ class PongServer:
 		self.active_connections[player_id] = channel_name
 		await sync_to_async(cache.set)(f"player_{player_id}_channel", channel_name)
 
-	async def initialize_game(self, player_info, opp_info = None):
+	async def initialize_game(self, in_tournament, player_info, opp_info = None):
 		await self.initialize()
 		async with self._lock:
-			if opp_info is None:
+			print(player_info, opp_info)
+			if not in_tournament and opp_info is None:
 				opp_info = await self.find_opponent(player_info)
 				if not opp_info:
 					await self.add_to_waiting_list(player_info)
 					return None, None
+
+		while await self.is_in_game(player_info['id']) or await self.is_in_game(opp_info['id']):
+			await asyncio.sleep(0.2)
 
 		game_id = str(uuid.uuid4())
 		game = PongGame(player_info, opp_info, game_id)
@@ -66,8 +71,10 @@ class PongServer:
 		await sync_to_async(cache.set)('active_pong_games', active_games)
 
 		for player in [player_info, opp_info]:
+			key = f"player_current_game_{player['id']}"
+			print(key)
 			await sync_to_async(cache.set)(
-				f"player_current_game_{player['id']}",
+				key,
 				game_id,
 				timeout=1800
 			)
@@ -142,14 +149,28 @@ class PongServer:
 			await self.remove_player_from_waiting(player_id)
 
 	async def game_is_stocked(self, game_id):
+		await self.initialize()
 		async with self._lock:
 			if game_id in self.games:
 				return self.games[game_id].is_stocked
 			
 	async def stock_game(self, game_id):
+		await self.initialize()
 		async with self._lock:
 			print('stock game')
 			if game_id in self.games:
 				self.games[game_id].is_stocked = True
+
+	async def is_in_game(self, player_id):
+		await self.initialize()
+		async with self._lock:
+			print(self.games.items())
+			for game_id, game in self.games.items():
+				if not game.p1 or not game.p2:
+					continue
+				if player_id == game.p1.id or player_id == game.p2.id:
+					return game_id
+			return None
+
 
 pong_server = PongServer()

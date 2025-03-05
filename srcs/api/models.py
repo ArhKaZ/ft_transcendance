@@ -100,9 +100,9 @@ class Tournament(models.Model):
 		last_match.save()
 
 		# # Si c'est un match final, mettre à jour le gagnant du tournoi
-		# if last_match.is_final:
-		# 	self.add_winner(last_match.winner)
-		# 	self.started = False  # Marquer le tournoi comme terminé
+		if last_match.is_final:
+			self.add_winner(last_match.winner)
+			self.started = False  # Marquer le tournoi comme terminé
 		self.save()
 
 	def save(self, *args, **kwargs):
@@ -174,6 +174,25 @@ class Tournament(models.Model):
 				break
 		
 		return all_finished
+
+	def display_matches(self):
+			"""
+			Retourne une liste des matchs du tournoi avec les détails des joueurs.
+			"""
+			matches = self.all_matches.all()
+			match_list = []
+			for match in matches:
+				match_info = {
+					'match_id': match.id,
+					'player1': match.player1.username,
+					'player2': match.player2.username,
+					'winner': match.winner.username if match.winner else None,
+					'score': match.score,
+					'is_final': match.is_final,
+				}
+				match_list.append(match_info)
+			return match_list
+			
 
 	def __str__(self):
 		return f"Tournament {self.code} - Players: {self.players.count()}/4 - Started: {self.started}"

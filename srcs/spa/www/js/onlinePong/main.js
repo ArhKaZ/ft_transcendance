@@ -262,13 +262,10 @@ async function handleWebSocketMessage(e) {
 		
 		case 'no_opp':
 			if (inTournament && inFinal) {
-				// joinWinner();
 				window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
 				break;
 			}
 			else if (inTournament) {
-				// joinFinalist();
-				sessionStorage.setItem('asWin', true);
 				window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
 				break;
 			}
@@ -396,8 +393,6 @@ async function handleCountdown(countdown) {
 }
 
 function handleGameFinish(game, winningId, opponentName = null) {
-	sessionStorage.setItem('asWin', false);
-	console.log('set asWin to false');
 	const btnBack = document.getElementById('button-home-end');
 	if (opponentName === null)
 		if (game && game.p1 && game.p2)
@@ -407,29 +402,9 @@ function handleGameFinish(game, winningId, opponentName = null) {
 			game.displayWinner(winningId);
 		}, 500);
 	}
-	const asWin = currentPlayerId === parseInt(winningId);
-	console.log('asWin is :', asWin);
-	if (inTournament && inFinal == false) {
-		sessionStorage.setItem('asWin', asWin);
-		console.log('in tournament not final');
-		// if (sessionStorage.getItem('asWin') == "true") {
-			// console.log('join finalist');
-			// joinFinalist();
-		// }
-		btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
-		btnBack.innerText = "Back to Tournament";
-		setTimeout(() => {
-			window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
-		}, 3000);
-	}
-	else if (inTournament && inFinal) {
-		console.log('tournament final');
-		sessionStorage.setItem('asWin', asWin);
-		// if (sessionStorage.getItem('asWin') == "true")
-			// joinWinner();
-		// sessionStorage.removeItem('asWin');
-		// sessionStorage.removeItem('tournament_code');
-		sessionStorage.setItem('finalDone', true);
+	if (inTournament) {
+		if (inFinal)
+			sessionStorage.setItem('finalDone', true);
 		btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
 		btnBack.innerText = "Back to Tournament";
 		setTimeout(() => {
