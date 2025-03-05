@@ -227,8 +227,19 @@ async function handleWebSocketMessage(e) {
 
         case 'game_finish':
             is_finished = true;
-            currentGame.stop();
-            handleGameFinish(currentGame, data.winning_session);
+			if (currentGame) {
+            	currentGame.stop();
+            	handleGameFinish(currentGame, data.winning_session);
+			} else {
+				console.log('auto win ');
+				handleGameFinish(null, data.winning_session);
+
+				if (inTournament) {
+					setTimeout(() => {
+						window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}`
+					}, 2000);
+				}
+			}
             gameStarted = false;
             break;
 
@@ -393,27 +404,73 @@ async function handleCountdown(countdown) {
 }
 
 function handleGameFinish(game, winningId, opponentName = null) {
-	const btnBack = document.getElementById('button-home-end');
-	if (opponentName === null)
-		if (game && game.p1 && game.p2)
-			opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
-	if (game) {
-		setTimeout(() => {
-			game.displayWinner(winningId);
-		}, 500);
-	}
-	if (inTournament) {
-		if (inFinal)
-			sessionStorage.setItem('finalDone', true);
-		btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
-		btnBack.innerText = "Back to Tournament";
-		setTimeout(() => {
-			window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
-		}, 3000);
-	}
-	else
-		btnBack.innerText += "Back to Home";
+    const btnBack = document.getElementById('button-home-end');
+    // Gestion du cas où le jeu n'a pas été initialisé (victoire automatique)
+    if (!game) {
+        // Afficher un message de victoire automatique
+        const endContainer = document.getElementById('end-container');
+        const endMessage = document.getElementById('end-message');
+        const waitingRoom = document.getElementById('waitingContainer');
+        
+        if (waitingRoom && !waitingRoom.classList.contains('hidden')) {
+            waitingRoom.classList.add('hidden');
+        }
+        
+        if (endContainer && endContainer.classList.contains('hidden')) {
+            endContainer.classList.remove('hidden');
+        }
+        
+        if (endMessage) {
+            endMessage.innerText = "You have been declared the winner as you are the only player connected!";
+        }
+    } else {
+        // Logique existante pour les parties normales
+        if (opponentName === null)
+            if (game && game.P1 && game.P2)
+                opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
+        
+        setTimeout(() => {
+            game.displayWinner(winningId);
+        }, 500);
+    }
+    
+    if (inTournament) {
+        console.log('inTournament finish')
+        if (inFinal)
+            sessionStorage.setItem('finalDone', true);
+        btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+        btnBack.innerText = "Back to Tournament";
+        setTimeout(() => {
+            window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+        }, 3000);
+    }
+    else
+        btnBack.innerText += "Back to Home";
 }
+
+// function handleGameFinish(game, winningId, opponentName = null) {
+// 	const btnBack = document.getElementById('button-home-end');
+// 	if (opponentName === null)
+// 		if (game && game.p1 && game.p2)
+// 			opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
+// 	if (game) {
+// 		setTimeout(() => {
+// 			game.displayWinner(winningId);
+// 		}, 500);
+// 	}
+// 	if (inTournament) {
+// 		console.log('inTournament finish')
+// 		if (inFinal)
+// 			sessionStorage.setItem('finalDone', true);
+// 		btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+// 		btnBack.innerText = "Back to Tournament";
+// 		setTimeout(() => {
+// 			window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+// 		}, 3000);
+// 	}
+// 	else
+// 		btnBack.innerText += "Back to Home";
+// }
 
 function resizeCanvasGame() {
 	const canvasCount = document.getElementById('countdownCanvas');

@@ -157,14 +157,12 @@ class PongServer:
 	async def stock_game(self, game_id):
 		await self.initialize()
 		async with self._lock:
-			print('stock game')
 			if game_id in self.games:
 				self.games[game_id].is_stocked = True
 
 	async def is_in_game(self, player_id):
 		await self.initialize()
 		async with self._lock:
-			print(self.games.items())
 			for game_id, game in self.games.items():
 				if not game.p1 or not game.p2:
 					continue

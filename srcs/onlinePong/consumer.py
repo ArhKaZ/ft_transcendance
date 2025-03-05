@@ -33,6 +33,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 		self.stop_waiting = False
 		self.tournament_code = None
 		self.is_final_match = False
+		self.solo_task = None
 
 	async def connect(self):
 		self.player_id = int(self.scope['url_route']['kwargs']['player_id'])
@@ -139,6 +140,9 @@ class PongConsumer(AsyncWebsocketConsumer):
 		self.username = data['player_name']
 		self.tournament_code = data['tournament_code']
 
+		if not self.solo_task:
+			self.solo_task = asyncio.create_task(self._check_connections_and_win())
+
 		if data.get('create') == False:
 			await asyncio.sleep(0.1)
 			current_game = await pong_server.is_in_game(self.player_id)
@@ -177,6 +181,38 @@ class PongConsumer(AsyncWebsocketConsumer):
 		self.game, self.game_id = await pong_server.initialize_game(True, player_info, opponent_info)
 		if self.game:
 			await self._setup_game()
+
+	async def _check_connections_and_win(self):
+		try:
+			await asyncio.sleep(10)
+			if len(pong_server.active_connections) <= 1:
+				tournament = await sync_to_async(Tournament.objects.get)(code=self.tournament_code)
+				winner_exists = await sync_to_async(tournament.winner.exists)()
+
+				if not winner_exists:
+					current_user = await sync_to_async(MyUser.objects.get)(id=self.player_id)
+
+					await sync_to_async(tournament.add_winner)(current_user)
+					await self._create_auto_win_record(current_user)
+					await self.send_game_finish(self.player_id)
+		except Exception as e:
+			print(f'Error in autowin: {e}')
+
+	async def _create_auto_win_record(self, winner):	
+		try:
+			# Créer un match pour le gagnant
+			await sync_to_async(MatchHistory.objects.create)(
+				user=winner,
+				opponent_name="Tournament Opponents",
+				type='Tournament',
+				won=True
+			)
+			
+			# Mettre à jour les stats du gagnant
+			winner.wins += 1
+			await sync_to_async(winner.save)()
+		except Exception as e:
+			print(f"Error creating win record: {e}")
 
 	async def handle_player_search(self, data): 
 		player_game_key = f'player_current_game_{self.player_id}'
@@ -417,7 +453,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 					self.game.status = 'FINISHED'
 					await self.game.save_to_cache()
 					await pong_server.cleanup_player(self.player_id, self.username, self.game_id, True)
-					await self.send_game_finish(winning_session)
+					await self.notify_game_finish(winning_session)
 					await self.cleanup()
 
 	@database_sync_to_async
@@ -588,6 +624,14 @@ class PongConsumer(AsyncWebsocketConsumer):
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
 
+	async def send_game_finish(self, winning_session):
+		message = {
+			'type': 'game_finish',
+			'winning_session': winning_session,
+			'message': 'auto_win'
+		}
+		await self.send(text_data=json.dumps(message))
+
 	async def player_movement_start(self, event):
 		message = {
 			'type': event['type'],
@@ -682,14 +726,13 @@ class PongConsumer(AsyncWebsocketConsumer):
 		}
 		await self.send(text_data=json.dumps(message))
 
-	async def send_game_finish(self, winning_session):
+	async def notify_game_finish(self, winning_session):
 		message = {
 			'type': 'game_finish',
 			'winning_session': winning_session,
 			'message': 'game_is_over'
 		}
 		await self.channel_layer.group_send(self.game.group_name, message)
-		# await self.send(text_data=json.dumps(message))
 
 	async def send_players_info(self, game):
 		message =  {
