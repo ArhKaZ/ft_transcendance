@@ -23,10 +23,10 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
             body: formData,
         });
 
-        const data = await response.json();
         if (response.ok) {
             window.location.href = '/home/';
         } else {
+            const data = await response.json();
             let errorMessage = 'An error occurred';
             if (data.error) {
                 const cleanError = data.error

@@ -232,39 +232,39 @@ def logout_user(request):
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def edit_user_api(request):
-    user = request.user
-    data = {}
+	user = request.user
+	data = {}
 
-    if request.data.get('password'):
-        if user.is_oauth == True:
-            return Response({'error': 'OAuth users are not allowed to change their password'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        password = request.data['password']
-        try:
-            StrongPasswordValidator()(password)
-        except serializers.ValidationError as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
-        user.set_password(password)
-        user.save()
+	if request.data.get('password'):
+		if user.is_oauth == True:
+			return Response({'error': 'OAuth users are not allowed to change their password'}, status=status.HTTP_400_BAD_REQUEST)
+		
+		password = request.data['password']
+		try:
+			StrongPasswordValidator()(password)
+		except serializers.ValidationError as e:
+			return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+		
+		user.set_password(password)
+		user.save()
 
-    if request.data.get('description'):
-        cleaned_description = bleach.clean(request.data['description'], strip=True)
-        if len(cleaned_description) > 500:
-            return Response({'error': 'Description cannot exceed 500 characters'}, status=status.HTTP_400_BAD_REQUEST)
-        data['description'] = cleaned_description
+	if request.data.get('description'):
+		cleaned_description = bleach.clean(request.data['description'], strip=True)
+		if len(cleaned_description) > 500:
+			return Response({'error': 'Description cannot exceed 500 characters'}, status=status.HTTP_400_BAD_REQUEST)
+		data['description'] = cleaned_description
 
-    if request.data.get('pseudo'):
-        pseudo = request.data['pseudo']
-        try:
-            SafePseudoValidator()(pseudo)
-        except serializers.ValidationError as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if len(pseudo) < 2 or len(pseudo) > 20:
-            return Response({'error': 'Pseudo must be between 2 and 20 characters'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        data['pseudo'] = pseudo
+	if request.data.get('pseudo'):
+		pseudo = request.data['pseudo']
+		try:
+			SafePseudoValidator()(pseudo)
+		except serializers.ValidationError as e:
+			return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+		
+		if len(pseudo) < 2 or len(pseudo) > 20:
+			return Response({'error': 'Pseudo must be between 2 and 20 characters'}, status=status.HTTP_400_BAD_REQUEST)
+		
+		data['pseudo'] = pseudo
 
 	if request.FILES.get('avatar'):
 		if user.is_oauth == True:
@@ -283,26 +283,26 @@ def edit_user_api(request):
 			return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
 		data['avatar'] = avatar
 
-    if data:
-        serializer = UserSerializer(user, data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'message': 'User updated successfully'
-            }, status=status.HTTP_200_OK)
-        return Response({
-            'message': 'Invalid data provided',
-            'errors': serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
+	if data:
+		serializer = UserSerializer(user, data=data, partial=True)
+		if serializer.is_valid():
+			serializer.save()
+			return Response({
+				'message': 'User updated successfully'
+			}, status=status.HTTP_200_OK)
+		return Response({
+			'message': 'Invalid data provided',
+			'errors': serializer.errors
+		}, status=status.HTTP_400_BAD_REQUEST)
 
-    if not data and not request.data.get('password'):
-        return Response({
-            'message': 'No changes were made'
-        }, status=status.HTTP_200_OK)
+	if not data and not request.data.get('password'):
+		return Response({
+			'message': 'No changes were made'
+		}, status=status.HTTP_200_OK)
 
-    return Response({
-        'message': 'User updated successfully'
-    }, status=status.HTTP_200_OK)
+	return Response({
+		'message': 'User updated successfully'
+	}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -330,36 +330,36 @@ def add_friend(request):
 				status=status.HTTP_400_BAD_REQUEST
 			)
 
-        
-        if potential_friend in request.user.friends.all():
-            return Response(
-                {'error': 'You are already friends with this user'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+		
+		if potential_friend in request.user.friends.all():
+			return Response(
+				{'error': 'You are already friends with this user'},
+				status=status.HTTP_400_BAD_REQUEST
+			)
 
-        
-        if request.user in potential_friend.pending_friends.all():
-            return Response(
-                {'error': 'You have already sent a friend request to this user'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+		
+		if request.user in potential_friend.pending_friends.all():
+			return Response(
+				{'error': 'You have already sent a friend request to this user'},
+				status=status.HTTP_400_BAD_REQUEST
+			)
 
-        
-        if potential_friend in request.user.pending_friends.all():
-            
-            request.user.pending_friends.remove(potential_friend)
-            request.user.friends.add(potential_friend)
-            return Response(
-                {'message': 'Friend request accepted! You are now friends.'},
-                status=status.HTTP_200_OK
-            )
-        else:
-            
-            potential_friend.pending_friends.add(request.user)
-            return Response(
-                {'message': 'Friend request sent successfully'},
-                status=status.HTTP_200_OK
-            )
+		
+		if potential_friend in request.user.pending_friends.all():
+			
+			request.user.pending_friends.remove(potential_friend)
+			request.user.friends.add(potential_friend)
+			return Response(
+				{'message': 'Friend request accepted! You are now friends.'},
+				status=status.HTTP_200_OK
+			)
+		else:
+			
+			potential_friend.pending_friends.add(request.user)
+			return Response(
+				{'message': 'Friend request sent successfully'},
+				status=status.HTTP_200_OK
+			)
 
 	except MyUser.DoesNotExist:
 		return Response(
