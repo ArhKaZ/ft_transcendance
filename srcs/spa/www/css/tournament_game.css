@@ -44,10 +44,14 @@ body::before {
     margin-bottom: 10px;
   }
   
-.tournament-code {
+  .tournament-code {
     font-size: 1.2em;
     margin-bottom: 30px;
-  }
+    min-height: 20px; /* Fixe une hauteur minimale */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
   
 
 .tournament-bracket {
@@ -82,8 +86,9 @@ body::before {
     gap: 10px;
   }
   
-  .player {
+.player, .winnerplayer {
     width: 180px;
+    height: 15px; /* Hauteur fixe */
     padding: 10px;
     background-color: #000;
     color: #fff;
@@ -91,17 +96,16 @@ body::before {
     border-radius: 4px;
     font-size: 0.8em;
     margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap; /* Empêche le retour à la ligne */
 }
 
 .winnerplayer {
-  width: 180px;
-  padding: 10px;
-  background-color: #000;
-  color: #fbdb67;
-  border: 3px solid #fbdb67;
-  border-radius: 4px;
-  font-size: 0.8em;
-  margin: auto;
+    border-color: #fbdb67;
+    color: #fbdb67;
 }
 
 .centered-image {
