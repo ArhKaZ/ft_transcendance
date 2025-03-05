@@ -27,8 +27,8 @@ class StrongPasswordValidator:
     - Contains at least one special character
     """
     def __call__(self, password):
-        if len(password) < 12:
-            raise serializers.ValidationError("Password must be at least 12 characters long.")
+        if len(password) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters long.")
         
         if not re.search(r'[A-Z]', password):
             raise serializers.ValidationError("Password must contain at least one uppercase letter.")
@@ -81,7 +81,7 @@ class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True,
         validators=[
-            MinLengthValidator(12),
+            MinLengthValidator(8),
             MaxLengthValidator(128),
             StrongPasswordValidator()
         ]

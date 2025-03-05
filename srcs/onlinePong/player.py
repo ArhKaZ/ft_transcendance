@@ -4,6 +4,8 @@ from asgiref.sync import sync_to_async
 from django.core.cache import cache
 from django.template.context_processors import static
 from api.models import MyUser
+
+# MyUser = apps.get_model('api', 'MyUser')
 from backend import settings
 
 

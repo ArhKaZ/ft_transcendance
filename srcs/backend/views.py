@@ -4,11 +4,10 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from django.http import HttpResponseForbidden, HttpResponseRedirect, JsonResponse
 from rest_framework.authtoken.models import Token
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.exceptions import InvalidToken
+# from rest_framework_simplejwt.authentication import JWTAuthentication
+# from rest_framework_simplejwt.exceptions import InvalidToken
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
-from api.models import MyUser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from rest_framework.authentication import TokenAuthentication

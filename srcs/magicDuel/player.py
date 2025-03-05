@@ -1,6 +1,5 @@
 from asgiref.sync import sync_to_async
 from django.core.cache import cache
-from api.models import MyUser
 
 class Player:
 		
