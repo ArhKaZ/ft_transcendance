@@ -1043,7 +1043,8 @@ def oauth(request):
 				'access_token': access_token.token,
 				'access_expires': access_token.expires_at,
 				'refresh_token': refresh_token.token,
-				'refresh_expires': refresh_token.expires_at
+				'refresh_expires': refresh_token.expires_at,
+				'username' : user_data.get('login')
 			})
 	except requests.HTTPError as e:
 		print(f"HTTP Error: {e}")

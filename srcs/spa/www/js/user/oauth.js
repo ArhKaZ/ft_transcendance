@@ -63,6 +63,7 @@ async function exchangeCodeForToken(code, state)
             sessionStorage.setItem('refresh_token', data.refresh_token);
             sessionStorage.setItem('access_expires', data.access_expires);
             sessionStorage.setItem('refresh_expires', data.refresh_expires);
+            sessionStorage.setItem('username', data.username);
             const state = sessionStorage.getItem('oauth_state');
             if (state)
                 sessionStorage.removeItem('oauth_state');
