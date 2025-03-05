@@ -209,57 +209,48 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def _player_not_lock_in_game_tournament(self):
 		begin = time.time()
 		try:
-			while self.game.status == 'WAITING':
+			while True:
+				# Fetch the latest game state from the cache
+				current_game = await Game.get_game_from_cache(self.game_id)
+				if not current_game or current_game.status != 'WAITING':
+					break  # Exit if game no longer exists or status changed
+				
 				now = time.time()
-				if now - begin >= 20:
+				if now - begin >= 30:
 					self.stop_waiting = True
 					
-					# Check if game exists and has players
-					if self.game and hasattr(self.game, 'p1') and hasattr(self.game, 'p2'):
-						p1_ready = self.game.p1.ready if hasattr(self.game.p1, 'ready') else False
-						p2_ready = self.game.p2.ready if hasattr(self.game.p2, 'ready') else False
+					if current_game and hasattr(current_game, 'p1') and hasattr(current_game, 'p2'):
+						p1_ready = current_game.p1.ready if hasattr(current_game.p1, 'ready') else False
+						p2_ready = current_game.p2.ready if hasattr(current_game.p2, 'ready') else False
 						
 						winner = None
 						loser = None
 						
-						# If one player is ready, they win
 						if p1_ready and not p2_ready:
-							winner = self.game.p1
-							loser = self.game.p2
+							winner = current_game.p1
+							loser = current_game.p2
 						elif p2_ready and not p1_ready:
-							winner = self.game.p2
-							loser = self.game.p1
+							winner = current_game.p2
+							loser = current_game.p1
 						
-						# Update stats only if there's a winner
-						if winner and loser and not await self.game.is_stocked():
+						if winner and loser and not await current_game.is_stocked():
 							winner_user, loser_user = await self.get_players_users(winner, loser)
 							await self.update_magic_stats_and_history(winner_user, loser_user, True)
-							await self.game.set_stocked()
+							await current_game.set_stocked()
 						
-						# Send game cancel notification to frontend
 						message = {
 							'type': 'game_cancel',
 							'message': 'Game cancelled due to timeout',
 							'username': 'System',
 							'game_status': 'CANCELLED',
-							'lose_lp': winner is not None  # True if someone loses LP
+							'lose_lp': winner is not None
 						}
-						await self.channel_layer.group_send(self.game.group_name, message)
-				
+						await self.channel_layer.group_send(current_game.group_name, message)
 					break
 				
 				await asyncio.sleep(0.1)
 		except asyncio.CancelledError:
 			return
-		# finally:
-			# # Clean up after timeout
-			# if self.game:
-			# 	self.game.status = 'CANCELLED'
-			# 	await self.game.save_to_cache()
-			
-			# # Schedule cleanup
-			# asyncio.create_task(self.cleanup())
-
 
 
 	async def find_opponent(self, player_points):
@@ -445,7 +436,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 					loser = self.game.p1 if self.game.p1.life <= 0 else self.game.p2
 					# Get User instances and update stats
 					winner_user, loser_user = await self.get_players_users(winner, loser)
-					await self.update_magic_stats_and_history(winner_user, loser_user, False)
+					if await self.update_magic_stats_and_history(winner_user, loser_user, False): #enlever du if si probleme de socket
+						await self.game.set_stocked() #enlever si probleme du socket
 					await self.notify_game_end()
 					break
 				await asyncio.sleep(0.5)

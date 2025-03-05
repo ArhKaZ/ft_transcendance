@@ -391,10 +391,9 @@ class PongConsumer(AsyncWebsocketConsumer):
 		# Get winner and loser from game logic
 		winner_user, loser_user = await self.get_players_users(False)
 
+		await pong_server.stock_game(self.game_id)
 		# Update stats and create match history
 		await self.update_stats_and_create_matches(winner_user, loser_user, False)
-
-		await pong_server.stock_game(self.game_id)
 
 		# Existing cleanup logic
 		self.game.status = 'FINISHED'
