@@ -46,7 +46,6 @@ def main():
         return
     elif args.InfoGame:
         if not args.GID:
-            print('Please specify a game ID.')
             return
         else:
             get_info_game(args.GID)

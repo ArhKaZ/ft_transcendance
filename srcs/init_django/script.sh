@@ -6,19 +6,17 @@ host="$1"
 shift
 cmd="$@"
 
-# Loop until we can connect to the database
 until python -c "import psycopg2; conn = psycopg2.connect(dbname='$POSTGRES_DB', user='$POSTGRES_USER', password='$POSTGRES_PASSWORD', host='$host'); conn.close();" > /dev/null 2>&1; do
   >&2 echo "Postgres is unavailable - sleeping"
   sleep 1
 done
 
-python manage.py makemigrations api # bizarre mais necessaire
+python manage.py makemigrations api
 
 python manage.py migrate
 
 >&2 echo "Postgres is up - executing command"
 
-# Créer un super utilisateur si nécessaire
 echo "Création du super utilisateur..."
 python manage.py shell <<EOF
 from django.contrib.auth import get_user_model
@@ -41,7 +39,6 @@ EOF
 
 echo "Super utilisateur créé avec succès !"
 
-# Créer 4 utilisateurs pour le jeu
 echo "Création des 4 utilisateurs pour le jeu..."
 python manage.py shell <<EOF
 from django.contrib.auth import get_user_model

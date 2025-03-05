@@ -23,29 +23,38 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
             body: formData,
         });
 
-        const responseText = await response.text();
-        console.log('Server response:', responseText);
-
+        const data = await response.json();
         if (response.ok) {
-            try {
-                // const data = JSON.parse(response.JSON);
-                window.location.href = '/home/';
-            } catch (parseError) {
-                displayMessage('JSON parsing error: ' + parseError.message, 'error');
-                console.error('Response content:', responseText);
-            }
+            window.location.href = '/home/';
         } else {
-            displayMessage('HTTP error: ' + response.status + ' ' + response.statusText, 'error');
-            console.error('Error response content:', responseText);
+            let errorMessage = 'An error occurred';
+            if (data.error) {
+                const cleanError = data.error
+                    .replace(/duplicate key value violates unique constraint "[^"]+"\n/, '')
+                    .replace(/DETAIL: /, '')
+                    .replace(/Key \((.+?)\)=\((.+?)\)/, '$1 "$2"')
+                    .replace(/\\n/g, ' ');
+                errorMessage = `Error: ${cleanError}`;
+            } else {
+                const errorParts = Object.entries(data).map(
+                    ([field, messages]) => `'${field}': ${messages[0]}`
+                );
+                errorMessage = errorParts.length > 0 
+                    ? `Error:<br>${errorParts.join('<br>')}`
+                    : 'Unknown error occurred';
+            }
+        displayMessage(errorMessage, 'error');
         }
     } catch (error) {
-        displayMessage('A network error occurred: ' + error.message, 'error');
+        const message = error instanceof SyntaxError 
+            ? 'Invalid server response format' 
+            : 'Network error occurred';
+        displayMessage(message, 'error');
         console.error('Error details:', error);
     }
 });
 
 document.getElementById('return-button').addEventListener('click', () => {
-    console.log("return click");
     window.location.href = "/home/";
 });
 

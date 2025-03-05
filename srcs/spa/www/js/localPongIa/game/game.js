@@ -216,7 +216,6 @@ class Game {
     }
 
     bound_wall() {
-        console.log('bound_wall');
         const y_ball = this.ball.y;
         if (y_ball < this.canvas.height / 2) {
             this.animateBounce("top");

@@ -29,7 +29,6 @@ function creationGameDisplay(data, game) {
     const p2Avatar = document.getElementById('p2-avatar');
     const p2AvatarImg = document.getElementById('p2-avatar-img');
 
-    // Mise à jour du joueur 1
     p1Element.innerText = data.player1_name || 'None';
     p1Element.classList.toggle('hidden', !data.player1_name);
     p1ImgElement.classList.toggle('hidden', !data.player1_name);
@@ -38,7 +37,6 @@ function creationGameDisplay(data, game) {
     p1AvatarImg.src = data.player1_avatar || '';
     p1Avatar.classList.toggle('hidden', !data.player1_name);
 
-    // Mise à jour du joueur 2
     p2Element.innerText = data.player2_name || 'None';
     p2Element.classList.toggle('hidden', !data.player2_name);
     p2ImgElement.classList.toggle('hidden', !data.player2_name);
@@ -47,7 +45,6 @@ function creationGameDisplay(data, game) {
     p2AvatarImg.src = data.player2_avatar || '';
     p2Avatar.classList.toggle('hidden', !data.player2_name);
 
-    // Mise à jour des objets du jeu si nécessaire
     if (game) {
         if (game.P1 && game.P1.id === data.player1) {
             game.P1.name = data.player1_name;

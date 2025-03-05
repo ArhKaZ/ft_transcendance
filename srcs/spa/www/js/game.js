@@ -15,14 +15,12 @@ document.getElementById('logout-button').addEventListener('click', async () => {
         });
 
         if (response.ok) {
-            // Clear all client-side storage
             sessionStorage.removeItem('access_token');
             sessionStorage.removeItem('refresh_token');
             sessionStorage.removeItem('access_expires');
             sessionStorage.removeItem('refresh_expires');
             sessionStorage.clear();
             
-            // Redirect to login
             window.location.href = '/home/';
         } else {
             console.error('Logout failed:', await response.json());
@@ -54,7 +52,6 @@ const response = await fetch('/api/get-my-info/', {
 
 if (response.ok) {
 	const data = await response.json();
-	console.log(data);
 
 	const bottomBtns = document.getElementById('bottom-buttons');
 

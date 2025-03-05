@@ -6,7 +6,6 @@ var loginbtn = document.getElementById('login-button');
 if (loginbtn) {
 	loginbtn.addEventListener('click', async function (event) {
 		event.preventDefault();
-		console.log('clicked');
 		await loginUser();
 	});
 }
@@ -37,9 +36,7 @@ async function loginUser() {
 		});
 
 		if (response.ok) {
-			console.log('before');
 			const data = await response.json();
-			console.log('after');
 			sessionStorage.setItem('access_token', data.access_token);
     		sessionStorage.setItem('refresh_token', data.refresh_token);
     		sessionStorage.setItem('access_expires', data.access_expires);

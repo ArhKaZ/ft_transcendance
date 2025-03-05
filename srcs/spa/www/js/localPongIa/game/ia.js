@@ -60,7 +60,6 @@ class IA {
 	}
 
 	movePaddle(paddle, keyState) {
-		console.log(`level : ${this.level} ${this.reactionTime[this.level - 1]}`)
 		setTimeout(() => {
 			if (this.target > paddle.y + paddle.height) {
 				keyState['z'] = true;

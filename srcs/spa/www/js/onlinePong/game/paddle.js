@@ -4,7 +4,6 @@ class Paddle {
         this.player = player;
         this.width = canvas.width * 0.01;
         this.height = canvas.height * 0.16;
-        console.log(this.height, this.width);
         if (this.player === 1)
             this.x = canvas.width * (1 / 100);
         if (this.player === 2)

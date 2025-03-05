@@ -18,7 +18,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		self._game_loop_task = None
 		self._start_round_task = None
 		self._round_complete_event = asyncio.Event()
-		# self._cleanup_round = False
 		self._countdown_done = asyncio.Event()
 		self._both_anim_done = asyncio.Event()
 		self.current_round_count = 0
@@ -343,13 +342,11 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		await self.notify_game_start(self.game.p1, self.game.p2)
 		if not self._countdown_task:
 			self._countdown_task = asyncio.create_task(self.run_countdown_sequence())
-		#Create task to wait countdown end
 		asyncio.create_task(self._launch_game_after_countdown())
 
 
 	async def _launch_game_after_countdown(self):
-		await self._countdown_done.wait()
-		# game_loop_task can be launch because countdown is done
+		await self._countdown_done.wait()	
 		if not self._game_loop_task:
 			self._game_loop_task = asyncio.create_task(self.game_loop())
 
@@ -366,8 +363,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		try:
 			await self.game.update_players()
 			if self.game_cancel_event.is_set():
-				return
-			# Use an event to manage game state
+				return		
 			game_over_event = asyncio.Event()
 
 			self.monitor_task  = asyncio.create_task(self.monitor_game_state(game_over_event))
@@ -396,11 +392,9 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		# Update winner stats
 		winner.wins += 1
 		winner.ligue_points += 15
-		# Update loser stats
 		loser.looses += 1
 		loser.ligue_points -= 15
 	
-		# Create MatchHistory entries
 		MatchHistory.objects.create(
 			user=winner,
 			opponent_name=loser.username,
@@ -414,14 +408,14 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			won=False
 		)
 	
-		# Save changes
+		
 		winner.save()
 		loser.save()
 		return True
 
 	@database_sync_to_async
 	def get_players_users(self, winner, loser):
-		from api.models import MyUser  # Import your User model
+		from api.models import MyUser  
 		winner_user = MyUser.objects.get(id=winner.id)
 		loser_user = MyUser.objects.get(id=loser.id)
 		return (winner_user, loser_user)
@@ -440,10 +434,10 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 					self.game.status = 'FINISHED'
 					await self.game.save_to_cache()
 					game_over_event.set()
-					# Determine winner and loser
+					
 					winner = self.game.p2 if self.game.p1.life <= 0 else self.game.p1
 					loser = self.game.p1 if self.game.p1.life <= 0 else self.game.p2
-					# Get User instances and update stats
+					
 					winner_user, loser_user = await self.get_players_users(winner, loser)
 					await self.update_magic_stats_and_history(winner_user, loser_user, False)
 					await self.notify_game_end()
@@ -480,7 +474,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 					await self.cleanup_round()
 					break
 		except asyncio.CancelledError:
-			print('Round manager cancelled')
 			raise
 		except Exception as e:
 			print(f"Error in round_manager: {e}")
@@ -490,7 +483,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 	async def execute_round(self):
 		self.current_round_count += 1
-		print(self.current_round_count)
 		await self.notify_round_count(self.current_round_count)
 		await asyncio.sleep(3)
 		try:
@@ -515,14 +507,12 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				try:
 					await asyncio.wait_for(self._both_anim_done.wait(), timeout=15) 
 				except asyncio.TimeoutError:
-					print("Animation completed timeout error")
 					self._both_anim_done.set()
 				finally:
 					await self.cleanup_round()
 					await asyncio.sleep(1)
 					await self.game.save_to_cache()
 		except asyncio.TimeoutError:
-				print('Round timeout - ')
 				self._round_complete_event.set()
 
 	async def cleanup_round(self):
@@ -577,7 +567,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 		result = self.resolve_power(self.game.p1.action, self.game.p2.action)
 		if result == 'Error interaction':
-			print('Error with power interaction')
 			return None
 			
 		return result

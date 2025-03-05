@@ -213,7 +213,7 @@ body::before {
     object-fit: contain;
 }
 
-/* HUD IN GAME */
+
 
 .player-bar {
     position: absolute;
@@ -285,7 +285,7 @@ body::before {
 }
 
 
-/* TOP TITLE */
+
 
 #title {
     position: absolute;
@@ -306,7 +306,7 @@ body::before {
     font-size: 2vw;
 }
 
-/* BUTTONS */
+
 
 .buttonNeon {
     display: none;
@@ -441,7 +441,7 @@ body::before {
     }
 }
 
-/* EFFECT PLAYER AS SCORE */
+
 .spark-container {
     position: absolute;
     top: 0;
@@ -473,7 +473,7 @@ body::before {
     }
 }
 
-/* END DISPLAY */
+
 .end-container {
     width: 90%;
     height: 90%;

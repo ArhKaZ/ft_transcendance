@@ -7,10 +7,8 @@ import { getUserFromBack } from '/js/utils.js';
 
 let oldHeight = null;
 let gameStarted = false;
-let currentPlayerId = null;
 let currentGame = null;
 let currentCountdown = null;
-let currentGameId = null;
 
 async function init() {
     const user = await getUserFromBack();
@@ -87,12 +85,8 @@ function handleErrors(data) {
             currentCountdown.stopDisplay();
         countdown.classList.add('hidden');
     }
-    console.log('button:', button);
     if (!button.classList.contains('hidden'))
-    {
-        console.log('je passe ici');
         button.classList.add('hidden');
-    }
     errorContainer.classList.remove('hidden');
     errorMessage.innerText += data.message;
 }

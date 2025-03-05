@@ -60,9 +60,12 @@ button:hover {
 }
 
 #message {
-    margin-top: 20px;
-    font-size: 14px;
-    font-weight: bold;
+    max-width: 700px;
+    margin: 10px auto;
+    padding: 10px;
+    word-wrap: break-word;
+    border-radius: 4px;
+    text-align: center;
 }
 
 .bottom-buttons button {

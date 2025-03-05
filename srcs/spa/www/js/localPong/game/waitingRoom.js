@@ -1,5 +1,3 @@
-import Player from "./player.js";
-
 function displayWhenLoad(player) {
     const nameElement = document.getElementById('mp-username');
     const avatarImg = document.getElementById('mp-avatar-img');

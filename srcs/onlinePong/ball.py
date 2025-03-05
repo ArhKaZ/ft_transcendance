@@ -110,7 +110,6 @@ class Ball:
     def check_time_collision(self):
         if not self.last_bound_player or not self.last_bound_wall:
             return
-        print(self.last_bound_wall - self.last_bound_player)
         # if 0 < self.last_bound_wall - self.last_bound_player < :
 
     @sync_to_async

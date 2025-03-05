@@ -15,14 +15,13 @@ async function fetchHistory() {
 		});
 
 		if (response.ok) {
-			console.log("Get history call worked");
 			const data = await response.json();
 
 			const sortedData = data.reverse();
 			const table = document.createElement("table");
 			table.classList.add("history-table");
 
-			// Create the header
+			
 			const thead = document.createElement("thead");
 			thead.innerHTML = `
 				<tr>
@@ -34,7 +33,7 @@ async function fetchHistory() {
 			`;
 			table.appendChild(thead);
 
-			// Create the body
+			
 			const tbody = document.createElement("tbody");
 			sortedData.forEach(item => {
 				const tr = document.createElement("tr");
@@ -60,16 +59,14 @@ async function fetchHistory() {
 			});
 			table.appendChild(tbody);
 
-			// Safely append to the div
+			
 			const divHistory = document.getElementById("divHistory");
-			divHistory.innerHTML = ""; // Clear previous content safely
+			divHistory.innerHTML = ""; 
 			divHistory.appendChild(table);
 
-		} else {
-			console.log("Error fetching history:", response.status);
 		}
 	} catch (error) {
-		console.log("History call failed", error);
+		console.error("History call failed", error);
 	}
 }
 
@@ -92,14 +89,14 @@ document.getElementById('logout-button').addEventListener('click', async () => {
         });
 
         if (response.ok) {
-            // Clear all client-side storage
+            
             sessionStorage.removeItem('access_token');
             sessionStorage.removeItem('refresh_token');
             sessionStorage.removeItem('access_expires');
             sessionStorage.removeItem('refresh_expires');
             sessionStorage.clear();
             
-            // Redirect to login
+            
             window.location.href = '/home/';
         } else {
             console.error('Logout failed:', await response.json());

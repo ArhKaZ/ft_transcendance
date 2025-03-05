@@ -1,6 +1,6 @@
 export function redirectTo42OAuth()
 {
-    const clientId = 'u-s4t2ud-c3aad960cd36ac0f5ca04a7d2780e4d8f1dbc27481baec5b5cb571eceb694a81'; // Louis: c'est normal que le user ait acces a cette information car il est public
+    const clientId = 'u-s4t2ud-c3aad960cd36ac0f5ca04a7d2780e4d8f1dbc27481baec5b5cb571eceb694a81';
     const redirectUri = encodeURIComponent('https://127.0.0.1:8443/oauth_callback/');
     const scope = 'public';
     const state = generateRandomString();

@@ -108,8 +108,6 @@ class PongGame:
 					for queue in self.ball_update_callbacks:
 						await queue.put(game_state)
 				await asyncio.sleep(1/60)
-		except asyncio.CancelledError:
-			print("ball update task cancelled")
 		except Exception as e: 
 			print(f"Error in ball update task : {e}")
 		finally:
@@ -259,14 +257,3 @@ class PongGame:
 			self.p1.y = p1_data['y']
 		if p2_data:
 			self.p2.y = p2_data['y']
-
-	# async def game_finish(self):
-	# 	self.events['game_finished'].set()
-	# 	if self.ball_update_task:
-	# 		self.ball_update_task.cancel()
-	# 		try:
-	# 			await self.ball_update_task
-	# 		except asyncio.CancelledError:
-	# 			pass
-
-

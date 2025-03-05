@@ -93,8 +93,8 @@ class Ball {
 	
 	setInMiddle() {
 		this.oldPositions = [];
-		this.x = (50 / 100) * this.canvas.width; // Convertir en unités canvas
-		this.y = (50 / 100) * this.canvas.height; // Convertir en unités canvas
+		this.x = (50 / 100) * this.canvas.width; 
+		this.y = (50 / 100) * this.canvas.height; 
 		this.vx = 0;
 		this.vy = 0;
 		this.serverX = 50;

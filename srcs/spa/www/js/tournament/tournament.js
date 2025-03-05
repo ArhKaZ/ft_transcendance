@@ -1,14 +1,11 @@
-// console.log("Tournament script loaded!");
 import { ensureValidToken } from '/js/utils.js';
 
 class TournamentManager {
 	
 	constructor() {
-		// Ensure elements are available before using them
 		this.messageDiv = document.getElementById('message') || this.createMessageDiv();
 		this.quitButton = document.getElementById('quit-button');
 		
-		// Check if elements exist before setup
 		if (document.getElementById('create-button') && this.quitButton) {
 			this.setupEventListeners();
 		}
@@ -21,36 +18,22 @@ class TournamentManager {
 
     setupHistoryListener() {
         window.addEventListener('popstate', (event) => {
-            // If user is in a tournament, intercept the back button
-            if (this.currentTournamentCode) {
-                // Prevent default navigation
+            if (this.currentTournamentCode) {   
                 event.preventDefault();
-                
-                // Show confirmation dialog
                 if (confirm('Do you want to quit the current tournament?')) {
                     this.quitTournament(true);
                 } else {
-                    // If user cancels, push a new state to prevent navigation
                     window.history.pushState({}, '', window.location.href);
                 }
             }
         });
-        
-        // Push an initial state to enable popstate detection
         window.history.pushState({}, '', window.location.href);
     }
 	
     setupEventListeners() {
-		// Create tournament button handler
         document.getElementById('create-button').addEventListener('click', () => this.createTournament());
-
 		document.getElementById('quit-button').addEventListener('click', () => this.quitTournament(false));
-        
-        // Join tournament form handler
         document.getElementById('userForm').addEventListener('submit', (e) => this.joinTournament(e));
-        
-		// this.quitButton.addEventListener('click', () => this.quitTournament());
-        // Setup polling if we're in a tournament
         this.setupTournamentPolling();
 
     }
@@ -124,7 +107,6 @@ class TournamentManager {
 	}
 
     async createTournament() {
-        console.log("je veux creer un nouveau tournois");
         try {
             await ensureValidToken();
             const response = await fetch('/api/create_tournament/', {
@@ -141,7 +123,7 @@ class TournamentManager {
             if (response.ok) {
                 this.currentTournamentCode = data.tournament_code;
 				this.updateUIState(true);
-                sessionStorage.setItem('current_tournament', data.tournament_code); // Save in sessionStorage
+                sessionStorage.setItem('current_tournament', data.tournament_code); 
     
                 this.messageDiv.innerHTML = `
                     <div class="success-message">
@@ -163,7 +145,6 @@ class TournamentManager {
     
     
     async joinTournament(event) {
-        console.log("je veux rejoindre un nouveau tournois");
         event.preventDefault();
         const tournamentCode = document.getElementById('tournament_code').value;
     
@@ -184,7 +165,7 @@ class TournamentManager {
             if (response.ok) {
                 this.currentTournamentCode = tournamentCode;
 				this.updateUIState(true);
-                sessionStorage.setItem('current_tournament', tournamentCode); // Save in sessionStorage
+                sessionStorage.setItem('current_tournament', tournamentCode); 
     
                 this.messageDiv.innerHTML = `
                     <div class="success-message">
@@ -223,7 +204,7 @@ class TournamentManager {
             const data = await response.json();
 
 			if (response.status === 404) {
-				// Tournament was deleted
+				
 				this.handleQuitSuccess({ message: 'Tournament has been canceled', deleted: true });
 				return;
 			}
@@ -238,11 +219,11 @@ class TournamentManager {
 				}
 
                 if (data.is_full) {
-                    // Redirect to game page when tournament is full
+                    
                     sessionStorage.removeItem('current_tournament');
                     window.location.href = `/tournament/game/${this.currentTournamentCode}/`;
                 } else {
-                    // Preserve the tournament code while updating player count
+                    
                     this.messageDiv.innerHTML = `
                         <div class="success-message">
                             Tournament created! Your code is: <strong>${this.currentTournamentCode}</strong><br>
@@ -267,7 +248,7 @@ class TournamentManager {
 
     handleTournamentStart() {
         this.stopTournamentPolling();
-        sessionStorage.removeItem('current_tournament'); // Remove tournament code when it starts
+        sessionStorage.removeItem('current_tournament'); 
     
         setTimeout(() => {
             window.location.href = `/tournament/game/${this.currentTournamentCode}/`;
@@ -278,9 +259,7 @@ class TournamentManager {
         const existingTournament = sessionStorage.getItem('current_tournament');
         if (existingTournament) {
             this.currentTournamentCode = existingTournament;
-			this.updateUIState(true);
-            console.log("Restoring tournament:", existingTournament);
-    
+			this.updateUIState(true);    
             this.messageDiv.innerHTML = `
                 <div class="success-message">
                     Tournament created! Your code is: <strong>${existingTournament}</strong><br>
@@ -317,27 +296,23 @@ class TournamentManager {
 }
 
 document.getElementById('return-button').addEventListener('click', () => {
-    // Check if tournament manager exists and user is in a tournament
+    
     if (window.tournamentManager && window.tournamentManager.currentTournamentCode) {
-        // Show confirmation dialog
+        
         if (confirm('Do you want to quit the current tournament?')) {
             window.tournamentManager.quitTournament(true);
             window.location.href = "/pong/";
         }
     } else {
-        // Regular back navigation if not in a tournament
+        
         window.location.href = "/pong/";;
     }
 });
 
-console.log("Script starting...");
 if (document.readyState === 'loading') {
-    console.log("Document still loading, adding DOMContentLoaded listener");
     document.addEventListener('DOMContentLoaded', () => {
-        console.log("DOM fully loaded - creating TournamentManager");
         window.tournamentManager = new TournamentManager();
     });
 } else {
-    console.log("Document already loaded - creating TournamentManager immediately");
     window.tournamentManager = new TournamentManager();
 }

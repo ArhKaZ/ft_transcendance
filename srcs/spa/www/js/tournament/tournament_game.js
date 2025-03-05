@@ -64,22 +64,18 @@ class TournamentGame {
 	}
 
 	async quitTournament() {
-		console.log("Quitting tournament:", this.tournamentCode);
 		
 		if (!this.tournamentCode) {
 			console.error("No tournament code available");
 			window.location.href = '/home/';
 			return;
 		}
-	
-		// Clean up session storage immediately
 		sessionStorage.removeItem('asWin');
 		sessionStorage.removeItem('tournament_code');
 		sessionStorage.removeItem('finalDone');
 		sessionStorage.removeItem('inFinal');
 		
 		try {
-			console.log("Sending forfeit request to API");
 			await ensureValidToken();
 			const response = await fetch(`/api/forfeit_tournament/${this.tournamentCode}/`, {
 				method: 'POST',
@@ -90,13 +86,9 @@ class TournamentGame {
 				},
 				credentials: 'include',
 			});
-			
-			console.log("Forfeit API response status:", response.status);
 		} catch (error) {
 			console.error("Error in forfeit API call:", error);
 		} finally {
-			// Always navigate home
-			console.log("Navigating to home page");
 			window.location.href = '/home/';
 		}
 	}
@@ -164,9 +156,7 @@ class TournamentGame {
 			if (!response.ok) {
 				throw new Error('Failed to load tournament data');
 			}
-			
 			const data = await response.json();
-			console.log("JSON Final du Tournoi :", JSON.stringify(data, null, 2));
 			this.displayTournamentInfo(data);
 			return data;
 			// this.populatePlayers(data);
@@ -185,21 +175,20 @@ class TournamentGame {
 		finalistsList.innerHTML = '';
 		winnerList.innerHTML = '';
 	
-		// Add all players
 		data.players.forEach(player => {
 			const li = document.createElement('li');
-			li.textContent = player.username; // Adjust according to your serializer fields
+			li.textContent = player.username; 
 			playersList.appendChild(li);
 		});
 	
-		// Add finalists
+		
 		data.finalists.forEach(finalist => {
 			const li = document.createElement('li');
 			li.textContent = finalist.username;
 			finalistsList.appendChild(li);
 		});
 	
-		// Add winner (if exists)
+		
 		data.winner.forEach(winner => {
 			const li = document.createElement('li');
 			li.textContent = winner.username;
@@ -208,18 +197,16 @@ class TournamentGame {
 	}
 
 	displayTournamentInfo(data) {
-		// Display tournament code
+		
 		document.getElementById('tournamentCode').textContent = 
 			`Tournament Code: ${data.tournament_code}`;
 
-		// Display players
 		if (data.players.length >= 4) {
             document.getElementById('player1').textContent = data.players[0].pseudo;
             document.getElementById('player2').textContent = data.players[1].pseudo;
             document.getElementById('player3').textContent = data.players[2].pseudo;
             document.getElementById('player4').textContent = data.players[3].pseudo;
-        } else {
-            // S'il y a moins de 4 joueurs, afficher un message d'erreur ou adapter l'affichage.
+        } else {   
             console.error("Nombre insuffisant de joueurs");
         }
 		if (data.finalists.length >= 2)
@@ -243,5 +230,5 @@ class TournamentGame {
 	}
 }
 
-// Initialize the tournament game page
+
 new TournamentGame();

@@ -11,7 +11,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from django.views.decorators.csrf import csrf_exempt
 
 def edit_user(request):
-    access_token = request.COOKIES.get('access_token')  # Récupérer le token JWT du cookie
+    access_token = request.COOKIES.get('access_token')  
 
     if not access_token:
         return HttpResponseForbidden("Token not provided.")
@@ -19,11 +19,11 @@ def edit_user(request):
     jwt_auth = JWTAuthentication()
 
     try:
-        validated_token = jwt_auth.get_validated_token(access_token)  # Valider le token JWT
-        user = jwt_auth.get_user(validated_token)  # Extraire l'utilisateur à partir du token validé
+        validated_token = jwt_auth.get_validated_token(access_token)  
+        user = jwt_auth.get_user(validated_token)  
         request.user = user
     except Exception:
-        return HttpResponseRedirect(reverse('login'))  # Rediriger si le token n'est pas valide
+        return HttpResponseRedirect(reverse('login'))  
     
     return render(request, "user/edit_user.html", {'user': request.user})
 

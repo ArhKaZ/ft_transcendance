@@ -16,8 +16,6 @@ class Game {
         this.keyState = {};
         this.bindEvents();
         this.countdownFinish = false;
-
-        //TEST ANIMATION
         this.animationFrameId = null;
         this.lastTimestamp = 0;
         this.fps = 60;

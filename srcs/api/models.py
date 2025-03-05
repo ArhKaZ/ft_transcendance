@@ -13,7 +13,7 @@ class MyUser(AbstractUser):
 	wins = models.IntegerField(default=0)
 	looses = models.IntegerField(default=0)
 	is_oauth = models.BooleanField(default=False)
-	# Add related_name to avoid clashes
+	
 	groups = models.ManyToManyField(
 		'auth.Group',
 		verbose_name='groups',
@@ -51,11 +51,11 @@ class MatchHistory(models.Model):
 	user = models.ForeignKey('MyUser', on_delete=models.CASCADE, related_name="matches")
 	opponent_name = models.CharField(max_length=100)
 	type = models.CharField(max_length=20, default=None)
-	date = models.DateField(auto_now_add=True)  # Corrigé auto_now_ad -> auto_now_add
+	date = models.DateField(auto_now_add=True)  
 	won = models.BooleanField()
 
 	class Meta:
-		ordering = ['-date']  # Pour avoir les matchs les plus récents en premier
+		ordering = ['-date']  
 
 	def __str__(self):
 		return f"{self.user.username} vs {self.opponent_name} - Date {self.date} - Win: {self.won}"
@@ -109,34 +109,38 @@ class Tournament(models.Model):
 		if not self.code:
 			self.code = str(uuid.uuid4())[:8]  # Generate a short unique code
 		super().save(*args, **kwargs)
+	def save(self, *args, **kwargs):
+		if not self.code:
+			self.code = str(uuid.uuid4())[:8]  
+		super().save(*args, **kwargs)
 
 	def add_player(self, user):
-		# """Adds a player to the tournament if there's space."""
+		
 		if self.players.count() >= 4:
 			raise ValidationError("Tournament is full.")
 		self.players.add(user)
 		self.check_start()
 	
 	def add_finalist(self, user):
-		# """Adds a player to the tournament if there's space."""
+		
 		if self.finalist.count() >= 2:
 			raise ValidationError("Final is full.")
 		self.finalist.add(user)
 
 	def add_left(self, user):
-		# """Adds a player to the tournament if there's space."""
+		
 		if self.left.count() >= 4:
 			raise ValidationError("Everyone already left.")
 		self.left.add(user)
 
 	def add_winner(self, user):
-		# """Adds a player to the tournament if there's space."""
+		
 		if self.winner.count() >= 1:
 			raise ValidationError("Already have a winner.")
 		self.winner.add(user)
 
 	def check_start(self):
-		# """Starts the tournament if 4 players have joined."""
+		
 		if self.players.count() == 4:
 			self.started = True
 			self.create_matchs()
