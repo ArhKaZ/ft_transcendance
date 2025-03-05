@@ -44,11 +44,10 @@ class PongGame:
 
 	async def cancel_game(self, player_id = -1, username = None):
 		async with self._lock:
-			print('in cancel_game')
+			print('game cancelled')
 			if self.status == 'CANCELLED':
 				return
 			self.status = 'CANCELLED'
-			print('pass return')
 			self.events['game_cancelled'].set()
 			if not self.p1:
 				id_winner = self.p2.id

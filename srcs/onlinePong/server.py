@@ -14,6 +14,7 @@ class PongServer:
 	_instance = None
 	_lock = asyncio.Lock()
 	_initialized = False
+	_game_locks = {}
 
 	def __new__(cls):
 		if not cls._instance:
@@ -49,31 +50,46 @@ class PongServer:
 		self.active_connections[player_id] = channel_name
 		await sync_to_async(cache.set)(f"player_{player_id}_channel", channel_name)
 
-	async def initialize_game(self, player_info, opp_info = None):
+	async def initialize_game(self, in_tournament, player_info, opp_info = None):
 		await self.initialize()
 		async with self._lock:
-			if opp_info is None:
+			print(player_info, opp_info)
+			existing_game_id = await self.is_in_game(player_info['id'])
+			if existing_game_id:
+				print('player already in game')
+				return None, None
+			
+			if not in_tournament and opp_info is None:
 				opp_info = await self.find_opponent(player_info)
 				if not opp_info:
 					await self.add_to_waiting_list(player_info)
 					return None, None
 
-		game_id = str(uuid.uuid4())
-		game = PongGame(player_info, opp_info, game_id)
-		self.games[game_id] = game
-		active_games = await sync_to_async(cache.get)('active_pong_games') or []
-		active_games.append(game_id)
-		await sync_to_async(cache.set)('active_pong_games', active_games)
+			if opp_info and await self.is_in_game(opp_info['id']):
+				return None, None
 
-		for player in [player_info, opp_info]:
-			await sync_to_async(cache.set)(
-				f"player_current_game_{player['id']}",
-				game_id,
-				timeout=1800
-			)
-		await game.save_to_cache()
-		await self.notify_opponent(opp_info, game_id)
-		return game, game_id
+		# while await self.is_in_game(player_info['id']) or await self.is_in_game(opp_info['id']):
+		# 	await asyncio.sleep(0.2)
+
+			game_id = str(uuid.uuid4())
+			game = PongGame(player_info, opp_info, game_id)
+			self.games[game_id] = game
+			active_games = await sync_to_async(cache.get)('active_pong_games') or []
+			active_games.append(game_id)
+			await sync_to_async(cache.set)('active_pong_games', active_games)
+
+			for player in [player_info, opp_info]:
+				key = f"player_current_game_{player['id']}"
+				print(key)
+				await sync_to_async(cache.set)(
+					key,
+					game_id,
+					timeout=1800
+				)
+			await game.save_to_cache()
+			await self.notify_opponent(opp_info, game_id)
+
+			return game, game_id
 
 	async def notify_opponent(self, opp_info, game_id):
 		channel_name = self.active_connections.get(opp_info["id"])
@@ -141,32 +157,30 @@ class PongServer:
 			self.active_connections.pop(player_id, None)
 			await self.remove_player_from_waiting(player_id)
 
-	# async def cleanup_special_case(self, game_id):
-	# 	await self.initialize()
-	# 	async with self._lock:
-	# 		if not game_id in self.games:
-
-				# print('got id in games')
-				# game = self.games[game_id]
-				# await game.cancel_game()
-
-				# if game.is_empty():
-				# 	del self.games[game_id]
-				# 	active_games = await sync_to_async(cache.get)('active_pong_games') or []
-				# 	active_games.remove(game_id)
-				# 	await sync_to_async(cache.set)('active_pong_games', active_games)
-				
-
-
 	async def game_is_stocked(self, game_id):
+		await self.initialize()
 		async with self._lock:
 			if game_id in self.games:
 				return self.games[game_id].is_stocked
 			
 	async def stock_game(self, game_id):
+		await self.initialize()
 		async with self._lock:
-			print('stock game')
 			if game_id in self.games:
 				self.games[game_id].is_stocked = True
+
+	async def is_in_game(self, player_id):
+		await self.initialize()
+		print('is in game begin')
+		for game_id, game in self.games.items():
+			print('begin loop')
+			if not game.p1 or not game.p2:
+				continue
+			if player_id == game.p1.id or player_id == game.p2.id:
+				print('return got someone')
+				return game_id
+		print('return nobody')
+		return None
+
 
 pong_server = PongServer()

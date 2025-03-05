@@ -1,9 +1,9 @@
 import T_Player from './tournament_player.js';
 import { sleep } from '../utils.js';
 import { getCSRFToken } from '../utils.js';
-import { ensureValidToken } from '/js/utils.js';
+import { ensureValidToken, getUserFromBack } from '/js/utils.js';
 
-
+let user = null;
 
 class TournamentGame {
 	constructor() {
@@ -14,81 +14,27 @@ class TournamentGame {
 		this.messageDiv = document.getElementById('messageDiv');
 		document.getElementById('quit-button').addEventListener('click', () => this.quitTournament());
 		
-		// Call setupHistoryListener at the end of constructor
-		this.setupHistoryListener();
-		
-		// Backup protection - override browser back button behavior 
-		// using a custom keydown handler for the Backspace key
-		document.addEventListener('keydown', (e) => {
-			if (e.key === 'Backspace' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-				console.log("Backspace key pressed outside input/textarea");
-				e.preventDefault();
-				if (confirm('Do you want to quit the current tournament?')) {
-					this.quitTournament();
-				}
-			}
-		});
-		
+
 		this.init();
+		this.preventExit();
 	}
 
-	setupHistoryListener() {
-		// Only use popstate event - it's triggered when the user clicks the back button
-		window.addEventListener('popstate', (event) => {
-			console.log("Back button detected via popstate");
-			
-			// Prevent the default navigation
+	preventExit() {
+		window.addEventListener('beforeunload', (event) => {
 			event.preventDefault();
-			
-			// Save the tournamentCode for safety in case 'this' context is lost
-			const tournamentCode = this.tournamentCode;
-			
-			// Confirm with the user
-			if (confirm('Do you want to quit the current tournament?')) {
-				console.log("User confirmed tournament quit");
-				
-				// Clean up all tournament state
-				sessionStorage.removeItem('asWin');
-				sessionStorage.removeItem('tournament_code');
-				sessionStorage.removeItem('finalDone');
-				
-				// Redirect directly to home page
-				window.location.href = '/home/';
+			event.returnValue = 'Do you want to quit the tournament';
+		});
+
+		window.addEventListener('popstate', (event) => {
+			if (confirm('Are you sure ?')) {
+				this.quitTournament();
 			} else {
-				console.log("User canceled tournament quit");
-				
-				// Stay on the current page by pushing a new state
-				window.history.pushState({page: 'tournament'}, '', window.location.href);
+				history.pushState(null, '', window.location.href);
 			}
 		});
-		
-		// Initial state push - tag it with a custom property
-		window.history.pushState({page: 'tournament'}, '', window.location.href);
-		
-		console.log("History listener setup complete");
-	}
 
-	handlePopState(event) {
-		console.log("Browser back button detected");
-		
-		// Prevent the default action
-		event.preventDefault();
-		
-		// Show confirmation dialog
-		if (confirm('Do you want to quit the current tournament?')) {
-			console.log("User confirmed quit");
-			// Clean up session storage before quitting
-			sessionStorage.removeItem('asWin');
-			sessionStorage.removeItem('tournament_code');
-			sessionStorage.removeItem('finalDone');
-			
-			// Force redirect to home
-			window.location.href = '/home/';
-		} else {
-			console.log("User canceled quit");
-			// Push a new state to prevent going back to the previous state
-			window.history.pushState({tournamentPage: true}, '', window.location.href);
-		}
+		// Ajoute une entrée dans l'historique pour empêcher un retour direct
+		history.pushState(null, '', window.location.href);
 	}
 
 	async checkLeft(tournamentCode) {
@@ -130,6 +76,7 @@ class TournamentGame {
 		sessionStorage.removeItem('asWin');
 		sessionStorage.removeItem('tournament_code');
 		sessionStorage.removeItem('finalDone');
+		sessionStorage.removeItem('inFinal');
 		
 		try {
 			console.log("Sending forfeit request to API");
@@ -155,31 +102,54 @@ class TournamentGame {
 	}
 
 	async init() {
+		user = await getUserFromBack();
+		console.log(user);
+		sessionStorage.setItem('tournament_code', this.tournamentCode); // verifier si il est deja set
+		await sleep(2000);
 		if (this.checkLeft(this.tournamentCode) == true) {
 			window.location.href = `/home/`;
 		}
 		const data = await this.loadEnd();
-		if (data.winner.length !== 0) {
+		if (sessionStorage.getItem('finalDone') || data.winner.length > 0) {
+			console.log('tournoi fini');
 			sessionStorage.removeItem('asWin');
+			sessionStorage.removeItem('inFinal');
 			sessionStorage.removeItem('tournament_code');
 			sessionStorage.removeItem('finalDone');
 			return;
 		}
-		if (!sessionStorage.getItem('asWin')) {
-			console.log("premiere game");
-			// await this.loadPlayers();
-			sessionStorage.setItem('tournament_code', this.tournamentCode);
-			// await sleep(5000);
-			window.location.href = `/onlinePong/?tournament=true`;
-		} else if (sessionStorage.getItem('asWin') == "true" && sessionStorage.getItem('finalDone') != "true") {
-			console.log("je participe a la finale");
-			// await sleep(5000);
-			window.location.href = `/onlinePong/?tournament=true`;
-			// await this.loadFinal();
+		else if (data.finalists.length > 0) {
+			this.verifUserInFinal(data);
 		}
 		else {
-			console.log("la finale est finie");
+			if (this.verifUserNeedPlay(data))
+				window.location.href = `/onlinePong/?tournament=true`;
 		}
+	}
+
+	verifUserInFinal(data) {
+		for (const finalist of data.finalists) {
+			console.log(finalist);
+			console.log(user);
+			console.log(finalist.id == user.id);
+			if (finalist.id === user.id) {
+				sessionStorage.setItem('inFinal', true);
+				window.location.href = `/onlinePong/?tournament=true`;
+				break;
+			}
+		}
+	}
+
+	verifUserNeedPlay(data) {
+		console.log(`data:`, data);
+		return data.matches.some(match => {
+			// Vérifier si la match n'a pas de vainqueur
+			if (match.winner === null) {
+				// Vérifier si l'utilisateur est l'un des joueurs de la match
+				return match.player1.id === user.id || match.player2.id === user.id;
+			}
+			return false;
+		});
 	}
 
 	async loadEnd() {
