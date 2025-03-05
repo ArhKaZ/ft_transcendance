@@ -197,8 +197,6 @@ function handleRoundEnd(data) {
 }
 
 function handleQuitGame(event) {
-	let opponentId = currentGame.P1.id === currentPlayerId ? currentGame.P2.id : currentGame.P1.id;
-	sendMatchApi(opponentId);
 	event.preventDefault();
 	event.returnValue = true;
 }
@@ -237,7 +235,6 @@ function handleGameFinish(data) {
 			window.removeEventListener('beforeunload', handleQuitGame);
 			setTimeout(() => {
 				currentGame.displayWinner(data.player_id);
-				sendMatchApi(data.player_id);
 			}, 3000);
         }
     }, 10);
@@ -297,8 +294,6 @@ function handleErrors(data) {
 }
 
 function handleGameCancel(data) {
-	if (data.game_status !== 'WAITING')
-		sendMatchApi(currentPlayerId);
 	sendToBack({action: 'cancel'});
 	handleErrors(data);
 }
@@ -307,7 +302,6 @@ function handleNoPlay(data) {
 	let playerWin = null;
 	if (!data.p2_id) {
 		playerWin = currentGame.P1.id === data.p_id ? currentGame.P2 : currentGame.P1;
-		sendMatchApi(playerWin.id);
 		if (currentPlayerId === data.p_id) {
 			data.message = " You have not played since for 4 rounds";
 			let errorLp = document.getElementById('error-lp');
@@ -324,28 +318,6 @@ function handleNoPlay(data) {
 	}
 	sendToBack({action: 'cancel'});
 	handleErrors(data);
-}
-
-function sendMatchApi(winningId) {
-	// const opponentName = currentPlayerId === parseInt(currentGame.P1.id) ? currentGame.P2.name : currentGame.P1.name;
-    // const asWin = currentPlayerId === parseInt(winningId);
-    // fetch('/api/add_match/', {
-    //     method: 'POST',
-    //     headers: {
-    //         'Content-Type': 'application/json',
-    //         'X-CSRFToken': getCSRFToken(),
-    //         'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-    //     },
-    //     credentials: 'include',
-    //     body: JSON.stringify({
-    //         'type': 'magicDuel',
-    //         'opponent_name': opponentName,
-    //         'won': asWin
-    //     })
-    // }).then(response => response.json())
-    // .then(data => {
-    //     console.log('Match enregistrer ', data);
-    // }).catch(error => console.error(error));
 }
 
 function handleClick(choice) {

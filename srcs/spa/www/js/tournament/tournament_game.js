@@ -14,82 +14,27 @@ class TournamentGame {
 		this.messageDiv = document.getElementById('messageDiv');
 		document.getElementById('quit-button').addEventListener('click', () => this.quitTournament());
 		
-		// Call setupHistoryListener at the end of constructor
-		this.setupHistoryListener();
-		
-		// Backup protection - override browser back button behavior 
-		// using a custom keydown handler for the Backspace key
-		document.addEventListener('keydown', (e) => {
-			if (e.key === 'Backspace' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-				console.log("Backspace key pressed outside input/textarea");
-				e.preventDefault();
-				if (confirm('Do you want to quit the current tournament?')) {
-					this.quitTournament();
-				}
-			}
-		});
-		
+
 		this.init();
+		this.preventExit();
 	}
 
-	setupHistoryListener() {
-		// Only use popstate event - it's triggered when the user clicks the back button
-		window.addEventListener('popstate', (event) => {
-			console.log("Back button detected via popstate");
-			
-			// Prevent the default navigation
+	preventExit() {
+		window.addEventListener('beforeunload', (event) => {
 			event.preventDefault();
-			
-			// Save the tournamentCode for safety in case 'this' context is lost
-			const tournamentCode = this.tournamentCode;
-			
-			// Confirm with the user
-			if (confirm('Do you want to quit the current tournament?')) {
-				console.log("User confirmed tournament quit");
-				
-				// Clean up all tournament state
-				sessionStorage.removeItem('asWin');
-				sessionStorage.removeItem('tournament_code');
-				sessionStorage.removeItem('finalDone');
-				sessionStorage.removeItem('inFinal');
-				// Redirect directly to home page
-				window.location.href = '/home/';
+			event.returnValue = 'Do you want to quit the tournament';
+		});
+
+		window.addEventListener('popstate', (event) => {
+			if (confirm('Are you sure ?')) {
+				this.quitTournament();
 			} else {
-				console.log("User canceled tournament quit");
-				
-				// Stay on the current page by pushing a new state
-				window.history.pushState({page: 'tournament'}, '', window.location.href);
+				history.pushState(null, '', window.location.href);
 			}
 		});
-		
-		// Initial state push - tag it with a custom property
-		window.history.pushState({page: 'tournament'}, '', window.location.href);
-		
-		console.log("History listener setup complete");
-	}
 
-	handlePopState(event) {
-		console.log("Browser back button detected");
-		
-		// Prevent the default action
-		event.preventDefault();
-		
-		// Show confirmation dialog
-		if (confirm('Do you want to quit the current tournament?')) {
-			console.log("User confirmed quit");
-			// Clean up session storage before quitting
-			sessionStorage.removeItem('asWin');
-			sessionStorage.removeItem('tournament_code');
-			sessionStorage.removeItem('finalDone');
-			sessionStorage.removeItem('inFinal');
-			
-			// Force redirect to home
-			window.location.href = '/home/';
-		} else {
-			console.log("User canceled quit");
-			// Push a new state to prevent going back to the previous state
-			window.history.pushState({tournamentPage: true}, '', window.location.href);
-		}
+		// Ajoute une entrée dans l'historique pour empêcher un retour direct
+		history.pushState(null, '', window.location.href);
 	}
 
 	async checkLeft(tournamentCode) {

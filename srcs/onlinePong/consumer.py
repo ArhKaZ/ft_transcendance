@@ -29,8 +29,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 		self.game = None
 		self.game_id = None
 		self._countdown_task = None
-		self.no_block_task = None
-		self.stop_waiting = False
 		self.tournament_code = None
 		self.is_final_match = False
 		self.solo_task = None
@@ -68,7 +66,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 			self.is_cleaning_up = True
 
 			try:
-				tasks = [self.listen_task, self.send_ball_task, self.countdown_task]
+				tasks = [self.listen_task, self.send_ball_task, self.countdown_task, self.solo_task]
 				if tasks:
 					for task in tasks:
 						if task and not task.done():
@@ -175,8 +173,9 @@ class PongConsumer(AsyncWebsocketConsumer):
 			await self._setup_game()
 
 	async def _check_connections_and_win(self):
+		await asyncio.sleep(1200)
 		try:
-			await asyncio.sleep(10)
+			 # Récupérer le tournoi
 			if len(pong_server.active_connections) <= 1:
 				tournament = await sync_to_async(Tournament.objects.get)(code=self.tournament_code)
 				winner_exists = await sync_to_async(tournament.winner.exists)()
@@ -247,7 +246,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 			while True:
 				if self.game and self.game.status == 'WAITING':
 					now = time.time()
-					if now - begin >= 10:
+					if now - begin >= 30:
 						await self.game_not_launch()
 				if not self.game:
 					break
@@ -323,6 +322,13 @@ class PongConsumer(AsyncWebsocketConsumer):
 	async def start_game_sequence(self):
 		await self.notify_game_start(self.game.p1, self.game.p2)
 		self.game.status = "LAUNCHING"
+		if self.solo_task and not self.solo_task.done():
+			self.solo_task.cancel()  # Annuler la tâche d'auto-win
+		try:
+			await self.solo_task  # Attendre que la tâche soit bien annulée
+		except asyncio.CancelledError:
+			pass
+		self.solo_task = None  # Réinitialiser la tâche
 		if not self._countdown_task:
 			self._countdown_task = asyncio.create_task(self.run_countdown_sequence())
 		asyncio.create_task(self.launch_game_after_countdown())
@@ -333,7 +339,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 			game_state = await self.game.start_game()
 			if game_state:
 				self.send_ball_task = asyncio.create_task(self.send_ball_position())
-
+ 
 	async def run_countdown_sequence(self):
 		for count in range(3, -1, -1):
 			if self.game.events['game_cancelled'].is_set():
@@ -409,6 +415,15 @@ class PongConsumer(AsyncWebsocketConsumer):
 		await self.notify_score_update([self.game.p1.score, self.game.p2.score], p_as_score)
 
 	async def handle_game_finish(self, data):
+		try:
+			if self.solo_task and not self.solo_task.done():
+				self.solo_task.cancel()  # Annuler la tâche d'auto-win
+			try:
+				await self.solo_task  # Attendre que la tâche soit bien annulée
+			except asyncio.CancelledError:
+				pass
+		except Exception as e:
+			print(f'Error cancelling solo_task: {e}')
 		print('in game finish')
 		if self.game_id not in pong_server._game_locks:
 			print(f'game {self.game.p1.id} {self.game.p2.id} not in game_lock')
@@ -464,8 +479,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 		current_player = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
 		current_user_is_winner = (current_player.user_model == winner)
 		print('update stats/ im winner : ', current_user_is_winner)
-		if not current_user_is_winner and not p_is_quitting:
-			return False
+		# if not current_user_is_winner and not p_is_quitting:
+		# 	return False
 		# Update stats
 		winner.wins += 1
 		loser.looses += 1
