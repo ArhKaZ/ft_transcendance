@@ -96,6 +96,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 			finally:
 				self.is_cleaning_up = False
 				self.game = None
+				pong_server._game_locks[self.game_id] = None
 
 	async def receive(self, text_data):
 		try:
@@ -231,9 +232,9 @@ class PongConsumer(AsyncWebsocketConsumer):
 		begin = time.time()
 		try:
 			while True:
-				if self.game and self.game.status != 'IN_PROGRESS':
+				if self.game and self.game.status == 'WAITING':
 					now = time.time()
-					if now - begin >= 10:
+					if now - begin >= 15:
 						await self.game_not_launch()
 				if not self.game:
 					break
@@ -309,6 +310,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 	async def start_game_sequence(self):
 		await self.notify_game_start(self.game.p1, self.game.p2)
+		self.game.status = "LAUNCHING"
 		if not self._countdown_task:
 			self._countdown_task = asyncio.create_task(self.run_countdown_sequence())
 		asyncio.create_task(self.launch_game_after_countdown())
@@ -686,8 +688,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 			'winning_session': winning_session,
 			'message': 'game_is_over'
 		}
-		# await self.channel_layer.group_send(self.game.group_name, message)
-		await self.send(text_data=json.dumps(message))
+		await self.channel_layer.group_send(self.game.group_name, message)
+		# await self.send(text_data=json.dumps(message))
 
 	async def send_players_info(self, game):
 		message =  {

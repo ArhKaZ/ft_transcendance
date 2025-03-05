@@ -50,7 +50,7 @@ class TournamentGame {
 				// Clean up all tournament state
 				sessionStorage.removeItem('asWin');
 				sessionStorage.removeItem('tournament_code');
-				sessionStorage.removeItem('finalDone');
+				// sessionStorage.removeItem('finalDone');
 				sessionStorage.removeItem('inFinal');
 				// Redirect directly to home page
 				window.location.href = '/home/';
@@ -80,7 +80,7 @@ class TournamentGame {
 			// Clean up session storage before quitting
 			sessionStorage.removeItem('asWin');
 			sessionStorage.removeItem('tournament_code');
-			sessionStorage.removeItem('finalDone');
+			// sessionStorage.removeItem('finalDone');
 			sessionStorage.removeItem('inFinal');
 			
 			// Force redirect to home
@@ -130,7 +130,7 @@ class TournamentGame {
 		// Clean up session storage immediately
 		sessionStorage.removeItem('asWin');
 		sessionStorage.removeItem('tournament_code');
-		sessionStorage.removeItem('finalDone');
+		// sessionStorage.removeItem('finalDone');
 		sessionStorage.removeItem('inFinal');
 		
 		try {
@@ -164,19 +164,20 @@ class TournamentGame {
 			window.location.href = `/home/`;
 		}
 		const data = await this.loadEnd();
-		if (sessionStorage.getItem('finalDone')) {
+		if (sessionStorage.getItem('finalDone') || data.winner.length > 0) {
 			console.log('tournoi fini');
 			sessionStorage.removeItem('asWin');
 			sessionStorage.removeItem('inFinal');
 			sessionStorage.removeItem('tournament_code');
-			sessionStorage.removeItem('finalDone');
+			// sessionStorage.removeItem('finalDone');
 			return;
 		}
 		else if (data.finalists.length > 0) {
 			this.verifUserInFinal(data);
 		}
 		else {
-			window.location.href = `/onlinePong/?tournament=true`;
+			if (this.verifUserNeedPlay(data))
+				window.location.href = `/onlinePong/?tournament=true`;
 		}
 		// if (!sessionStorage.getItem('asWin')) {
 		// 	console.log("premiere game");
@@ -206,6 +207,18 @@ class TournamentGame {
 				break;
 			}
 		}
+	}
+
+	verifUserNeedPlay(data) {
+		console.log(`data:`, data);
+		return data.matches.some(match => {
+			// Vérifier si la match n'a pas de vainqueur
+			if (match.winner === null) {
+				// Vérifier si l'utilisateur est l'un des joueurs de la match
+				return match.player1.id === user.id || match.player2.id === user.id;
+			}
+			return false;
+		});
 	}
 
 	async loadEnd() {
