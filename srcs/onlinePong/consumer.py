@@ -148,16 +148,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 			current_game = await pong_server.is_in_game(self.player_id)
 			if current_game:
 				await self.handle_find_game({"game_id": current_game})
-				# if self.no_block_task:
-				# 	self.no_block_task.cancel()
 			else:
-				# if self.stop_waiting:
-				# 	return
 				await self.notify_need_wait(data)
-				# tournament = await sync_to_async(Tournament.objects.get)(code=self.tournament_code)
-				# all_matches_finished = await sync_to_async(tournament.all_matches_finished)()
-				# if self.no_block_task == None and all_matches_finished:
-				# 	self.no_block_task = asyncio.create_task(self._player_not_lock_in_game_tournament())
 			return
 		
 		player_info = {
@@ -249,28 +241,13 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 		asyncio.create_task(self._watch_game_events())
 
-	async def _player_not_lock_in_game_tournament(self):
-		begin = time.time()
-		try:
-			while True:
-				now = time.time()
-				if now - begin >= 30:
-					self.stop_waiting = True
-					await self.notify_no_opp()
-					break
-				await asyncio.sleep(0.1)
-		except asyncio.CancelledError as e:
-			return
-		finally:
-			pass
-
 	async def _watch_game_events(self):
 		begin = time.time()
 		try:
 			while True:
 				if self.game and self.game.status == 'WAITING':
 					now = time.time()
-					if now - begin >= 15:
+					if now - begin >= 10:
 						await self.game_not_launch()
 				if not self.game:
 					break
@@ -313,8 +290,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 			return
 		id = 0
 		username = None
-		is_end = False
-
+		
 		if not self.game.p1.ready and not self.game.p2.ready:
 			id = self.game.p2.id
 			username = self.game.p2.username
@@ -326,13 +302,13 @@ class PongConsumer(AsyncWebsocketConsumer):
 			username = self.game.p2.username
 		
 		if self.game_id not in pong_server._game_locks:
-				pong_server._game_locks[self.game_id] = asyncio.Lock()
-				async with pong_server._game_locks[self.game_id]:
-					if not await pong_server.game_is_stocked(self.game_id) and self.game.p1 and self.game.p2:
-						winner_user, loser_user = await self.get_players_users(True)
-						if await self.update_stats_and_create_matches(winner_user, loser_user, True):
-							await pong_server.stock_game(self.game_id)
-		await pong_server.cleanup_player(id, username, self.game_id, is_end)
+			pong_server._game_locks[self.game_id] = asyncio.Lock()
+			async with pong_server._game_locks[self.game_id]:
+				if not await pong_server.game_is_stocked(self.game_id) and self.game.p1 and self.game.p2:
+					winner_user, loser_user = await self.get_players_users(False, True)
+					if await self.update_stats_and_create_matches(winner_user, loser_user, True):
+						await pong_server.stock_game(self.game_id)
+		await pong_server.cleanup_player(id, username, self.game_id, False)
 
 # READY 
 	async def handle_player_ready(self, data):
@@ -433,31 +409,34 @@ class PongConsumer(AsyncWebsocketConsumer):
 		await self.notify_score_update([self.game.p1.score, self.game.p2.score], p_as_score)
 
 	async def handle_game_finish(self, data):
+		print('in game finish')
 		if self.game_id not in pong_server._game_locks:
-				pong_server._game_locks[self.game_id] = asyncio.Lock()
-				async with pong_server._game_locks[self.game_id]:
-					if await pong_server.game_is_stocked(self.game_id):
-						return
-					
-					winning_session = data.decode().split('_')[-1]
-				
-					# Get winner and loser from game logic
-					winner_user, loser_user = await self.get_players_users(False)
+			print(f'game {self.game.p1.id} {self.game.p2.id} not in game_lock')
+			pong_server._game_locks[self.game_id] = asyncio.Lock()
+			async with pong_server._game_locks[self.game_id]:
+				if await pong_server.game_is_stocked(self.game_id):
+					return
+				print(f'game {self.game.p1.id} {self.game.p2.id} not stock')
+				winning_session = data.decode().split('_')[-1]
+				print(winning_session)
 
-					# Update stats and create match history
-					await self.update_stats_and_create_matches(winner_user, loser_user, False)
+				# Get winner and loser from game logic
+				winner_user, loser_user = await self.get_players_users()
+				print(winner_user, loser_user)
+				# Update stats and create match history
+				await self.update_stats_and_create_matches(winner_user, loser_user, False)
 
-					await pong_server.stock_game(self.game_id)
+				await pong_server.stock_game(self.game_id)
 
-					# Existing cleanup logic
-					self.game.status = 'FINISHED'
-					await self.game.save_to_cache()
-					await pong_server.cleanup_player(self.player_id, self.username, self.game_id, True)
-					await self.notify_game_finish(winning_session)
-					await self.cleanup()
+				# Existing cleanup logic
+				self.game.status = 'FINISHED'
+				await self.game.save_to_cache()
+				await pong_server.cleanup_player(self.player_id, self.username, self.game_id, True)
+				await self.notify_game_finish(winning_session)
+				await self.cleanup()
 
 	@database_sync_to_async
-	def get_players_users(self, p_is_quitting):
+	def get_players_users(self, p_is_quitting = False, p_not_ready = False):
 		if p_is_quitting:
 			if self.player_id == self.game.p1.id:
 				winner = self.game.p2
@@ -465,8 +444,18 @@ class PongConsumer(AsyncWebsocketConsumer):
 			elif self.player_id == self.game.p2.id:
 				winner = self.game.p1
 				loser = self.game.p2
+		elif p_not_ready:
+			if not self.game.p1.ready and not self.game.p2.ready:
+				winner = self.game.p1
+				loser = self.game.p2
+			elif not self.game.p1.ready:
+				winner = self.game.p2
+				loser = self.game.p1
+			elif not self.game.p2.ready:
+				winner = self.game.p1
+				loser = self.game.p2
 		else:
-			winner = self.game.winner  # Assuming your game tracks winner/loser
+			winner = self.game.winner
 			loser = self.game.p1 if winner == self.game.p2 else self.game.p2
 		return (winner.user_model, loser.user_model)
 
@@ -474,6 +463,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 	def update_stats_and_create_matches(self, winner, loser, p_is_quitting):
 		current_player = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
 		current_user_is_winner = (current_player.user_model == winner)
+		print('update stats/ im winner : ', current_user_is_winner)
 		if not current_user_is_winner and not p_is_quitting:
 			return False
 		# Update stats

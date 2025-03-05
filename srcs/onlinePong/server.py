@@ -54,33 +54,42 @@ class PongServer:
 		await self.initialize()
 		async with self._lock:
 			print(player_info, opp_info)
+			existing_game_id = await self.is_in_game(player_info['id'])
+			if existing_game_id:
+				print('player already in game')
+				return None, None
+			
 			if not in_tournament and opp_info is None:
 				opp_info = await self.find_opponent(player_info)
 				if not opp_info:
 					await self.add_to_waiting_list(player_info)
 					return None, None
 
-		while await self.is_in_game(player_info['id']) or await self.is_in_game(opp_info['id']):
-			await asyncio.sleep(0.2)
+			if opp_info and await self.is_in_game(opp_info['id']):
+				return None, None
 
-		game_id = str(uuid.uuid4())
-		game = PongGame(player_info, opp_info, game_id)
-		self.games[game_id] = game
-		active_games = await sync_to_async(cache.get)('active_pong_games') or []
-		active_games.append(game_id)
-		await sync_to_async(cache.set)('active_pong_games', active_games)
+		# while await self.is_in_game(player_info['id']) or await self.is_in_game(opp_info['id']):
+		# 	await asyncio.sleep(0.2)
 
-		for player in [player_info, opp_info]:
-			key = f"player_current_game_{player['id']}"
-			print(key)
-			await sync_to_async(cache.set)(
-				key,
-				game_id,
-				timeout=1800
-			)
-		await game.save_to_cache()
-		await self.notify_opponent(opp_info, game_id)
-		return game, game_id
+			game_id = str(uuid.uuid4())
+			game = PongGame(player_info, opp_info, game_id)
+			self.games[game_id] = game
+			active_games = await sync_to_async(cache.get)('active_pong_games') or []
+			active_games.append(game_id)
+			await sync_to_async(cache.set)('active_pong_games', active_games)
+
+			for player in [player_info, opp_info]:
+				key = f"player_current_game_{player['id']}"
+				print(key)
+				await sync_to_async(cache.set)(
+					key,
+					game_id,
+					timeout=1800
+				)
+			await game.save_to_cache()
+			await self.notify_opponent(opp_info, game_id)
+
+			return game, game_id
 
 	async def notify_opponent(self, opp_info, game_id):
 		channel_name = self.active_connections.get(opp_info["id"])
@@ -162,13 +171,16 @@ class PongServer:
 
 	async def is_in_game(self, player_id):
 		await self.initialize()
-		async with self._lock:
-			for game_id, game in self.games.items():
-				if not game.p1 or not game.p2:
-					continue
-				if player_id == game.p1.id or player_id == game.p2.id:
-					return game_id
-			return None
+		print('is in game begin')
+		for game_id, game in self.games.items():
+			print('begin loop')
+			if not game.p1 or not game.p2:
+				continue
+			if player_id == game.p1.id or player_id == game.p2.id:
+				print('return got someone')
+				return game_id
+		print('return nobody')
+		return None
 
 
 pong_server = PongServer()

@@ -209,7 +209,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def _player_not_lock_in_game_tournament(self):
 		begin = time.time()
 		try:
-			while True:
+			while self.game.status == 'WAITING':
 				now = time.time()
 				if now - begin >= 20:
 					self.stop_waiting = True

@@ -20,9 +20,7 @@ class PongGame:
 	def __init__(self, player_info, opponent_info, game_id, p1_ready = False, p2_ready = False):
 		self.game_id = game_id
 		self.p1 = Player(player_info, game_id, p1_ready)
-		print('p1 created', self.p1)
 		self.p2 = Player(opponent_info, game_id, p2_ready)
-		print('p2 created', self.p2)
 		self.ball = Ball(game_id)
 		self.status = "WAITING"
 		self.group_name = f"game_pong_{self.game_id}"
