@@ -8,7 +8,7 @@ from django.conf import settings
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.cache import cache, caches
-from rest_framework_simplejwt.authentication import JWTAuthentication
+# from rest_framework_simplejwt.authentication import JWTAuthentication
 from api.models import MyUser, MatchHistory, Tournament
 
 from .ball import Ball

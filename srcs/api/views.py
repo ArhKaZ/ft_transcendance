@@ -8,7 +8,7 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from django.urls import reverse
 from django.http import HttpResponseRedirect
-from rest_framework_simplejwt.tokens import RefreshToken
+# from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from .serializers import MatchHistorySerializer
 from rest_framework.permissions import IsAuthenticated
