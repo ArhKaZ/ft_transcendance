@@ -50,7 +50,7 @@ class TournamentGame {
 				// Clean up all tournament state
 				sessionStorage.removeItem('asWin');
 				sessionStorage.removeItem('tournament_code');
-				// sessionStorage.removeItem('finalDone');
+				sessionStorage.removeItem('finalDone');
 				sessionStorage.removeItem('inFinal');
 				// Redirect directly to home page
 				window.location.href = '/home/';
@@ -80,7 +80,7 @@ class TournamentGame {
 			// Clean up session storage before quitting
 			sessionStorage.removeItem('asWin');
 			sessionStorage.removeItem('tournament_code');
-			// sessionStorage.removeItem('finalDone');
+			sessionStorage.removeItem('finalDone');
 			sessionStorage.removeItem('inFinal');
 			
 			// Force redirect to home
@@ -130,7 +130,7 @@ class TournamentGame {
 		// Clean up session storage immediately
 		sessionStorage.removeItem('asWin');
 		sessionStorage.removeItem('tournament_code');
-		// sessionStorage.removeItem('finalDone');
+		sessionStorage.removeItem('finalDone');
 		sessionStorage.removeItem('inFinal');
 		
 		try {
@@ -170,7 +170,7 @@ class TournamentGame {
 			sessionStorage.removeItem('asWin');
 			sessionStorage.removeItem('inFinal');
 			sessionStorage.removeItem('tournament_code');
-			// sessionStorage.removeItem('finalDone');
+			sessionStorage.removeItem('finalDone');
 			return;
 		}
 		else if (data.finalists.length > 0) {
