@@ -15,56 +15,67 @@ async function fetchHistory() {
 		});
 
 		if (response.ok) {
-			console.log("Get history call worked");
-			const data = await response.json();
+            console.log("get history call worked");
+            const data = await response.json();
 
-			const sortedData = data.reverse();
-			const table = document.createElement("table");
-			table.classList.add("history-table");
+            const sortedData = data.reverse().slice(0, 5);
 
-			// Create the header
-			const thead = document.createElement("thead");
-			thead.innerHTML = `
-				<tr>
-					<th>Date</th>
-					<th>Opponent</th>
-					<th>Mode</th>
-					<th>Result</th>
-				</tr>
-			`;
-			table.appendChild(thead);
+            // Create the table element
+            const table = document.createElement('table');
+            table.className = 'history-table';
 
-			// Create the body
-			const tbody = document.createElement("tbody");
-			sortedData.forEach(item => {
-				const tr = document.createElement("tr");
+            // Create the table header
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th>Date</th>
+                    <th>Adversaire</th>
+                    <th>Mode</th>
+                    <th>Résultat</th>
+                </tr>
+            `;
+            table.appendChild(thead);
 
-				const tdDate = document.createElement("td");
-				tdDate.textContent = item.date;
+            // Create the table body
+            const tbody = document.createElement('tbody');
+            sortedData.forEach(item => {
+                const row = document.createElement('tr');
 
-				const tdOpponent = document.createElement("td");
-				tdOpponent.textContent = item.opponent_name;
+                // Create and append the date cell
+                const dateCell = document.createElement('td');
+                dateCell.textContent = item.date; // Safe
+                row.appendChild(dateCell);
 
-				const tdMode = document.createElement("td");
-				tdMode.textContent = item.type;
+                // Create and append the opponent cell
+                const opponentCell = document.createElement('td');
+                opponentCell.textContent = item.opponent_name; // Safe
+                row.appendChild(opponentCell);
 
-				const tdResult = document.createElement("td");
-				tdResult.textContent = item.won ? "Won" : "Lost";
+                // Create and append the type cell
+                const typeCell = document.createElement('td');
+                typeCell.textContent = item.type; // Safe
+                row.appendChild(typeCell);
 
-				tr.appendChild(tdDate);
-				tr.appendChild(tdOpponent);
-				tr.appendChild(tdMode);
-				tr.appendChild(tdResult);
+                // Create and append the result cell
+                const resultCell = document.createElement('td');
+                resultCell.textContent = item.won ? "Gagné" : "Perdu"; // Safe
+                row.appendChild(resultCell);
 
-				tbody.appendChild(tr);
-			});
-			table.appendChild(tbody);
+                // Append the row to the table body
+                tbody.appendChild(row);
+            });
 
-			// Safely append to the div
-			const divHistory = document.getElementById("divHistory");
-			divHistory.innerHTML = ""; // Clear previous content safely
-			divHistory.appendChild(table);
+            // Append the table body to the table
+            table.appendChild(tbody);
 
+            // Insert the table into the history div
+            const historyDiv = document.getElementById('history');
+            if (historyDiv) {
+                historyDiv.innerHTML = ''; // Clear existing content
+                historyDiv.appendChild(table); // Append the new table
+            } else {
+                console.error("History div not found");
+            }
 		} else {
 			console.log("Error fetching history:", response.status);
 		}
