@@ -16,6 +16,9 @@ import base64
 from django.conf import settings
 from django.core.validators import MaxLengthValidator, MinLengthValidator, RegexValidator
 
+def sanitize_filename(filename):
+    return re.sub(r'[^a-zA-Z0-9_.-]', '', filename)
+
 class StrongPasswordValidator:
     def __call__(self, password):
         if len(password) < 8:
