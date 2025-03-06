@@ -42,18 +42,18 @@ async function loginUser() {
     		sessionStorage.setItem('access_expires', data.access_expires);
     		sessionStorage.setItem('refresh_expires', data.refresh_expires);
 			sessionStorage.setItem('username', username);
-			messageDiv.innerHTML = '<span style="color: green;">Connexion réussie. Redirection en cours...</span>';
+			messageDiv.innerHTML = '<span style="color: green;">Login successful. Redirecting...</span>';
 			setTimeout(() => {
 				window.location.href = "/home/";
 			}, 1000);
 		} else {
 			const data = await response.json();
-			messageDiv.innerHTML = `<span style="color: red;">Erreur : ${data.error || 'Identifiants incorrects.'}</span>`;
+			messageDiv.innerHTML = `<span style="color: red;">Error : ${data.error || 'Invalid credentials.'}</span>`;
 		}
 	} catch (error) {
 
-		messageDiv.innerHTML = `<span style="color: red;">Une erreur s'est produite lors de la connexion. Veuillez réessayer plus tard.</span>`;
-		console.error('Erreur lors de la requête de connexion :', error);
+		messageDiv.innerHTML = `<span style="color: red;">An error happened during login attempt. Please try again later.</span>`;
+		console.error('Error during login request:', error);
 	};
 }
 

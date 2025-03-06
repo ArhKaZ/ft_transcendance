@@ -76,22 +76,17 @@ class Tournament(models.Model):
 	all_matches = models.ManyToManyField('TournamentMatch', blank=True, related_name='tournament_matches')
 
 	def set_winner_for_a_match(self, player_id):
-		"""
-		Définit le gagnant d'un match pour un joueur donné en fonction de son dernier match.
-		
-		:param player_id: L'ID du joueur pour lequel on veut définir le gagnant.
-		"""
 		matches = self.all_matches.filter(
 			models.Q(player1_id=player_id) | models.Q(player2_id=player_id)
 		).order_by('-id')
 
 		if not matches.exists():
-			raise ValidationError("Aucun match trouvé pour ce joueur dans ce tournoi.")
+			raise ValidationError("No match found for this player in this tournament.")
 
 		last_match = matches.first()
 
 		if last_match.winner is not None:
-			raise ValidationError("Ce match a déjà un gagnant.")
+			raise ValidationError("This match already has a winner.")
 
 		last_match.set_winner(last_match.player1 if last_match.player1.id == player_id else last_match.player2, "1-0")
 		last_match.save()
@@ -176,9 +171,6 @@ class Tournament(models.Model):
 		return all_finished
 
 	def display_matches(self):
-			"""
-			Retourne une liste des matchs du tournoi avec les détails des joueurs.
-			"""
 			matches = self.all_matches.all()
 			match_list = []
 			for match in matches:

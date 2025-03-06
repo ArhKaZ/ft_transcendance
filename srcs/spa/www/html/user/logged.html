@@ -12,14 +12,14 @@
     </div>
 
 	 <p id="username"></p>
-    <p>Maintenant tu peux jouer</p>
+    <p>Now you can play!</p>
     <a href="http://127.0.0.1:8000/onlinePong/">Pong</a>
     <a href="http://127.0.0.1:8000/user/edit_user/">Edit User</a>
     <a href="http://127.0.0.1:8000/pixelPaws/">PixelPaws</a>
     <a href="http://127.0.0.1:8000/user/history/">History</a>
 
     <div>
-        <h3>Liste des amis :</h3>
+        <h3>Friend list: </h3>
         {% if friends %}
             <ul>
                 {% for friend in friends %}
@@ -30,7 +30,7 @@
                 {% endfor %}
             </ul>
         {% else %}
-            <p>Tu n'as pas encore d'amis. 😢</p>
+            <p>You don't have friends yet. 😢</p>
         {% endif %}
     </div>
 </body>

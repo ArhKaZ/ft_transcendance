@@ -115,7 +115,7 @@ if (response.ok) {
 
 
 	
-	console.error('Erreur lors de la requête de récupération des informations :', response);
+	console.error('Error while fetching informations :', response);
 }
 
 

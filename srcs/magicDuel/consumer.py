@@ -162,7 +162,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		if current_game:
 			await self.send(text_data=json.dumps({
 				'type': 'error',
-				'message': 'You\'r already in a game'
+				'message': 'You are already in a game'
 			}))
 			return
 

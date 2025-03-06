@@ -202,7 +202,7 @@ class TournamentGame {
             document.getElementById('player3').textContent = data.matches[1].player1.pseudo;
             document.getElementById('player4').textContent = data.matches[1].player2.pseudo;
         } else {
-            console.error("Nombre insuffisant de joueurs");
+            console.error("Not enough players");
         }
 		if (data.finalists.length >= 2)
 		{

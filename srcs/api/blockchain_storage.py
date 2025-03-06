@@ -35,10 +35,10 @@ def record_match(tournament_data, tournament_code):
 		token_hash = contract.functions.storeTournament(tournament_code, tournament_data["players"], tournament_data["finalists"], winner).transact({'from' : admin_acc})
 		receipt = web3.eth.wait_for_transaction_receipt(token_hash)
 		if (receipt.status == 1):
-			print("Match enregistre avec succes", file=sys.stderr)
+			print("Match successfully recorded", file=sys.stderr)
 			print_etherscan_link(token_hash)
 		else:
-			print("Error lors de l'enregistrement du match", file=sys.stderr)
+			print("Error during match recording", file=sys.stderr)
 	except Exception as e:
 		error = "Error recording match, type of error :\n" + f"{type(e).__name__}\n" + f"Error message :\n {str(e)}\n" + "\n Traceback : \n" + traceback.format_exc()
 		print(error, file=sys.stderr)
@@ -49,4 +49,4 @@ def return_etherscan_link(token_hash):
 
 def print_etherscan_link(token_hash):
 	printer = "https://sepolia.etherscan.io/tx/0x" + token_hash.hex()
-	print("Voici le lien vers la transaction : " + printer, file=sys.stderr)
+	print("Here is the link to the transaction : " + printer, file=sys.stderr)

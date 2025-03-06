@@ -60,11 +60,11 @@ def add_user(request):
 
 			
 			if ext not in ALLOWED_EXTENSIONS or not mime_type.startswith('image/'):
-				return Response({'error': 'Format de fichier non autorisé'}, status=status.HTTP_400_BAD_REQUEST)
+				return Response({'error': 'Unauthorized file format'}, status=status.HTTP_400_BAD_REQUEST)
 			
 			
 			if avatar.size > MAX_FILE_SIZE:
-				return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
+				return Response({'error': 'File too heavy'}, status=status.HTTP_400_BAD_REQUEST)
 			data['avatar'] = avatar.read()
 
 		serializer = UserSerializer(data=data)
@@ -271,10 +271,10 @@ def edit_user_api(request):
 		mime_type = magic.Magic(mime=True).from_buffer(avatar.read(1024))
 		avatar.seek(0)
 		if ext not in ALLOWED_EXTENSIONS or not mime_type.startswith('image/'):
-			return Response({'error': 'Format de fichier non autorisé'}, status=status.HTTP_400_BAD_REQUEST)
+			return Response({'error': 'Unauthorized file format'}, status=status.HTTP_400_BAD_REQUEST)
 		
 		if avatar.size > MAX_FILE_SIZE:
-			return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
+			return Response({'error': 'File too heavy'}, status=status.HTTP_400_BAD_REQUEST)
 		data['avatar'] = avatar
 
 	if data:

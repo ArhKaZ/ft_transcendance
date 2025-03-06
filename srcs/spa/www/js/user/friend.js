@@ -93,10 +93,10 @@ async function fetchFriends() {
             });
 
         } else {
-            console.error("Erreur lors de la récupération de la liste d'amis :", response.status);
+            console.error("Error while trying to fetch friendlist :", response.status);
         }
     } catch (error) {
-        console.error("get friends call failed", error);
+        console.error("fetchFriends call failed", error);
     }
 }
 
@@ -151,7 +151,7 @@ async function addFriend() {
             const contentType = response.headers.get("content-type");
             if (contentType && contentType.indexOf("application/json") !== -1) {
                 const data = await response.json();
-                const errorMessage = data.error || `Erreur lors de l'ajout d'un ami : ${response.status}`;
+                const errorMessage = data.error || `Error while adding a friend: ${response.status}`;
                 displayAddFriendError(errorMessage);
             } else {
                 
@@ -161,7 +161,7 @@ async function addFriend() {
             }
         }
     } catch (error) {
-        displayAddFriendError(`Erreur lors de l'ajout d'un ami: ${error.message}`);
+        displayAddFriendError(`Error while adding a friend: ${error.message}`);
     }
 }
 
@@ -245,10 +245,10 @@ async function fetchPendingFriend() {
             });
             
         } else {
-            console.error("Erreur lors de la récupération de la liste d'amis en attente :", response.status);
+            console.error("Error while fetching pending friendlist :", response.status);
         }
     } catch (error) {
-        console.error("get pending friends call failed", error);
+        console.error("fetchPendingFriends call failed", error);
     }
 }
 

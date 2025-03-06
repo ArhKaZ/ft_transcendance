@@ -27,9 +27,9 @@ async function fetchHistory() {
             thead.innerHTML = `
                 <tr>
                     <th>Date</th>
-                    <th>Adversaire</th>
+                    <th>Opponent</th>
                     <th>Mode</th>
-                    <th>Résultat</th>
+                    <th>Results</th>
                 </tr>
             `;
             table.appendChild(thead);
@@ -51,7 +51,7 @@ async function fetchHistory() {
                 row.appendChild(typeCell);
 
                 const resultCell = document.createElement('td');
-                resultCell.textContent = item.won ? "Gagné" : "Perdu";
+                resultCell.textContent = item.won ? "Won" : "Lost";
                 row.appendChild(resultCell);
 
                 tbody.appendChild(row);

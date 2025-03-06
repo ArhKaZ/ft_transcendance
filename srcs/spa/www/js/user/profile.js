@@ -14,13 +14,13 @@ async function isUserFriend(userName) {
         });
 
         if (!response.ok) {
-            console.error("Erreur lors de la récupération des amis");
+            console.error("Error while fetching friends");
             return false;
         }
 
         const data = await response.json();
         if (!Array.isArray(data)) {
-            console.error("Le format des amis est incorrect:", data);
+            console.error("Firends format is incorrect:", data);
             return false;
         }
 
@@ -28,7 +28,7 @@ async function isUserFriend(userName) {
 
         return friendNames.includes(userName);
     } catch (error) {
-        console.error("Échec de la récupération des amis", error);
+        console.error("Failed fetching friends", error);
         return false;
     }
 }
@@ -45,13 +45,13 @@ async function isFriendRequestPending(userName) {
         });
 
         if (!response.ok) {
-            console.error("Erreur lors de la récupération des demandes d'amis en attente");
+            console.error("Error while trying to fetch pending friend requests");
             return false;
         }
 
         const data = await response.json();
         if (!Array.isArray(data)) {
-            console.error("Format incorrect des demandes en attente:", data);
+            console.error("Incorrect format for pending firends:", data);
             return false;
         }
 
@@ -59,7 +59,7 @@ async function isFriendRequestPending(userName) {
         
         return data.some(request => request.sender === currentUser && request.receiver === userName);
     } catch (error) {
-        console.error("Échec de la récupération des demandes en attente", error);
+        console.error("Failed to fetch pending friend requests", error);
         return false;
     }
 }
@@ -137,10 +137,10 @@ async function addFriend(userName) {
             window.location.reload();
         } else {
             const data = await response.json();
-            console.error("Erreur lors de l'ajout d'un ami :", data.error || response.status);
+            console.error("Error while trying to add a friend :", data.error || response.status);
         }
     } catch (error) {
-        console.error("Échec de l'ajout d'un ami", error);
+        console.error("Failed adding a friend", error);
     }
 }
 
@@ -196,9 +196,9 @@ async function fetchHistory() {
             thead.innerHTML = `
                 <tr>
                     <th>Date</th>
-                    <th>Adversaire</th>
+                    <th>Opponent</th>
                     <th>Mode</th>
-                    <th>Résultat</th>
+                    <th>Results</th>
                 </tr>
             `;
             table.appendChild(thead);
@@ -225,7 +225,7 @@ async function fetchHistory() {
 
                 
                 const resultCell = document.createElement('td');
-                resultCell.textContent = item.won ? "Gagné" : "Perdu"; 
+                resultCell.textContent = item.won ? "Won" : "Lost"; 
                 row.appendChild(resultCell);
 
                 
@@ -245,7 +245,7 @@ async function fetchHistory() {
             }
         }
     } catch (error) {
-        console.error("history call failed", error);
+        console.error("History call failed", error);
     }
 }
 
