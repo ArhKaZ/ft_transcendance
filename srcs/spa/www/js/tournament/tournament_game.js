@@ -16,25 +16,6 @@ class TournamentGame {
 		
 
 		this.init();
-		this.preventExit();
-	}
-
-	preventExit() {
-		window.addEventListener('beforeunload', (event) => {
-			event.preventDefault();
-			event.returnValue = 'Do you want to quit the tournament';
-		});
-
-		window.addEventListener('popstate', (event) => {
-			if (confirm('Are you sure ?')) {
-				this.quitTournament();
-			} else {
-				history.pushState(null, '', window.location.href);
-			}
-		});
-
-		// Ajoute une entrée dans l'historique pour empêcher un retour direct
-		history.pushState(null, '', window.location.href);
 	}
 
 	async checkLeft(tournamentCode) {
@@ -95,49 +76,88 @@ class TournamentGame {
 
 	async init() {
 		user = await getUserFromBack();
-		console.log(user);
-		sessionStorage.setItem('tournament_code', this.tournamentCode); // verifier si il est deja set
-		await sleep(2000);
+		sessionStorage.setItem('tournament_code', this.tournamentCode);
+		let oldData = null;
+		let data = null
 		if (this.checkLeft(this.tournamentCode) == true) {
 			window.location.href = `/home/`;
 		}
-		const data = await this.loadEnd();
-		if (sessionStorage.getItem('finalDone') || data.winner.length > 0) {
-			console.log('tournoi fini');
-			sessionStorage.removeItem('asWin');
-			sessionStorage.removeItem('inFinal');
-			sessionStorage.removeItem('tournament_code');
-			sessionStorage.removeItem('finalDone');
-			return;
-		}
-		else if (data.finalists.length > 0) {
-			this.verifUserInFinal(data);
-		}
-		else {
-			if (this.verifUserNeedPlay(data))
-				window.location.href = `/onlinePong/?tournament=true`;
+		while (true) {
+			data = await this.loadEnd();
+			await sleep(500);
+			console.log('diff datas', data === oldData);
+			if (oldData && data !== oldData) {
+				this.displayTournamentInfo(data);
+				
+				if (sessionStorage.getItem('finalDone') || data.winner.length > 0) {
+					sessionStorage.removeItem('asWin');
+					sessionStorage.removeItem('inFinal');
+					sessionStorage.removeItem('tournament_code');
+					sessionStorage.removeItem('finalDone');
+					return;
+				}
+				else if (data.finalists.length > 0) {
+					console.log('final ici');
+					if (await this.verifUserInFinal(data))
+						break;
+				}
+				else {
+					if (this.verifUserNeedPlay(data)){
+						console.log('ici');
+						window.location.href = `/onlinePong/?tournament=true`;
+						break;
+					}
+				}
+			}
+			else {
+				console.log('data are same');
+				oldData = data;
+			}
+			await sleep(1500);
 		}
 	}
 
-	verifUserInFinal(data) {
+	async verifUserInFinal(data) {
+		let isFinalist = false;
+		let canPlay = true;
+		console.log(data);
 		for (const finalist of data.finalists) {
 			console.log(finalist);
 			console.log(user);
 			console.log(finalist.id == user.id);
 			if (finalist.id === user.id) {
-				sessionStorage.setItem('inFinal', true);
-				window.location.href = `/onlinePong/?tournament=true`;
+				isFinalist = true;
 				break;
 			}
 		}
+		if (isFinalist === false)
+			return false;
+		else if (isFinalist === true) {
+			for (const match of data.matches) {
+				if (match.is_final)
+					continue;
+				console.log('match : ', match);
+				console.log('winner', match.winner == null);
+				console.log('score', match.score == null);
+				if (match.winner == null && match.score == null) {
+					console.log('can play pass false');
+					canPlay = false;
+					break;
+				}
+			}
+		}
+		console.log('can play', canPlay);
+		if (canPlay) {
+			sessionStorage.setItem('inFinal', true);
+			window.location.href = `/onlinePong/?tournament=true`;
+			return true;
+		}
+		return false;
 	}
 
 	verifUserNeedPlay(data) {
-		console.log(`data:`, data);
 		return data.matches.some(match => {
-			// Vérifier si la match n'a pas de vainqueur
 			if (match.winner === null) {
-				// Vérifier si l'utilisateur est l'un des joueurs de la match
 				return match.player1.id === user.id || match.player2.id === user.id;
 			}
 			return false;
@@ -157,7 +177,6 @@ class TournamentGame {
 				throw new Error('Failed to load tournament data');
 			}
 			const data = await response.json();
-			this.displayTournamentInfo(data);
 			return data;
 			// this.populatePlayers(data);
 		} catch (error) {
