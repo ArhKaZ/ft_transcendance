@@ -535,8 +535,14 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			return
 		ret = await self.game.check_players_have_played()
 		if ret != None:
-			self.game.status = 'CANCELLED'
 			await self.notify_player_no_play(ret)
+			self.game.status = 'CANCELLED'
+			if ret['p_id'] != None and ret['p2_id'] == None:
+				winner_user, loser_user = await self.get_players_users(self.game.p2, self.game.p1)
+				await self.update_magic_stats_and_history(winner_user, loser_user)
+			elif ret['p2_id'] != None and ret['p_id'] == None:
+				winner_user, loser_user = await self.get_players_users(self.game.p1, self.game.p2)
+				await self.update_magic_stats_and_history(winner_user, loser_user)
 			await self.cleanup_round()
 			await self.cleanup()
 			return
