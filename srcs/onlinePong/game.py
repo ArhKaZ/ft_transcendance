@@ -159,8 +159,12 @@ class PongGame:
 
 	async def cleanup(self, player_id = -1):
 
-		if self.ball_update_task:
-				self.ball_update_task.cancel()
+		if self.ball_update_task and not self.ball_update_task.done():
+			self.ball_update_task.cancel()
+			try:
+				await self.ball_update_task
+			except asyncio.CancelledError:
+				pass
 
 		if player_id == -1:
 			return
@@ -170,6 +174,9 @@ class PongGame:
 		elif self.p2 and player_id == self.p2.id:
 			await self.p2.delete_from_cache()
 			self.p2 = None
+
+		self.events['game_finished'].set()
+		self.can_move = False
 
 
 	def get_current_state(self):

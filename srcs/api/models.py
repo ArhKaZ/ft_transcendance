@@ -134,7 +134,6 @@ class Tournament(models.Model):
 		self.left.add(user)
 
 	def add_winner(self, user):
-		
 		if self.winner.count() >= 1:
 			raise ValidationError("Already have a winner.")
 		self.winner.add(user)

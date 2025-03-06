@@ -66,7 +66,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
 		await sync_to_async(cache.set)(key, current_waiting_players)
 		if self.game_id:
-			await sync_to_async(cache.delete)(f"player_current_game_{self.player_id}")
 			await sync_to_async(cache.delete)(f"player_{self.player_id}_channel")
 
 			if self.game:
@@ -119,7 +118,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				cache_keys = [
 					f'wizard_duel_player_{self.player_id}',
 					f'wizard_duel_game_{self.game_id}',
-					f'player_current_game_{self.player_id}'
 				]
 
 				for key in cache_keys:
@@ -156,16 +154,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		self.game_cancel_event.set()
 
 	async def handle_player_search(self, data):
-		player_game_key = f"player_current_game_{self.player_id}"
-		current_game = await sync_to_async(cache.get)(player_game_key)
-
-		if current_game:
-			await self.send(text_data=json.dumps({
-				'type': 'error',
-				'message': 'You\'r already in a game'
-			}))
-			return
-
 		key = 'waiting_wizard_duel_players'
 
 		current_waiting_players = cache.get(key) or []
@@ -185,8 +173,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		opponent_info  = await self.find_opponent(data['player_lp'])
 		if opponent_info:
 			self.game_id = str(uuid.uuid4())
-			await sync_to_async(cache.set)(f"player_current_game_{self.player_id}", self.game_id, timeout=3600)
-			await sync_to_async(cache.set)(f"player_current_game_{opponent_info['id']}", self.game_id, timeout=3600)
 
 			self.game = Game(player_info, opponent_info, self.game_id)
 			await self.game.save_to_cache()

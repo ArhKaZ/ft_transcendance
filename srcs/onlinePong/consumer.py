@@ -40,7 +40,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 	async def disconnect(self, close_code):
 		try:
-			await asyncio.wait_for(self._handle_disconnect(close_code), timeout=5)
+			await asyncio.wait_for(self._handle_disconnect(close_code), timeout=15)
 		except asyncio.TimeoutError:
 			print("Disconnect operation timed out")
 		except Exception as e:
@@ -63,14 +63,20 @@ class PongConsumer(AsyncWebsocketConsumer):
 			if self.is_cleaning_up:
 				return
 			self.is_cleaning_up = True
-
 			try:
-				tasks = [self.listen_task, self.send_ball_task, self.countdown_task, self.solo_task]
+				tasks = [
+				t for t in [self.listen_task, self.send_ball_task, 
+						   self.countdown_task, self.solo_task] 
+				if t is not None
+				]
+	
 				if tasks:
 					for task in tasks:
-						if task and not task.done():
+						if not task.done():
 							task.cancel()
-					await asyncio.wait([task for task in tasks if task], timeout=5)
+					pending = [t for t in tasks if not t.done()]
+					if pending:
+						await asyncio.wait(pending, timeout=5)
 
 				if hasattr(self, 'pubsub'):
 					try:
@@ -89,12 +95,16 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 				if self.game and hasattr(self.game, 'group_name'):		
 					await self.channel_layer.group_discard(self.game.group_name, self.channel_name)
+				
+				await pong_server.remove_player_from_waiting(self.player_id, True)
 			except Exception as e:
 				print(f"Error during cleanup: {e}")
 			finally:
 				self.is_cleaning_up = False
 				self.game = None
-				pong_server._game_locks[self.game_id] = None
+				game_id = self.game_id
+				if game_id and game_id in pong_server._game_locks:
+					pong_server._game_locks[game_id] = None
 
 	async def receive(self, text_data):
 		try:
@@ -204,17 +214,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 		except Exception as e:
 			print(f"Error creating win record: {e}")
 
-	async def handle_player_search(self, data): 
-		player_game_key = f'player_current_game_{self.player_id}'
-		current_game = await sync_to_async(cache.get)(player_game_key)
-
-		if current_game:
-			await self.send(text_data=json.dumps({
-				'type': 'error',
-				'message': 'You\'r already in a game'
-			}))
-			return
-		
+	async def handle_player_search(self, data):
 		player_info = {
 				'id': self.player_id,
 				'username': data['player_name'],
@@ -250,11 +250,9 @@ class PongConsumer(AsyncWebsocketConsumer):
 				if not self.game:
 					break
 				if await self._wait_for_event(self.game.events['game_cancelled']):
-					print(f"Game cancelled for player {self.player_id}")
 					break
 
 				if await self._wait_for_event(self.game.events['game_finished']):
-					print(f"Game finished for player {self.player_id}")
 					break
 				
 				await asyncio.sleep(0.1)
@@ -312,7 +310,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 	async def handle_player_ready(self, data):
 		if not self.game:
 			return
-
 		both_r = await self.game.set_player_ready(self.player_id)
 		await self.notify_player_ready()
 		if both_r:
@@ -322,12 +319,12 @@ class PongConsumer(AsyncWebsocketConsumer):
 		await self.notify_game_start(self.game.p1, self.game.p2)
 		self.game.status = "LAUNCHING"
 		if self.solo_task and not self.solo_task.done():
-			self.solo_task.cancel()  # Annuler la tâche d'auto-win
-		try:
-			await self.solo_task  # Attendre que la tâche soit bien annulée
-		except asyncio.CancelledError:
-			pass
-		self.solo_task = None  # Réinitialiser la tâche
+			self.solo_task.cancel()
+			try:
+				await self.solo_task
+			except asyncio.CancelledError:
+				pass
+			self.solo_task = None
 		if not self._countdown_task:
 			self._countdown_task = asyncio.create_task(self.run_countdown_sequence())
 		asyncio.create_task(self.launch_game_after_countdown())
@@ -414,38 +411,36 @@ class PongConsumer(AsyncWebsocketConsumer):
 	async def handle_game_finish(self, data):
 		try:
 			if self.solo_task and not self.solo_task.done():
-				self.solo_task.cancel()  # Annuler la tâche d'auto-win
-			try:
-				await self.solo_task  # Attendre que la tâche soit bien annulée
-			except asyncio.CancelledError:
-				pass
+				self.solo_task.cancel()
+				try:
+					await self.solo_task
+				except asyncio.CancelledError:
+					pass
 		except Exception as e:
 			print(f'Error cancelling solo_task: {e}')
-		print('in game finish')
+		print('cc')
 		if self.game_id not in pong_server._game_locks:
-			print(f'game {self.game.p1.id} {self.game.p2.id} not in game_lock')
 			pong_server._game_locks[self.game_id] = asyncio.Lock()
 			async with pong_server._game_locks[self.game_id]:
 				if await pong_server.game_is_stocked(self.game_id):
 					return
-				print(f'game {self.game.p1.id} {self.game.p2.id} not stock')
 				winning_session = data.decode().split('_')[-1]
-				print(winning_session)
-
-				# Get winner and loser from game logic
 				winner_user, loser_user = await self.get_players_users()
-				print(winner_user, loser_user)
-				# Update stats and create match history
 				await self.update_stats_and_create_matches(winner_user, loser_user, False)
 
 				await pong_server.stock_game(self.game_id)
-
-				# Existing cleanup logic
+				
+				print(1)
+				await pong_server.cleanup_player(self.game.p1.id, self.game.p1.username, self.game_id, True)
+				print(2)
+				await pong_server.cleanup_player(self.game.p2.id, self.game.p2.username, self.game_id, True)
+				print(3)
 				self.game.status = 'FINISHED'
-				await self.game.save_to_cache()
-				await pong_server.cleanup_player(self.player_id, self.username, self.game_id, True)
+				# await self.game.save_to_cache()
 				await self.notify_game_finish(winning_session)
+				print(4)
 				await self.cleanup()
+				print(5)
 
 	@database_sync_to_async
 	def get_players_users(self, p_is_quitting = False, p_not_ready = False):
@@ -476,9 +471,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 		current_player = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
 		current_user_is_winner = (current_player.user_model == winner)
 		print('update stats/ im winner : ', current_user_is_winner)
-		# if not current_user_is_winner and not p_is_quitting:
-		# 	return False
-		# Update stats
 		winner.wins += 1
 		loser.looses += 1
 	
@@ -501,35 +493,21 @@ class PongConsumer(AsyncWebsocketConsumer):
 		loser.save()
 	
 		# Tournament progression logic
-		# print('info tournament : ', self.in_tournament, self.tournament_code)
 		if self.in_tournament and self.tournament_code:
 			try:
 				tournament = Tournament.objects.get(code=self.tournament_code)
-				print(f"in add winner: {winner}, {loser}")
-				for match in tournament.display_matches():
-					print(match)
 				if self.is_final_match:
-					print(f'pass in final_match')
-					# Handle tournament winner
 					tournament.set_winner_for_a_match(winner.id)
-					tournament.started = False  # Mark tournament as completed
-					for match in tournament.display_matches():
-						print(match)
+					tournament.started = False
 				else:
-					# Handle finalist progression
-					print(f'pass in not final')
 					tournament.set_winner_for_a_match(winner.id)
 					tournament.add_finalist(winner)
 	
-					# Check if we have 2 finalists to create final match
 					if tournament.finalist.count() == 2:
-						print('final is complete create it')
 						finalists = list(tournament.finalist.all())
 						tournament.create_final(finalists[0], finalists[1])
 	
 				tournament.save()
-				for match in tournament.display_matches():
-					print(match)
 			except Tournament.DoesNotExist:
 				print(f"Tournament {self.tournament_code} not found")
 	
@@ -729,6 +707,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 		await self.send(text_data=json.dumps(message))
 
 	async def notify_game_finish(self, winning_session):
+		print('cc')
 		message = {
 			'type': 'game_finish',
 			'winning_session': winning_session,

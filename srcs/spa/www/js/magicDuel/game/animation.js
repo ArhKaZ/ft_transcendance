@@ -5,18 +5,18 @@ class Animation {
         this.nb = nb;
         this.assetsPath = window.MAGICDUEL_ASSETS;
         this.scale = 2;
-        this.IdleP1 = new Sprite('../assets/magicDuel/Wizard/IdleP1.png', 6, 6, 231, 190, 'idleP1', true);
-        this.AttackP1 = new Sprite('../assets/magicDuel/Wizard/AttackP1.png', 8, 6, 231, 190, 'attackP1');
-        this.TakeHitP1 = new Sprite('../assets/magicDuel/Wizard/HitP1.png', 4, 7, 231, 190, 'hitP1');
-        this.IdleP2 = new Sprite('../assets/magicDuel/Wizard/IdleP2.png', 6, 6, 231, 190, 'idleP2', true);
+        this.IdleP1 = new Sprite('../assets/magicDuel/Wizard/IdleP1.png', 6, 8, 231, 190, 'idleP1', true);
+        this.AttackP1 = new Sprite('../assets/magicDuel/Wizard/AttackP1.png', 8, 8, 231, 190, 'attackP1');
+        this.TakeHitP1 = new Sprite('../assets/magicDuel/Wizard/HitP1.png', 4, 8, 231, 190, 'hitP1');
+        this.IdleP2 = new Sprite('../assets/magicDuel/Wizard/IdleP2.png', 6, 8, 231, 190, 'idleP2', true);
         this.AttackP2 = new Sprite('../assets/magicDuel/Wizard/AttackP2.png', 8, 6, 231, 190, 'attackP2');
-        this.TakeHitP2 = new Sprite('../assets/magicDuel/Wizard/HitP2.png', 4, 7, 231, 190, 'hitP2');
-        this.DeathP1 = new Sprite('../assets/magicDuel/Wizard/DeathP1.png', 7, 7, 231, 190, 'deathP1');
-        this.DeathP2 = new Sprite('../assets/magicDuel/Wizard/DeathP2.png', 7, 7, 231, 190, 'deathP2');
-        this.DarkBolt = new Sprite('../assets/magicDuel/Attacks/Dark-Bolt.png', 11, 6, 67, 92, 'darkBolt');
-        this.FireBomb = new Sprite('../assets/magicDuel/Attacks/Fire-bomb.png', 14, 6, 67, 67, 'fireBomb');
-        this.Lightning = new Sprite('../assets/magicDuel/Attacks/Lightning1.png', 10, 6, 46, 92, 'lightning');
-        this.Spark = new Sprite('../assets/magicDuel/Attacks/Spark.png', 7 , 6, 67, 67, 'spark');
+        this.TakeHitP2 = new Sprite('../assets/magicDuel/Wizard/HitP2.png', 4, 8, 231, 190, 'hitP2');
+        this.DeathP1 = new Sprite('../assets/magicDuel/Wizard/DeathP1.png', 7, 8, 231, 190, 'deathP1');
+        this.DeathP2 = new Sprite('../assets/magicDuel/Wizard/DeathP2.png', 7, 8, 231, 190, 'deathP2');
+        this.DarkBolt = new Sprite('../assets/magicDuel/Attacks/Dark-Bolt.png', 11, 8, 67, 92, 'darkBolt');
+        this.FireBomb = new Sprite('../assets/magicDuel/Attacks/Fire-bomb.png', 14, 8, 67, 67, 'fireBomb');
+        this.Lightning = new Sprite('../assets/magicDuel/Attacks/Lightning1.png', 10, 8, 46, 92, 'lightning');
+        this.Spark = new Sprite('../assets/magicDuel/Attacks/Spark.png', 7 , 8, 67, 67, 'spark');
     }
 
     update(ctx, obj, attackSprite = null) {
