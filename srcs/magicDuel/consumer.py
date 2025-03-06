@@ -162,7 +162,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		if current_game:
 			await self.send(text_data=json.dumps({
 				'type': 'error',
-				'message': 'You\'r already in a game'
+				'message': 'You are already in a game'
 			}))
 			return
 
@@ -209,10 +209,9 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		begin = time.time()
 		try:
 			while True:
-				# Fetch the latest game state from the cache
 				current_game = await Game.get_game_from_cache(self.game_id)
 				if not current_game or current_game.status != 'WAITING':
-					break  # Exit if game no longer exists or status changed
+					break
 				
 				now = time.time()
 				if now - begin >= 30:
@@ -373,14 +372,13 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 	@database_sync_to_async
 	def update_magic_stats_and_history(self, winner, loser, p_is_quitting):
-		from api.models import MatchHistory  # Import MatchHistory model
+		from api.models import MatchHistory
 		current_player = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
 		current_user_is_winner = (current_player.id == winner.id)
 
 		if not current_user_is_winner and not p_is_quitting:
-			return False  # Only the winner's connection updates the stats
+			return False
 		print('pass return ')
-		# Update winner stats
 		winner.wins += 1
 		winner.ligue_points += 15
 		loser.looses += 1
@@ -430,8 +428,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 					loser = self.game.p1 if self.game.p1.life <= 0 else self.game.p2
 					
 					winner_user, loser_user = await self.get_players_users(winner, loser)
-					if await self.update_magic_stats_and_history(winner_user, loser_user, False): #enlever du if si probleme de socket
-						await self.game.set_stocked() #enlever si probleme du socket
+					if await self.update_magic_stats_and_history(winner_user, loser_user, False):
+						await self.game.set_stocked()
 					await self.notify_game_end()
 					break
 				await asyncio.sleep(0.5)

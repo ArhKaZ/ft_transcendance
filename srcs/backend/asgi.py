@@ -8,7 +8,7 @@ from channels.security.websocket import AllowedHostsOriginValidator
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 django.setup()
 
-from .websocket_urls import websocket_urlpatterns  # Ensure this import is after django.setup()
+from .websocket_urls import websocket_urlpatterns
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),

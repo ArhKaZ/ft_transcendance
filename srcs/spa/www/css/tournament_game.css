@@ -47,7 +47,7 @@ body::before {
   .tournament-code {
     font-size: 1.2em;
     margin-bottom: 30px;
-    min-height: 20px; /* Fixe une hauteur minimale */
+    min-height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -88,7 +88,7 @@ body::before {
   
 .player, .winnerplayer {
     width: 180px;
-    height: 15px; /* Hauteur fixe */
+    height: 15px;
     padding: 10px;
     background-color: #000;
     color: #fff;
@@ -100,7 +100,7 @@ body::before {
     align-items: center;
     justify-content: center;
     text-align: center;
-    white-space: nowrap; /* Empêche le retour à la ligne */
+    white-space: nowrap;
 }
 
 .winnerplayer {

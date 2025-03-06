@@ -68,9 +68,6 @@ class PongServer:
 			if opp_info and await self.is_in_game(opp_info['id']):
 				return None, None
 
-		# while await self.is_in_game(player_info['id']) or await self.is_in_game(opp_info['id']):
-		# 	await asyncio.sleep(0.2)
-
 			game_id = str(uuid.uuid4())
 			game = PongGame(player_info, opp_info, game_id)
 			self.games[game_id] = game

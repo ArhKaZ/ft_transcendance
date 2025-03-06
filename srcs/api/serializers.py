@@ -39,9 +39,9 @@ class StrongPasswordValidator:
 class SafePseudoValidator:
     def __call__(self, pseudo):
         cleaned_pseudo = bleach.clean(pseudo, strip=True)
-        
         if cleaned_pseudo != pseudo:
             raise serializers.ValidationError("Pseudo cannot contain HTML or script tags.")
+        
         if not re.match(r'^[a-zA-Z0-9_-]+$', pseudo):
             raise serializers.ValidationError("Pseudo can only contain letters, numbers, underscores, and hyphens.")
 

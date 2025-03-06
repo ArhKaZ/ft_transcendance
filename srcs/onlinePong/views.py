@@ -7,12 +7,9 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponseRedirect, HttpRequest
 from rest_framework.authtoken.models import Token
-# from rest_framework_simplejwt.authentication import JWTAuthentication
-# from rest_framework_simplejwt.exceptions import InvalidToken
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from api.models import MyUser
-# from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.core.cache import cache, caches
 from django.views.decorators.csrf import csrf_exempt

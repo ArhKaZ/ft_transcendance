@@ -403,9 +403,7 @@ async function handleCountdown(countdown) {
 
 function handleGameFinish(game, winningId, opponentName = null) {
     const btnBack = document.getElementById('button-home-end');
-    // Gestion du cas où le jeu n'a pas été initialisé (victoire automatique)
     if (!game) {
-        // Afficher un message de victoire automatique
         const endContainer = document.getElementById('end-container');
         const endMessage = document.getElementById('end-message');
         const waitingRoom = document.getElementById('waitingContainer');
@@ -422,7 +420,6 @@ function handleGameFinish(game, winningId, opponentName = null) {
             endMessage.innerText = "You have been declared the winner as you are the only player connected!";
         }
     } else {
-        // Logique existante pour les parties normales
         if (opponentName === null)
             if (game && game.P1 && game.P2)
                 opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
