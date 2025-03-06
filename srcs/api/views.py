@@ -41,12 +41,14 @@ from requests.exceptions import HTTPError, RequestException
 import traceback
 import sys
 import requests
-
+from PIL import Image
+from io import BytesIO
 import magic  
 
 
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -65,7 +67,16 @@ def add_user(request):
             if avatar.size > MAX_FILE_SIZE:
                 return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
 
-            data['avatar'] = base64.b64encode(avatar.read()).decode('utf-8')
+            try:
+                img = Image.open(avatar)
+                img.verify()
+                img = Image.open(avatar)
+                img.thumbnail((200, 200))
+                buffer = BytesIO()
+                img.save(buffer, format='PNG')
+                data['avatar'] = base64.b64encode(buffer.getvalue()).decode('utf-8')
+            except Exception as e:
+                return Response({'error': 'Invalid image file'}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = UserSerializer(data=data)
         if serializer.is_valid():
@@ -227,77 +238,77 @@ def logout_user(request):
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def edit_user_api(request):
-	user = request.user
-	data = {}
+    user = request.user
+    data = {}
 
-	if request.data.get('password'):
-		if user.is_oauth == True:
-			return Response({'error': 'OAuth users are not allowed to change their password'}, status=status.HTTP_400_BAD_REQUEST)
-		
-		password = request.data['password']
-		try:
-			StrongPasswordValidator()(password)
-		except serializers.ValidationError as e:
-			return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-		
-		user.set_password(password)
-		user.save()
+    if request.data.get('password'):
+        if user.is_oauth == True:
+            return Response({'error': 'OAuth users are not allowed to change their password'}, status=status.HTTP_400_BAD_REQUEST)
 
-	if request.data.get('description'):
-		cleaned_description = bleach.clean(request.data['description'], strip=True)
-		if len(cleaned_description) > 500:
-			return Response({'error': 'Description cannot exceed 500 characters'}, status=status.HTTP_400_BAD_REQUEST)
-		data['description'] = cleaned_description
+        password = request.data['password']
+        try:
+            StrongPasswordValidator()(password)
+        except serializers.ValidationError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-	if request.data.get('pseudo'):
-		pseudo = request.data['pseudo']
-		try:
-			SafePseudoValidator()(pseudo)
-		except serializers.ValidationError as e:
-			return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-		
-		if len(pseudo) < 2 or len(pseudo) > 20:
-			return Response({'error': 'Pseudo must be between 2 and 20 characters'}, status=status.HTTP_400_BAD_REQUEST)
-		
-		data['pseudo'] = pseudo
+        user.set_password(password)
+        user.save()
 
-	if request.FILES.get('avatar'):
-		if user.is_oauth == True:
-			return Response({'error': 'OAuth users are not allowed to change their avatar'}, status=status.HTTP_400_BAD_REQUEST)
-		data['avatar'] = request.FILES['avatar']
-		avatar = request.FILES['avatar']
-		ext = os.path.splitext(avatar.name)[1].lower()
-		mime_type = magic.Magic(mime=True).from_buffer(avatar.read(1024))
-		avatar.seek(0)  # Rewind file after checking type
-		# Vérification de l'extension et du type MIME
-		if ext not in ALLOWED_EXTENSIONS or not mime_type.startswith('image/'):
-			return Response({'error': 'Format de fichier non autorisé'}, status=status.HTTP_400_BAD_REQUEST)
-		
-		# Vérification de la taille
-		if avatar.size > MAX_FILE_SIZE:
-			return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
-		data['avatar'] = avatar
+    if request.data.get('description'):
+        cleaned_description = bleach.clean(request.data['description'], strip=True)
+        if len(cleaned_description) > 500:
+            return Response({'error': 'Description cannot exceed 500 characters'}, status=status.HTTP_400_BAD_REQUEST)
+        data['description'] = cleaned_description
 
-	if data:
-		serializer = UserSerializer(user, data=data, partial=True)
-		if serializer.is_valid():
-			serializer.save()
-			return Response({
-				'message': 'User updated successfully'
-			}, status=status.HTTP_200_OK)
-		return Response({
-			'message': 'Invalid data provided',
-			'errors': serializer.errors
-		}, status=status.HTTP_400_BAD_REQUEST)
+    if request.data.get('pseudo'):
+        pseudo = request.data['pseudo']
+        try:
+            SafePseudoValidator()(pseudo)
+        except serializers.ValidationError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-	if not data and not request.data.get('password'):
-		return Response({
-			'message': 'No changes were made'
-		}, status=status.HTTP_200_OK)
+        if len(pseudo) < 2 or len(pseudo) > 20:
+            return Response({'error': 'Pseudo must be between 2 and 20 characters'}, status=status.HTTP_400_BAD_REQUEST)
 
-	return Response({
-		'message': 'User updated successfully'
-	}, status=status.HTTP_200_OK)
+        data['pseudo'] = pseudo
+
+    if request.FILES.get('avatar'):
+        if user.is_oauth == True:
+            return Response({'error': 'OAuth users are not allowed to change their avatar'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        avatar = request.FILES['avatar']
+        ext = os.path.splitext(avatar.name)[1].lower()
+        mime_type = magic.Magic(mime=True).from_buffer(avatar.read(1024))
+        avatar.seek(0)
+
+        if ext not in ALLOWED_EXTENSIONS or not mime_type.startswith('image/'):
+            return Response({'error': 'Format de fichier non autorisé'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if avatar.size > MAX_FILE_SIZE:
+            return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            img = Image.open(avatar)
+            img.verify()
+            img = Image.open(avatar)
+            img.thumbnail((200, 200))
+            buffer = BytesIO()
+            img.save(buffer, format='PNG')
+            data['avatar'] = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        except Exception as e:
+            return Response({'error': 'Invalid image file'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if data:
+        serializer = UserSerializer(user, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'User updated successfully'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Invalid data provided', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not data and not request.data.get('password'):
+        return Response({'message': 'No changes were made'}, status=status.HTTP_200_OK)
+
+    return Response({'message': 'User updated successfully'}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
