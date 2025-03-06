@@ -51,37 +51,32 @@ MAX_FILE_SIZE = 5 * 1024 * 1024
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def add_user(request):
-	try:
-		data = request.data.copy()
-		avatar = request.FILES.get('avatar')
-		if avatar:
-			ext = os.path.splitext(avatar.name)[1].lower()
-			mime_type = magic.Magic(mime=True).from_buffer(avatar.read(1024))
-			avatar.seek(0)  
+    try:
+        data = request.data.copy()
+        avatar = request.FILES.get('avatar')
+        if avatar:
+            ext = os.path.splitext(avatar.name)[1].lower()
+            mime_type = magic.Magic(mime=True).from_buffer(avatar.read(1024))
+            avatar.seek(0)
 
-			
-			if ext not in ALLOWED_EXTENSIONS or not mime_type.startswith('image/'):
-				return Response({'error': 'Format de fichier non autorisé'}, status=status.HTTP_400_BAD_REQUEST)
-			
-			
-			if avatar.size > MAX_FILE_SIZE:
-				return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
-			data['avatar'] = avatar.read()
-			# data['avatar'] = avatar
+            if ext not in ALLOWED_EXTENSIONS or not mime_type.startswith('image/'):
+                return Response({'error': 'Format de fichier non autorisé'}, status=status.HTTP_400_BAD_REQUEST)
 
-		serializer = UserSerializer(data=data)
-		if serializer.is_valid():
-			user = serializer.save()
-			user.set_password(serializer.validated_data['password'])
-			user.save()
-			return Response(status=status.HTTP_201_CREATED)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-	except Exception as e:
-		print(f"Error: {e}")  
-		return Response(
-			{'error': str(e)},  
-			status=status.HTTP_400_BAD_REQUEST
-		)
+            if avatar.size > MAX_FILE_SIZE:
+                return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
+
+            data['avatar'] = base64.b64encode(avatar.read()).decode('utf-8')
+
+        serializer = UserSerializer(data=data)
+        if serializer.is_valid():
+            user = serializer.save()
+            user.set_password(serializer.validated_data['password'])
+            user.save()
+            return Response(status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        print(f"Error: {e}")
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
