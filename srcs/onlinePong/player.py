@@ -32,10 +32,10 @@ class Player:
 		self.y = y
 
 	def move(self, direction):
-		if self.y > 1.5 :
+		if self.y > 0 :
 			if direction == 'up':
 				self.y -= self.speed
-		if self.y + 16 < 99.5:
+		if self.y + 16 < 100:
 			if direction == 'down':
 				self.y += self.speed
 

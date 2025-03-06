@@ -22,6 +22,7 @@ class Ball:
         self.vector_as_change = False
         self.last_bound_player = None
         self.last_bound_wall = None
+        self.last_paddle_hit_by = None
 
     def __repr__(self):
         return f"Ball(x:{self.x}, y:{self.y})"
@@ -48,8 +49,8 @@ class Ball:
         self.as_reset = False
         next_x = self.x + self.vx
         next_y = self.y + self.vy
-        await self.check_boundaries(next_x, next_y, game)
         await self.check_boundaries_player(next_x, next_y, game)
+        await self.check_boundaries(next_x, next_y, game)
         if not self.as_reset:
             self.y = next_y
             self.x = next_x
@@ -59,17 +60,18 @@ class Ball:
         return False
 
     async def check_boundaries(self, next_x, next_y, game):
-        if next_y < 1 or next_y > 99:
-            self.last_bound_wall = time.time()
+        current_time = time.time()
+        if next_y - 1 < 1 or next_y + 1 > 99:
+            self.last_bound_wall = current_time
             self.vy = -self.vy
             self.vector_as_change = True
             game.bound_wall = True
-            if next_y < 1:
-                next_y = 1
-            else:
-                next_y = 99
-        elif next_x < 1 or next_x > 99:
-            player_as_score = 1 if next_x > 99 else 2
+            if next_y - 0.5 < 1:
+                next_y = 2
+            elif next_y + 0.5 > 99:
+                next_y = 98
+        elif next_x < 2.5 or next_x > 97.5 or next_y < 0 or next_y > 100:
+            player_as_score = 1 if next_x > 97.5 else 2
             await self.reset(player_as_score, game)
             self.as_reset = True
 
@@ -77,19 +79,20 @@ class Ball:
         await game.update_players()
         colission_point = 0
         now = time.time()
+        current_player = 1 if next_x < 3 else 2
         if self.last_bound_player and now - self.last_bound_player < 0.01:
             self.speed = self.old_speed
             return
-        if next_x < 3 and game.p1.y < next_y + 0.5 < game.p1.y + 17 or \
-                next_x > 97 and game.p2.y < next_y - 0.5 < game.p2.y + 17:
+        if next_x - 0.7 < 3 and game.p1.y < next_y + 0.7 < game.p1.y + 17 or \
+                next_x + 0.7 > 97 and game.p2.y < next_y - 0.7 < game.p2.y + 17:
             self.last_bound_player = time.time()
             game.bound_player = True
-            if self.speed < 1:
+            if self.speed < 0.9:
                 self.old_speed = self.speed
                 self.speed += 0.1
-            if next_x < 3 and game.p1.y < next_y < game.p1.y + 17:
+            if next_x - 0.7 < 3 and game.p1.y < next_y < game.p1.y + 17:
                 colission_point = (next_y + 1) - (game.p1.y + 8)
-            elif next_x > 97 and game.p2.y < next_y < game.p2.y + 17:
+            elif next_x + 0.7 > 97 and game.p2.y < next_y < game.p2.y + 17:
                 colission_point = (next_y + 1) - (game.p2.y + 8)
             normalized_point = colission_point / 8
             max_bounce_angle = math.pi / 4
@@ -100,11 +103,14 @@ class Ball:
             if abs(normalized_point) > 0.9:
                 self.vy *= 0.5
 
-            if next_x < 3:
-                next_x = 3
-            else:
-                next_x = 97
+            if next_x + self.vx < 3:
+                next_x = 4
+            elif next_x + self.vx > 97:
+                next_x = 96
             self.vector_as_change = True
+            self.last_paddle_hit_by = current_player
+            self.last_bound_player = now
+
             
 
     def check_time_collision(self):

@@ -69,7 +69,7 @@ class Game {
     }
 
     checkWinner() {
-        let winner = this.score[0] >= 5 ? 1 : this.score[1] >= 5 ? 2 : 0
+        let winner = this.score[0] >= 2 ? 1 : this.score[1] >= 2 ? 2 : 0
         if (winner != 0) {
             this.stop();
             this.displayWinner(winner);
