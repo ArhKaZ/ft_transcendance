@@ -148,7 +148,6 @@ class UserInfoSerializer(serializers.ModelSerializer):
                 avatar_base64 = base64.b64encode(avatar_bytes).decode('utf-8')
                 return f"data:image/png;base64,{avatar_base64}"
             except Exception as e:
-                print(f"Error encoding avatar for user {obj.username}: {e}")
                 return None
         return None
 

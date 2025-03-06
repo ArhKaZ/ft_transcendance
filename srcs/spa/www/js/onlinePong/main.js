@@ -41,7 +41,6 @@ async function getInfoMatchTournament(user) {
 			credentials: 'include',
 		});
 		if (!response.ok) {
-			console.log(`Error get opponent : ${response.error}`);
 			return null;
 		}
 		const data = await response.json();
@@ -64,7 +63,6 @@ async function getInfoFinale(user) {
 			credentials: 'include',
 		});
 		if (!response.ok) {
-			console.log(`Error get opponent : ${response.error}`);
 			return null;
 		}
 		const data = await response.json();
@@ -82,7 +80,6 @@ async function init() {
 	if (inTournament && sessionStorage.getItem('inFinal')) {
 		inFinal = true;
 		infos = await getInfoFinale(user);
-		console.log(infos);
 		if (infos === null)
 			handleGameFinish(currentGame, currentPlayerId);
 	}
@@ -236,7 +233,6 @@ async function handleWebSocketMessage(e) {
             	currentGame.stop();
             	handleGameFinish(currentGame, data.winning_session);
 			} else {
-				console.log('auto win ');
 				handleGameFinish(null, data.winning_session);
 
 				if (inTournament) {
@@ -388,7 +384,6 @@ async function handleGameStart(data) {
 }
 
 function handleGameCancel(data) {
-	console.log('handleGameCancel');
 	handleErrors(data);
 	let p1Pseudo = document.getElementById('p1-username').innerText;
 	let p2Pseudo = document.getElementById('p2-username').innerText;
@@ -437,7 +432,6 @@ function handleGameFinish(game, winningId, opponentName = null) {
     }
     
     if (inTournament) {
-        console.log('inTournament finish')
         if (inFinal)
             sessionStorage.setItem('finalDone', true);
         btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;

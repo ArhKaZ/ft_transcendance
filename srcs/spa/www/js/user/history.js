@@ -15,7 +15,6 @@ async function fetchHistory() {
 		});
 
 		if (response.ok) {
-            console.log("get history call worked");
             const data = await response.json();
 
             const sortedData = data.reverse().slice(0, 5);
@@ -67,7 +66,6 @@ async function fetchHistory() {
                 console.error("History div not found");
             }
 		} else {
-			console.log("Error fetching history:", response.status);
 		}
 	} catch (error) {
 		console.error("History call failed", error);

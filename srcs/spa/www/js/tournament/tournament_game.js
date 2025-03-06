@@ -20,23 +20,21 @@ class TournamentGame {
 	}
 
 	handleBeforeUnload(event) {
-        // Check if navigation is programmatic
         if (sessionStorage.getItem('programmaticNavigation') === 'true') {
             sessionStorage.removeItem('programmaticNavigation');
             return;
         }
 
         event.preventDefault();
-        event.returnValue = ''; // Required for Chrome
+        event.returnValue = '';
         this.syncForfeit();
     }
 
-    // Synchronous forfeit request using XHR
     syncForfeit() {
 		ensureValidToken();
         const url = `/api/forfeit_tournament/${this.tournamentCode}/`;
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', url, false); // Synchronous request
+        xhr.open('POST', url, false);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.setRequestHeader('X-CSRFToken', getCSRFToken());
         xhr.setRequestHeader('Authorization', `Bearer ${sessionStorage.getItem('access_token')}`);
@@ -47,9 +45,7 @@ class TournamentGame {
         }
     }
 
-    // Handle popstate event (back/forward navigation)
     handlePopState(event) {
-        // Prevent back navigation
         history.pushState(null, document.title, window.location.href);
         this.quitTournament();
     }
@@ -123,7 +119,6 @@ class TournamentGame {
 		while (true) {
 			data = await this.loadEnd();
 			await sleep(500);
-			console.log('diff datas', data === oldData);
 			if (oldData && data !== oldData) {
 				this.displayTournamentInfo(data);
 				
@@ -164,7 +159,6 @@ class TournamentGame {
 				}
 			}
 			else {
-				console.log('data are same');
 				oldData = data;
 			}
 			await sleep(1500);
@@ -174,11 +168,7 @@ class TournamentGame {
 	async verifUserInFinal(data) {
 		let isFinalist = false;
 		let canPlay = true;
-		console.log(data);
 		for (const finalist of data.finalists) {
-			console.log(finalist);
-			console.log(user);
-			console.log(finalist.id == user.id);
 			if (finalist.id === user.id) {
 				isFinalist = true;
 				break;
@@ -190,17 +180,12 @@ class TournamentGame {
 			for (const match of data.matches) {
 				if (match.is_final)
 					continue;
-				console.log('match : ', match);
-				console.log('winner', match.winner == null);
-				console.log('score', match.score == null);
 				if (match.winner == null && match.score == null) {
-					console.log('can play pass false');
 					canPlay = false;
 					break;
 				}
 			}
 		}
-		console.log('can play', canPlay);
 		if (canPlay) {
 			sessionStorage.setItem('inFinal', true);
 			sessionStorage.setItem('programmaticNavigation', 'true');

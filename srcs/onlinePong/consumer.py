@@ -121,8 +121,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 			handler = actions.get(action)
 			if handler:
 				await handler(data)
-			else:
-				print(f"Unknown action: {action}")
 		except json.JSONDecodeError:
 			print("Invalid JSON received")
 		except Exception as e:
@@ -132,11 +130,9 @@ class PongConsumer(AsyncWebsocketConsumer):
 		try:
 			self.redis = await aioredis.from_url(f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}')
 			self.pubsub = self.redis.pubsub()
-			print(f'pubsub initialized: {self.pubsub}')
 			await self.pubsub.subscribe(f"game_update:{self.game_id}")
 			return True
 		except Exception as e:
-			print(f"Failed to initialize Redis Listener : {e}")
 			return False
 
 	async def handle_tournament_game(self, data):
@@ -375,7 +371,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 	async def _redis_listener(self):
 		try:
-			print(f'pubsub: {self.pubsub}')
 			async for message in self.pubsub.listen():
 				if self.game.events['game_cancelled'].is_set():
 					break
@@ -411,7 +406,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 					pass
 		except Exception as e:
 			print(f'Error cancelling solo_task: {e}')
-		print('cc')
 		if self.game_id not in pong_server._game_locks:
 			pong_server._game_locks[self.game_id] = asyncio.Lock()
 			async with pong_server._game_locks[self.game_id]:
@@ -423,17 +417,11 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 				await pong_server.stock_game(self.game_id)
 				
-				print(1)
 				await pong_server.cleanup_player(self.game.p1.id, self.game.p1.username, self.game_id, True)
-				print(2)
 				await pong_server.cleanup_player(self.game.p2.id, self.game.p2.username, self.game_id, True)
-				print(3)
 				self.game.status = 'FINISHED'
-				# await self.game.save_to_cache()
 				await self.notify_game_finish(winning_session)
-				print(4)
 				await self.cleanup()
-				print(5)
 
 	@database_sync_to_async
 	def get_players_users(self, p_is_quitting = False, p_not_ready = False):
@@ -463,7 +451,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 	def update_stats_and_create_matches(self, winner, loser, p_is_quitting):
 		current_player = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
 		current_user_is_winner = (current_player.user_model == winner)
-		print('update stats/ im winner : ', current_user_is_winner)
 		winner.wins += 1
 		loser.looses += 1
 	
@@ -482,7 +469,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 		winner.save()
 		loser.save()
 	
-		# Tournament progression logic
 		if self.in_tournament and self.tournament_code:
 			try:
 				tournament = Tournament.objects.get(code=self.tournament_code)
@@ -696,7 +682,6 @@ class PongConsumer(AsyncWebsocketConsumer):
 		await self.send(text_data=json.dumps(message))
 
 	async def notify_game_finish(self, winning_session):
-		print('cc')
 		message = {
 			'type': 'game_finish',
 			'winning_session': winning_session,

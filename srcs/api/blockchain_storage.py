@@ -25,26 +25,19 @@ if (os.getenv('INFURA_API_KEY') and os.getenv('META_PRIV_KEY') and os.getenv('CO
 	admin_acc = account.address
 	contract = web3.eth.contract(address=contractAddress, abi=abi)
 else :
-	print("Error : Missing environment variables for web3", file=sys.stderr)
 	account = None
 	admin_acc = None
 	contract = None
 
 def record_match(tournament_data, tournament_code):
-	print("im in")
-	print("Recording match", file=sys.stderr)
 	try :
 		winner = str(tournament_data["winner"])
 		token_hash = contract.functions.storeTournament(tournament_code, tournament_data["players"], tournament_data["finalists"], winner).transact({'from' : admin_acc})
 		receipt = web3.eth.wait_for_transaction_receipt(token_hash)
 		if (receipt.status == 1):
-			print("Match successfully recorded", file=sys.stderr)
 			print_etherscan_link(token_hash)
-		else:
-			print("Error during match recording", file=sys.stderr)
 	except Exception as e:
 		error = "Error recording match, type of error :\n" + f"{type(e).__name__}\n" + f"Error message :\n {str(e)}\n" + "\n Traceback : \n" + traceback.format_exc()
-		print(error, file=sys.stderr)
 	return None
 
 def return_etherscan_link(token_hash):

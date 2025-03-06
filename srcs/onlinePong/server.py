@@ -55,18 +55,15 @@ class PongServer:
 		async with self._lock:
 			existing_game_id = await self.is_in_game(player_info['id'])
 			if existing_game_id:
-				print('return 1')
 				return None, None
 			
 			if not in_tournament and opp_info is None:
 				opp_info = await self.find_opponent(player_info)
 				if not opp_info:
-					print('return 2')
 					await self.add_to_waiting_list(player_info)
 					return None, None
 
 			if opp_info and await self.is_in_game(opp_info['id']):
-				print('return 3')
 				return None, None
 
 			game_id = str(uuid.uuid4())
@@ -94,7 +91,6 @@ class PongServer:
 		current_waiting_players = await sync_to_async(cache.get)('waiting_onlinePong_players') or []
 		filtered_players = [p for p in current_waiting_players if p['id'] != player_info['id']]
 
-		print('filtrer players : ', filtered_players)
 		if filtered_players:
 			opponent = filtered_players.pop(0)
 			await sync_to_async(cache.set)('waiting_onlinePong_players', filtered_players)
@@ -111,7 +107,6 @@ class PongServer:
 
 	async def get_game(self, game_id):
 		if game_id in self.games:
-			print(f"{game_id} in games")
 			return self.games[game_id]
 
 		game_data = await sync_to_async(cache.get)(f"game_pong_{game_id}")
@@ -134,34 +129,22 @@ class PongServer:
 
 	async def cleanup_player(self, player_id: int, username: str, game_id: str, is_end: bool):
 		await self.initialize()
-		print(1.1)
 		async with self._lock:
-			print(1.2)
 			if game_id in self.games:
-				print(1.3)
 				game = self.games[game_id]
-				print(1.4)
 				if is_end:
-					print('1.4.1')
 					await game.cleanup(player_id)
 				else:
-					print('1.4.2')
 					await game.cancel_game(player_id, username)
-				print(1.5)
 				if game.is_empty() or is_end:
-					print('1.5.1')
 					del self.games[game_id]
-					print('1.5.2')
 					active_games = await sync_to_async(cache.get)('active_pong_games') or []
-					print('1.5.3')
 					if game_id in active_games:
 						active_games.remove(game_id)
-					print('1.5.3')
 					await sync_to_async(cache.set)('active_pong_games', active_games)
 
 			await sync_to_async(cache.delete)(f"player_{player_id}_channel")
 			self.active_connections.pop(player_id, None)
-			print(1.6)
 			await self.remove_player_from_waiting(player_id)
 
 	async def game_is_stocked(self, game_id):
@@ -178,15 +161,11 @@ class PongServer:
 
 	async def is_in_game(self, player_id):
 		await self.initialize()
-		print('is in game begin')
 		for game_id, game in self.games.items():
-			print('begin loop', game)
 			if not game.p1 or not game.p2:
 				continue
 			if player_id == game.p1.id or player_id == game.p2.id:
-				print('return got someone')
 				return game_id
-		print('return nobody')
 		return None
 
 

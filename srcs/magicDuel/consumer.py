@@ -59,7 +59,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			print(f"Error during disconnect: {e}")
 
 	async def _handle_disconnect(self, close_code):
-		print(f"Disconnect player {self.player_id} from game {self.game_id}")
 		
 		key = 'waiting_wizard_duel_players'
 		current_waiting_players = await sync_to_async(cache.get)(key) or []
@@ -81,7 +80,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 	async def cleanup(self):
 		async with self.cleanup_lock:
-			print('cleanup')
 			if self.is_cleaning_up:
 				return
 			self.is_cleaning_up = True
@@ -127,7 +125,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				print("Cleanup was cancelled while waiting lock")
 			except Exception as e:
 				print(f"Error during cleanup: {e}")
-				print(f"Error details:", str(e))
 			finally:
 				self.is_cleaning_up = False
 				self.game = None
@@ -364,7 +361,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 		if not current_user_is_winner and not p_is_quitting:
 			return False
-		print('pass return ')
 		winner.wins += 1
 		winner.ligue_points += 15
 		loser.looses += 1
@@ -442,7 +438,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 					print('Round timeout - start new round')
 					await self.cleanup_round()
 				except asyncio.CancelledError:
-					print('Round cancel')
 					raise
 				except Exception as e:
 					print(f"Error in round : {e}")
@@ -603,7 +598,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 	async def notify_game_cancel(self, username_gone):
 		lose_lp = True if self.monitor_task is not None else False
-		print('lose lp', lose_lp)
 		await self.game.update_status_game()
 		if not self.game.status == 'FINISHED':
 			self.game_cancel_event.set()

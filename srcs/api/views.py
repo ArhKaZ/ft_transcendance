@@ -84,7 +84,6 @@ def add_user(request):
 			return Response(status=status.HTTP_201_CREATED)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 	except Exception as e:
-		print(f"Error: {e}")
 		return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -432,7 +431,7 @@ def record_match_blockchain(request, tournament_code):
 			)
 		try:
 			tournament_data = parse_tournament_data(tournament)
-			# record_match(tournament_data, tournament_code)
+			record_match(tournament_data, tournament_code)
 			tournament.is_recorded = True
 			tournament.save()
 			response_data = {
@@ -464,7 +463,6 @@ def join_tournament(request):
 
 		tournament = Tournament.objects.get(code=tournament_code)
 
-		# Remove user from other active tournaments
 		active_tournaments = Tournament.objects.filter(
 			players=request.user,
 			started=False

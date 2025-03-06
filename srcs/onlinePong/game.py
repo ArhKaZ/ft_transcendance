@@ -44,7 +44,6 @@ class PongGame:
 
 	async def cancel_game(self, player_id = -1, username = None):
 		async with self._lock:
-			print('game cancelled')
 			if self.status == 'CANCELLED':
 				return
 			self.status = 'CANCELLED'
