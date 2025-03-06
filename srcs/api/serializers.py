@@ -6,8 +6,7 @@ import os
 import base64
 from django.conf import settings
 from django.core.validators import MaxLengthValidator, MinLengthValidator
-
-
+import binascii
 from rest_framework import serializers
 from .models import MyUser, MatchHistory, TournamentMatch
 import bleach
@@ -18,14 +17,6 @@ from django.conf import settings
 from django.core.validators import MaxLengthValidator, MinLengthValidator, RegexValidator
 
 class StrongPasswordValidator:
-    """
-    Custom password validator to enforce strong password policy
-    - At least 12 characters long
-    - Contains at least one uppercase letter
-    - Contains at least one lowercase letter
-    - Contains at least one digit
-    - Contains at least one special character
-    """
     def __call__(self, password):
         if len(password) < 8:
             raise serializers.ValidationError("Password must be at least 8 characters long.")
@@ -43,20 +34,11 @@ class StrongPasswordValidator:
             raise serializers.ValidationError("Password must contain at least one special character.")
 
 class SafePseudoValidator:
-    """
-    Custom validator to prevent XSS and ensure safe pseudo
-    - Only allows alphanumeric characters, underscores, and hyphens
-    - Prevents HTML and script injection
-    """
     def __call__(self, pseudo):
-        # Remove any potential HTML or script tags
         cleaned_pseudo = bleach.clean(pseudo, strip=True)
         
-        # Check if cleaned pseudo matches original (no tags were present)
         if cleaned_pseudo != pseudo:
             raise serializers.ValidationError("Pseudo cannot contain HTML or script tags.")
-        
-        # Additional regex validation for safe characters
         if not re.match(r'^[a-zA-Z0-9_-]+$', pseudo):
             raise serializers.ValidationError("Pseudo can only contain letters, numbers, underscores, and hyphens.")
 
@@ -95,7 +77,7 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'username': {
                 'validators': [
-                    MinLengthValidator(3), 
+                    MinLengthValidator(2), 
                     MaxLengthValidator(30),
                     RegexValidator(
                         regex=r'^[a-zA-Z0-9_-]+$', 
@@ -109,7 +91,7 @@ class UserSerializer(serializers.ModelSerializer):
             'pseudo': {
                 'validators': [
                     MinLengthValidator(2), 
-                    MaxLengthValidator(20),
+                    MaxLengthValidator(30),
                     SafePseudoValidator()
                 ]
             },
@@ -156,13 +138,10 @@ class UserInfoSerializer(serializers.ModelSerializer):
     def get_avatar(self, obj):
         if obj.avatar:
             try:
-                # Ensure the avatar is treated as bytes
                 if isinstance(obj.avatar, str):
-                    # If the avatar is a string (e.g., from the database), convert it to bytes
                     avatar_bytes = obj.avatar.encode('utf-8')
                 else:
                     avatar_bytes = obj.avatar
-                # Encode the binary data to base64
                 avatar_base64 = base64.b64encode(avatar_bytes).decode('utf-8')
                 return f"data:image/png;base64,{avatar_base64}"
             except Exception as e:
