@@ -422,14 +422,19 @@ def parse_tournament_data(tournament):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def join_winner(request, tournament_code):
+def record_match_blockchain(request, tournament_code):
 	try:
 		tournament = Tournament.objects.get(code=tournament_code)
+		if tournament.is_recorded:
+			return Response(
+				{'message': 'Match already recorded'},
+				status=status.HTTP_200_OK
+			)
 		try:
-			tournament.add_winner(request.user)
 			tournament_data = parse_tournament_data(tournament)
-			
-
+			# record_match(tournament_data, tournament_code)
+			tournament.is_recorded = True
+			tournament.save()
 			response_data = {
 				'message': 'You won !!',
 			}

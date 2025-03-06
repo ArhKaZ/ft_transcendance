@@ -94,6 +94,22 @@ class TournamentGame {
 					sessionStorage.removeItem('inFinal');
 					sessionStorage.removeItem('tournament_code');
 					sessionStorage.removeItem('finalDone');
+					if (data.winner[0].id === user.id) {
+						try {
+							await ensureValidToken();
+							const response = await fetch(`/api/record_match/${this.tournamentCode}/`, {
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json',
+									'X-CSRFToken': getCSRFToken(),
+									'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+								},
+								credentials: 'include',
+							});
+						} catch (error) {
+							console.error("Error in record_match API call:", error);
+						}
+					}
 					return;
 				}
 				else if (data.finalists.length > 0) {

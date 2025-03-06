@@ -10,6 +10,8 @@ from logging import getLogger
 import asyncio
 import time
 
+
+
 if (os.getenv('INFURA_API_KEY') and os.getenv('META_PRIV_KEY') and os.getenv('CONTRACT_ADRS')) and os.getenv('ABI'):
 
 	abi = os.getenv('ABI')
@@ -29,6 +31,7 @@ else :
 	contract = None
 
 def record_match(tournament_data, tournament_code):
+	print("im in")
 	print("Recording match", file=sys.stderr)
 	try :
 		winner = str(tournament_data["winner"])
