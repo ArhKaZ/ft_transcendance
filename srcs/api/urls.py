@@ -19,6 +19,7 @@ urlpatterns = [
 	path('create_tournament/', views.create_tournament),
 	path('quit_tournament/<str:tournament_code>/', views.quit_tournament),
 	path('forfeit_tournament/<str:tournament_code>/', views.forfeit_tournament, name='forfeit_tournament'),
+    path('record_match/<str:tournament_code>/', views.record_match_blockchain, name='record_match'),
 	path('user/profile/<str:userName>/', views.get_info_user),
 	path('user/profile/get_history/<str:userName>/', views.get_user_history),
 	
@@ -31,7 +32,6 @@ urlpatterns = [
 	path('tournament/<str:tournament_code>/final_players/', views.get_final_players, name='get_final_players'),
 	path('tournament/<str:tournament_code>/end_players/', views.get_end_players, name='get_end_players'),
 	path('tournament/<str:tournament_code>/join_final/', views.join_final, name='join_final'),
-	path('tournament/<str:tournament_code>/join_winner/', views.join_winner, name='join_winner'),
 	path('check-online/<str:username>/', views.check_user_online, name='check_user_online'),
 
 	path("oauth_callback/", views.oauth, name="oauth_callback"),

@@ -74,6 +74,7 @@ class Tournament(models.Model):
 	started = models.BooleanField(default=False)
 	created_at = models.DateTimeField(auto_now_add=True)
 	all_matches = models.ManyToManyField('TournamentMatch', blank=True, related_name='tournament_matches')
+	is_recorded = models.BooleanField(default=False)
 
 	def set_winner_for_a_match(self, player_id):
 		matches = self.all_matches.filter(
