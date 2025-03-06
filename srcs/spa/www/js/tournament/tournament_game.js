@@ -32,8 +32,6 @@ class TournamentGame {
 				history.pushState(null, '', window.location.href);
 			}
 		});
-
-		// Ajoute une entrée dans l'historique pour empêcher un retour direct
 		history.pushState(null, '', window.location.href);
 	}
 
@@ -96,7 +94,7 @@ class TournamentGame {
 	async init() {
 		user = await getUserFromBack();
 		console.log(user);
-		sessionStorage.setItem('tournament_code', this.tournamentCode); // verifier si il est deja set
+		sessionStorage.setItem('tournament_code', this.tournamentCode);
 		await sleep(2000);
 		if (this.checkLeft(this.tournamentCode) == true) {
 			window.location.href = `/home/`;
@@ -135,9 +133,7 @@ class TournamentGame {
 	verifUserNeedPlay(data) {
 		console.log(`data:`, data);
 		return data.matches.some(match => {
-			// Vérifier si la match n'a pas de vainqueur
 			if (match.winner === null) {
-				// Vérifier si l'utilisateur est l'un des joueurs de la match
 				return match.player1.id === user.id || match.player2.id === user.id;
 			}
 			return false;
@@ -159,7 +155,6 @@ class TournamentGame {
 			const data = await response.json();
 			this.displayTournamentInfo(data);
 			return data;
-			// this.populatePlayers(data);
 		} catch (error) {
 			this.displayError('Error loading tournament data');
 			console.error('Error:', error);
@@ -207,7 +202,6 @@ class TournamentGame {
             document.getElementById('player3').textContent = data.matches[1].player1.pseudo;
             document.getElementById('player4').textContent = data.matches[1].player2.pseudo;
         } else {
-            // S'il y a moins de 4 joueurs, afficher un message d'erreur ou adapter l'affichage.
             console.error("Nombre insuffisant de joueurs");
         }
 		if (data.finalists.length >= 2)

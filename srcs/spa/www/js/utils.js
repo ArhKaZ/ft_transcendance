@@ -49,7 +49,6 @@ export async function getUserFromBack() {
     }
 }
 
-// Add these helper functions
 export async function ensureValidToken() {
     await checkTokenExpiry();
 }

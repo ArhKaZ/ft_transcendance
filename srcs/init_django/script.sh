@@ -17,5 +17,4 @@ python manage.py migrate
 
 >&2 echo "Postgres is up - executing command"
 
-# Démarrer Daphne
 exec daphne -b 0.0.0.0 -p 8000 backend.asgi:application

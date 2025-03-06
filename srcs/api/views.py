@@ -8,7 +8,6 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from django.urls import reverse
 from django.http import HttpResponseRedirect
-# from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from .serializers import MatchHistorySerializer
 from rest_framework.permissions import IsAuthenticated
@@ -67,7 +66,6 @@ def add_user(request):
 			if avatar.size > MAX_FILE_SIZE:
 				return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
 			data['avatar'] = avatar.read()
-			# data['avatar'] = avatar
 
 		serializer = UserSerializer(data=data)
 		if serializer.is_valid():
@@ -112,7 +110,7 @@ def check_user_online(request, username):
 def get_avatar(request, user_id):
 	user = MyUser.objects.get(id=user_id)
 	if user.avatar:
-		return HttpResponse(user.avatar, content_type='image/png')  # Adjust MIME type
+		return HttpResponse(user.avatar, content_type='image/png')
 	else:
 		return HttpResponseRedirect(settings.DEFAULT_AVATAR_URL)
 
@@ -198,9 +196,7 @@ def get_my_info(request):
 
 	if user:
 		user_data = serializer.data
-
-		# Vérifier si l'avatar est stocké en binaire (BYTEA)
-		if user.avatar:  # S'assure qu'il y a bien un avatar
+		if user.avatar:
 			try:
 				avatar_base64 = base64.b64encode(user.avatar).decode('utf-8')
 				user_data['avatar'] = f"data:image/png;base64,{avatar_base64}"
@@ -273,12 +269,10 @@ def edit_user_api(request):
 		avatar = request.FILES['avatar']
 		ext = os.path.splitext(avatar.name)[1].lower()
 		mime_type = magic.Magic(mime=True).from_buffer(avatar.read(1024))
-		avatar.seek(0)  # Rewind file after checking type
-		# Vérification de l'extension et du type MIME
+		avatar.seek(0)
 		if ext not in ALLOWED_EXTENSIONS or not mime_type.startswith('image/'):
 			return Response({'error': 'Format de fichier non autorisé'}, status=status.HTTP_400_BAD_REQUEST)
 		
-		# Vérification de la taille
 		if avatar.size > MAX_FILE_SIZE:
 			return Response({'error': 'Fichier trop volumineux'}, status=status.HTTP_400_BAD_REQUEST)
 		data['avatar'] = avatar
@@ -796,28 +790,6 @@ def get_final_players(request, tournament_code):
 			'error': 'Tournament not found'
 		}, status=status.HTTP_404_NOT_FOUND)
 
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# def get_end_players(request, tournament_code):
-# 	try:
-# 		tournament = Tournament.objects.get(code=tournament_code)
-
-# 		# Serialize all the data using UserInfoSerializer
-# 		players_serializer = UserInfoSerializer(tournament.players.all(), many=True)
-# 		finalists_serializer = UserInfoSerializer(tournament.finalist.all(), many=True)
-# 		winner_serializer = UserInfoSerializer(tournament.winner.all(), many=True)
-
-# 		return Response({
-# 			'tournament_code': tournament_code,
-# 			'players': players_serializer.data,
-# 			'finalists': finalists_serializer.data,
-# 			'winner': winner_serializer.data
-# 		})
-# 	except Tournament.DoesNotExist:
-# 		return Response({
-# 			'error': 'Tournament not found'
-# 		}, status=status.HTTP_404_NOT_FOUND)
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_end_players(request, tournament_code):
@@ -907,33 +879,28 @@ def oauth(request):
 		user_response.raise_for_status()
 		user_data = user_response.json()
 			
-		# Handle Avatar
 		avatar_data = None
 		pfp = user_data.get('image', {}).get('versions', {}).get('medium')
 		if pfp:
 			getpfp = requests.get(pfp)
 			if getpfp.status_code == 200:
 				content = getpfp.content
-				# Check MIME type using first 1024 bytes
 				try:
 					mime_type = magic.Magic(mime=True).from_buffer(content[:1024])
 				except Exception:
 					mime_type = None
-				# Check file extension from URL
 				ext = os.path.splitext(pfp)[1].lower()
-				# Check size
 				if len(content) <= MAX_FILE_SIZE:
 					if ext in ALLOWED_EXTENSIONS and mime_type and mime_type.startswith('image/'):
 						avatar_data = content
 
-		# Load default avatar if not set
 		if not avatar_data:
 			default_avatar_path = os.path.join(settings.MEDIA_ROOT, 'avatars', 'default.png')
 			try:
 				with open(default_avatar_path, 'rb') as f:
 					avatar_data = f.read()
 			except IOError:
-				avatar_data = b''  # Fallback to empty bytes
+				avatar_data = b''
 
 		existing_user = MyUser.objects.filter(
 			Q(email=user_data["email"]) | Q(username=user_data["login"])
