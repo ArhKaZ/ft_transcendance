@@ -37,7 +37,11 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
                 errorMessage = `Error: ${cleanError}`;
             } else {
                 const errorParts = Object.entries(data).map(
-                    ([field, messages]) => `'${field}': ${messages[0]}`
+                    ([field, messages]) => `${field
+                        .replace('username', 'Username')
+                        .replace('password', 'Password')
+                        .replace('description', 'Description')
+                        .replace('pseudo', 'Tournament pseudo')}: ${messages[0]}`
                 );
                 errorMessage = errorParts.length > 0 
                     ? `Error:<br>${errorParts.join('<br>')}`
