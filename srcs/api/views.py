@@ -460,89 +460,73 @@ def join_tournament(request):
 	try:
 		tournament_code = request.data.get('tournament_code')
 		if not tournament_code:
-			return Response(
-				{'error': 'Tournament code is required'},
-				status=status.HTTP_400_BAD_REQUEST
-			)
+			return Response({'error': 'Tournament code is required'}, status=status.HTTP_400_BAD_REQUEST)
 
 		tournament = Tournament.objects.get(code=tournament_code)
 
-		
-		if tournament.started:
-			return Response(
-				{'error': 'Tournament has already started'},
-				status=status.HTTP_400_BAD_REQUEST
-			)
-
-		
+		# Remove user from other active tournaments
 		active_tournaments = Tournament.objects.filter(
 			players=request.user,
 			started=False
-		).exclude(left=request.user)  
+		).exclude(left=request.user).exclude(code=tournament_code)
 
-		if active_tournaments.exists() and not active_tournaments.filter(code=tournament_code).exists():
-			return Response(
-				{'error': 'You are already in another active tournament'},
-				status=status.HTTP_400_BAD_REQUEST
-			)
+		for active_tournament in active_tournaments:
+			active_tournament.players.remove(request.user)
+			active_tournament.left.add(request.user)
+			if active_tournament.players.count() == 0:
+				active_tournament.delete()
+			else:
+				if active_tournament.creator == request.user:
+					active_tournament.creator = active_tournament.players.first()
+					active_tournament.save()
 
-		
+		if tournament.started:
+			return Response({'error': 'Tournament has already started'}, status=status.HTTP_400_BAD_REQUEST)
+
 		try:
 			tournament.add_player(request.user)
-
 			response_data = {
 				'message': 'Successfully joined tournament',
 				'tournament_code': tournament.code,
 				'players_count': tournament.players.count(),
 				'started': tournament.started
 			}
-
 			return Response(response_data, status=status.HTTP_200_OK)
-
 		except ValidationError as e:
-			return Response(
-				{'error': str(e)},
-				status=status.HTTP_400_BAD_REQUEST
-			)
+			return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 	except Tournament.DoesNotExist:
-		return Response(
-			{'error': 'Tournament not found'},
-			status=status.HTTP_404_NOT_FOUND
-		)
+		return Response({'error': 'Tournament not found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_tournament(request):
-	
 	active_tournaments = Tournament.objects.filter(
 		players=request.user,
 		started=False
 	).exclude(left=request.user)
 
-	if active_tournaments.exists():
-		return Response({
-			'error': 'You are already in an active tournament'
-		}, status=status.HTTP_400_BAD_REQUEST)
+	for tournament in active_tournaments:
+		tournament.players.remove(request.user)
+		tournament.left.add(request.user)
+		if tournament.players.count() == 0:
+			tournament.delete()
+		else:
+			if tournament.creator == request.user:
+				tournament.creator = tournament.players.first()
+				tournament.save()
 
 	try:
-		
-		tournament = Tournament.objects.create()
-
-		
+		tournament = Tournament.objects.create(creator=request.user)
 		tournament.add_player(request.user)
-
 		return Response({
 			'message': 'Tournament created successfully',
 			'tournament_code': tournament.code,
 			'players_count': tournament.players.count(),
 			'max_players': 4
 		}, status=status.HTTP_201_CREATED)
-
 	except Exception as e:
-		return Response({
-			'error': 'Failed to create tournament'
-		}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+		return Response({'error': 'Failed to create tournament'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
