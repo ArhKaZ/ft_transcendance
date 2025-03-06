@@ -22,13 +22,15 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
             setTimeout(() => window.location.href = '/home/', 2000);
         } else {
             let errorMessage = 'An error occurred';
-            if (data.errors) {
-                const errorParts = Object.entries(data.errors).map(
-                    ([field, messages]) => `'${field}': '${messages[0]}'`
-                );
-                errorMessage = `Error:<br>${errorParts.join('<br>')}`;
-            }
-            displayMessage(errorMessage, 'error');
+            if (data.error) {
+                const cleanError = data.error
+                    .replace('[ErrorDetail(string=\'', '')
+                    .replace('\', code=\'invalid\')]', '')
+                errorMessage = `Error: ${cleanError}`;
+            } else {
+            errorMessage = `Error:<br>${data.error}`;
+        }
+        displayMessage(errorMessage, 'error');
         }
     } catch (error) {
         displayMessage('A network error occurred.', 'error');

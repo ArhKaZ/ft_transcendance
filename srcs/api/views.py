@@ -300,7 +300,7 @@ def edit_user_api(request):
 		if serializer.is_valid():
 			serializer.save()
 			return Response({'message': 'User updated successfully'}, status=status.HTTP_200_OK)
-		return Response({'message': 'Invalid data provided', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+		return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 	if not data and not request.data.get('password'):
 		return Response({'message': 'No changes were made'}, status=status.HTTP_200_OK)
