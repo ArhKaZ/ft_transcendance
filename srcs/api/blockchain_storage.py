@@ -30,7 +30,8 @@ else :
 	admin_acc = None
 	contract = None
 
-async def record_match(tournament_data, tournament_code):
+def record_match(tournament_data, tournament_code):
+	print("im in")
 	print("Recording match", file=sys.stderr)
 	try :
 		winner = str(tournament_data["winner"])

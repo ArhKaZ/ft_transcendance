@@ -432,7 +432,7 @@ def record_match_blockchain(request, tournament_code):
 			)
 		try:
 			tournament_data = parse_tournament_data(tournament)
-			record_match(tournament_data, tournament_code)
+			# record_match(tournament_data, tournament_code)
 			tournament.is_recorded = True
 			tournament.save()
 			response_data = {
