@@ -13,10 +13,46 @@ class TournamentGame {
 		this.quitButton = document.getElementById('quit-button');
 		this.messageDiv = document.getElementById('messageDiv');
 		document.getElementById('quit-button').addEventListener('click', () => this.quitTournament());
-		
+		window.addEventListener('beforeunload', this.handleBeforeUnload.bind(this));
+        window.addEventListener('popstate', this.handlePopState.bind(this));
 
 		this.init();
 	}
+
+	handleBeforeUnload(event) {
+        // Check if navigation is programmatic
+        if (sessionStorage.getItem('programmaticNavigation') === 'true') {
+            sessionStorage.removeItem('programmaticNavigation');
+            return;
+        }
+
+        event.preventDefault();
+        event.returnValue = ''; // Required for Chrome
+        this.syncForfeit();
+    }
+
+    // Synchronous forfeit request using XHR
+    syncForfeit() {
+		ensureValidToken();
+        const url = `/api/forfeit_tournament/${this.tournamentCode}/`;
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url, false); // Synchronous request
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader('X-CSRFToken', getCSRFToken());
+        xhr.setRequestHeader('Authorization', `Bearer ${sessionStorage.getItem('access_token')}`);
+        try {
+            xhr.send(JSON.stringify({}));
+        } catch (e) {
+            console.error('Forfeit request failed during unload:', e);
+        }
+    }
+
+    // Handle popstate event (back/forward navigation)
+    handlePopState(event) {
+        // Prevent back navigation
+        history.pushState(null, document.title, window.location.href);
+        this.quitTournament();
+    }
 
 	async checkLeft(tournamentCode) {
 		try {
@@ -70,7 +106,8 @@ class TournamentGame {
 		} catch (error) {
 			console.error("Error in forfeit API call:", error);
 		} finally {
-			window.location.href = '/home/';
+			sessionStorage.setItem('programmaticNavigation', 'true');
+            window.location.href = '/home/';
 		}
 	}
 
@@ -80,6 +117,7 @@ class TournamentGame {
 		let oldData = null;
 		let data = null
 		if (this.checkLeft(this.tournamentCode) == true) {
+			sessionStorage.setItem('programmaticNavigation', 'true');
 			window.location.href = `/home/`;
 		}
 		while (true) {
@@ -94,16 +132,16 @@ class TournamentGame {
 					sessionStorage.removeItem('inFinal');
 					sessionStorage.removeItem('tournament_code');
 					sessionStorage.removeItem('finalDone');
+					sessionStorage.setItem('programmaticNavigation', 'true');
 					return;
 				}
 				else if (data.finalists.length > 0) {
-					console.log('final ici');
 					if (await this.verifUserInFinal(data))
 						break;
 				}
 				else {
 					if (this.verifUserNeedPlay(data)){
-						console.log('ici');
+						sessionStorage.setItem('programmaticNavigation', 'true');
 						window.location.href = `/onlinePong/?tournament=true`;
 						break;
 					}
@@ -149,6 +187,7 @@ class TournamentGame {
 		console.log('can play', canPlay);
 		if (canPlay) {
 			sessionStorage.setItem('inFinal', true);
+			sessionStorage.setItem('programmaticNavigation', 'true');
 			window.location.href = `/onlinePong/?tournament=true`;
 			return true;
 		}
