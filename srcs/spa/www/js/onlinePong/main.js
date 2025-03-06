@@ -107,7 +107,14 @@ function setupWebSocket(user, infos) {
 	const currentUrl = window.location.host;
 	const socket = new WebSocket(`wss://${currentUrl}/ws/onlinePong/${id}/`);
 	
+
 	socket.onopen = () => {
+		window.addEventListener('beforeunload', () => {
+			if (socket && socket.readyState === WebSocket.OPEN) {
+				socket.close();
+			}
+		});
+		
 		if (inTournament && infos) {
 			let objToSend = {
 				action: 'tournament',
@@ -440,7 +447,7 @@ function handleGameFinish(game, winningId, opponentName = null) {
         }, 3000);
     }
     else
-        btnBack.innerText += "Back to Home";
+        btnBack.innerText = "Back to Home";
 }
 
 
