@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OAuth Redirect</title>
+</head>
+<link rel="stylesheet" href="/css/global.css">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<body>
+    <div id="error-message" style="color: red; display: none;"></div>
+    <div id="oauth-status" style="text-align: center; margin-top: 2rem;">
+        <h2 style="color: white;">Authenticating with 42...</h2>
+        <div class="spinner"></div>
+        <p id="status-message" style="color: white;"></p>
+    </div>
+    
+    <style>
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <script type = "module" src = "/js/oauth_util.js"></script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+body {
+    position: relative;
+    background-color: black;
+    background-image: url(ico/bg.gif);
+    background-repeat: repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    text-align: center;
+    padding-top: 50px;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.home {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.choice-home a, .choice-home button {
+    display: block;
+    background: none;
+    border: 4px solid white;
+    padding: 10px 20px;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    transition: 0.2s;
+    text-transform: uppercase;
+    text-decoration: none;
+    margin: 10px 0;
+}
+.choice-home a:hover, .choice-home button:hover {
+    background-color: white;
+    color: black;
+}
+#user-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 4px solid white;
+    margin: 20px 0;
+}
+
+button {
+    font-family: 'Press Start 2P', cursive;
+}
+
+.hidden {
+    display: none;
+}
+
+.bottom-buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 320px;
+    margin-top: 10px;
+}
+
+.bottom-buttons button {
+    flex: 1;
+    background: none;
+    border: 4px solid white;
+    padding: 10px 20px;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    transition: 0.2s;
+    text-transform: uppercase;
+    text-decoration: none;
+    margin: 0 5px;
+}
+
+.bottom-buttons button:hover {
+    background-color: white;
+    color: black;
+}
+
+#friend-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 100px;
+    height: 100px;
+}
+
+#friend-button img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+#friend-button img:hover {
+    transform: scale(1.1);
+}
+
+#user-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 4px solid white;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
+}
+
+#user-avatar:hover {
+    transform: scale(1.1);
+    filter: brightness(1.5);
+    border-color: #25fffc;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.friend-search-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#friend-button {
+    width: 80px;
+    height: 80px;
+}
+
+#friend-button img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+#friend-button img:hover {
+    transform: scale(1.1);
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.8);
+    border: 4px solid white;
+    padding: 5px 10px;
+    border-radius: 10px;
+    min-width: 200px;
+    margin-right: 95px;
+    margin-bottom: 20px;
+}
+
+#search-input {
+    background: none;
+    border: none;
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 9px;
+    padding: 5px;
+    outline: none;
+    width: 150px;
+}
+
+#search-button {
+    background: none;
+    border: none;
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+    padding-left: 10px;
+}
+
+#search-button:hover {
+    color: #25fffc;
+}

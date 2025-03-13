@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Add a user</title>
+	<link rel="stylesheet" href="/css/register.css">
+	<link rel="stylesheet" href="/css/global.css">
+
+	<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <h1>Add a new user</h1>
+    <form id="userForm" enctype="multipart/form-data">
+		
+		<div>
+			<label for="username">Username:</label>
+			<input type="text" id="username" name="username" required>
+		</div>
+		
+		<div>
+			<label for="pseudo">Tournament pseudo:</label>
+			<input type="text" id="pseudo" name="pseudo">
+		</div>
+		<div>
+			<label for="password">Password:</label>
+			<input type="password" id="password" name="password" required>
+		</div>
+		
+		<div>
+			<label for="description">Description:</label>
+			<textarea id="description" name="description"></textarea>
+		</div>
+
+		
+		<div>
+			<label for="avatar">Avatar:</label>
+			<label for="avatar" class="custom-file-upload">Choose File</label>
+			<input type="file" id="avatar" name="avatar" accept="image/*">
+			<span id="file-chosen">No file chosen</span>
+		</div>
+	
+		<button type="submit">Submit</button>
+		<div class="bottom-buttons">
+			<button type="button" id="return-button">Return</button>	</form>
+		</div>
+	<div id="message"></div>
+
+    <script src="/js/user/add_user.js"></script>
+</body>
+</html>

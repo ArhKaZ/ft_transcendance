@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Tournament</title>
+    <link rel="stylesheet" href="/css/tournament.css">
+</head>
+<body>
+	<div class="tournament-container">
+		<h1>Tournament</h1>
+        <div id="message"></div>
+	</div>
+	<div class="button-container">
+		<form id="userForm" method="POST">
+			<div class="input-group">
+				<button type="submit" id="join-button">Join</button>
+				<input type="text" id="tournament_code" name="tournament_code" required>
+			</div>
+		</form>
+		<button id="create-button">Create Tournament</button>
+		<button id="quit-button" style="display: none;">Quit Tournament</button>
+		<button type="button" id="return-button">Return</button>	</div>
+
+	<script type="module" src="/js/tournament/tournament.js" defer></script>
+</body>
+</html>

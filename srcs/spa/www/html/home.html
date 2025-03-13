@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8">
+		<title>Transcendance</title>
+		<link rel="stylesheet" href="/css/global.css">
+		<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+	</head>
+	<body>
+		<div class="home">
+			<div class="top-home">
+				<h1>Welcome to Transcendance !</h1>
+				<p>Are you ready ?</p>
+			</div>
+			<div class="friend-search-container">
+				<a id="friend-button" href="/user/friend/">
+					<img src="../css/ico/friendico.png" alt="Friends">
+				</a>
+				<div class="search-container">
+					<input type="text" id="search-input" placeholder="Enter username...">
+					<button id="search-button">Search</button>
+				</div>
+			</div>			
+			<div class="choice-home">
+				<button type="oauth-button" id="oauth-button">42 Oauth</button>
+				<a id="register-button" href="/user/add/">Register</a>
+				<a id="login-button" href="/user/login/">Login</a>
+				<p id="welcome-msg"></p>
+				<div class="user-info">
+					<img id="user-avatar" src="" alt="User Avatar">
+					<span id="lps">Ligue Points: </span>
+				</div>
+				<a id="Game-button" href="/game/">Game</a>
+				<a id="history-button" href="/user/history/">History</a>
+			</div>
+			<div id="search-results"></div>
+			<div id="bottom-buttons" class="bottom-buttons">
+				<button type="button" id="logout-button">Logout</button>
+			</div> 
+		</div>
+	</body>
+	<script type="module" src="/js/home.js"></script>
+</html>
