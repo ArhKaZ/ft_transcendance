@@ -13,13 +13,11 @@ class Game {
         this.assetsPath = window.MAGICDUEL_ASSETS;
         this.back.src = '../assets/magicDuel/map/back.png';
         this.plat.src = '../assets/magicDuel/map/plat_little.png';
-        this.keyState = {};
-        this.bindEvents();
         this.countdownFinish = false;
         this.animationFrameId = null;
         this.lastTimestamp = 0;
         this.fps = 60;
-        this.frameInterval = 1000 / this.fps;
+        this.frameInterval = 10000 / this.fps;
 
     }
 
@@ -28,16 +26,6 @@ class Game {
         this.attackCanvas = attackCanvas;
         this.gameCtx = gameCanvas.getContext('2d');
         this.attackCtx = attackCanvas.getContext('2d');
-    }
-
-    bindEvents() {
-        window.addEventListener('keydown', (event) => {
-                this.keyState[event.key] = true;
-        });
-
-        window.addEventListener('keyup', (event) => {
-            this.keyState[event.key] = false;
-        });
     }
 
     start() {

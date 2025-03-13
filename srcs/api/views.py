@@ -590,7 +590,6 @@ def get_final_opponent(request, tournament_code):
 
 		if not final_match:	
 			tournament.create_final(winners[0], winners[1])
-			print('after create_final', tournament.all_matches)
 			final_match = tournament.all_matches.filter(is_final=True).first()
 
 		match_data = TournamentMatchSerializer(final_match).data

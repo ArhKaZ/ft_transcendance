@@ -7,7 +7,6 @@ import { getUserFromBack } from '/js/utils.js';
 
 let socket = null;
 let currentPlayerId = null;
-let keyState = {};
 let currentGame = null;
 let currentCountdown = null;
 let startTime;
@@ -284,9 +283,7 @@ function handleGameCancel(data) {
 }
 
 function handleNoPlay(data) {
-	let playerWin = null;
 	if (!data.p2_id) {
-		playerWin = currentGame.P1.id === data.p_id ? currentGame.P2 : currentGame.P1;
 		if (currentPlayerId === data.p_id) {
 			data.message = " You have not played since for 4 rounds";
 			let errorLp = document.getElementById('error-lp');

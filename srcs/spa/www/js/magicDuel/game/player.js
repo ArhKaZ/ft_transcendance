@@ -60,7 +60,7 @@ class Player {
                 this.currentAttackSprite = null;
                 this.currentAnimationAttack = null;
                 this.isAnimatingAttack = false;
-                this.canvas.getContext('2d').clearRect(0, 0, this.canvas.width, this.canvas.height);
+                // this.canvas.getContext('2d').clearRect(0, 0, this.canvas.width, this.canvas.height);
             }
         }
         this.sprites.update(ctx, this, attackSprite);
