@@ -46,6 +46,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 			print(f"Error during disconnect: {e}")
 
 	async def _handle_disconnect(self, close_code):
+		await self.stop_game_db()
 		if self.game_id and self.game and not self.game.events['game_finished'].is_set():
 			if self.game_id not in pong_server._game_locks:
 				pong_server._game_locks[self.game_id] = asyncio.Lock()
@@ -135,6 +136,21 @@ class PongConsumer(AsyncWebsocketConsumer):
 		except Exception as e:
 			return False
 
+	@database_sync_to_async
+	def waiting_game_db(self):
+		user = MyUser.objects.get(id=self.player_id)
+		user.start_looking_game('Pong')
+
+	@database_sync_to_async
+	def start_game_db(self):
+		user = MyUser.objects.get(id=self.player_id)
+		user.start_game('Pong')
+
+	@database_sync_to_async
+	def stop_game_db(self):
+		user = MyUser.objects.get(id=self.player_id)
+		user.stop_game()
+
 	async def handle_tournament_game(self, data):
 		self.is_final_match = data.get('is_final_match', False)
 		self.in_tournament = True
@@ -214,8 +230,10 @@ class PongConsumer(AsyncWebsocketConsumer):
 
 		self.game, self.game_id = await pong_server.initialize_game(False, player_info)
 		if self.game:
+			await self.start_game_db()
 			await self._setup_game()
 		else:
+			await self.waiting_game_db()
 			await self.waiting_for_opponent()
 
 	async def _setup_game(self):
@@ -265,6 +283,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 			self.game = await pong_server.get_game(self.game_id)
 			if self.game:
 				await self._setup_game()
+				await self.start_game_db()
 
 	async def handle_find_game_message(self, event):
 		await self.handle_find_game({

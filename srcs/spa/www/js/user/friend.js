@@ -52,6 +52,7 @@ async function fetchFriends() {
 
         if (response.ok) {
             const data = await response.json();
+            console.log('data: ', data);
             const friendsList = document.getElementById('friends-list');
             friendsList.innerHTML = '';
 

@@ -13,7 +13,17 @@ class MyUser(AbstractUser):
 	wins = models.IntegerField(default=0)
 	looses = models.IntegerField(default=0)
 	is_oauth = models.BooleanField(default=False)
-	
+	is_waiting_for_game = models.BooleanField(default=False)
+	game_mode = models.CharField(max_length=50, blank=True, null=True)
+	# is_in_tournament = models.BooleanField(default=False)
+	# current_tournament = models.ForeignKey(
+	#     'Tournament',
+	#     on_delete=models.SET_NULL,
+	#     null=True,
+	#     blank=True,
+	#     related_name='participants'
+	# )
+
 	groups = models.ManyToManyField(
 		'auth.Group',
 		verbose_name='groups',
@@ -46,6 +56,21 @@ class MyUser(AbstractUser):
 		verbose_name='pending friends',
 		help_text='The users that have sent a friend request to this user.',
 	)
+
+	def start_looking_game(self, game_mode):
+		self.is_waiting_for_game = True
+		self.game_mode = game_mode
+		self.save()
+
+	def start_game(self, game_mode):
+		self.is_waiting_for_game = False
+		self.game_mode = game_mode
+		self.save()
+
+	def stop_game(self):
+		self.is_waiting_for_game = False
+		self.game_mode = None
+		self.save()
 	
 class MatchHistory(models.Model):
 	user = models.ForeignKey('MyUser', on_delete=models.CASCADE, related_name="matches")
