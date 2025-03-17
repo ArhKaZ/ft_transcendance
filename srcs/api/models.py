@@ -77,6 +77,11 @@ class MyUser(AbstractUser):
 		self.is_in_tournament = True
 		self.current_tournament = tournament
 		self.save()
+
+	def quit_tournament(self):
+		self.is_in_tournament = False
+		self.current_tournament = None
+		self.save()
 	
 class MatchHistory(models.Model):
 	user = models.ForeignKey('MyUser', on_delete=models.CASCADE, related_name="matches")

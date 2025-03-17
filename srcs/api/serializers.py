@@ -76,7 +76,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = MyUser
-        fields = ['username', 'password', 'description', 'avatar', 'ligue_points', 'pseudo', 'wins', 'looses', 'is_waiting_for_game', 'game_mode']
+        fields = ['username', 'password', 'description', 'avatar', 'ligue_points', 'pseudo', 'wins', 'looses', 'is_waiting_for_game', 'game_mode', 'is_in_tournament', 'current_tournament']
         extra_kwargs = {
             'username': {
                 'validators': [
@@ -136,7 +136,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MyUser
-        fields = ['id', 'username', 'description', 'avatar', 'ligue_points', 'pseudo', 'wins', 'looses', 'is_waiting_for_game', 'game_mode']
+        fields = ['id', 'username', 'description', 'avatar', 'ligue_points', 'pseudo', 'wins', 'looses', 'is_waiting_for_game', 'game_mode', 'is_in_tournament', 'current_tournament']
 
     def get_avatar(self, obj):
         if obj.avatar:
