@@ -583,3 +583,29 @@ body::before {
 .error-container:not(.hidden) {
     display: flex;
 }
+
+.back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+#return-button { 
+    flex: 1;
+    background: none;
+    border: 4px solid white;
+    padding: 5px 10px;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+    text-transform: uppercase;
+    text-decoration: none;
+    margin: 0 5px;
+    font-family: 'Press Start 2P', cursive;
+}
+
+#return-button:hover {
+    background-color: white;
+    color: black;
+}
