@@ -423,6 +423,8 @@ def join_tournament(request):
 
 		try:
 			tournament.add_player(request.user)
+			user = MyUser.objects.get(request.user.id)
+			user.enter_in_tournament(tournament)
 			response_data = {
 				'message': 'Successfully joined tournament',
 				'tournament_code': tournament.code,

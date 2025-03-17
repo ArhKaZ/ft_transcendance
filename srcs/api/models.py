@@ -15,14 +15,14 @@ class MyUser(AbstractUser):
 	is_oauth = models.BooleanField(default=False)
 	is_waiting_for_game = models.BooleanField(default=False)
 	game_mode = models.CharField(max_length=50, blank=True, null=True)
-	# is_in_tournament = models.BooleanField(default=False)
-	# current_tournament = models.ForeignKey(
-	#     'Tournament',
-	#     on_delete=models.SET_NULL,
-	#     null=True,
-	#     blank=True,
-	#     related_name='participants'
-	# )
+	is_in_tournament = models.BooleanField(default=False)
+	current_tournament = models.ForeignKey(
+	    'Tournament',
+	    on_delete=models.SET_NULL,
+	    null=True,
+	    blank=True,
+	    related_name='participants'
+	)
 
 	groups = models.ManyToManyField(
 		'auth.Group',
@@ -58,9 +58,10 @@ class MyUser(AbstractUser):
 	)
 
 	def start_looking_game(self, game_mode):
-		self.is_waiting_for_game = True
-		self.game_mode = game_mode
-		self.save()
+		if not self.is_waiting_for_game:
+			self.is_waiting_for_game = True
+			self.game_mode = game_mode
+			self.save()
 
 	def start_game(self, game_mode):
 		self.is_waiting_for_game = False
@@ -70,6 +71,11 @@ class MyUser(AbstractUser):
 	def stop_game(self):
 		self.is_waiting_for_game = False
 		self.game_mode = None
+		self.save()
+
+	def enter_in_tournament(self, tournament):
+		self.is_in_tournament = True
+		self.current_tournament = tournament
 		self.save()
 	
 class MatchHistory(models.Model):

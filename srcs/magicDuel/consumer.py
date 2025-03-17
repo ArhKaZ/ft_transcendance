@@ -5,6 +5,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.cache import cache, caches
 from .player import Player
 from .game import Game
+from api.models import MyUser
 
 import asyncio
 import json
@@ -150,6 +151,21 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def handle_game_cancel(self, data):
 		self.game_cancel_event.set()
 
+	@database_sync_to_async
+	def waiting_game_db(self):
+		user = MyUser.objects.get(id=self.player_id)
+		user.start_looking_game('MagicDuel')
+
+	@database_sync_to_async
+	def start_game_db(self):
+		user = MyUser.objects.get(id=self.player_id)
+		user.start_game('MagicDuel')
+
+	@database_sync_to_async
+	def stop_game_db(self):
+		user = MyUser.objects.get(id=self.player_id)
+		user.stop_game()
+
 	async def handle_player_search(self, data):
 		key = 'waiting_wizard_duel_players'
 
@@ -169,6 +185,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 		opponent_info  = await self.find_opponent(data['player_lp'])
 		if opponent_info:
+			await self.start_game_db()
 			self.game_id = str(uuid.uuid4())
 
 			self.game = Game(player_info, opponent_info, self.game_id)
@@ -184,11 +201,12 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			current_waiting_players = await sync_to_async(cache.get)(key) or []
 			current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
 			await sync_to_async(cache.set)(key, current_waiting_players)
-			asyncio.create_task(self._player_not_lock_in_game_tournament())
+			asyncio.create_task(self._player_not_lock_in_game())
 		else:
+			await self.waiting_game_db()
 			pass
 
-	async def _player_not_lock_in_game_tournament(self):
+	async def _player_not_lock_in_game(self):
 		begin = time.time()
 		try:
 			while True:
