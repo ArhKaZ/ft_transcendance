@@ -52,7 +52,6 @@ async function fetchFriends() {
 
         if (response.ok) {
             const data = await response.json();
-            console.log('data: ', data);
             const friendsList = document.getElementById('friends-list');
             friendsList.innerHTML = '';
 
@@ -84,8 +83,26 @@ async function fetchFriends() {
 
                 statusIndicator.dataset.username = friend.username;
 
+                let game_mode = null;
+                if (friend.game_mode || friend.is_in_tournament) {
+                    game_mode = document.createElement('span');
+                    game_mode.classList.add('friend-game-mode');
+                    if (friend.game_mode) {
+                        if (friend.is_waiting_for_game)
+                            game_mode.textContent = 'wait for';
+                        else
+                            game_mode.textContent = 'in';
+                        game_mode.textContent += ` ${friend.game_mode}`;
+                    }
+                    else {
+                        game_mode.textContent = 'in Tournament';
+                    }
+                }
+
                 friendInfo.appendChild(friendName);
                 friendCard.appendChild(avatar);
+                if (game_mode)
+                    friendInfo.appendChild(game_mode);
                 friendCard.appendChild(friendInfo);
                 friendCard.appendChild(statusIndicator);
                 friendsList.appendChild(friendCard);

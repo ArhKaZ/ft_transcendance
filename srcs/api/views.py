@@ -423,11 +423,8 @@ def join_tournament(request):
 
 		try:
 			tournament.add_player(request.user)
-			print('before add in user')
 			user = MyUser.objects.get(id=request.user.id)
-			print('get user')
 			user.enter_in_tournament(tournament=tournament)
-			print('after add in user')
 			response_data = {
 				'message': 'Successfully joined tournament',
 				'tournament_code': tournament.code,
@@ -462,11 +459,8 @@ def create_tournament(request):
 	try:
 		tournament = Tournament.objects.create(creator=request.user)
 		tournament.add_player(request.user)
-		print('before in add on user', request.user, request.user.id)
 		user = MyUser.objects.get(id=request.user.id)
-		print('get user')
 		user.enter_in_tournament(tournament=tournament)
-		print('after add on user')
 		return Response({
 			'message': 'Tournament created successfully',
 			'tournament_code': tournament.code,

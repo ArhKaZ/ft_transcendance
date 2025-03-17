@@ -87,6 +87,7 @@ async function fetch_user() {
         }
 
         const data = await response.json();
+        console.debug(data);
         document.getElementById('username').textContent = data.username;
         document.getElementById('user-pseudo').textContent = data.pseudo;
         document.getElementById('ligue-points').textContent = data.ligue_points;
@@ -94,7 +95,7 @@ async function fetch_user() {
         document.getElementById('user-avatar').src = data.avatar || '/avatars/default.png';
         document.getElementById('user-wins').textContent = data.wins;
         document.getElementById('user-looses').textContent = data.looses;
-
+        
         updateFriendButton(userName);
 
         const wins = parseInt(data.wins, 10) || 0;
@@ -106,6 +107,44 @@ async function fetch_user() {
 
         winrateSpan.classList.remove("green", "red");
         winrateSpan.classList.add(winrate > 49 ? "green" : "red");
+
+        if (data.is_in_tournament || data.game_mode) {
+            let profile = document.getElementById('profile-header');
+            let action = document.createElement('div');
+            let header = document.createElement('div');
+            header.innerHTML = 'Status:';
+            header.classList.add('head-text');
+            action.appendChild(header);
+            action.classList.add('action-section');
+
+            let currentAction = document.createElement('span');
+            let button = null;
+            if (data.game_mode) {
+                if (data.is_waiting_for_game) {
+                    currentAction.innerText = `wait for a ${data.game_mode} game`;
+                    button = document.createElement('button');
+                    button.innerText = 'Join';
+                } else {
+                    currentAction = `playing in a ${data.game_mode} game`;
+                }
+            } else {
+                if (!data.current_tournament.started) {
+                    currentAction.innerText = `wait for ${data.code_current_tournament} tournament to start`;
+                    button = document.createElement('button');
+                    button.innerText = 'Join';
+                } else {
+                    currentAction.innerText = `playing in ${data.code_current_tournament} tournament`;
+                }
+            }
+            action.appendChild(currentAction);
+            if (button) {
+                button.classList.add('buttons');
+                button.id = 'join-button';
+                action.appendChild(button);
+            }
+            profile.appendChild(action);
+        }
+        
     } catch (error) {
         console.error("API call failed", error);
         window.location.href = '/user_not_found/';

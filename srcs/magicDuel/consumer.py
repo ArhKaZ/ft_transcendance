@@ -46,6 +46,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		
 	async def disconnect(self, close_code):
 		try:
+			await self.stop_game_db()
 			if self.monitor_task is not None and self.round_task is not None and not await self.game.is_stocked():
 				loser = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
 				winner = self.game.p1 if self.player_id == self.game.p2.id else self.game.p2
