@@ -30,7 +30,7 @@ export function handle42OAuthCallback()
         const state = sessionStorage.getItem('oauth_state');
         if (state)
             sessionStorage.removeItem('oauth_state');
-        window.location.href = '/home/';
+        routeur.navigateTo('/home/');
     }
 }
 
@@ -73,7 +73,7 @@ async function exchangeCodeForToken(code, state)
             const responseText = await response.text();
             console.error('Error response content: ', responseText);
         }
-        window.location.href = '/home/';
+        routeur.navigateTo('/home/');
     }
     catch (error)
     {

@@ -77,7 +77,7 @@ class TournamentManager {
         
         if (data.deleted) {
             setTimeout(() => {
-                window.location.href = `/home/`;
+                routeur.navigateTo('/home/');
             }, 0);
         }
     }
@@ -221,7 +221,7 @@ class TournamentManager {
                 if (data.is_full) {
                     
                     sessionStorage.removeItem('current_tournament');
-                    window.location.href = `/tournament/game/${this.currentTournamentCode}/`;
+                    routeur.navigateTo(`/tournament/game/${this.currentTournamentCode}/`);
                 } else {
                     
                     this.messageDiv.innerHTML = `
@@ -251,7 +251,7 @@ class TournamentManager {
         sessionStorage.removeItem('current_tournament'); 
     
         setTimeout(() => {
-            window.location.href = `/tournament/game/${this.currentTournamentCode}/`;
+            routeur.navigateTo(`/tournament/game/${this.currentTournamentCode}/`);
         }, 2000);
     }
 
@@ -301,11 +301,11 @@ document.getElementById('return-button').addEventListener('click', () => {
         
         if (confirm('Do you want to quit the current tournament?')) {
             window.tournamentManager.quitTournament(true);
-            window.location.href = "/pong/";
+            routeur.navigateTo("/pong/");
         }
     } else {
         
-        window.location.href = "/pong/";;
+        routeur.navigateTo("/pong/");
     }
 });
 

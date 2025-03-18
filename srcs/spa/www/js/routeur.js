@@ -26,7 +26,7 @@ class Router {
             const link = e.target.closest('a');
             if (link) {
                 const href = link.getAttribute('href');
-                if (href && href.startsWith('/') && href.startsWith('//')) {
+                if (href && href.startsWith('/') && !href.startsWith('//')) {
                     e.preventDefault();
                     this.navigateTo(href);
                 }
@@ -289,5 +289,5 @@ const routes = {
 };
 
 
-const router = new Router(routes);
+export const router = new Router(routes);
 router.init();

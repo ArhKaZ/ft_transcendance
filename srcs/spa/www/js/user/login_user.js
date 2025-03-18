@@ -11,7 +11,7 @@ if (loginbtn) {
 }
 
 document.getElementById('return-button').addEventListener('click', () => {
-    window.location.href = "/home/";
+    routeur.navigateTo('/home/');
 });
 
 async function loginUser() {
@@ -44,7 +44,7 @@ async function loginUser() {
 			sessionStorage.setItem('username', username);
 			messageDiv.innerHTML = '<span style="color: green;">Login successful. Redirecting...</span>';
 			setTimeout(() => {
-				window.location.href = "/home/";
+				routeur.navigateTo('/home/');
 			}, 1000);
 		} else {
 			const data = await response.json();

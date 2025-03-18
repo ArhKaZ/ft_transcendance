@@ -90,6 +90,6 @@ async function checkTokenExpiry() {
 
 function redirectToLogin() {
     if (window.location.pathname !== '/home/') {
-        window.location.href = '/home/';
+        routeur.navigateTo('/home/');
     }
 }

@@ -24,13 +24,13 @@ document.getElementById('logout-button').addEventListener('click', async () => {
             sessionStorage.removeItem('refresh_expires');
             sessionStorage.clear();
             
-            window.location.href = '/home/';
+            routeur.navigateTo('/home/');
         } else {
             console.error('Logout failed:', await response.json());
         }
     } catch (error) {
         console.error('Network error during logout:', error);
-        window.location.href = '/home/';
+        routeur.navigateTo('/home/');
     }
 });
 
@@ -60,7 +60,7 @@ async function fetchFriends() {
                 friendCard.classList.add('friend-card');
 
                 friendCard.addEventListener('click', () => {
-                    window.location.href = `/user/profile/${friend.username}/`;
+                    routeur.navigateTo(`/user/profile/${friend.username}/`);
                 });
 
                 const avatar = document.createElement('img');
@@ -202,7 +202,7 @@ async function fetchPendingFriend() {
             
                 
                 friendCard.addEventListener('click', () => {
-                    window.location.href = `/user/profile/${friend.username}/`;
+                    routeur.navigateTo(`/user/profile/${friend.username}/`);
                 });
             
                 const avatar = document.createElement('img');

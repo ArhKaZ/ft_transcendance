@@ -31,18 +31,18 @@ document.getElementById('logout-button').addEventListener('click', async () => {
             sessionStorage.removeItem('refresh_expires');
             sessionStorage.clear();
 
-			window.location.href = '/home/';
+			routeur.navigateTo('/home/');
         } else {
             console.error('Logout failed:', await response.json());
         }
     } catch (error) {
         console.error('Network error during logout:', error);
-        window.location.href = '/home/';
+        routeur.navigateTo('/home/');
     }
 });
 
 document.getElementById('user-avatar').addEventListener('click', () => {
-    window.location.href = "/user/edit_user/";
+    routeur.navigateTo("/user/edit_user/");
 });
 
 await ensureValidToken();
@@ -124,7 +124,7 @@ searchButton.addEventListener('click', async () => {
     const userName = searchInput.value.trim();
 
     if (userName) {
-        window.location.href = `/user/profile/${userName}`;
+        routeur.navigateTo(`/user/profile/${userName}`);
     } else {
         searchResults.textContent = 'Please enter a username.';
     }

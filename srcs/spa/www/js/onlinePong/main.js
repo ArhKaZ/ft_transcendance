@@ -237,7 +237,7 @@ async function handleWebSocketMessage(e) {
 
 				if (inTournament) {
 					setTimeout(() => {
-						window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}`
+						routeur.navigateTo(`/tournament/game/${sessionStorage.getItem('tournament_code')}`)
 					}, 2000);
 				}
 			}
@@ -274,11 +274,11 @@ async function handleWebSocketMessage(e) {
 		
 		case 'no_opp':
 			if (inTournament && inFinal) {
-				window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+				routeur.navigateTo(`/tournament/game/${sessionStorage.getItem('tournament_code')}/`);
 				break;
 			}
 			else if (inTournament) {
-				window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+				routeur.navigateTo(`/tournament/game/${sessionStorage.getItem('tournament_code')}/`);
 				break;
 			}
 
@@ -437,7 +437,7 @@ function handleGameFinish(game, winningId, opponentName = null) {
         btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
         btnBack.innerText = "Back to Tournament";
         setTimeout(() => {
-            window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+            routeur.navigateTo(`/tournament/game/${sessionStorage.getItem('tournament_code')}/`);
         }, 3000);
     }
     else

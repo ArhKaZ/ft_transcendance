@@ -19,7 +19,7 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
         
         if (response.ok) {
             displayMessage(data.message, 'success');
-            setTimeout(() => window.location.href = '/home/', 2000);
+            setTimeout(() => routeur.navigateTo('/home/'), 2000);
         } else {
             let errorMessage = 'An error occurred';
             if (data.error) {
@@ -67,7 +67,7 @@ document.getElementById('avatar').addEventListener('change', function() {
 });
 
 document.getElementById('return-button').addEventListener('click', () => {
-    window.location.href = "/home/";
+    routeur.navigateTo('/home/');
 });
 
 function displayMessage(message, type) {

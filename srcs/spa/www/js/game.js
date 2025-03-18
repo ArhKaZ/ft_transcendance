@@ -21,22 +21,22 @@ document.getElementById('logout-button').addEventListener('click', async () => {
             sessionStorage.removeItem('refresh_expires');
             sessionStorage.clear();
             
-            window.location.href = '/home/';
+            routeur.navigateTo('/home/');
         } else {
             console.error('Logout failed:', await response.json());
         }
     } catch (error) {
         console.error('Network error during logout:', error);
-        window.location.href = '/home/';
+        routeur.navigateTo('/home/');
     }
 });
 
 document.getElementById('user-avatar').addEventListener('click', () => {
-    window.location.href = "/user/edit_user/";
+    routeur.navigateTo("/user/edit_user/");
 });
 
 document.getElementById('return-button').addEventListener('click', () => {
-    window.location.href = "/home/";
+    routeur.navigateTo("/home/");
 });
 
 await ensureValidToken();
