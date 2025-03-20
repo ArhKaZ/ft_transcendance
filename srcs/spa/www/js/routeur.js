@@ -155,13 +155,16 @@ class Router {
     executeScripts(container) {
         container.querySelectorAll('script').forEach(oldScript => {
             const newScript = document.createElement('script');
-            
             Array.from(oldScript.attributes).forEach(attr => {
-                newScript.setAttribute(attr.name, attr.value);
+                if (attr.name === 'src') {
+                    // Add cache-busting parameter
+                    const separator = attr.value.includes('?') ? '&' : '?';
+                    newScript.setAttribute('src', attr.value + separator + 't=' + Date.now());
+                } else {
+                    newScript.setAttribute(attr.name, attr.value);
+                }
             });
-
             newScript.textContent = oldScript.textContent;
-            
             oldScript.parentNode.replaceChild(newScript, oldScript);
         });
     }
