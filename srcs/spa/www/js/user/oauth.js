@@ -72,6 +72,7 @@ async function exchangeCodeForToken(code, state)
         {
             const responseText = await response.text();
             console.error('Error response content: ', responseText);
+            displayMessage('An error occurred', 'error');
         }
         window.location.href = '/home/';
     }
@@ -79,4 +80,10 @@ async function exchangeCodeForToken(code, state)
     {
         console.error('Error: ' + error);
     }
+}
+
+function displayMessage(message, type) {
+    const messageDiv = document.getElementById('message');
+    messageDiv.innerHTML = message;
+    messageDiv.style.color = type === 'error' ? 'red' : 'green';
 }
