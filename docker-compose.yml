@@ -1,15 +1,14 @@
 services:
   nginx:
-    image: nginx:latest
+    build: ./srcs/conf/nginx
     container_name: nginx
     ports:
       - '8080:80'
       - '8443:443'
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./certificates:/etc/ssl/certs
-      - ./spa:/app/spa
-      - ./media:/app/media
+      - ./srcs/conf/nginx/conf.d:/etc/nginx/conf.d
+      - ./srcs/spa:/app/spa
+      - ./srcs/media:/app/media
     depends_on:
       - django
     networks:
@@ -19,7 +18,7 @@ services:
     image: redis:latest
     container_name: redis
     volumes:
-      - ./init_redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./srcs/conf/redis/redis.conf:/usr/local/etc/redis/redis.conf
     ports:
       - "6378:6378"
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
@@ -29,13 +28,13 @@ services:
   django:
     container_name: django
     build:
-      context: ./init_django/
+      context: ./srcs/conf/django/
       dockerfile: Dockerfile
     volumes:
-      - .:/app
+      - ./srcs/:/app
     ports:
       - "8000:8000"
-    env_file: .env
+    env_file: ./srcs/.env
     environment:
       - DJANGO_SETTINGS_MODULE=backend.settings
     depends_on:
@@ -43,18 +42,18 @@ services:
       - redis
     networks:
       - trans_network
-    command: ./init_django/script.sh db_postgre
+    command: /app/conf/django/script.sh db_postgre
 
   db_postgre:
     container_name: db_postgre
     image: postgres:14.1-alpine
     restart: always
-    env_file: .env
+    env_file: ./srcs/.env
     ports:
       - "5432:5432"
     volumes:
       - db_postgre:/var/lib/postgresql/data
-      - ./init_db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./srcs/conf/postgre/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - trans_network
 
