@@ -1,4 +1,4 @@
-import { router } from '../routeur.js';
+import { router } from '../router.js';
 
 document.getElementById('userForm').addEventListener('submit', async function(event) {
     event.preventDefault();
@@ -26,7 +26,7 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
         });
 
         if (response.ok) {
-            routeur.navigateTo('/home/');
+            router.navigateTo('/home/');
         } else {
             const data = await response.json();
             let errorMessage = 'An error occurred';

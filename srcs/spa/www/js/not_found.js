@@ -1,3 +1,6 @@
+import { router } from './router.js';
+
+
 document.getElementById('return-button').addEventListener('click', () => {
-    routeur.navigateTo("/home/");
+    router.navigateTo("/home/");
 });

@@ -1,3 +1,6 @@
+import { router } from './router.js';
+
+
 export function getCSRFToken()
 {
     let csrfToken = null;
@@ -90,6 +93,6 @@ async function checkTokenExpiry() {
 
 function redirectToLogin() {
     if (window.location.pathname !== '/home/') {
-        routeur.navigateTo('/home/');
+        router.navigateTo('/home/');
     }
 }

@@ -1,4 +1,5 @@
 import { ensureValidToken } from '/js/utils.js';
+import { router } from '../router.js';
 
 class TournamentManager {
 	
@@ -77,7 +78,7 @@ class TournamentManager {
         
         if (data.deleted) {
             setTimeout(() => {
-                routeur.navigateTo('/home/');
+                router.navigateTo('/home/');
             }, 0);
         }
     }
@@ -221,7 +222,7 @@ class TournamentManager {
                 if (data.is_full) {
                     
                     sessionStorage.removeItem('current_tournament');
-                    routeur.navigateTo(`/tournament/game/${this.currentTournamentCode}/`);
+                    router.navigateTo(`/tournament/game/${this.currentTournamentCode}/`);
                 } else {
                     
                     this.messageDiv.innerHTML = `
@@ -251,7 +252,7 @@ class TournamentManager {
         sessionStorage.removeItem('current_tournament'); 
     
         setTimeout(() => {
-            routeur.navigateTo(`/tournament/game/${this.currentTournamentCode}/`);
+            router.navigateTo(`/tournament/game/${this.currentTournamentCode}/`);
         }, 2000);
     }
 
@@ -301,11 +302,11 @@ document.getElementById('return-button').addEventListener('click', () => {
         
         if (confirm('Do you want to quit the current tournament?')) {
             window.tournamentManager.quitTournament(true);
-            routeur.navigateTo("/pong/");
+            router.navigateTo("/pong/");
         }
     } else {
         
-        routeur.navigateTo("/pong/");
+        router.navigateTo("/pong/");
     }
 });
 

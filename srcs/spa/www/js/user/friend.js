@@ -1,5 +1,6 @@
 import { getCSRFToken } from '/js/utils.js';
 import { ensureValidToken } from '/js/utils.js';
+import { router } from '../router.js';
 
 const divFriends = document.getElementById("Friends");
 
@@ -24,13 +25,13 @@ document.getElementById('logout-button').addEventListener('click', async () => {
             sessionStorage.removeItem('refresh_expires');
             sessionStorage.clear();
             
-            routeur.navigateTo('/home/');
+            router.navigateTo('/home/');
         } else {
             console.error('Logout failed:', await response.json());
         }
     } catch (error) {
         console.error('Network error during logout:', error);
-        routeur.navigateTo('/home/');
+        router.navigateTo('/home/');
     }
 });
 
@@ -60,7 +61,7 @@ async function fetchFriends() {
                 friendCard.classList.add('friend-card');
 
                 friendCard.addEventListener('click', () => {
-                    routeur.navigateTo(`/user/profile/${friend.username}/`);
+                    router.navigateTo(`/user/profile/${friend.username}/`);
                 });
 
                 const avatar = document.createElement('img');
@@ -202,7 +203,7 @@ async function fetchPendingFriend() {
             
                 
                 friendCard.addEventListener('click', () => {
-                    routeur.navigateTo(`/user/profile/${friend.username}/`);
+                    router.navigateTo(`/user/profile/${friend.username}/`);
                 });
             
                 const avatar = document.createElement('img');

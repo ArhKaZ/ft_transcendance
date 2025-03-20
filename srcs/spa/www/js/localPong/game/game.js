@@ -245,7 +245,6 @@ class Game {
     }
 
     displayWinner(winner) {
-        
         const endElement = document.getElementById('end-container');
         const gameCanvas = document.getElementById('gameCanvas');
         const p1ImgElement = document.getElementById('end-img-p1');

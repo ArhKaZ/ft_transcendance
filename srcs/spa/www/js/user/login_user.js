@@ -1,5 +1,6 @@
 import { getCSRFToken } from '/js/utils.js';
 import { ensureValidToken } from '/js/utils.js';
+import { router } from '../router.js';
 
 var loginbtn = document.getElementById('login-button');
 
@@ -11,7 +12,7 @@ if (loginbtn) {
 }
 
 document.getElementById('return-button').addEventListener('click', () => {
-    routeur.navigateTo('/home/');
+    router.navigateTo('/home/');
 });
 
 async function loginUser() {
@@ -44,7 +45,7 @@ async function loginUser() {
 			sessionStorage.setItem('username', username);
 			messageDiv.innerHTML = '<span style="color: green;">Login successful. Redirecting...</span>';
 			setTimeout(() => {
-				routeur.navigateTo('/home/');
+				router.navigateTo('/home/');
 			}, 1000);
 		} else {
 			const data = await response.json();

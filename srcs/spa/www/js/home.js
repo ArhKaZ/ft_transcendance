@@ -1,6 +1,8 @@
 import { getCSRFToken } from '/js/utils.js';
 import { ensureValidToken } from '/js/utils.js';
 import { redirectTo42OAuth } from '/js/user/oauth.js';
+import { router } from './router.js';
+
 
 const searchButton = document.getElementById('search-button');
 const searchInput = document.getElementById('search-input');
@@ -31,18 +33,18 @@ document.getElementById('logout-button').addEventListener('click', async () => {
             sessionStorage.removeItem('refresh_expires');
             sessionStorage.clear();
 
-			routeur.navigateTo('/home/');
+			router.navigateTo('/home/');
         } else {
             console.error('Logout failed:', await response.json());
         }
     } catch (error) {
         console.error('Network error during logout:', error);
-        routeur.navigateTo('/home/');
+        router.navigateTo('/home/');
     }
 });
 
 document.getElementById('user-avatar').addEventListener('click', () => {
-    routeur.navigateTo("/user/edit_user/");
+    router.navigateTo("/user/edit_user/");
 });
 
 await ensureValidToken();
@@ -124,7 +126,7 @@ searchButton.addEventListener('click', async () => {
     const userName = searchInput.value.trim();
 
     if (userName) {
-        routeur.navigateTo(`/user/profile/${userName}`);
+        router.navigateTo(`/user/profile/${userName}`);
     } else {
         searchResults.textContent = 'Please enter a username.';
     }

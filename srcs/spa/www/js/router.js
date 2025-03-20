@@ -157,7 +157,6 @@ class Router {
             const newScript = document.createElement('script');
             Array.from(oldScript.attributes).forEach(attr => {
                 if (attr.name === 'src') {
-                    // Add cache-busting parameter
                     const separator = attr.value.includes('?') ? '&' : '?';
                     newScript.setAttribute('src', attr.value + separator + 't=' + Date.now());
                 } else {
