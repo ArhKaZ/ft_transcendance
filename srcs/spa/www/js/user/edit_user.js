@@ -1,5 +1,7 @@
 import { ensureValidToken } from '/js/utils.js';
 
+validationErase = false;
+
 document.getElementById('userForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
@@ -38,7 +40,15 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
     }
 });
 
+
 document.getElementById('erase-button').addEventListener('click', async () => {
+    let cancel = false;
+    document.getElementById('modal-btn-yes').addEventListener('click', validationErase = true);
+    document.getElementById('modal-btn-no').addEventListener('click', cancel = true);
+    while (!validationErase) {
+        if (cancel)
+            return;
+    }
     try {
         await ensureValidToken();
         const response = await fetch('/api/erase/', {

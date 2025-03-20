@@ -9,6 +9,7 @@ services:
       - ./srcs/conf/nginx/conf.d:/etc/nginx/conf.d
       - ./srcs/spa:/app/spa
       - ./srcs/media:/app/media
+      - ./srcs/certificates:/etc/ssl/certs
     depends_on:
       - django
     networks:
