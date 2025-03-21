@@ -14,7 +14,7 @@ document.getElementById('return-button').addEventListener('click', () => {
     window.location.href = "/home/";
 });
 
-async function loginUser() {
+export async function loginUser() {
 	const form = document.getElementById('userForm');
 	const messageDiv = document.getElementById('message');
 

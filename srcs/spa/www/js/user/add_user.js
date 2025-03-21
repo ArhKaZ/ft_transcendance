@@ -1,3 +1,5 @@
+import { loginUser } from "./login_user.js";
+
 document.getElementById('userForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
@@ -24,7 +26,8 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
         });
 
         if (response.ok) {
-            window.location.href = '/home/';
+            console.log('je passe ici');
+            loginUser();
         } else {
             const data = await response.json();
             let errorMessage = 'An error occurred';
