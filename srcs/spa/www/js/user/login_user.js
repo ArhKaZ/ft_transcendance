@@ -1,5 +1,6 @@
 import { getCSRFToken } from '/js/utils.js';
 import { ensureValidToken } from '/js/utils.js';
+import { router } from '../router.js';
 
 var loginbtn = document.getElementById('login-button');
 
@@ -11,7 +12,7 @@ if (loginbtn) {
 }
 
 document.getElementById('return-button').addEventListener('click', () => {
-    window.location.href = "/home/";
+    router.navigateTo('/home/');
 });
 
 export async function loginUser() {
@@ -46,7 +47,7 @@ export async function loginUser() {
 			sessionStorage.setItem('is_oauth', false);
 			messageDiv.innerHTML = '<span style="color: green;">Login successful. Redirecting...</span>';
 			setTimeout(() => {
-				window.location.href = "/home/";
+				router.navigateTo('/home/');
 			}, 1000);
 		} else {
 			const data = await response.json();

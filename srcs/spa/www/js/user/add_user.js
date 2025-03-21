@@ -1,4 +1,5 @@
 import { loginUser } from "./login_user.js";
+import { router } from '../router.js';
 
 document.getElementById('userForm').addEventListener('submit', async function(event) {
     event.preventDefault();
@@ -26,7 +27,6 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
         });
 
         if (response.ok) {
-            console.log('je passe ici');
             loginUser();
         } else {
             const data = await response.json();
@@ -62,7 +62,7 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
 });
 
 document.getElementById('return-button').addEventListener('click', () => {
-    window.location.href = "/home/";
+    router.navigateTo('/home/');
 });
 
 document.getElementById('avatar').addEventListener('change', function() {

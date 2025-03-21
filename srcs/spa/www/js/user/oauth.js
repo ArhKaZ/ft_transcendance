@@ -1,3 +1,5 @@
+import { router } from '../router.js';
+
 export function redirectTo42OAuth()
 {
     const clientId = 'u-s4t2ud-c3aad960cd36ac0f5ca04a7d2780e4d8f1dbc27481baec5b5cb571eceb694a81';
@@ -30,7 +32,7 @@ export function handle42OAuthCallback()
         const state = sessionStorage.getItem('oauth_state');
         if (state)
             sessionStorage.removeItem('oauth_state');
-        window.location.href = '/home/';
+        router.navigateTo('/home/');
     }
 }
 
@@ -73,11 +75,18 @@ async function exchangeCodeForToken(code, state)
         {
             const responseText = await response.text();
             console.error('Error response content: ', responseText);
+            displayMessage('An error occurred', 'error');
         }
-        window.location.href = '/home/';
+        router.navigateTo('/home/');
     }
     catch (error)
     {
         console.error('Error: ' + error);
     }
+}
+
+function displayMessage(message, type) {
+    const messageDiv = document.getElementById('message');
+    messageDiv.innerHTML = message;
+    messageDiv.style.color = type === 'error' ? 'red' : 'green';
 }

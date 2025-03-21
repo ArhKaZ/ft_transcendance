@@ -39,7 +39,12 @@ MAX_FILE_SIZE = 5 * 1024 * 1024
 def add_user(request):
 	try:
 		data = request.data.copy()
+		username = data.get('username', '')
 		avatar = request.FILES.get('avatar')
+
+		if "42" in username:
+			return Response({'error': "The username cannot contain '42'."}, status=status.HTTP_400_BAD_REQUEST)
+
 		if avatar:
 			avatar.name = sanitize_filename(avatar.name)
 			ext = os.path.splitext(avatar.name)[1].lower()
@@ -62,6 +67,7 @@ def add_user(request):
 				data['avatar'] = base64.b64encode(buffer.getvalue()).decode('utf-8')
 			except Exception as e:
 				return Response({'error': 'Invalid image file'}, status=status.HTTP_400_BAD_REQUEST)
+			
 
 		serializer = UserSerializer(data=data)
 		if serializer.is_valid():
@@ -765,6 +771,7 @@ def oauth(request):
 		)
 		user_response.raise_for_status()
 		user_data = user_response.json()
+		oauth_login = user_data.get('login') + '42'
 			
 		avatar_data = None
 		pfp = user_data.get('image', {}).get('versions', {}).get('medium')
@@ -789,12 +796,9 @@ def oauth(request):
 			except IOError:
 				avatar_data = b''
 
-		existing_user = MyUser.objects.filter(
-			Q(email=user_data["email"]) | Q(username=user_data["login"])
-		).first()
 		existing_oauth_user = MyUser.objects.filter(
 			Q(email=user_data["email"])
-			& Q(username=user_data["login"])
+			& Q(username=oauth_login)
 			& Q(is_oauth=True)
 		).first()
 		if existing_oauth_user:	
@@ -810,19 +814,13 @@ def oauth(request):
 				'access_expires': access_token.expires_at,
 				'refresh_token': refresh_token.token,
 				'refresh_expires': refresh_token.expires_at,
-				'username': user_data.get('login'),
-			})
-		elif existing_user:
-			return Response(
-				{"error": "A user with this email or username already exists."},
-				status=status.HTTP_409_CONFLICT,
-			)
+				'username': oauth_login
+		})
 		else:
-			
 			user = MyUser.objects.create(
 				email=user_data.get('email'),
-				username=user_data.get('login'),
-				pseudo=user_data.get('login'),
+				username=oauth_login,
+				pseudo=oauth_login,
 				avatar=avatar_data,
 				is_oauth=True
 			)
@@ -839,7 +837,7 @@ def oauth(request):
 				'access_expires': access_token.expires_at,
 				'refresh_token': refresh_token.token,
 				'refresh_expires': refresh_token.expires_at,
-				'username' : user_data.get('login'),
+				'username' : oauth_login
 			})
 	except requests.HTTPError as e:
 		print(f"HTTP Error: {e}")

@@ -9,7 +9,6 @@ from django.core.validators import MaxLengthValidator, MinLengthValidator
 import binascii
 from rest_framework import serializers
 from .models import MyUser, MatchHistory, TournamentMatch
-import bleach
 import re
 import os
 import base64

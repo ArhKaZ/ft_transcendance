@@ -4,6 +4,7 @@ import Player from "./game/player.js";
 import CountdownAnimation from "../countdownAnimation.js";
 import {creationGameDisplay, updatePlayerStatus, displayWhenLoad } from "./game/waitingRoom.js";
 import { getUserFromBack, ensureValidToken } from '/js/utils.js';
+import { router } from '../router.js';
 
 let socket = null;
 let oldHeight = null;
@@ -237,7 +238,7 @@ async function handleWebSocketMessage(e) {
 
 				if (inTournament) {
 					setTimeout(() => {
-						window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}`
+						router.navigateTo(`/tournament/game/${sessionStorage.getItem('tournament_code')}`)
 					}, 2000);
 				}
 			}
@@ -274,11 +275,11 @@ async function handleWebSocketMessage(e) {
 		
 		case 'no_opp':
 			if (inTournament && inFinal) {
-				window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+				router.navigateTo(`/tournament/game/${sessionStorage.getItem('tournament_code')}/`);
 				break;
 			}
 			else if (inTournament) {
-				window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+				router.navigateTo(`/tournament/game/${sessionStorage.getItem('tournament_code')}/`);
 				break;
 			}
 
@@ -437,7 +438,7 @@ function handleGameFinish(game, winningId, opponentName = null) {
         btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
         btnBack.innerText = "Back to Tournament";
         setTimeout(() => {
-            window.location.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+            router.navigateTo(`/tournament/game/${sessionStorage.getItem('tournament_code')}/`);
         }, 3000);
     }
     else

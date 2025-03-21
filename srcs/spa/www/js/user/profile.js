@@ -1,5 +1,6 @@
 import { getCSRFToken } from '../utils.js';
 import { ensureValidToken } from '/js/utils.js';
+import { router } from '../router.js';
 
 async function isUserFriend(userName) {
     try {
@@ -147,7 +148,7 @@ async function fetch_user() {
         
     } catch (error) {
         console.error("API call failed", error);
-        window.location.href = '/user_not_found/';
+        router.navigateTo('/user_not_found/');
     }
 }
 
