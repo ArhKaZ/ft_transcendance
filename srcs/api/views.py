@@ -39,7 +39,12 @@ MAX_FILE_SIZE = 5 * 1024 * 1024
 def add_user(request):
 	try:
 		data = request.data.copy()
+		username = data.get('username', '')
 		avatar = request.FILES.get('avatar')
+
+		if "42" in username:
+			return Response({'error': "The username cannot contain '42'."}, status=status.HTTP_400_BAD_REQUEST)
+
 		if avatar:
 			avatar.name = sanitize_filename(avatar.name)
 			ext = os.path.splitext(avatar.name)[1].lower()
@@ -62,6 +67,7 @@ def add_user(request):
 				data['avatar'] = base64.b64encode(buffer.getvalue()).decode('utf-8')
 			except Exception as e:
 				return Response({'error': 'Invalid image file'}, status=status.HTTP_400_BAD_REQUEST)
+			
 
 		serializer = UserSerializer(data=data)
 		if serializer.is_valid():
