@@ -21,6 +21,8 @@ let keyUpHandler = null;
 let keyDownHandler = null;
 let currentPseudo = null;
 
+const handleResize = () => resizeCanvasGame();
+
 function sendToBack(data) {
 	if (socket?.readyState === WebSocket.OPEN) {
 		socket.send(JSON.stringify(data));
@@ -73,7 +75,20 @@ async function getInfoFinale(user) {
 	}
 }
 
+function returnBack() {
+	if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.close();
+    }
+	window.removeEventListener("resize", handleResize);
+	setTimeout(() => {
+		router.navigateTo('/pong/')
+	}, 100);
+}
+
 async function init() {
+	document.getElementById('return-button').addEventListener('click', () => {
+		returnBack();
+	});
 	const user = await getUserFromBack();
 	const urlParams = new URLSearchParams(window.location.search);
 	let infos = null;
@@ -147,7 +162,7 @@ function setupWebSocket(user, infos) {
 
 	socket.onerror = (error) => console.error("WebSocket error:", error.type);
 
-	window.addEventListener("resize", () => resizeCanvasGame());
+	window.addEventListener("resize", handleResize());
 
 	return socket;
 }

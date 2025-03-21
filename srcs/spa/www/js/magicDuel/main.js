@@ -4,6 +4,7 @@ import Game from "./game/game.js";
 import CountdownAnimation from "../countdownAnimation.js";
 import {creationGameDisplay, updatePlayerStatus, displayWhenLoad, playerLeave } from "./game/waitingRoom.js";
 import { getUserFromBack } from '/js/utils.js';
+import { router } from '../router.js';
 
 let socket = null;
 let currentPlayerId = null;
@@ -17,6 +18,8 @@ let currentGameId = null;
 let asFinishedAnim = false;
 let currentInverval = null;
 let asShowDeath = false;
+
+const handleResize = () => resizeCanvas();
 
 function bindEvents() {
 	const btn1 = document.getElementById("btn1");
@@ -58,7 +61,20 @@ function sendToBack(data) {
 	}
 }
 
+function returnBack() {
+	if (socket && socket.readyState === WebSocket.OPEN) {
+		socket.close();
+	}
+	window.removeEventListener("resize", handleResize);
+	setTimeout(() => {
+		router.navigateTo('/pong/')
+	}, 100);
+}
+
 async function init() {
+	document.getElementById('return-button').addEventListener('click', () => {
+		returnBack();
+	});
 	try {
 		const user = await getUserFromBack();
 		displayWhenLoad(user);
@@ -199,7 +215,7 @@ function handleGameStart(data) {
 	}
 	currentGame.start();
 	resizeCanvas();
-	window.addEventListener('resize', resizeCanvas);
+	window.addEventListener('resize', handleResize);
 	window.addEventListener("beforeunload", handleQuitGame);
 	currentCountdown = new CountdownAnimation('countdownCanvas');
 }

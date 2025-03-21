@@ -4,6 +4,7 @@ import Player from "./game/player.js";
 import CountdownAnimation from "../countdownAnimation.js";
 import { displayWhenLoad } from "./game/waitingRoom.js";
 import { getUserFromBack } from '/js/utils.js';
+import { router } from '../router.js';
 
 let oldHeight = null;
 let gameStarted = false;
@@ -11,15 +12,29 @@ let currentGame = null;
 let currentCountdown = null;
 let currentLevel = 0;
 let asSelectedLevel = false;
-    
+let gameIsCancel = false;
+
+const handleResize = () => resizeCanvasGame();
+
+function returnBack() {
+    gameIsCancel = true;
+    if (currentGame && currentGame.isStart)
+        currentGame.stop();
+    window.removeEventListener("resize", handleResize);
+    router.navigateTo('/pong/');
+}
+
 async function init() {
+    document.getElementById('return-button').addEventListener('click', () => {
+        returnBack();
+    });
     const user = await getUserFromBack();
     if (!user.username)
         return;
     displayWhenLoad(user);
     currentGame = await initGame(user);
     currentCountdown = new CountdownAnimation('countdownCanvas');
-    window.addEventListener('resize', () => resizeCanvasGame());
+    window.addEventListener('resize', handleResize);
     listenerLevelButtons();
     document.getElementById('button-ready').addEventListener('click', () => {
         if (asSelectedLevel) {
@@ -79,7 +94,8 @@ async function startCountdown() {
     }
     resizeCanvasGame();
     currentCountdown.stopDisplay();
-    await currentGame.start();
+    if (!gameIsCancel)
+        await currentGame.start();
 }
 
 async function initGame(user) {
