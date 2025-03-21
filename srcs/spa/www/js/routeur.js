@@ -281,7 +281,11 @@ const routes = {
     '/user_not_found/':  async () => {	
         const response = await fetch('/html/user_not_found.html');
         return await response.text();
-        },
+    },
+    '/gambling/':  async () => {	
+        const response = await fetch('/html/gambling.html');
+        return await response.text();
+    },
     '/404':  async () => {	
     const response = await fetch('/html/not_found.html');
     return await response.text();

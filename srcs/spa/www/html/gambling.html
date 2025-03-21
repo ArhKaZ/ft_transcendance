@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="/css/profiles.css">
+	<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+	<title>User Profile</title>
+</head>
+<body>
+<div class="profile-container">
+	<div class="profile-header" id="profile-header">
+		<div class="avatar-container">
+			<img id="user-avatar" class="profile-avatar" src="" alt="User Avatar">
+			<img id="add-friend-btn" class="add-friend-icon" src="../../css/ico/friend_added_ico.png" alt="Add Friend">
+		</div>
+		<div class="profile-info">
+			<h1 id="username"></h1>
+		</div>
+	<div class="profile-section">
+		<h2>About</h2>
+		<p id="user-description" class="content-text"></p>
+	</div>
+<div id="error-message" class="error-message"></div>
+	<script type="module" src="/js/user/profile.js"></script>
+</body>
+</html>
