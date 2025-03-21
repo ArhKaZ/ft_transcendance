@@ -1,3 +1,6 @@
+import { router } from './router.js';
+
+
 let currentTranslations = {};
 
 export async function loadTranslations(lang = 'en') {

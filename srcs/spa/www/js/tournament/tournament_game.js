@@ -1,6 +1,7 @@
 import { sleep } from '../utils.js';
 import { getCSRFToken } from '../utils.js';
 import { ensureValidToken, getUserFromBack } from '/js/utils.js';
+import { router } from '../router.js';
 
 let user = null;
 
@@ -79,7 +80,7 @@ class TournamentGame {
 		
 		if (!this.tournamentCode) {
 			console.error("No tournament code available");
-			window.location.href = '/home/';
+			router.navigateTo('/home/');
 			return;
 		}
 		sessionStorage.removeItem('asWin');
@@ -102,7 +103,7 @@ class TournamentGame {
 			console.error("Error in forfeit API call:", error);
 		} finally {
 			sessionStorage.setItem('programmaticNavigation', 'true');
-            window.location.href = '/home/';
+            router.navigateTo('/home/');
 		}
 	}
 
@@ -113,7 +114,7 @@ class TournamentGame {
 		let data = null
 		if (this.checkLeft(this.tournamentCode) == true) {
 			sessionStorage.setItem('programmaticNavigation', 'true');
-			window.location.href = `/home/`;
+			router.navigateTo('/home/');
 		}
 		while (true) {
 			data = await this.loadEnd();
@@ -152,7 +153,7 @@ class TournamentGame {
 				else {
 					if (this.verifUserNeedPlay(data)){
 						sessionStorage.setItem('programmaticNavigation', 'true');
-						window.location.href = `/onlinePong/?tournament=true`;
+						router.navigateTo(`/onlinePong/?tournament=true`);
 						break;
 					}
 				}
@@ -188,7 +189,7 @@ class TournamentGame {
 		if (canPlay) {
 			sessionStorage.setItem('inFinal', true);
 			sessionStorage.setItem('programmaticNavigation', 'true');
-			window.location.href = `/onlinePong/?tournament=true`;
+			router.navigateTo(`/onlinePong/?tournament=true`);
 			return true;
 		}
 		return false;

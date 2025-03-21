@@ -26,7 +26,7 @@ class Router {
             const link = e.target.closest('a');
             if (link) {
                 const href = link.getAttribute('href');
-                if (href && href.startsWith('/') && href.startsWith('//')) {
+                if (href && href.startsWith('/') && !href.startsWith('//')) {
                     e.preventDefault();
                     this.navigateTo(href);
                 }
@@ -46,11 +46,12 @@ class Router {
         if (this.loadedStylesheets.has(href)) {
             return;
         }
-
+    
         return new Promise((resolve, reject) => {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
             link.href = href;
+            link.setAttribute('data-router-stylesheet', 'true'); // Add custom attribute
             link.onload = () => {
                 this.loadedStylesheets.add(href);
                 resolve();
@@ -65,13 +66,23 @@ class Router {
         const doc = parser.parseFromString(htmlString, 'text/html');
 
         const styleLinks = doc.querySelectorAll('link[rel="stylesheet"]');
-        const stylePromises = Array.from(styleLinks).map(link => 
-            this.loadStylesheet(link.getAttribute('href'))
-        );
+        const newStyles = new Set();
+        // const stylePromises = Array.from(styleLinks).map(link => 
+        //     this.loadStylesheet(link.getAttribute('href'))
+        // );
+
+        const stylePromises = Array.from(styleLinks).map(link => {
+            const href = link.getAttribute('href');
+            newStyles.add(href);
+            return this.loadStylesheet(href);
+        });
 
         await Promise.all(stylePromises);
 
-        return doc.body.innerHTML;
+        return {
+            content: doc.body.innerHTML,
+            styles: Array.from(newStyles)
+        };
     }
 
     isAuthenticated() {
@@ -84,6 +95,11 @@ class Router {
 
     async handleLocation() {
         const path = window.location.pathname;
+
+        const previousStyles = new Set(this.loadedStylesheets);
+
+        // document.querySelectorAll('link[data-router-stylesheet="true"]').forEach(link => link.remove());
+        // this.loadedStylesheets.clear();
     
         if (!this.isPublicPath(path)) {
             const isAuthenticated = await this.checkUserAuth();
@@ -143,8 +159,19 @@ class Router {
     
         try {
             const htmlContent = await route();
-            const processedContent = await this.parseHTML(htmlContent);
+            const { content: processedContent, styles: newStyles } = await this.parseHTML(htmlContent);
+            
+            // Update DOM after new styles are loaded
             this.rootElement.innerHTML = processedContent;
+            
+            // Cleanup old styles that aren't needed
+            previousStyles.forEach(href => {
+                if (!newStyles.includes(href)) {
+                    document.querySelector(`link[href="${href}"]`)?.remove();
+                    this.loadedStylesheets.delete(href);
+                }
+            });
+    
             this.executeScripts(this.rootElement);
         } catch (error) {
             console.error('Error loading page', error);
@@ -155,13 +182,15 @@ class Router {
     executeScripts(container) {
         container.querySelectorAll('script').forEach(oldScript => {
             const newScript = document.createElement('script');
-            
             Array.from(oldScript.attributes).forEach(attr => {
-                newScript.setAttribute(attr.name, attr.value);
+                if (attr.name === 'src') {
+                    const separator = attr.value.includes('?') ? '&' : '?';
+                    newScript.setAttribute('src', attr.value + separator + 't=' + Date.now());
+                } else {
+                    newScript.setAttribute(attr.name, attr.value);
+                }
             });
-
             newScript.textContent = oldScript.textContent;
-            
             oldScript.parentNode.replaceChild(newScript, oldScript);
         });
     }
@@ -289,5 +318,5 @@ const routes = {
 };
 
 
-const router = new Router(routes);
+export const router = new Router(routes);
 router.init();

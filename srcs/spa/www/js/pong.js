@@ -1,5 +1,7 @@
 import { getCSRFToken } from '/js/utils.js';
 import { ensureValidToken } from '/js/utils.js';
+import { router } from './router.js';
+
 
 document.getElementById('logout-button').addEventListener('click', async () => {
     try {
@@ -23,22 +25,22 @@ document.getElementById('logout-button').addEventListener('click', async () => {
             sessionStorage.clear();
             
             
-            window.location.href = '/home/';
+            router.navigateTo('/home/');
         } else {
             console.error('Logout failed:', await response.json());
         }
     } catch (error) {
         console.error('Network error during logout:', error);
-        window.location.href = '/home/';
+        router.navigateTo('/home/');
     }
 });
 
 document.getElementById('return-button').addEventListener('click', () => {
-    window.location.href = "/game/";
+    router.navigateTo("/game/");
 });
 
 document.getElementById('user-avatar').addEventListener('click', () => {
-    window.location.href = "/user/edit_user/";
+    router.navigateTo("/user/edit_user/");
 });
 
 await ensureValidToken();
