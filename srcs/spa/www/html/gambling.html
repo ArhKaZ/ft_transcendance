@@ -1,27 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" href="/css/profiles.css">
+	<link rel="stylesheet" href="../css/global.css">
+	<link rel="stylesheet" href="../css/gambling.css">
 	<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-	<title>User Profile</title>
+    <title>Gambling</title>
 </head>
 <body>
-<div class="profile-container">
-	<div class="profile-header" id="profile-header">
-		<div class="avatar-container">
-			<img id="user-avatar" class="profile-avatar" src="" alt="User Avatar">
-			<img id="add-friend-btn" class="add-friend-icon" src="../../css/ico/friend_added_ico.png" alt="Add Friend">
-		</div>
-		<div class="profile-info">
-			<h1 id="username"></h1>
-		</div>
-	<div class="profile-section">
-		<h2>About</h2>
-		<p id="user-description" class="content-text"></p>
+	<div class="gambling-info">
+		<span id="title">Pick a badge!</span>
+		<span id="subtitle">Click on a badge to claim it!</span>
+		<span>You currently have X tries</span>
 	</div>
-<div id="error-message" class="error-message"></div>
-	<script type="module" src="/js/user/profile.js"></script>
+    <div class="container">
+		<div class="token front">
+			<button id="token1" class="gambling-button">
+			</button>
+		</div>
+		<div class="token front">
+			<button id="token2" class="gambling-button">
+			</button>
+		</div>
+		<div class="token front">
+			<button id="token3" class="gambling-button">
+			</button>
+		</div>
+    </div>
+	<div class="bottom-buttons">
+		<button type="button" id="return-button">Return</button>
+	</div>
 </body>
+<script type="module" src="../js/gambling.js"></script>
 </html>
