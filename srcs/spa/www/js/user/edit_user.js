@@ -40,7 +40,7 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
 
 
 document.getElementById('erase-button').addEventListener('click', async () => {
-	document.getElementById('modal-erase').style.display = 'block';
+	document.getElementById('modal-erase').style.display = 'flex';
 	document.getElementById('modal-btn-yes').addEventListener('click', async () => {
 		try {
 			await ensureValidToken();

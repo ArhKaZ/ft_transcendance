@@ -138,6 +138,9 @@ input[type="file"] {
 
 .modal {
 	display: none;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-evenly;
 }
 
 .modal-back {
@@ -146,7 +149,7 @@ input[type="file"] {
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background: rgba( 0, 0, 0, .25 )
+	background: rgba( 0, 0, 0, .65 )
 }
 
 .modal-container {
