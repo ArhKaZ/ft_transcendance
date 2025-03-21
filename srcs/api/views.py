@@ -120,7 +120,7 @@ def login_user(request):
 			'access_token': access_token.token,
 			'access_expires': access_token.expires_at,
 			'refresh_token': refresh_token.token,
-			'refresh_expires': refresh_token.expires_at
+			'refresh_expires': refresh_token.expires_at,
 		})
 	return Response({'error': 'Invalid credentials'}, status=401)
 
@@ -810,7 +810,7 @@ def oauth(request):
 				'access_expires': access_token.expires_at,
 				'refresh_token': refresh_token.token,
 				'refresh_expires': refresh_token.expires_at,
-				'username': user_data.get('login')
+				'username': user_data.get('login'),
 			})
 		elif existing_user:
 			return Response(
@@ -839,7 +839,7 @@ def oauth(request):
 				'access_expires': access_token.expires_at,
 				'refresh_token': refresh_token.token,
 				'refresh_expires': refresh_token.expires_at,
-				'username' : user_data.get('login')
+				'username' : user_data.get('login'),
 			})
 	except requests.HTTPError as e:
 		print(f"HTTP Error: {e}")

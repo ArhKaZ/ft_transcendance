@@ -88,3 +88,12 @@ function displayMessage(message, type) {
 	}
 }
 
+function noDisplayOAuth() {
+	if (sessionStorage.getItem('is_oauth') === 'true') {
+		document.getElementById('pseudo-container').style.display = 'none';
+		document.getElementById('password-container').style.display = 'none';
+		document.getElementById('avatar-container').style.display = 'none';
+	}
+}
+
+noDisplayOAuth();

@@ -37,11 +37,13 @@ export async function loginUser() {
 
 		if (response.ok) {
 			const data = await response.json();
+			console.log(data);
 			sessionStorage.setItem('access_token', data.access_token);
     		sessionStorage.setItem('refresh_token', data.refresh_token);
     		sessionStorage.setItem('access_expires', data.access_expires);
     		sessionStorage.setItem('refresh_expires', data.refresh_expires);
 			sessionStorage.setItem('username', username);
+			sessionStorage.setItem('is_oauth', false);
 			messageDiv.innerHTML = '<span style="color: green;">Login successful. Redirecting...</span>';
 			setTimeout(() => {
 				window.location.href = "/home/";
