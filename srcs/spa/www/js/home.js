@@ -88,6 +88,7 @@ if (response.ok) {
 	const bottomBtns = document.getElementById('bottom-buttons')
 	
 	const gamebtn = document.getElementById('Game-button');
+	const gamblingbtn = document.getElementById('gambling-button');
 	const historybtn = document.getElementById('history-button');
 	const logoutbtn = document.getElementById('logout-button');
 
@@ -106,6 +107,7 @@ if (response.ok) {
 	bottomBtns.style.display = 'none';
 	
 	gamebtn.style.display = 'none';
+	gamblingbtn.style.display = 'none';
 	historybtn.style.display = 'none';
 	logoutbtn.style.display = 'none';
 
