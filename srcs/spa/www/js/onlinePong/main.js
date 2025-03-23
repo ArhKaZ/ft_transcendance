@@ -20,6 +20,9 @@ let is_finished = false;
 let keyUpHandler = null;
 let keyDownHandler = null;
 let currentPseudo = null;
+let beforeUnloadHandler = null;
+
+const handleResize = () => resizeCanvasGame();
 
 function sendToBack(data) {
 	if (socket?.readyState === WebSocket.OPEN) {
@@ -73,7 +76,28 @@ async function getInfoFinale(user) {
 	}
 }
 
+function returnBack() {
+	if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.close();
+    }
+
+	if (beforeUnloadHandler) {
+        window.removeEventListener('beforeunload', beforeUnloadHandler);
+        beforeUnloadHandler = null; 
+    }
+	window.removeEventListener("resize", handleResize);
+	document.getElementById('return-button').removeEventListener('click', returnBack);
+	cleanKeyboardControls();
+	const rButton = document.getElementById('button-ready');
+	if (!rButton.classList.contains('hidden'))
+		rButton.removeEventListener('click', sendToBack);
+	router.navigateTo('/pong/');
+}
+
 async function init() {
+	document.getElementById('return-button').addEventListener('click', () => {
+		returnBack();
+	});
 	const user = await getUserFromBack();
 	const urlParams = new URLSearchParams(window.location.search);
 	let infos = null;
@@ -105,13 +129,14 @@ function setupWebSocket(user, infos) {
 	const currentUrl = window.location.host;
 	const socket = new WebSocket(`wss://${currentUrl}/ws/onlinePong/${id}/`);
 	
+	beforeUnloadHandler = () => {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.close();
+        }
+    };
 
 	socket.onopen = () => {
-		window.addEventListener('beforeunload', () => {
-			if (socket && socket.readyState === WebSocket.OPEN) {
-				socket.close();
-			}
-		});
+		window.addEventListener('beforeunload', beforeUnloadHandler);
 		
 		if (inTournament && infos) {
 			let objToSend = {
@@ -147,7 +172,7 @@ function setupWebSocket(user, infos) {
 
 	socket.onerror = (error) => console.error("WebSocket error:", error.type);
 
-	window.addEventListener("resize", () => resizeCanvasGame());
+	window.addEventListener("resize", handleResize());
 
 	return socket;
 }

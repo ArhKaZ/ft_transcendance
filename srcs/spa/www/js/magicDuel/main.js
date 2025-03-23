@@ -4,6 +4,7 @@ import Game from "./game/game.js";
 import CountdownAnimation from "../countdownAnimation.js";
 import {creationGameDisplay, updatePlayerStatus, displayWhenLoad, playerLeave } from "./game/waitingRoom.js";
 import { getUserFromBack } from '/js/utils.js';
+import { router } from '../router.js';
 
 let socket = null;
 let currentPlayerId = null;
@@ -17,6 +18,8 @@ let currentGameId = null;
 let asFinishedAnim = false;
 let currentInverval = null;
 let asShowDeath = false;
+
+const handleResize = () => resizeCanvas();
 
 function bindEvents() {
 	const btn1 = document.getElementById("btn1");
@@ -58,7 +61,39 @@ function sendToBack(data) {
 	}
 }
 
+function returnBack() {
+	if (socket && socket.readyState === WebSocket.OPEN) {
+		socket.close();
+	}
+
+	if (currentInverval)
+		clearInterval(currentInverval);
+
+	if (timerInterval)
+		clearInterval(timerInterval);
+	window.removeEventListener("resize", handleResize);
+    window.removeEventListener("beforeunload", handleQuitGame);
+	const btn1 = document.getElementById("btn1");
+    const btn2 = document.getElementById("btn2");
+    const btn3 = document.getElementById("btn3");
+    const btn4 = document.getElementById("btn4");
+    const btnBook = document.getElementById('openBook');
+    const returnButton = document.getElementById('return-button');
+
+    if (btn1) btn1.removeEventListener('click', () => handleClick('dark_bolt'));
+    if (btn2) btn2.removeEventListener('click', () => handleClick('fire_bomb'));
+    if (btn3) btn3.removeEventListener('click', () => handleClick('lightning'));
+    if (btn4) btn4.removeEventListener('click', () => handleClick('spark'));
+    if (btnBook) btnBook.removeEventListener("click", () => handleOpenBook());
+    if (returnButton) returnButton.removeEventListener('click', () => returnBack());
+	currentGame = null;
+	router.navigateTo('/game/');
+}
+
 async function init() {
+	document.getElementById('return-button').addEventListener('click', () => {
+		returnBack();
+	});
 	try {
 		const user = await getUserFromBack();
 		displayWhenLoad(user);
@@ -199,7 +234,7 @@ function handleGameStart(data) {
 	}
 	currentGame.start();
 	resizeCanvas();
-	window.addEventListener('resize', resizeCanvas);
+	window.addEventListener('resize', handleResize);
 	window.addEventListener("beforeunload", handleQuitGame);
 	currentCountdown = new CountdownAnimation('countdownCanvas');
 }
@@ -272,6 +307,7 @@ function handleErrors(data) {
 		buttonGuide.classList.add('hidden');
 
 	errorContainer.classList.remove('hidden');
+	console.debug(data);
 	errorMessage.innerHTML += data.message;
 	if (data.type === 'error' || data.game_status === 'WAITING' || data.lose_lp === false)
 		lpMessage.classList.add('hidden');
@@ -304,7 +340,8 @@ function handleNoPlay(data) {
 
 function handleClick(choice) {
 	sendToBack({ action: 'attack', choice: choice, player_id: currentPlayerId });
-	currentGame.toggleButtons(false);
+	if (currentGame)
+		currentGame.toggleButtons(false);
 }
 
 function handleStartRound(data) {
@@ -323,7 +360,8 @@ function handleStartRound(data) {
 		roundE.classList.remove('fade', 'fade-out');
 		roundE.textContent = '';
 		roundE.classList.add('hidden');
-		currentGame.toggleButtons(true);
+		if (currentGame)
+			currentGame.toggleButtons(true);
 	}, 3000)
 }
 
@@ -367,7 +405,8 @@ function updateTimer() {
 	timerE.textContent = `Timer : \n ${remainingTime.toFixed(1)}`;
 
 	if (remainingTime <= 0) {
-		currentGame.toggleTimer(false);
+		if (currentGame)
+			currentGame.toggleTimer(false);
 		clearInterval(timerInterval);
 	}
 }

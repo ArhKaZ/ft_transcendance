@@ -22,16 +22,20 @@ class Game {
         this.asReset = false;
         this.bounceAnimations = [];
         this.bound = [false, false];
+        this.handleKeyDown = null;
+        this.handleKeyUp = null;
     }
 
     bindEvents() {
-        window.addEventListener('keydown', (event) => {
+        this.handleKeyDown = (event) => {
             this.keyState[event.key] = true;
-        });
+        }
 
-        window.addEventListener('keyup', (event) => {
+        this.handleKeyUp = (event) => {
             this.keyState[event.key] = false;
-        });
+        }
+        window.addEventListener('keydown', this.handleKeyDown);
+        window.addEventListener('keyup', this.handleKeyUp);
     }
 
     async start() {
@@ -55,6 +59,12 @@ class Game {
 
         requestAnimationFrame(() => this.loop());
     }
+    
+    stop() {
+        this.isStart = false;
+        window.removeEventListener('keydown', this.handleKeyDown);
+        window.removeEventListener('keyup', this.handleKeyUp);
+    }
 
     update() {
         this.P1.paddle.update(this.keyState);
@@ -71,7 +81,7 @@ class Game {
             this.displayWinner(winner);
         }
     }
-
+    
     checkAsScore() {
         if (this.ball.x <= 0) 
         {
@@ -109,9 +119,6 @@ class Game {
         this.isStart = true;
     }
 
-    stop() {
-        this.isStart = false;
-    }
 
     drawGame() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);

@@ -47,9 +47,12 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def disconnect(self, close_code):
 		try:
 			await self.stop_game_db()
-			if self.monitor_task is not None and self.round_task is not None and not await self.game.is_stocked():
+			print('disconnect : ', self.monitor_task is not None)
+			if self.game and self.game.status == "IN_PROGRESS" and not await self.game.is_stocked():
+
 				loser = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
 				winner = self.game.p1 if self.player_id == self.game.p2.id else self.game.p2
+				print(f"loser: {loser} winner {winner} p_id current {self.player_id}")
 				winner_user, loser_user = await self.get_players_users(winner, loser)
 				if await self.update_magic_stats_and_history(winner_user, loser_user, True):
 					await self.game.set_stocked()
@@ -616,7 +619,10 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 
 	async def notify_game_cancel(self, username_gone):
-		lose_lp = True if self.monitor_task is not None else False
+		if self.game and self.game.status == "IN_PROGRESS":
+			lose_lp = True
+		else:
+			lose_lp = False
 		await self.game.update_status_game()
 		if not self.game.status == 'FINISHED':
 			self.game_cancel_event.set()

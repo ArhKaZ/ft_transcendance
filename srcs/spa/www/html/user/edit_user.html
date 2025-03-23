@@ -7,8 +7,10 @@
 	<link rel="stylesheet" href="/css/global.css">
 </head>
 <body>
-	<h1>Change your infomations</h1>
-
+	<div class="top-page">
+		<h1>Change your infomations</h1>
+		<span>Leave field blank if you not want to change it</span>
+	</div>
 	<div class="modal" id="modal-erase">
 		<div class="modal-back"></div>
 		<div class="modal-container">
@@ -18,40 +20,41 @@
 		</div>
 	</div>
 	
-	<form id="userForm" enctype="multipart/form-data">
+	<div class="content-page">
+		<form id="userForm" enctype="multipart/form-data">
+			<div id="pseudo-container">
+				<label for="pseudo">Tournament nickname</label>
+				<input type="text" id="pseudo" name="pseudo">
+			</div>
 
-		<div id="pseudo-container">
-			<label for="pseudo">Tournament nickname (Leave blank if no change):</label>
-			<input type="text" id="pseudo" name="pseudo">
-		</div>
-
-		<div id="password-container">
-			<label for="password">New password (Leave blank if no change) :</label>
-			<input type="password" id="password" name="password">
-		</div>
-		<button id="erase-button" type="button">
-			<img src="../../css/ico/earse.png" alt="Erase" width="30" height="30">
-		</button>
-		<div>
-			<label for="description">Description (Leave blank if no change):</label>
-			<textarea id="description" name="description"></textarea>
-		</div>
-		
-		<div id="avatar-container">
-			<label for="avatar">Avatar:</label>
-			<label for="avatar" class="custom-file-upload">Choose File</label>
-			<input type="file" id="avatar" name="avatar" accept="image/*">
-			<span id="file-chosen">(Leave blank if no change)</span>
-		</div>
-		
-		
-		<button type="submit">Update</button>
+			<div id="password-container">
+				<label for="password">New password</label>
+				<input type="password" id="password" name="password">
+			</div>
+			<button id="erase-button" type="button">
+				<img src="../../css/ico/earse.png" alt="Erase" width="30" height="30">
+			</button>
+			<div>
+				<label for="description">Description</label>
+				<textarea id="description" name="description"></textarea>
+			</div>
+			
+			<div id="avatar-container">
+				<label for="avatar">Avatar:</label>
+				<label for="avatar" class="custom-file-upload">Choose File</label>
+				<input type="file" id="avatar" name="avatar" accept="image/*">
+				<span id="file-chosen">[None]</span>
+			</div>
+			
+			
+			<button id="btn-update" type="submit">Update</button>
+		</form>
 		<div class="bottom-buttons">
-			<button type="button" id="return-button">Return</button>       </div>
+			<button type="button" id="return-button">Return</button>        
+		</div>
 		
-	</form>
-	<div id="message"></div>
-
+		<div id="message"></div>
+	</div>
 	<script type="module" src="/js/user/edit_user.js"></script>
 </body>
 </html>
