@@ -24,7 +24,7 @@ class BadgeSerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         if obj.image:
-            return f"data:image/jpeg;base64,{base64.b64encode(obj.image).decode('utf-8')}"
+            return f"data:image/jpg;base64,{base64.b64encode(obj.image).decode('utf-8')}"
         return None
 
 def sanitize_filename(filename):

@@ -24,10 +24,10 @@ from django.contrib.auth import get_user_model
 import os
 User = get_user_model()
 users_data = [
-    {"username": "1", "email": "user1@example.com", "password": "1", "pseudo": "Player1", "ligue_points": 500},
-    {"username": "2", "email": "user2@example.com", "password": "2", "pseudo": "Player2", "ligue_points": 500},
-    {"username": "3", "email": "user3@example.com", "password": "3", "pseudo": "Player3", "ligue_points": 500},
-    {"username": "4", "email": "user4@example.com", "password": "4", "pseudo": "Player4", "ligue_points": 500},
+    {"username": "1", "email": "user1@example.com", "password": "1", "pseudo": "Player1", "ligue_points": 500, "tickets": 10},
+    {"username": "2", "email": "user2@example.com", "password": "2", "pseudo": "Player2", "ligue_points": 500, "tickets": 10},
+    {"username": "3", "email": "user3@example.com", "password": "3", "pseudo": "Player3", "ligue_points": 500, "tickets": 10},
+    {"username": "4", "email": "user4@example.com", "password": "4", "pseudo": "Player4", "ligue_points": 500, "tickets": 10},
 ]
 for user_data in users_data:
     try:
@@ -39,7 +39,8 @@ for user_data in users_data:
             email=user_data["email"],
             password=user_data["password"],
             pseudo=user_data["pseudo"],
-            ligue_points=user_data["ligue_points"]
+            ligue_points=user_data["ligue_points"],
+			tickets=user_data["tickets"]
         )
         print(f"Utilisateur avec le nom d'utilisateur '{user_data['username']}' créé avec succès.")
 EOF
