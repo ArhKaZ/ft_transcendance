@@ -15,6 +15,8 @@ python manage.py makemigrations api
 
 python manage.py migrate
 
+python manage.py load_badges
+
 >&2 echo "Postgres is up - executing command"
 
 # Créer 4 utilisateurs pour le jeu
