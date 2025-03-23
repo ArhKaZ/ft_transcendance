@@ -31,3 +31,7 @@ function returnToken(token_number) {
         duration: 1000,
     });
 }
+
+document.getElementById('return-button').addEventListener('click', () => {
+    router.navigateTo("/home/");
+});

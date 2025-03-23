@@ -81,7 +81,23 @@
 
 .bottom-buttons {
     display: flex;
+    text-align: center;
     justify-content: space-between;
     width: 100%;
-    margin-top: 10px;
+    margin: auto;
+    margin-top: 50px;
+}
+
+.bottom-buttons button {
+    flex: 1;
+    background: none;
+    border: 4px solid white;
+    padding: 10px 20px;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    transition: 0.2s;
+    text-transform: uppercase;
+    text-decoration: none;
+    margin: 0 5px;
 }
