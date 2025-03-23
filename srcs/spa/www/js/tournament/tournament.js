@@ -144,7 +144,6 @@ class TournamentManager {
     }
 
     
-    
     async joinTournament(event) {
         event.preventDefault();
         const tournamentCode = document.getElementById('tournament_code').value;

@@ -167,10 +167,11 @@ function joinButton(data) {
 			button = document.createElement('button');
 			button.innerText = 'Join';
 		} else {
-			currentAction = `playing in a ${data.game_mode} game`;
+			currentAction.innerText = `playing in a ${data.game_mode} game`;
 		}
 	} else {
-		if (!data.current_tournament.started) {
+		console.debug(data);
+		if (!data.tournament_start) {
 			currentAction.innerText = `wait for ${data.code_current_tournament} tournament to start`;
 			button = document.createElement('button');
 			button.innerText = 'Join';
@@ -182,7 +183,7 @@ function joinButton(data) {
 	if (button) {
 		button.classList.add('buttons');
 		button.id = 'join-button';
-		// addListener(button);
+		addListener(button, data);
 		action.appendChild(button);
 	}
 	profile.appendChild(action);
@@ -195,8 +196,8 @@ function addListener(button, data) {
 		} else if (data.game_mode === 'MagicDuel') {
 			button.addEventListener('click', () => router.navigateTo('/magicDuel/'));
 		}
-	} else if (data.current_tournament) {
-		button.addEventListener('click', () => router.navigateTo(''))
+	} else if (data.code_current_tournament) {
+		button.addEventListener('click', () => router.navigateTo('/tournament/'));
 	}
 }
 

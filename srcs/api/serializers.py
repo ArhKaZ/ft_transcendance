@@ -136,12 +136,14 @@ class MatchHistorySerializer(serializers.ModelSerializer):
 class UserInfoSerializer(serializers.ModelSerializer):
 	avatar = serializers.SerializerMethodField()
 	code_current_tournament = serializers.SerializerMethodField()
+	tournament_start = serializers.SerializerMethodField()
 
 	class Meta:
 		model = MyUser
 		fields = [
 			'id', 'username', 'description', 'avatar', 'ligue_points', 'pseudo', 'wins',
-			'looses', 'is_waiting_for_game', 'game_mode', 'is_in_tournament', 'code_current_tournament']
+			'looses', 'is_waiting_for_game', 'game_mode', 'is_in_tournament', 'code_current_tournament',
+			'tournament_start']
 
 	def get_code_current_tournament(self, obj):
 		if obj.current_tournament:
@@ -159,6 +161,11 @@ class UserInfoSerializer(serializers.ModelSerializer):
 				return f"data:image/png;base64,{avatar_base64}"
 			except Exception as e:
 				return None
+		return None
+
+	def get_tournament_start(self, obj):
+		if obj.current_tournament:
+			return obj.current_tournament.started
 		return None
 
 class TournamentMatchSerializer(serializers.ModelSerializer):

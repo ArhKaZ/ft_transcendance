@@ -342,7 +342,7 @@ function handleErrors(data) {
 	if (is_finished) return;
 	const errorContainer = document.getElementById('error-container');
 	
-	if (!errorContainer.classList.contains('hidden'))
+	if (errorContainer && !errorContainer.classList.contains('hidden'))
 		return;
 
 	const infoMain = document.getElementById('info-main-player');
