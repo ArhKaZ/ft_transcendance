@@ -2,14 +2,14 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from .serializers import UserSerializer
 from rest_framework import status
-from .models import MyUser, MatchHistory
+from .models import MyUser, MatchHistory, Badge
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from .serializers import MatchHistorySerializer, sanitize_filename
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 from django.db.models import Q
-from .serializers import UserInfoSerializer, TournamentMatchSerializer, SafePseudoValidator, StrongPasswordValidator
+from .serializers import UserInfoSerializer, TournamentMatchSerializer, SafePseudoValidator, StrongPasswordValidator, BadgeSerializer
 from django.core.exceptions import ValidationError
 from .blockchain_storage import record_match
 import bleach
@@ -846,28 +846,20 @@ def oauth(request):
 		print(f"Error: {e}")
 		return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@api_view(['GET'])
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def spend_ticket(request):
-	user = request.user
-	amount = request.data.get('amount', 1)
-	
-	try:
-		amount = int(amount)
-		if amount <= 0:
-			return Response({"error": "Amount must be positive"}, status=status.HTTP_400_BAD_REQUEST)
-	except (TypeError, ValueError):
-		return Response({"error": "Invalid amount"}, status=status.HTTP_400_BAD_REQUEST)
-	
-	if user.spend_ticket(amount):
-		return Response({
-			"success": True,
-			"message": f"{amount} ticket(s) spent successfully",
-			"remaining_tickets": user.tickets
-		})
-	else:
-		return Response({
-			"success": False,
-			"message": "Not enough tickets",
-			"remaining_tickets": user.tickets
-		}, status=status.HTTP_400_BAD_REQUEST)
+    user = request.user
+    
+    if user.spend_ticket():
+        badges = Badge.objects.order_by('?')[:3]  # Get 3 random badges
+        return Response({
+            "success": True,
+            "remaining_tickets": user.tickets,
+            "badges": BadgeSerializer(badges, many=True).data
+        })
+    return Response({
+        "success": False,
+        "message": "Not enough tickets",
+        "remaining_tickets": user.tickets
+    }, status=400)

@@ -4,6 +4,13 @@ import binascii
 import os
 from django.utils import timezone
 
+class Badge(models.Model):
+    name = models.CharField(max_length=100)
+    image = models.BinaryField()  # Stores JPEG binary data
+
+    def __str__(self):
+        return self.name
+
 
 class MyUser(AbstractUser):
 	description = models.TextField(blank=True)
