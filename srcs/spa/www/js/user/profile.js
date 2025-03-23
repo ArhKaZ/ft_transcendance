@@ -197,6 +197,7 @@ function addListener(button, data) {
 			button.addEventListener('click', () => router.navigateTo('/magicDuel/'));
 		}
 	} else if (data.code_current_tournament) {
+		sessionStorage.setItem('tournament_code_from_profile', data.code_current_tournament);
 		button.addEventListener('click', () => router.navigateTo('/tournament/'));
 	}
 }

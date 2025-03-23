@@ -15,6 +15,12 @@ class TournamentManager {
 		this.setupTournamentPolling();
 
         this.setupHistoryListener();
+
+        const tournamentCodeProfile = sessionStorage.getItem('tournament_code_from_profile');
+        if (tournamentCodeProfile) {
+            document.getElementById('tournament_code').value = tournamentCodeProfile;
+            sessionStorage.removeItem('tournament_code_from_profile');
+        }
 	}
 
     setupHistoryListener() {
