@@ -228,10 +228,6 @@ class Router {
 
 
 const routes = {
-    
-    
-    
-    
 	'/home/': async () => {
     	const response = await fetch('/html/home.html');
     	return await response.text();
