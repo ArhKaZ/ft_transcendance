@@ -61,7 +61,7 @@ function sendToBack(data) {
 	}
 }
 
-function returnBack() {
+function clearEventAndSocket() {
 	if (socket && socket.readyState === WebSocket.OPEN) {
 		socket.close();
 	}
@@ -86,7 +86,14 @@ function returnBack() {
     if (btn4) btn4.removeEventListener('click', () => handleClick('spark'));
     if (btnBook) btnBook.removeEventListener("click", () => handleOpenBook());
     if (returnButton) returnButton.removeEventListener('click', () => returnBack());
+	const rButton = document.getElementById('button-ready');
+	if (!rButton.classList.contains('hidden'))
+		rButton.removeEventListener('click', sendToBack);
 	currentGame = null;
+}
+
+function returnBack() {
+	clearEventAndSocket();
 	router.navigateTo('/game/');
 }
 
@@ -222,6 +229,7 @@ function handleRoundEnd(data) {
 }
 
 function handleQuitGame(event) {
+	clearEventAndSocket();
 	event.preventDefault();
 	event.returnValue = true;
 }
@@ -257,7 +265,8 @@ function handleGameFinish(data) {
 	let checkAnim = setInterval(() => {
         if (asFinishedAnim) {
 			clearInterval(checkAnim);
-			window.removeEventListener('beforeunload', handleQuitGame);
+			clearEventAndSocket();
+			// window.removeEventListener('beforeunload', handleQuitGame);
 			setTimeout(() => {
 				currentGame.displayWinner(data.player_id);
 			}, 3000);
@@ -314,6 +323,7 @@ function handleErrors(data) {
 }
 
 function handleGameCancel(data) {
+	clearEventAndSocket();
 	sendToBack({action: 'cancel'});
 	handleErrors(data);
 }
@@ -334,6 +344,7 @@ function handleNoPlay(data) {
 		let errorLp = document.getElementById('error-lp');
 		errorLp.classList.add('hidden');
 	}
+	clearEventAndSocket();
 	sendToBack({action: 'cancel'});
 	handleErrors(data);
 }

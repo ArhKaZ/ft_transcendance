@@ -77,20 +77,7 @@ async function getInfoFinale(user) {
 }
 
 function returnBack() {
-	if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.close();
-    }
-
-	if (beforeUnloadHandler) {
-        window.removeEventListener('beforeunload', beforeUnloadHandler);
-        beforeUnloadHandler = null; 
-    }
-	window.removeEventListener("resize", handleResize);
-	document.getElementById('return-button').removeEventListener('click', returnBack);
 	cleanKeyboardControls();
-	const rButton = document.getElementById('button-ready');
-	if (!rButton.classList.contains('hidden'))
-		rButton.removeEventListener('click', sendToBack);
 	router.navigateTo('/pong/');
 }
 
@@ -199,6 +186,19 @@ function setupKeyboardControls(playerId) {
 }
 
 function cleanKeyboardControls() {
+	if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.close();
+    }
+
+	if (beforeUnloadHandler) {
+        window.removeEventListener('beforeunload', beforeUnloadHandler);
+        beforeUnloadHandler = null; 
+    }
+	const rButton = document.getElementById('button-ready');
+	if (!rButton.classList.contains('hidden'))
+		rButton.removeEventListener('click', sendToBack);
+	window.removeEventListener("resize", handleResize);
+	document.getElementById('return-button').removeEventListener('click', returnBack);
     window.removeEventListener('keydown', keyDownHandler);
     window.removeEventListener('keyup', keyUpHandler);
     keyDownHandler = null;
@@ -430,6 +430,7 @@ async function handleCountdown(countdown) {
 }
 
 function handleGameFinish(game, winningId, opponentName = null) {
+	cleanKeyboardControls();
     const btnBack = document.getElementById('button-home-end');
     if (!game) {
         const endContainer = document.getElementById('end-container');
@@ -458,6 +459,7 @@ function handleGameFinish(game, winningId, opponentName = null) {
     }
     
     if (inTournament) {
+		
         if (inFinal)
             sessionStorage.setItem('finalDone', true);
         btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;

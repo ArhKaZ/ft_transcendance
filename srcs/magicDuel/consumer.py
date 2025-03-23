@@ -295,6 +295,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		return None
 		
 	async def handle_find_game(self, data):
+		await self.start_game_db()
 		if self.game is None:
 			self.game_id = data['game_id']
 			self.game = await Game.get_game_from_cache(self.game_id)
@@ -619,6 +620,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 
 
 	async def notify_game_cancel(self, username_gone):
+		await self.stop_game_db()
 		if self.game and self.game.status == "IN_PROGRESS":
 			lose_lp = True
 		else:

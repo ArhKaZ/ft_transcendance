@@ -59,6 +59,8 @@ class Game:
 	@classmethod
 	async def get_game_from_cache(cls, game_id):
 		game = await sync_to_async(cache.get)(f"wizard_duel_game_{game_id}")
+		if game is None:
+			return None
 		
 		player_info= {
 			'id': game['p1_id'],
