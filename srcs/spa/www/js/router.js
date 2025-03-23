@@ -98,8 +98,8 @@ class Router {
 
         const previousStyles = new Set(this.loadedStylesheets);
 
-        // document.querySelectorAll('link[data-router-stylesheet="true"]').forEach(link => link.remove());
-        // this.loadedStylesheets.clear();
+        // document.querySelectorAll('link[data-router-stylesheet="true"]').forEach(link => link.remove()); // peut etre mettre ces deux lignes en commentaire
+        // this.loadedStylesheets.clear(); //aussi
     
         if (!this.isPublicPath(path)) {
             const isAuthenticated = await this.checkUserAuth();
@@ -116,39 +116,39 @@ class Router {
             return;
         }
     
-        const tournamentGameMatch = path.match(/^\/tournament\/game\/([a-zA-Z0-9-]+)\/?$/);
-        if (tournamentGameMatch) {
-            const tournamentCode = tournamentGameMatch[1];
-            const route = this.routes['/tournament/game/:code'];
-            if (route) {
-                try {
-                    const htmlContent = await route(tournamentCode);
-                    const processedContent = await this.parseHTML(htmlContent);
-                    this.rootElement.innerHTML = processedContent;
-                    this.executeScripts(this.rootElement);
-                    return;
-                } catch (error) {
-                    console.error('Error loading tournament game page:', error);
-                }
-            }
-        }
-        
         const userProfileMatch = path.match(/^\/user\/profile\/([a-zA-Z0-9_-]+)\/?$/);
-        if (userProfileMatch) {
-            const userName = userProfileMatch[1];
-            const route = this.routes['/user/profile/:userName'];
-            if (route) {
-                try {
-                    const htmlContent = await route(userName);
-                    const processedContent = await this.parseHTML(htmlContent);
-                    this.rootElement.innerHTML = processedContent;
-                    this.executeScripts(this.rootElement);
-                    return;
-                } catch (error) {
-                    console.error('Error loading user profile page:', error);
-                }
-            }
-        }
+		if (userProfileMatch) {
+		    const userName = userProfileMatch[1];
+		    const route = this.routes['/user/profile/:userName'];
+		    if (route) {
+		        try {
+		            const htmlContent = await route(userName);
+		            const { content: processedContent, styles: newStyles } = await this.parseHTML(htmlContent);
+		            this.rootElement.innerHTML = processedContent;
+		            this.executeScripts(this.rootElement);
+		            return;
+		        } catch (error) {
+		            console.error('Error loading user profile page:', error);
+		        }
+		    }
+		}
+
+		const tournamentGameMatch = path.match(/^\/tournament\/game\/([a-zA-Z0-9-]+)\/?$/);
+		if (tournamentGameMatch) {
+		    const tournamentCode = tournamentGameMatch[1];
+		    const route = this.routes['/tournament/game/:code'];
+		    if (route) {
+		        try {
+		            const htmlContent = await route(tournamentCode);
+		            const { content: processedContent, styles: newStyles } = await this.parseHTML(htmlContent);
+		            this.rootElement.innerHTML = processedContent;
+		            this.executeScripts(this.rootElement);
+		            return;
+		        } catch (error) {
+		            console.error('Error loading tournament game page:', error);
+		        }
+		    }
+		}
         
         const route = this.routes[path] || this.routes['/404'];
         
@@ -161,10 +161,8 @@ class Router {
             const htmlContent = await route();
             const { content: processedContent, styles: newStyles } = await this.parseHTML(htmlContent);
             
-            // Update DOM after new styles are loaded
             this.rootElement.innerHTML = processedContent;
             
-            // Cleanup old styles that aren't needed
             previousStyles.forEach(href => {
                 if (!newStyles.includes(href)) {
                     document.querySelector(`link[href="${href}"]`)?.remove();
@@ -230,10 +228,6 @@ class Router {
 
 
 const routes = {
-    
-    
-    
-    
 	'/home/': async () => {
     	const response = await fetch('/html/home.html');
     	return await response.text();
