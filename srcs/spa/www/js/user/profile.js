@@ -358,6 +358,13 @@ async function fetchHistory() {
 	}
 }
 
+document.querySelectorAll('.image-button').forEach(button => {
+    button.addEventListener('click', () => {
+        // Add your click handling logic here
+        console.log('Button clicked:', button.querySelector('img').alt);
+    });
+});
+
 document.getElementById('return-button').addEventListener('click', () => {
 	window.history.back();
 });

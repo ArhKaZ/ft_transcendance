@@ -30,6 +30,8 @@ function returnToken(token_number) {
     ], {
         duration: 1000,
     });
+    token.style.transform = 'rotateY(180deg)';
+    document.getElementById("imgtoken" + token_number).src= "../css/ico/Badge_Felin.png";
 }
 
 document.getElementById('return-button').addEventListener('click', () => {

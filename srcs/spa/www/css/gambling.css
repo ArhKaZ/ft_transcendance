@@ -48,7 +48,7 @@
 }
 
 .token .front {
-    background-image: url(../assets/token_back.jpg);
+    background-image: url(../ico/token_back.png);
 }
 .token .back {
     transform: rotateY(180deg);
