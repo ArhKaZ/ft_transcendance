@@ -78,6 +78,7 @@ class UserSerializer(serializers.ModelSerializer):
 		fields = [
 				'username', 'password', 'description', 'avatar', 'ligue_points', 'pseudo', 'wins', 
 				'looses', 'is_waiting_for_game', 'game_mode', 'is_in_tournament', 'current_tournament', 
+				'tickets'
 			]
 		extra_kwargs = {
 			'username': {
@@ -141,7 +142,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
 		model = MyUser
 		fields = [
 			'id', 'username', 'description', 'avatar', 'ligue_points', 'pseudo', 'wins',
-			'looses', 'is_waiting_for_game', 'game_mode', 'is_in_tournament', 'code_current_tournament']
+			'looses', 'is_waiting_for_game', 'game_mode', 'is_in_tournament', 'code_current_tournament',
+			'tickets']
 
 	def get_code_current_tournament(self, obj):
 		if obj.current_tournament:

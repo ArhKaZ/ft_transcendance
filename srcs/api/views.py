@@ -845,3 +845,29 @@ def oauth(request):
 	except Exception as e:
 		print(f"Error: {e}")
 		return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def spend_ticket(request):
+	user = request.user
+	amount = request.data.get('amount', 1)
+	
+	try:
+		amount = int(amount)
+		if amount <= 0:
+			return Response({"error": "Amount must be positive"}, status=status.HTTP_400_BAD_REQUEST)
+	except (TypeError, ValueError):
+		return Response({"error": "Invalid amount"}, status=status.HTTP_400_BAD_REQUEST)
+	
+	if user.spend_ticket(amount):
+		return Response({
+			"success": True,
+			"message": f"{amount} ticket(s) spent successfully",
+			"remaining_tickets": user.tickets
+		})
+	else:
+		return Response({
+			"success": False,
+			"message": "Not enough tickets",
+			"remaining_tickets": user.tickets
+		}, status=status.HTTP_400_BAD_REQUEST)
