@@ -21,6 +21,9 @@ function returnBack() {
     if (currentGame && currentGame.isStart)
         currentGame.stop();
     window.removeEventListener("resize", handleResize);
+    document.getElementById('return-button').removeEventListener('click', returnBack);
+    document.getElementById('button-ready').removeEventListener('click', checkAndLaunch);
+    removeLevelButtonsListeners();
     router.navigateTo('/pong/');
 }
 
@@ -37,53 +40,75 @@ async function init() {
     window.addEventListener('resize', handleResize);
     listenerLevelButtons();
     document.getElementById('button-ready').addEventListener('click', () => {
-        if (asSelectedLevel) {
-            gameStarted = true;
-            currentGame.IA.assignLevel(currentLevel);
-            startCountdown();
-        } else {
-            alert('You need to choose a IA Level');
-        }
+        checkAndLaunch();
     });
+}
+
+function checkAndLaunch() {
+    if (asSelectedLevel) {
+        gameStarted = true;
+        currentGame.IA.assignLevel(currentLevel);
+        startCountdown();
+    } else {
+        alert('You need to choose a IA Level');
+    }
+}
+
+function handleLevel1Click(event) {
+    assignForALevel(1, event);
+}
+
+function handleLevel2Click(event) {
+    assignForALevel(2, event);
+}
+
+function handleLevel3Click(event) {
+    assignForALevel(3, event);
 }
 
 function listenerLevelButtons() {
     const lvl1 = document.getElementById('lvl1');
     const lvl2 = document.getElementById('lvl2');
     const lvl3 = document.getElementById('lvl3');
-    lvl1.addEventListener(('click'), (event) => {
-        currentLevel = 1;
-        if (lvl2.classList.contains('clicked'))
-            lvl2.classList.remove('clicked');
-        if (lvl3.classList.contains('clicked'))
-            lvl3.classList.remove('clicked');
-        event.target.classList.add('clicked');
-        asSelectedLevel = true;
-        document.getElementById('mp-waiting-animation').classList.add('hidden');
-        document.getElementById('mp-joined-animation').classList.remove('hidden');
-    });
-    lvl2.addEventListener(('click'), (event) => {
-        currentLevel = 2;
-        if (lvl1.classList.contains('clicked'))
-            lvl1.classList.remove('clicked');
-        if (lvl3.classList.contains('clicked'))
-            lvl3.classList.remove('clicked');
-        event.target.classList.add('clicked');
-        asSelectedLevel = true;
-        document.getElementById('mp-waiting-animation').classList.add('hidden');
-        document.getElementById('mp-joined-animation').classList.remove('hidden');
-    });
-    lvl3.addEventListener(('click'), (event) => {
-        currentLevel = 3;
-        if (lvl1.classList.contains('clicked'))
-            lvl1.classList.remove('clicked');
-        if (lvl2.classList.contains('clicked'))
-            lvl2.classList.remove('clicked');
-        event.target.classList.add('clicked');
-        asSelectedLevel = true;
-        document.getElementById('mp-waiting-animation').classList.add('hidden');
-        document.getElementById('mp-joined-animation').classList.remove('hidden');
-    });
+
+    lvl1.addEventListener('click', handleLevel1Click);
+    lvl2.addEventListener('click', handleLevel2Click);
+    lvl3.addEventListener('click', handleLevel3Click);
+}
+
+function removeLevelButtonsListeners() {
+    const lvl1 = document.getElementById('lvl1');
+    const lvl2 = document.getElementById('lvl2');
+    const lvl3 = document.getElementById('lvl3');
+
+    lvl1.removeEventListener('click', handleLevel1Click);
+    lvl2.removeEventListener('click', handleLevel2Click);
+    lvl3.removeEventListener('click', handleLevel3Click);
+}
+
+function assignForALevel(level, event) {
+    currentLevel = level;
+    switch (currentLevel) {
+        case 1:
+            if (lvl2.classList.contains('clicked'))
+                lvl2.classList.remove('clicked');
+            if (lvl3.classList.contains('clicked'))
+                lvl3.classList.remove('clicked');
+        case 2:
+            if (lvl1.classList.contains('clicked'))
+                lvl1.classList.remove('clicked');
+            if (lvl3.classList.contains('clicked'))
+                lvl3.classList.remove('clicked');
+        case 3:
+            if (lvl1.classList.contains('clicked'))
+                lvl1.classList.remove('clicked');
+            if (lvl2.classList.contains('clicked'))
+                lvl2.classList.remove('clicked'); 
+    }
+    event.target.classList.add('clicked');
+    asSelectedLevel = true;
+    document.getElementById('mp-waiting-animation').classList.add('hidden');
+    document.getElementById('mp-joined-animation').classList.remove('hidden');
 }
 
 async function startCountdown() {

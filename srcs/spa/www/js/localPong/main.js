@@ -19,6 +19,8 @@ function returnBack() {
     if (currentGame && currentGame.isStart)
         currentGame.stop();
     window.removeEventListener('resize', handleResize);
+    document.getElementById('return-button').removeEventListener('click', returnBack);
+    document.getElementById('button-ready').removeEventListener('click', startCountdown);
     router.navigateTo('/pong/');
 }
 

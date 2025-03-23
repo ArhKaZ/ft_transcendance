@@ -19,6 +19,7 @@ class CountdownAnimation {
     stopDisplay() {
         this.isAnimating = false;
         this.canvas.classList.add('hidden');
+        window.removeEventListener('resize', this.resizeCanvas);
     }
 
     resizeCanvas() {

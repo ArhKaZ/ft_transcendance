@@ -18,7 +18,7 @@ class Player:
 		self.nb_round_no_play = 0
 
 	def __repr__(self):
-		return f"Player(id={self.id}, nb={self.nb}, life={self.life}, action={self.action})"
+		return f"Player(id={self.id}, name={self.username}, nb={self.nb}, life={self.life}, action={self.action})"
 
 	@staticmethod
 	async def load_from_cache(player_id, game_id):

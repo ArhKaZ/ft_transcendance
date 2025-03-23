@@ -20,6 +20,7 @@ let is_finished = false;
 let keyUpHandler = null;
 let keyDownHandler = null;
 let currentPseudo = null;
+let beforeUnloadHandler = null;
 
 const handleResize = () => resizeCanvasGame();
 
@@ -79,10 +80,18 @@ function returnBack() {
 	if (socket && socket.readyState === WebSocket.OPEN) {
         socket.close();
     }
+
+	if (beforeUnloadHandler) {
+        window.removeEventListener('beforeunload', beforeUnloadHandler);
+        beforeUnloadHandler = null; 
+    }
 	window.removeEventListener("resize", handleResize);
-	setTimeout(() => {
-		router.navigateTo('/pong/')
-	}, 100);
+	document.getElementById('return-button').removeEventListener('click', returnBack);
+	cleanKeyboardControls();
+	const rButton = document.getElementById('button-ready');
+	if (!rButton.classList.contains('hidden'))
+		rButton.removeEventListener('click', sendToBack);
+	router.navigateTo('/pong/');
 }
 
 async function init() {
@@ -120,13 +129,14 @@ function setupWebSocket(user, infos) {
 	const currentUrl = window.location.host;
 	const socket = new WebSocket(`wss://${currentUrl}/ws/onlinePong/${id}/`);
 	
+	beforeUnloadHandler = () => {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.close();
+        }
+    };
 
 	socket.onopen = () => {
-		window.addEventListener('beforeunload', () => {
-			if (socket && socket.readyState === WebSocket.OPEN) {
-				socket.close();
-			}
-		});
+		window.addEventListener('beforeunload', beforeUnloadHandler);
 		
 		if (inTournament && infos) {
 			let objToSend = {
