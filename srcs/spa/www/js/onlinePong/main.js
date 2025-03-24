@@ -459,7 +459,6 @@ function handleGameFinish(game, winningId, opponentName = null) {
     }
     
     if (inTournament) {
-		
         if (inFinal)
             sessionStorage.setItem('finalDone', true);
         btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
