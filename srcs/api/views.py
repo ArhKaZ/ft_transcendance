@@ -854,6 +854,8 @@ def spend_ticket(request):
 	
 	if user.spend_ticket():
 		badges = Badge.objects.order_by('?')[:3]
+		badge_names = [badge.name for badge in badges]
+		user.drawn_badges = badge_names
 		user.need_badge = True
 		user.save()
 		return Response({
@@ -875,6 +877,9 @@ def add_badge(request):
 
 	if not badge_name:
 		return Response({"error": "Badge name is required"}, status=status.HTTP_400_BAD_REQUEST)
+	
+	if badge_name not in user.drawn_badges:
+		return Response({"error": "You didn't get this badge"}, status=status.HTTP_400_BAD_REQUEST)
 	
 	if not Badge.objects.filter(name=badge_name).exists():
 		return Response({"error": "This badge doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
