@@ -27,11 +27,11 @@ from rest_framework import serializers
 import requests
 from PIL import Image
 from io import BytesIO
-import magic  
+import magic
 
 
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png'}
-MAX_FILE_SIZE = 5 * 1024 * 1024  
+MAX_FILE_SIZE = 5 * 1024 * 1024
 
 
 @api_view(['POST'])
@@ -67,7 +67,7 @@ def add_user(request):
 				data['avatar'] = base64.b64encode(buffer.getvalue()).decode('utf-8')
 			except Exception as e:
 				return Response({'error': 'Invalid image file'}, status=status.HTTP_400_BAD_REQUEST)
-			
+
 
 		serializer = UserSerializer(data=data)
 		if serializer.is_valid():
@@ -85,21 +85,21 @@ def add_user(request):
 def check_user_online(request, username):
 	try:
 		user = MyUser.objects.get(username=username)
-		
-		
+
+
 		valid_token = AccessToken.objects.filter(
 			user=user,
 			expires_at__gt=timezone.now()
-		).order_by('-created').first()  
-		
+		).order_by('-created').first()
+
 		is_online = valid_token is not None
-		
+
 		return Response({
 			'username': username,
 			'is_online': is_online,
 			'last_active': valid_token.expires_at if is_online else None
 		})
-		
+
 	except MyUser.DoesNotExist:
 		return Response({'error': 'User not found'}, status=404)
 
@@ -109,19 +109,19 @@ def login_user(request):
 	username = request.data.get('username')
 	password = request.data.get('password')
 	user = authenticate(username=username, password=password)
-	
+
 	if user:
-		
+
 		AccessToken.objects.filter(user=user).delete()
 		RefreshToken.objects.filter(user=user).delete()
-		
-		
+
+
 		refresh_token = RefreshToken.objects.create(user=user)
 		access_token = AccessToken.objects.create(
-			user=user, 
+			user=user,
 			refresh_token=refresh_token
 		)
-		
+
 		return Response({
 			'access_token': access_token.token,
 			'access_expires': access_token.expires_at,
@@ -138,23 +138,23 @@ def refresh_token(request):
 		if not refresh_token:
 			return Response({'error': 'Refresh token required'}, status=400)
 
-		
+
 		refresh_token_obj = RefreshToken.objects.get(token=refresh_token)
-		
-		
-		AccessToken.objects.filter(user=refresh_token_obj.user).delete()  
-		
-		
+
+
+		AccessToken.objects.filter(user=refresh_token_obj.user).delete()
+
+
 		new_access = AccessToken.objects.create(
 			user=refresh_token_obj.user,
 			refresh_token=refresh_token_obj
 		)
-		
+
 		return Response({
 			'access_token': new_access.token,
 			'access_expires': new_access.expires_at
 		})
-		
+
 	except RefreshToken.DoesNotExist:
 		return Response({'error': 'Invalid refresh token'}, status=401)
 
@@ -190,13 +190,13 @@ def get_my_info(request):
 @permission_classes([IsAuthenticated])
 def logout_user(request):
 	try:
-		
+
 		AccessToken.objects.filter(user=request.user).delete()
-		
+
 		RefreshToken.objects.filter(user=request.user).delete()
-		
+
 		return Response({'message': 'Logged out successfully'}, status=status.HTTP_200_OK)
-		
+
 	except Exception as e:
 		return Response(
 			{'error': 'Logout failed'},
@@ -243,7 +243,7 @@ def edit_user_api(request):
 	if request.FILES.get('avatar'):
 		if user.is_oauth == True:
 			return Response({'error': 'OAuth users are not allowed to change their avatar'}, status=status.HTTP_400_BAD_REQUEST)
-		
+
 		avatar = request.FILES['avatar']
 		avatar.name = sanitize_filename(avatar.name)
 		ext = os.path.splitext(avatar.name)[1].lower()
@@ -305,23 +305,23 @@ def add_friend(request):
 				status=status.HTTP_400_BAD_REQUEST
 			)
 
-		
+
 		if potential_friend in request.user.friends.all():
 			return Response(
 				{'error': 'You are already friends with this user'},
 				status=status.HTTP_400_BAD_REQUEST
 			)
 
-		
+
 		if request.user in potential_friend.pending_friends.all():
 			return Response(
 				{'error': 'You have already sent a friend request to this user'},
 				status=status.HTTP_400_BAD_REQUEST
 			)
 
-		
+
 		if potential_friend in request.user.pending_friends.all():
-			
+
 			request.user.pending_friends.remove(potential_friend)
 			request.user.friends.add(potential_friend)
 			return Response(
@@ -329,7 +329,7 @@ def add_friend(request):
 				status=status.HTTP_200_OK
 			)
 		else:
-			
+
 			potential_friend.pending_friends.add(request.user)
 			return Response(
 				{'message': 'Friend request sent successfully'},
@@ -343,27 +343,27 @@ def add_friend(request):
 		)
 
 def parse_tournament_data(tournament):
-	
+
 	players = [
-		player.pseudo 
+		player.pseudo
 		for player in tournament.players.all()
 	]
-	
-	
+
+
 	finalists = [
 		finalist.pseudo
 		for finalist in tournament.finalist.all()
 	]
 
 	winner = tournament.winner.first().pseudo if tournament.winner.exists() else None
-	
+
 	tournament_data = {
 		"tournament_code": tournament.code,
 		"players": players,
 		"finalists": finalists,
 		"winner": winner
 	}
-	
+
 	return tournament_data
 
 @api_view(['POST'])
@@ -384,7 +384,7 @@ def record_match_blockchain(request, tournament_code):
 			response_data = {
 				'message': 'You won !!',
 			}
-				
+
 			return Response(response_data, status=status.HTTP_200_OK)
 
 		except ValidationError as e:
@@ -484,12 +484,12 @@ def tournament_status(request, tournament_code):
 		tournament = Tournament.objects.get(code=tournament_code)
 		players = tournament.players.all()
 
-		
+
 		player_data = []
 		for player in players:
 			player_data.append({
 				'username': player.username,
-				'status': 'ready'  
+				'status': 'ready'
 			})
 
 		return Response({
@@ -497,7 +497,7 @@ def tournament_status(request, tournament_code):
 			'players': player_data,
 			'started': tournament.started,
 			'is_full': len(players) >= 4,
-			'is_active': True  
+			'is_active': True
 		})
 	except Tournament.DoesNotExist:
 		return Response({
@@ -520,7 +520,7 @@ def erase_user(request):
 			status=status.HTTP_200_OK
 		)
 	except Exception as e:
-		
+
 		print(f"Error in erase_user: {str(e)}")
 		return Response(
 			{'error': 'An error occurred while deleting the user'},
@@ -541,7 +541,7 @@ def quit_tournament(request, tournament_code):
 		if tournament.players.count() == 0:
 			tournament.delete()
 			deleted = True
-		else:	
+		else:
 			if tournament.creator == user:
 				tournament.creator = tournament.players.first()
 				tournament.save()
@@ -591,7 +591,7 @@ def get_final_opponent(request, tournament_code):
 	user = request.user
 	try:
 		tournament = Tournament.objects.get(code=tournament_code)
-		
+
 	except Tournament.DoesNotExist:
 		return Response({"error": f"Tournament {tournament_code} does not exist"}, status=404)
 
@@ -601,7 +601,7 @@ def get_final_opponent(request, tournament_code):
 		winners = [match.winner for match in initial_matches]
 		final_match = tournament.all_matches.filter(is_final=True).first()
 
-		if not final_match:	
+		if not final_match:
 			tournament.create_final(winners[0], winners[1])
 			final_match = tournament.all_matches.filter(is_final=True).first()
 
@@ -763,7 +763,7 @@ def oauth(request):
 				'state': state
 			}
 		)
-		token_response.raise_for_status() 
+		token_response.raise_for_status()
 		access_token = token_response.json().get('access_token')
 
 		user_response = requests.get(
@@ -773,7 +773,7 @@ def oauth(request):
 		user_response.raise_for_status()
 		user_data = user_response.json()
 		oauth_login = user_data.get('login') + '42'
-			
+
 		avatar_data = None
 		pfp = user_data.get('image', {}).get('versions', {}).get('medium')
 		if pfp:
@@ -802,12 +802,12 @@ def oauth(request):
 			& Q(username=oauth_login)
 			& Q(is_oauth=True)
 		).first()
-		if existing_oauth_user:	
+		if existing_oauth_user:
 			AccessToken.objects.filter(user=existing_oauth_user).delete()
 			RefreshToken.objects.filter(user=existing_oauth_user).delete()
 			refresh_token = RefreshToken.objects.create(user=existing_oauth_user)
 			access_token = AccessToken.objects.create(
-				user=existing_oauth_user, 
+				user=existing_oauth_user,
 				refresh_token=refresh_token
 			)
 			return Response({
@@ -827,10 +827,10 @@ def oauth(request):
 			)
 			AccessToken.objects.filter(user=user).delete()
 			RefreshToken.objects.filter(user=user).delete()
-			
+
 			refresh_token = RefreshToken.objects.create(user=user)
 			access_token = AccessToken.objects.create(
-				user=user, 
+				user=user,
 				refresh_token=refresh_token
 			)
 			return Response({
@@ -851,7 +851,7 @@ def oauth(request):
 @permission_classes([IsAuthenticated])
 def spend_ticket(request):
 	user = request.user
-	
+
 	if user.spend_ticket():
 		badges = Badge.objects.order_by('?')[:3]
 		badge_names = [badge.name for badge in badges]
@@ -877,21 +877,21 @@ def add_badge(request):
 
 	if not badge_name:
 		return Response({"error": "Badge name is required"}, status=status.HTTP_400_BAD_REQUEST)
-	
+
 	if badge_name not in user.drawn_badges:
 		return Response({"error": "You didn't get this badge"}, status=status.HTTP_400_BAD_REQUEST)
-	
+
 	if not Badge.objects.filter(name=badge_name).exists():
 		return Response({"error": "This badge doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
 
 	if (user.need_badge == False):
 		return Response({"error": "Need to spend a ticket to get a badge"}, status=status.HTTP_400_BAD_REQUEST)
-	
+
 	user.need_badge = False
 
 	if badge_name in user.badge_list:
 		return Response({"error": "Sorry, you already have this badge"}, status=status.HTTP_400_BAD_REQUEST)
-	
+
 	user.badge_list.append(badge_name)
 	user.save()
 	return Response({"message": f"Badge '{badge_name}' added successfully!", "badge_list": user.badge_list}, status=status.HTTP_200_OK)
@@ -900,4 +900,6 @@ def add_badge(request):
 @permission_classes([IsAuthenticated])
 def	list_badge(request):
 	user = request.user
-	return Response({"badges": user.badge_list}, status=status.HTTP_200_OK)
+	badges = Badge.objects.filter(name__in=user.badge_list)
+	badge_data = BadgeSerializer(badges, many=True).data
+	return Response({"badges": badge_data}, status=status.HTTP_200_OK)
