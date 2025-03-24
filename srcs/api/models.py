@@ -27,6 +27,7 @@ class MyUser(AbstractUser):
 	need_badge = models.BooleanField(default=False)
 	badge_list = models.JSONField(default=list)
 	drawn_badges = models.JSONField(default=list)
+	active_badge = models.JSONField(default=list)
 	current_tournament = models.ForeignKey(
 		'Tournament',
 		on_delete=models.SET_NULL,

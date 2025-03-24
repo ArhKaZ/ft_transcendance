@@ -903,3 +903,35 @@ def	list_badge(request):
 	badges = Badge.objects.filter(name__in=user.badge_list)
 	badge_data = BadgeSerializer(badges, many=True).data
 	return Response({"badges": badge_data}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_active_badge(request):
+	user = request.user
+	old_badge_name = request.data.get("old_badge_name")
+	new_badge_name = request.data.get("new_badge_name")
+
+	if not new_badge_name:
+		return Response({"error": "Need a new badge name"}, status=status.HTTP_400_BAD_REQUEST)
+
+	if not Badge.objects.filter(name=new_badge_name).exists():
+		return Response({"error": "New badge does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+	
+	if new_badge_name not in user.badge_list:
+		return Response({"error": "You don't have this badge"}, status=status.HTTP_400_BAD_REQUEST)
+
+	if len(user.active_badge) == 3:
+		user.active_badge[user.active_badge.index(old_badge_name)] = new_badge_name
+	else:
+		user.active_badge.append(new_badge_name)
+	user.save()
+	return Response({"message": "Badge is now active"}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_active_badge(request):
+	user = request.user
+	actives_badges = Badge.objects.filter(name__in=user.active_badge)
+	active_badge_data = BadgeSerializer(actives_badges, many=True).data
+	return Response({"actives_badges": active_badge_data}, status=status.HTTP_200_OK)
+

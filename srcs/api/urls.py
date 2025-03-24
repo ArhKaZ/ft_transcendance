@@ -31,4 +31,6 @@ urlpatterns = [
 	path("spend_ticket/", views.spend_ticket, name="spend_ticket"),
 	path("add_badge/", views.add_badge, name="add_badge"),
 	path("list_badge/", views.list_badge, name="list_badge"),
+	path("change_active_badge/", views.change_active_badge, name="change_active_badge"),
+	path("list_active_badge/", views.list_active_badge, name="list_active_badge"),
 ]
