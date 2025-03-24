@@ -2,6 +2,54 @@ import { getCSRFToken } from '../utils.js';
 import { ensureValidToken } from '/js/utils.js';
 import { router } from '../router.js';
 
+const goToPong = async (username) => {
+	const response = await api_get_profile(username);		
+	const data = await response.json();
+	console.debug(data);
+	if (data.game_mode === 'Pong' && data.is_waiting_for_game)
+		router.navigateTo('/onlinePong/');
+	else if (!data.game_mode || !data.is_waiting_for_game){
+		const action = document.getElementById('action-container');
+		const profileHeader = document.getElementById('profile-header');
+		action.style.display = 'none';
+		let error = document.createElement('span');
+		error.innerText = "Friend no more joinable";
+		error.style.color = 'Red';
+		profileHeader.appendChild(error);
+	}
+}
+
+const goToMD = async (username) => {
+	const response = await api_get_profile(username);	
+	const data = await response.json();
+	if (data.game_mode === 'MagicDuel' && data.is_waiting_for_game)
+		router.navigateTo('/magicDuel/');
+	else if (!data.game_mode || !data.is_waiting_for_game){
+		const action = document.getElementById('action-container');
+		const profileHeader = document.getElementById('profile-header');
+		action.style.display = 'none';
+		let error = document.createElement('span');
+		error.innerText = "Friend no more joinable";
+		error.style.color = 'Red';
+		profileHeader.appendChild(error);
+	}
+}
+const goToTournament = async (username) => {
+	const response = await api_get_profile(username);		
+	const data = await response.json();
+	if (data.code_current_tournament && !data.tournament_start)
+		router.navigateTo('/tournament');
+	else if (!data.is_in_tournament || data.tournament_start){
+		const action = document.getElementById('action-container');
+		const profileHeader = document.getElementById('profile-header');
+		action.style.display = 'none';
+		let error = document.createElement('span');
+		error.innerText = "Friend no more joinable";
+		error.style.color = 'Red';
+		profileHeader.appendChild(error);
+	}
+}
+
 async function isUserFriend(userName) {
 	try {
 		await ensureValidToken();
@@ -66,28 +114,32 @@ async function isFriendRequestPending(userName) {
 }
 
 
+async function api_get_profile(userName) {
+	const response = await fetch(`/api/user/profile/${userName}/`, {
+		method: 'GET',
+		headers: {
+			'Content-type': 'application/json',
+			'X-CSRFToken': getCSRFToken(),
+			'Authorization' : `Bearer ${sessionStorage.getItem('access_token')}`,
+		}
+	});
+	if (!response.ok) {
+		if (response.status === 404) {
+			throw new Error('User not found');
+		}
+		throw new Error('Failed to fetch user data');
+	}
+	return response;
+}
+
 async function fetch_user() {
 	const pathSegments = window.location.pathname.split('/');
 	const userName = pathSegments[3];
 	try {
 		await ensureValidToken();
-		const response = await fetch(`/api/user/profile/${userName}/`, {
-			method: 'GET',
-			headers: {
-				'Content-type': 'application/json',
-				'X-CSRFToken': getCSRFToken(),
-				'Authorization' : `Bearer ${sessionStorage.getItem('access_token')}`,
-			}
-		});
-		if (!response.ok) {
-			if (response.status === 404) {
-				throw new Error('User not found');
-			}
-			throw new Error('Failed to fetch user data');
-		}
-
+		const response = await api_get_profile(userName);		
 		const data = await response.json();
-		console.debug(data);
+		// console.debug(data);
 		document.getElementById('username').textContent = data.username;
 		document.getElementById('user-pseudo').textContent = data.pseudo;
 		document.getElementById('ligue-points').textContent = data.ligue_points;
@@ -107,14 +159,67 @@ async function fetch_user() {
 
 		winrateSpan.classList.remove("green", "red");
 		winrateSpan.classList.add(winrate > 49 ? "green" : "red");
-
-		if (data.is_in_tournament || data.game_mode) {
-			joinButton(data);
+		if (await isUserFriend(data.username)) {
+			if (data.is_in_tournament || data.game_mode) {
+				joinButton(data);
+			}
 		}
 		
 	} catch (error) {
 		console.error("API call failed", error);
 		router.navigateTo('/user_not_found/');
+	}
+}
+
+function joinButton(data) {
+	let profile = document.getElementById('profile-header');
+	let action = document.createElement('div');
+	let header = document.createElement('div');
+	header.innerHTML = 'Status:';
+	header.classList.add('head-text');
+	action.appendChild(header);
+	action.classList.add('action-section');
+	action.id = 'action-container';
+
+	let currentAction = document.createElement('span');
+	let button = null;
+	if (data.game_mode) {
+		if (data.is_waiting_for_game) {
+			currentAction.innerText = `wait for a ${data.game_mode} game`;
+			button = document.createElement('button');
+			button.innerText = 'Join';
+		} else {
+			currentAction.innerText = `playing in a ${data.game_mode} game`;
+		}
+	} else {
+		if (!data.tournament_start) {
+			currentAction.innerText = `wait for ${data.code_current_tournament} tournament to start`;
+			button = document.createElement('button');
+			button.innerText = 'Join';
+		} else {
+			currentAction.innerText = `playing in ${data.code_current_tournament} tournament`;
+		}
+	}
+	action.appendChild(currentAction);
+	if (button) {
+		button.classList.add('buttons');
+		button.id = 'join-button';
+		addListener(button, data);
+		action.appendChild(button);
+	}
+	profile.appendChild(action);
+}
+
+function addListener(button, data) {
+	if (data.game_mode) {
+		if (data.game_mode === 'Pong') {
+			button.addEventListener('click', () => goToPong(data.username));
+		} else if (data.game_mode === 'MagicDuel') {
+			button.addEventListener('click', () => goToMD(data.username));
+		}
+	} else if (data.code_current_tournament) {
+		sessionStorage.setItem('tournament_code_from_profile', data.code_current_tournament);
+		button.addEventListener('click',() => goToTournament(data.username));
 	}
 }
 
@@ -147,58 +252,6 @@ async function addFriend(userName) {
 		}
 	} catch (error) {
 		console.error("Failed adding a friend", error);
-	}
-}
-
-function joinButton(data) {
-	let profile = document.getElementById('profile-header');
-	let action = document.createElement('div');
-	let header = document.createElement('div');
-	header.innerHTML = 'Status:';
-	header.classList.add('head-text');
-	action.appendChild(header);
-	action.classList.add('action-section');
-
-	let currentAction = document.createElement('span');
-	let button = null;
-	if (data.game_mode) {
-		if (data.is_waiting_for_game) {
-			currentAction.innerText = `wait for a ${data.game_mode} game`;
-			button = document.createElement('button');
-			button.innerText = 'Join';
-		} else {
-			currentAction.innerText = `playing in a ${data.game_mode} game`;
-		}
-	} else {
-		console.debug(data);
-		if (!data.tournament_start) {
-			currentAction.innerText = `wait for ${data.code_current_tournament} tournament to start`;
-			button = document.createElement('button');
-			button.innerText = 'Join';
-		} else {
-			currentAction.innerText = `playing in ${data.code_current_tournament} tournament`;
-		}
-	}
-	action.appendChild(currentAction);
-	if (button) {
-		button.classList.add('buttons');
-		button.id = 'join-button';
-		addListener(button, data);
-		action.appendChild(button);
-	}
-	profile.appendChild(action);
-}
-
-function addListener(button, data) {
-	if (data.game_mode) {
-		if (data.game_mode === 'Pong') {
-			button.addEventListener('click', () => router.navigateTo('/onlinePong/'));
-		} else if (data.game_mode === 'MagicDuel') {
-			button.addEventListener('click', () => router.navigateTo('/magicDuel/'));
-		}
-	} else if (data.code_current_tournament) {
-		sessionStorage.setItem('tournament_code_from_profile', data.code_current_tournament);
-		button.addEventListener('click', () => router.navigateTo('/tournament/'));
 	}
 }
 
