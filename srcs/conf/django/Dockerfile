@@ -19,8 +19,11 @@ RUN pip list
 RUN pip install web3
 
 RUN mkdir -p media/avatars
+RUN mkdir -p media/badges/
 
 COPY default.png media/avatars/
+COPY Badge_*.png media/badges/
+
 
 COPY . /app
 WORKDIR /app

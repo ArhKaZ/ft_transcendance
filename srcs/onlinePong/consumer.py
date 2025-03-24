@@ -216,6 +216,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 				won=True
 			)
 			winner.wins += 1
+			winner.tickets += 1
 			await sync_to_async(winner.save)()
 		except Exception as e:
 			print(f"Error creating win record: {e}")
@@ -485,6 +486,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 			type='Tournament' if self.in_tournament else 'Pong',
 			won=False
 		)
+		winner.tickets += 1
 		winner.save()
 		loser.save()
 	
