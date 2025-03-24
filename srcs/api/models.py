@@ -24,6 +24,8 @@ class MyUser(AbstractUser):
 	game_mode = models.CharField(max_length=50, blank=True, null=True)
 	is_in_tournament = models.BooleanField(default=False)
 	tickets = models.IntegerField(default=0)
+	need_badge = models.BooleanField(default=False)
+	badge_list = models.JSONField(default=list)
 	current_tournament = models.ForeignKey(
 		'Tournament',
 		on_delete=models.SET_NULL,

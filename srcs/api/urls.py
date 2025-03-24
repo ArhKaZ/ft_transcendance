@@ -29,4 +29,6 @@ urlpatterns = [
 	path('check-online/<str:username>/', views.check_user_online, name='check_user_online'),
 	path("oauth_callback/", views.oauth, name="oauth_callback"),
 	path("spend_ticket/", views.spend_ticket, name="spend_ticket"),
+	path("add_badge/", views.add_badge, name="add_badge"),
+	path("list_badge/", views.list_badge, name="list_badge"),
 ]

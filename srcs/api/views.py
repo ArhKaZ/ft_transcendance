@@ -850,17 +850,49 @@ def oauth(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def spend_ticket(request):
-    user = request.user
-    
-    if user.spend_ticket():
-        badges = Badge.objects.order_by('?')[:3]  # Get 3 random badges
-        return Response({
-            "success": True,
-            "remaining_tickets": user.tickets,
-            "badges": BadgeSerializer(badges, many=True).data
-        })
-    return Response({
-        "success": False,
-        "message": "Not enough tickets",
-        "remaining_tickets": user.tickets
-    }, status=400)
+	user = request.user
+	
+	if user.spend_ticket():
+		badges = Badge.objects.order_by('?')[:3]
+		user.need_badge = True
+		user.save()
+		return Response({
+			"success": True,
+			"remaining_tickets": user.tickets,
+			"badges": BadgeSerializer(badges, many=True).data
+		})
+	return Response({
+		"success": False,
+		"message": "Not enough tickets",
+		"remaining_tickets": user.tickets
+	}, status=400)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_badge(request):
+	user = request.user
+	badge_name = request.data.get("badge_name")
+
+	if not badge_name:
+		return Response({"error": "Badge name is required"}, status=status.HTTP_400_BAD_REQUEST)
+	
+	if not Badge.objects.filter(name=badge_name).exists():
+		return Response({"error": "This badge doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+	if (user.need_badge == False):
+		return Response({"error": "Need to spend a ticket to get a badge"}, status=status.HTTP_400_BAD_REQUEST)
+	
+	user.need_badge = False
+
+	if badge_name in user.badge_list:
+		return Response({"error": "Sorry, you already have this badge"}, status=status.HTTP_400_BAD_REQUEST)
+	
+	user.badge_list.append(badge_name)
+	user.save()
+	return Response({"message": f"Badge '{badge_name}' added successfully!", "badge_list": user.badge_list}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def	list_badge(request):
+	user = request.user
+	return Response({"badges": user.badge_list}, status=status.HTTP_200_OK)
