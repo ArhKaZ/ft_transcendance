@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MyUser, MatchHistory, TournamentMatch
+from .models import MyUser, MatchHistory, TournamentMatch, Badge
 import bleach
 import re
 import os
@@ -14,6 +14,18 @@ import os
 import base64
 from django.conf import settings
 from django.core.validators import MaxLengthValidator, MinLengthValidator, RegexValidator
+
+class BadgeSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Badge
+        fields = ['name', 'image']
+
+    def get_image(self, obj):
+        if obj.image:
+            return f"data:image/jpg;base64,{base64.b64encode(obj.image).decode('utf-8')}"
+        return None
 
 def sanitize_filename(filename):
 	return re.sub(r'[^a-zA-Z0-9_.-]', '', filename)
@@ -78,6 +90,7 @@ class UserSerializer(serializers.ModelSerializer):
 		fields = [
 				'username', 'password', 'description', 'avatar', 'ligue_points', 'pseudo', 'wins', 
 				'looses', 'is_waiting_for_game', 'game_mode', 'is_in_tournament', 'current_tournament', 
+				'tickets'
 			]
 		extra_kwargs = {
 			'username': {
@@ -143,7 +156,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
 		fields = [
 			'id', 'username', 'description', 'avatar', 'ligue_points', 'pseudo', 'wins',
 			'looses', 'is_waiting_for_game', 'game_mode', 'is_in_tournament', 'code_current_tournament',
-			'tournament_start']
+			'tournament_start', 'tickets']
 
 	def get_code_current_tournament(self, obj):
 		if obj.current_tournament:

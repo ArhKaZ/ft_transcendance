@@ -4,6 +4,13 @@ import binascii
 import os
 from django.utils import timezone
 
+class Badge(models.Model):
+    name = models.CharField(max_length=100)
+    image = models.BinaryField()
+
+    def __str__(self):
+        return self.name
+
 
 class MyUser(AbstractUser):
 	description = models.TextField(blank=True)
@@ -16,29 +23,17 @@ class MyUser(AbstractUser):
 	is_waiting_for_game = models.BooleanField(default=False)
 	game_mode = models.CharField(max_length=50, blank=True, null=True)
 	is_in_tournament = models.BooleanField(default=False)
+	tickets = models.IntegerField(default=0)
+	need_badge = models.BooleanField(default=False)
+	badge_list = models.JSONField(default=list)
+	drawn_badges = models.JSONField(default=list)
+	active_badge = models.JSONField(default=list)
 	current_tournament = models.ForeignKey(
-	    'Tournament',
-	    on_delete=models.SET_NULL,
-	    null=True,
-	    blank=True,
-	    related_name='participants'
-	)
-
-	groups = models.ManyToManyField(
-		'auth.Group',
-		verbose_name='groups',
+		'Tournament',
+		on_delete=models.SET_NULL,
+		null=True,
 		blank=True,
-		help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
-		related_name='myuser_set',
-		related_query_name='myuser',
-	)
-	user_permissions = models.ManyToManyField(
-		'auth.Permission',
-		verbose_name='user permissions',
-		blank=True,
-		help_text='Specific permissions for this user.',
-		related_name='myuser_set',
-		related_query_name='myuser',
+		related_name='participants'
 	)
 	friends = models.ManyToManyField(
 		'self',
@@ -82,6 +77,13 @@ class MyUser(AbstractUser):
 		self.is_in_tournament = False
 		self.current_tournament = None
 		self.save()
+	
+	def spend_ticket(self, amount=1):
+		if self.tickets >= amount:
+			self.tickets -= amount
+			self.save()
+			return True
+		return False
 	
 class MatchHistory(models.Model):
 	user = models.ForeignKey('MyUser', on_delete=models.CASCADE, related_name="matches")
