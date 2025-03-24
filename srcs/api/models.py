@@ -47,7 +47,7 @@ class MyUser(AbstractUser):
 		'self',
 		symmetrical=False,
 		blank=True,
-		related_name='pending_friend_set',
+		related_name='pending_friends_set',
 		verbose_name='pending friends',
 		help_text='The users that have sent a friend request to this user.',
 	)

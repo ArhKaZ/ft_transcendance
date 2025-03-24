@@ -284,6 +284,7 @@ def edit_user_api(request):
 def get_pending_friends(request):
 	pending_friends = request.user.pending_friends.all()
 	serializer = UserInfoSerializer(pending_friends, many=True)
+	print(serializer)
 	return Response(serializer.data)
 
 @api_view(['GET'])
@@ -308,7 +309,7 @@ def add_friend(request):
 
 		if potential_friend in request.user.friends.all():
 			return Response(
-				{'error': 'You are already friends with this user'},
+				{'error': 'You are already friend with this user'},
 				status=status.HTTP_400_BAD_REQUEST
 			)
 
@@ -319,7 +320,6 @@ def add_friend(request):
 				status=status.HTTP_400_BAD_REQUEST
 			)
 
-
 		if potential_friend in request.user.pending_friends.all():
 
 			request.user.pending_friends.remove(potential_friend)
@@ -329,7 +329,6 @@ def add_friend(request):
 				status=status.HTTP_200_OK
 			)
 		else:
-
 			potential_friend.pending_friends.add(request.user)
 			return Response(
 				{'message': 'Friend request sent successfully'},
@@ -339,6 +338,47 @@ def add_friend(request):
 	except MyUser.DoesNotExist:
 		return Response(
 			{'error': 'User not found'},
+			status=status.HTTP_404_NOT_FOUND
+		)
+	
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def remove_friend(request):
+	try:
+		potential_friend = MyUser.objects.get(username=request.data['friend_name'])
+
+		if potential_friend == request.user:
+			return Response(
+				{'error': 'You cannot add yourself as a friend'},
+				status=status.HTTP_400_BAD_REQUEST
+			)
+
+		if potential_friend not in request.user.friends.all():
+			return Response(
+				{'error': 'You are not friend with this user'},
+				status=status.HTTP_400_BAD_REQUEST
+			)
+		
+		if request.user in potential_friend.pending_friends.all():
+			return Response(
+				{'error': 'You are pending to be friend with this user'},
+				status=status.HTTP_400_BAD_REQUEST
+			)
+		
+		if potential_friend in request.user.friends.all():
+			request.user.friends.remove(potential_friend)
+			return Response(
+				{
+					'message': "Friend delete. You no more friend with him"
+				},
+				status=status.HTTP_200_OK
+			)
+		
+	except MyUser.DoesNotExist:
+		return Response(
+			{
+				'error': 'User not found'
+			},
 			status=status.HTTP_404_NOT_FOUND
 		)
 

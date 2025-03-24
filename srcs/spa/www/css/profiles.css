@@ -136,6 +136,21 @@ button {
     right: -40px;
 }
 
+#remove-friend-btn {
+    display: none;
+}
+
+.remove-friend-icon {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+    position: absolute;
+    top: 0;
+    left: -40px;
+}
+
+
 .add-friend-icon.disabled {
     cursor: default;
     opacity: 0.6;

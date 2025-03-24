@@ -16,16 +16,16 @@ from django.conf import settings
 from django.core.validators import MaxLengthValidator, MinLengthValidator, RegexValidator
 
 class BadgeSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
+	image = serializers.SerializerMethodField()
 
-    class Meta:
-        model = Badge
-        fields = ['name', 'image']
+	class Meta:
+		model = Badge
+		fields = ['name', 'image']
 
-    def get_image(self, obj):
-        if obj.image:
-            return f"data:image/jpg;base64,{base64.b64encode(obj.image).decode('utf-8')}"
-        return None
+	def get_image(self, obj):
+		if obj.image:
+			return f"data:image/jpg;base64,{base64.b64encode(obj.image).decode('utf-8')}"
+		return None
 
 def sanitize_filename(filename):
 	return re.sub(r'[^a-zA-Z0-9_.-]', '', filename)
@@ -150,13 +150,22 @@ class UserInfoSerializer(serializers.ModelSerializer):
 	avatar = serializers.SerializerMethodField()
 	code_current_tournament = serializers.SerializerMethodField()
 	tournament_start = serializers.SerializerMethodField()
+	friends = serializers.SerializerMethodField()
+	pending_friends = serializers.SerializerMethodField()
 
 	class Meta:
 		model = MyUser
 		fields = [
 			'id', 'username', 'description', 'avatar', 'ligue_points', 'pseudo', 'wins',
 			'looses', 'is_waiting_for_game', 'game_mode', 'is_in_tournament', 'code_current_tournament',
-			'tournament_start', 'tickets']
+			'tournament_start', 'tickets', 'friends', 'pending_friends'
+		]
+
+	def get_friends(self, obj):
+		return [friend.username for friend in obj.friends.all()]
+
+	def get_pending_friends(self, obj):
+		return [pending_friend.username for pending_friend in obj.pending_friends.all()]
 
 	def get_code_current_tournament(self, obj):
 		if obj.current_tournament:
