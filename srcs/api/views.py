@@ -945,3 +945,4 @@ def list_active_badge(request):
 	active_badge_data = BadgeSerializer(actives_badges, many=True).data
 	return Response({"actives_badges": active_badge_data}, status=status.HTTP_200_OK)
 
+
