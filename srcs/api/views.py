@@ -857,6 +857,7 @@ def spend_ticket(request):
 		badge_names = [badge.name for badge in badges]
 		user.drawn_badges = badge_names
 		user.need_badge = True
+		user.tickets -= 1
 		user.save()
 		return Response({
 			"success": True,
@@ -916,16 +917,25 @@ def change_active_badge(request):
 
 	if not Badge.objects.filter(name=new_badge_name).exists():
 		return Response({"error": "New badge does not exist"}, status=status.HTTP_400_BAD_REQUEST)
-	
+
 	if new_badge_name not in user.badge_list:
 		return Response({"error": "You don't have this badge"}, status=status.HTTP_400_BAD_REQUEST)
 
+	if new_badge_name in user.active_badge:
+		return Response({"error": "This badge is already active"}, status=status.HTTP_400_BAD_REQUEST)
+
 	if len(user.active_badge) == 3:
+		if not old_badge_name:
+			return Response({"error": "Need a badge to change"}, status=status.HTTP_400_BAD_REQUEST)
+		if old_badge_name not in user.active_badge:
+			return Response({"error": "Old badge must be active"}, status=status.HTTP_400_BAD_REQUEST)
 		user.active_badge[user.active_badge.index(old_badge_name)] = new_badge_name
 	else:
 		user.active_badge.append(new_badge_name)
+	
 	user.save()
 	return Response({"message": "Badge is now active"}, status=status.HTTP_200_OK)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
