@@ -847,10 +847,11 @@ def oauth(request):
 		print(f"Error: {e}")
 		return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@api_view(['POST'])
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def spend_ticket(request):
 	user = request.user
+	user.tickets = 1
 
 	if user.spend_ticket():
 		badges = Badge.objects.order_by('?')[:3]
@@ -897,7 +898,7 @@ def add_badge(request):
 	return Response({"message": f"Badge '{badge_name}' added successfully!", "badge_list": user.badge_list}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated]) # Renvoie tous les badges possedes par l'utilisateur
 def	list_badge(request):
 	user = request.user
 	badges = Badge.objects.filter(name__in=user.badge_list)
@@ -905,11 +906,11 @@ def	list_badge(request):
 	return Response({"badges": badge_data}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated]) # Change le badge actif pour le profil
 def change_active_badge(request):
 	user = request.user
-	old_badge_name = request.data.get("old_badge_name")
-	new_badge_name = request.data.get("new_badge_name")
+	old_badge_name = request.data.get("old_badge_name") # ancien badge actif sur le slot clique // si on en a pas: peut etre vide
+	new_badge_name = request.data.get("new_badge_name")	# nouveau badge a mettre sur le slot clique
 
 	if not new_badge_name:
 		return Response({"error": "Need a new badge name"}, status=status.HTTP_400_BAD_REQUEST)
@@ -928,7 +929,7 @@ def change_active_badge(request):
 	return Response({"message": "Badge is now active"}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated]) #liste les 3 badges actifs sur le profil
 def list_active_badge(request):
 	user = request.user
 	actives_badges = Badge.objects.filter(name__in=user.active_badge)
