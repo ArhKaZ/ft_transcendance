@@ -13,11 +13,35 @@ class TournamentGame {
 		this.quitButton = document.getElementById('quit-button');
 		this.messageDiv = document.getElementById('messageDiv');
 		document.getElementById('quit-button').addEventListener('click', () => this.quitTournament());
-		window.addEventListener('beforeunload', this.handleBeforeUnload.bind(this));
+		// window.addEventListener('beforeunload', this.handleBeforeUnload.bind(this));
         window.addEventListener('popstate', this.handlePopState.bind(this));
+		this.tournamentConfig = {
+			rounds: [
+				{ // Round 1
+					matches: [
+						{ participants: ['Joueur 1', 'Joueur 2'], position: { x: 0.1, y: 0.3 }, nextMatch: 0 },
+						{ participants: ['Joueur 3', 'Joueur 4'], position: { x: 0.1, y: 0.7 }, nextMatch: 0 }
+					]
+				},
+				{ // Finale
+					matches: [
+						{ participants: ['Vainqueur 1', 'Vainqueur 2'], position: { x: 0.5, y: 0.5 }, nextMatch: null }
+					]
+				},
+				{ // Gagnant
+					matches: [
+						{ participants: ['Champion'], position: { x: 0.9, y: 0.6 }, nextMatch: null }
+					]
+				}
+			]
+		};
+
+		this.roundsMidpoints = [];
 
 		this.init();
 	}
+
+	
 
 	handleBeforeUnload(event) {
         if (sessionStorage.getItem('programmaticNavigation') === 'true') {
@@ -119,10 +143,12 @@ class TournamentGame {
 		while (true) {
 			data = await this.loadEnd();
 			await sleep(500);
+			this.canvasTournament(data);
+			this.displayTournamentInfo(data);
 			if (oldData && data !== oldData) {
 				this.displayTournamentInfo(data);
-				
 				if (sessionStorage.getItem('finalDone') || data.winner.length > 0) {
+					console.log('end of tournament');
 					sessionStorage.removeItem('asWin');
 					sessionStorage.removeItem('inFinal');
 					sessionStorage.removeItem('tournament_code');
@@ -152,15 +178,14 @@ class TournamentGame {
 				}
 				else {
 					if (this.verifUserNeedPlay(data)){
+						console.log('need to play');
 						sessionStorage.setItem('programmaticNavigation', 'true');
 						router.navigateTo(`/onlinePong/?tournament=true`);
 						break;
 					}
 				}
 			}
-			else {
-				oldData = data;
-			}
+			oldData = data;
 			await sleep(1500);
 		}
 	}
@@ -198,6 +223,7 @@ class TournamentGame {
 	verifUserNeedPlay(data) {
 		return data.matches.some(match => {
 			if (match.winner === null) {
+				console.log('need to play');
 				return match.player1.id === user.id || match.player2.id === user.id;
 			}
 			return false;
@@ -224,57 +250,54 @@ class TournamentGame {
 		}
 	}
 
-	populatePlayers(data) {
-		const playersList = document.getElementById('players-list');
-		const finalistsList = document.getElementById('finalists-list');
-		const winnerList = document.getElementById('winner-list');
+	// populatePlayers(data) {
+	// 	const playersList = document.getElementById('players-list');
+	// 	const finalistsList = document.getElementById('finalists-list');
+	// 	const winnerList = document.getElementById('winner-list');
 	
-		playersList.innerHTML = '';
-		finalistsList.innerHTML = '';
-		winnerList.innerHTML = '';
+	// 	playersList.innerHTML = '';
+	// 	finalistsList.innerHTML = '';
+	// 	winnerList.innerHTML = '';
 	
-		data.players.forEach(player => {
-			const li = document.createElement('li');
-			li.textContent = player.username; 
-			playersList.appendChild(li);
-		});
-	
-		
-		data.finalists.forEach(finalist => {
-			const li = document.createElement('li');
-			li.textContent = finalist.username;
-			finalistsList.appendChild(li);
-		});
+	// 	data.players.forEach(player => {
+	// 		const li = document.createElement('li');
+	// 		li.textContent = player.username; 
+	// 		playersList.appendChild(li);
+	// 	});
 	
 		
-		data.winner.forEach(winner => {
-			const li = document.createElement('li');
-			li.textContent = winner.username;
-			winnerList.appendChild(li);
-		});
-	}
+	// 	data.finalists.forEach(finalist => {
+	// 		const li = document.createElement('li');
+	// 		li.textContent = finalist.username;
+	// 		finalistsList.appendChild(li);
+	// 	});
+	
+		
+	// 	data.winner.forEach(winner => {
+	// 		const li = document.createElement('li');
+	// 		li.textContent = winner.username;
+	// 		winnerList.appendChild(li);
+	// 	});
+	// }
 
 	displayTournamentInfo(data) {
-		
-		document.getElementById('tournamentCode').textContent = 
-			`Tournament Code: ${data.tournament_code}`;
-
+		console.debug(data);
 		if (data.players.length >= 4) {
-            document.getElementById('player1').textContent = data.matches[0].player1.pseudo;
-            document.getElementById('player2').textContent = data.matches[0].player2.pseudo;
-            document.getElementById('player3').textContent = data.matches[1].player1.pseudo;
-            document.getElementById('player4').textContent = data.matches[1].player2.pseudo;
+            document.getElementById('round0match0p0').textContent = data.matches[0].player1.pseudo;
+            document.getElementById('round0match0p1').textContent = data.matches[0].player2.pseudo;
+            document.getElementById('round0match1p0').textContent = data.matches[1].player1.pseudo;
+            document.getElementById('round0match1p1').textContent = data.matches[1].player2.pseudo;
         } else {
             console.error("Not enough players");
         }
 		if (data.finalists.length >= 2)
 		{
-			document.getElementById('winner1').textContent = data.matches[0].winner.pseudo;
-			document.getElementById('winner2').textContent = data.matches[1].winner.pseudo;
+			document.getElementById('round1match0p0').textContent = data.matches[0].winner.pseudo;
+			document.getElementById('round1match0p1').textContent = data.matches[1].winner.pseudo;
 		}
 		if (data.winner.length >= 1)
 		{
-				document.getElementById('finalwinner1').textContent = data.matches[2].winner.pseudo;
+			document.getElementById('round2match0p0').textContent = data.matches[2].winner.pseudo;
 		}
 	}
 
@@ -286,6 +309,140 @@ class TournamentGame {
 			</div>
 		`;
 	}
+
+	canvasTournament() {
+		const canvas = document.getElementById('tournament-canvas');
+		const ctx = canvas.getContext('2d');
+		const container = document.querySelector('.tournament-container');
+		
+		document.getElementById('tournamentCode').textContent = `Tournament Code: ${sessionStorage.tournament_code}`;
+		this.resizeCanvas(canvas, container);
+		
+		this.createParticipantElements(canvas, container);
+		
+		this.drawConnectingLines(ctx, canvas);
+
+		window.addEventListener('resize', () => {
+			this.resizeCanvas(canvas, container);
+			this.createParticipantElements(canvas, container);
+			this.drawConnectingLines(ctx, canvas);
+		});
+	}
+
+	resizeCanvas(canvas, container) {
+        canvas.width = container.offsetWidth;
+        canvas.height = container.offsetHeight;
+    }
+
+	drawLine(ctx, from, to) {
+		ctx.beginPath();
+		ctx.moveTo(from.x, from.y);
+		ctx.lineTo(to.x, to.y);
+		ctx.strokeStyle = '#ffffff';
+		ctx.lineWidth = 2;
+		ctx.stroke();
+	}
+
+	createParticipantElements(canvas, container) {
+        container.querySelectorAll('.participant').forEach(el => el.remove());
+        this.tournamentConfig.rounds.forEach((round, roundIndex) => {
+            this.roundsMidpoints[roundIndex] = [];
+            
+            round.matches.forEach((match, matchIndex) => {
+                // Création des éléments
+                match.participants.forEach((participant, pIndex) => {
+                    const el = document.createElement('div');
+                    el.className = 'participant';
+                    el.textContent = participant;
+					el.id = `round${roundIndex}match${matchIndex}p${pIndex}`;
+                    
+                    // Positionnement horizontal
+                    const x = match.position.x * canvas.width;
+                    const y = match.position.y * canvas.height  + (pIndex === 0 ? -40 : 40);
+                    
+                    el.style.left = x + 'px';
+                    el.style.top = y + 'px';
+                    container.appendChild(el);
+                });
+
+                // Calcul du midpoint
+                const midpoint = {
+                    x: match.position.x * canvas.width,
+                    y: match.position.y * canvas.height
+                };
+                this.roundsMidpoints[roundIndex][matchIndex] = midpoint;
+            });
+        });
+    }
+
+	drawConnectingLines(ctx, canvas) {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.strokeStyle = '#ffffff';
+		ctx.lineWidth = 2;
+	
+		// Coordonnées des matches (en proportion)
+		const round1Match1 = { 
+			x: this.tournamentConfig.rounds[0].matches[0].position.x * canvas.width, 
+			y: this.tournamentConfig.rounds[0].matches[0].position.y * canvas.height 
+		};
+		const round1Match2 = { 
+			x: this.tournamentConfig.rounds[0].matches[1].position.x * canvas.width, 
+			y: this.tournamentConfig.rounds[0].matches[1].position.y * canvas.height 
+		};
+		const finalMatch = { 
+			x: this.tournamentConfig.rounds[1].matches[0].position.x * canvas.width, 
+			y: this.tournamentConfig.rounds[1].matches[0].position.y * canvas.height 
+		};
+		const winner = { 
+			x: this.tournamentConfig.rounds[2].matches[0].position.x * canvas.width, 
+			y: this.tournamentConfig.rounds[2].matches[0].position.y * canvas.height 
+		};
+	
+		// 1. Lignes verticales entre participants
+		// Match 1 Round 1
+		this.drawLine(ctx, 
+			{ x: round1Match1.x, y: round1Match1.y - 40 },
+			{ x: round1Match1.x, y: round1Match1.y + 40 }
+		);
+		// Match 2 Round 1
+		this.drawLine(ctx, 
+			{ x: round1Match2.x, y: round1Match2.y - 40 },
+			{ x: round1Match2.x, y: round1Match2.y + 40 }
+		);
+		// Finale
+		this.drawLine(ctx, 
+			{ x: finalMatch.x, y: finalMatch.y - 40 },
+			{ x: finalMatch.x, y: finalMatch.y + 40 }
+		);
+	
+		// 2. Connexions entre rounds
+		// Round 1 Match 1 -> Finale
+		this.drawLine(ctx, round1Match1, { x: (round1Match1.x + finalMatch.x)/2, y: round1Match1.y });
+		this.drawLine(ctx, 
+			{ x: (round1Match1.x + finalMatch.x)/2, y: round1Match1.y },
+			{ x: (round1Match1.x + finalMatch.x)/2, y: finalMatch.y }
+		);
+		this.drawLine(ctx, 
+			{ x: (round1Match1.x + finalMatch.x)/2, y: finalMatch.y },
+			finalMatch
+		);
+	
+		// Round 1 Match 2 -> Finale
+		this.drawLine(ctx, round1Match2, { x: (round1Match2.x + finalMatch.x)/2, y: round1Match2.y });
+		this.drawLine(ctx, 
+			{ x: (round1Match2.x + finalMatch.x)/2, y: round1Match2.y },
+			{ x: (round1Match2.x + finalMatch.x)/2, y: finalMatch.y }
+		);
+		this.drawLine(ctx, 
+			{ x: (round1Match2.x + finalMatch.x)/2, y: finalMatch.y },
+			finalMatch
+		);
+	
+		// 3. Finale -> Gagnant (ligne directe)
+		
+		this.drawLine(ctx, finalMatch, { x: winner.x, y: winner.y - 40});
+	}
+	
 }
 
 

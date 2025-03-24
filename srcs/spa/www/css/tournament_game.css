@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 body {
     position: relative;
@@ -175,4 +176,32 @@ body::before {
   text-transform: uppercase;
   text-decoration: none;
   margin: 0 5px;
+}
+
+
+.tournament-container {
+  width: 100%;
+  height: 400px;
+  position: relative;
+  margin: 50px auto;
+}
+
+#tournament-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.participant {
+  position: absolute;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #000;
+  border-radius: 5px;
+  text-align: center;
+  min-width: 120px;
+  cursor: pointer;
+  z-index: 2;
+  color: black;
+  transform: translate(-50%, -50%);
 }

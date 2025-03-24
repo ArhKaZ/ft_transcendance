@@ -38,7 +38,7 @@ const goToTournament = async (username) => {
 	const response = await api_get_profile(username);		
 	const data = await response.json();
 	if (data.code_current_tournament && !data.tournament_start)
-		router.navigateTo('/tournament');
+		router.navigateTo('/tournament/');
 	else if (!data.is_in_tournament || data.tournament_start){
 		const action = document.getElementById('action-container');
 		const profileHeader = document.getElementById('profile-header');
