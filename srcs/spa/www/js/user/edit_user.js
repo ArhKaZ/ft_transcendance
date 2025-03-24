@@ -54,6 +54,11 @@ document.getElementById('erase-button').addEventListener('click', async () => {
 				credentials: 'include',
 			});
 			sessionStorage.removeItem('access_token');
+			sessionStorage.removeItem('refresh_token');
+			sessionStorage.removeItem('access_expires');
+			sessionStorage.removeItem('refresh_expires');
+			sessionStorage.removeItem('username');
+			sessionStorage.removeItem('is_oauth');
 
 			if (response.ok) {
 			} else {
