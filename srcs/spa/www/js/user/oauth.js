@@ -1,5 +1,9 @@
 import { router } from '../router.js';
 
+export async function init() {
+    handle42OAuthCallback();
+}
+
 export function redirectTo42OAuth()
 {
     const clientId = 'u-s4t2ud-c3aad960cd36ac0f5ca04a7d2780e4d8f1dbc27481baec5b5cb571eceb694a81';
@@ -35,6 +39,7 @@ export function handle42OAuthCallback()
         router.navigateTo('/home/');
     }
 }
+
 
 function generateRandomString(length = 32)
 {

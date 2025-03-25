@@ -4,6 +4,7 @@ class Router {
       this.rootElement = document.getElementById('app');
       this.currentAssets = { scripts: [], styles: [] };
       this.publicPaths = ['/home/', '/user/login/', '/user/add/', '/oauth_callback/'];
+      this.scriptCache = new Map();
       window.addEventListener('popstate', this.handleLocation.bind(this));
       this.initLinks();
     }
@@ -35,7 +36,7 @@ class Router {
     }
   
     async loadRoute(route) {
-      // 1. Clear old assets
+      // 1. Clear old assets (only styles now, scripts are managed via cache)
       this.clearAssets();
     
       // 2. Load HTML
@@ -54,23 +55,33 @@ class Router {
         });
       }
     
-      // 4. Load JS (unchanged)
+      // 4. Load JS using dynamic imports and cache
       if (route.js) {
         const scripts = Array.isArray(route.js) ? route.js : [route.js];
-        scripts.forEach(src => {
-          const script = document.createElement('script');
-          script.src = src;
-          script.type = 'module';
-          document.body.appendChild(script);
-          this.currentAssets.scripts.push(script);
-        });
+        for (const src of scripts) {
+          try {
+            let modulePromise;
+            if (!this.scriptCache.has(src)) {
+              modulePromise = import(src);
+              this.scriptCache.set(src, modulePromise);
+            } else {
+              modulePromise = this.scriptCache.get(src);
+            }
+            const module = await modulePromise;
+            if (typeof module.init === 'function') {
+              await module.init(); // Execute init function every time
+            }
+          } catch (error) {
+            console.error(`Error loading script: ${src}`, error);
+          }
+        }
       }
     }
   
     clearAssets() {
-      this.currentAssets.scripts.forEach(script => script.remove());
+      // Only clear styles; scripts are managed by the cache
       this.currentAssets.styles.forEach(style => style.remove());
-      this.currentAssets = { scripts: [], styles: [] };
+      this.currentAssets.styles = [];
     }
   
     resolveRoute(path) {
@@ -136,7 +147,7 @@ class Router {
     // Game Routes
     '/game/': {
       html: '/html/game/game.html',
-      css: '/css/game.css',
+      css: '/css/global.css',
       js: '/js/game.js'
     },
     '/pong/': {
