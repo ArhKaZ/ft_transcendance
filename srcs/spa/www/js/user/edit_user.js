@@ -20,7 +20,7 @@ document.getElementById('userForm').addEventListener('submit', async function(ev
 		
 		if (response.ok) {
 			displayMessage(data.message, 'success');
-			setTimeout(() => router.navigateTo('/home/'), 2000);
+			setTimeout(() => router.navigateTo('/home/'), 1400);
 		} else {
 			let errorMessage = 'An error occurred';
 			if (data.error) {

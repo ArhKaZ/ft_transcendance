@@ -126,40 +126,49 @@ button {
     justify-content: center;
 }
 
-.add-friend-icon {
-    width: 32px;
-    height: 32px;
+.friends-icon {
     cursor: pointer;
     transition: transform 0.2s ease-in-out;
     position: absolute;
-    top: 0;
-    right: -40px;
+
 }
 
 #remove-friend-btn {
-    display: none;
-}
-
-.remove-friend-icon {
     width: 32px;
     height: 32px;
-    cursor: pointer;
-    transition: transform 0.2s ease-in-out;
-    position: absolute;
-    top: 0;
+    display: none;
     left: -40px;
+    top: 0;
 }
 
+#add-friend-btn {
+    width: 32px;
+    height: 32px;
+    right: -40px;
+    top: 0;
+}
 
-.add-friend-icon.disabled {
+#modif-btn {
+    width: 25px;
+    height: 25px;
+    display: none;
+    top: 70%;
+    right: 10px;
+    background-color: white;
+    border-radius: 50%;
+}
+
+.friends-icon.disabled {
     cursor: default;
     opacity: 0.6;
     transform: none;
 }
 
-.add-friend-icon:hover {
+.friends-icon:hover {
     transform: scale(1.1);
 }
+
+
 
 #user-avatar {
     width: 100px;

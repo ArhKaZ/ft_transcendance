@@ -44,7 +44,7 @@ document.getElementById('logout-button').addEventListener('click', async () => {
 });
 
 document.getElementById('user-avatar').addEventListener('click', () => {
-    router.navigateTo("/user/edit_user/");
+    router.navigateTo(`/user/profile/${sessionStorage.getItem('username')}`);
 });
 
 await ensureValidToken();
@@ -66,13 +66,10 @@ if (response.ok) {
 	const bottomBtns = document.getElementById('bottom-buttons');
 	const oauthbtn = document.getElementById('oauth-button');
 
-
-
 	bottomBtns.style.display = 'flex';
 	loginbtn.style.display = 'none';
 	registerbtn.style.display = 'none';
 	oauthbtn.style.display = 'none';
-
 
 	const welcomemsg = document.getElementById('welcome-msg');
 	welcomemsg.innerText = `Welcome, ${data.username} !`;
@@ -86,20 +83,14 @@ if (response.ok) {
 
 } else {
 	const bottomBtns = document.getElementById('bottom-buttons')
-	
 	const gamebtn = document.getElementById('Game-button');
 	const gamblingbtn = document.getElementById('gambling-button');
 	const historybtn = document.getElementById('history-button');
 	const logoutbtn = document.getElementById('logout-button');
-
-	
-	
-
-
 	const friendsbtn = document.getElementById('friend-button');
 	const avatarImg = document.getElementById('user-avatar');
-
 	const userInfo = document.querySelector('.user-info');
+
     userInfo.style.display = 'none';
 	searchButton.style.display = 'none';
 	searchInput.style.display = 'none';
@@ -115,13 +106,8 @@ if (response.ok) {
 	avatarImg.style.display = 'none';
 	searchContainer.style.display = 'none';
 	friendSearchContainer.style.display = 'none';
-
-
-
-	
 	console.error('Error while fetching informations :', response);
 }
-
 
 
 searchButton.addEventListener('click', async () => {

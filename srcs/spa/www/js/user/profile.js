@@ -140,7 +140,6 @@ async function fetch_user() {
 		await ensureValidToken();
 		const response = await api_get_profile(userName);		
 		const data = await response.json();
-		// console.debug(data);
 		document.getElementById('username').textContent = data.username;
 		document.getElementById('user-pseudo').textContent = data.pseudo;
 		document.getElementById('ligue-points').textContent = data.ligue_points;
@@ -149,6 +148,13 @@ async function fetch_user() {
 		document.getElementById('user-wins').textContent = data.wins;
 		document.getElementById('user-looses').textContent = data.looses;
 		
+		if (data.username === sessionStorage.getItem('username')) {
+			const modifBtn = document.getElementById('modif-btn');
+			modifBtn.style.display = 'block';
+			modifBtn.onclick = () => router.navigateTo('/user/edit_user/')	
+		}
+
+
 		await updateFriendButton(userName);
 
 		const wins = parseInt(data.wins, 10) || 0;
