@@ -1,25 +1,135 @@
-import { sleep } from '../utils.js';
-import { getCSRFToken } from '../utils.js';
-import { ensureValidToken, getUserFromBack } from '/js/utils.js';
+import { sleep, getCSRFToken, ensureValidToken, getUserFromBack } from '/js/utils.js';
 import { router } from '../router.js';
 
-let user = null;
-
 class TournamentGame {
-	constructor() {
-		this.tournamentCode = window.location.pathname.split('/').filter(Boolean)[2];
-		this.players = [];
-		this.currentPlayer;
-		this.quitButton = document.getElementById('quit-button');
-		this.messageDiv = document.getElementById('messageDiv');
-		document.getElementById('quit-button').addEventListener('click', () => this.quitTournament());
-		window.addEventListener('beforeunload', this.handleBeforeUnload.bind(this));
-        window.addEventListener('popstate', this.handlePopState.bind(this));
+    constructor() {
+        this.tournamentCode = window.location.pathname.split('/').filter(Boolean)[2];
+        this.players = [];
+        this.currentPlayer = null;
+        this.pollingInterval = null;
+        this.cleanupFunctions = [];
+    }
 
-		this.init();
-	}
+    async init() {
+        try {
+            this.setupElements();
+            this.setupEventListeners();
+            
+            user = await getUserFromBack();
+            sessionStorage.setItem('tournament_code', this.tournamentCode);
 
-	handleBeforeUnload(event) {
+            if (await this.checkLeft(this.tournamentCode)) {
+                this.cleanupAndNavigate('/home/');
+                return;
+            }
+
+            await this.startTournamentPolling();
+        } catch (error) {
+            console.error("Initialization error:", error);
+            this.displayError("Failed to initialize tournament");
+        }
+    }
+
+    setupElements() {
+        this.quitButton = document.getElementById('quit-button');
+        this.messageDiv = document.getElementById('messageDiv');
+    }
+
+    setupEventListeners() {
+        const handleQuit = () => this.quitTournament();
+        const handleBeforeUnload = (event) => this.handleBeforeUnload(event);
+        const handlePopState = (event) => this.handlePopState(event);
+
+        if (this.quitButton) {
+            this.quitButton.addEventListener('click', handleQuit);
+            this.cleanupFunctions.push(() => 
+                this.quitButton.removeEventListener('click', handleQuit)
+            );
+        }
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        this.cleanupFunctions.push(() => 
+            window.removeEventListener('beforeunload', handleBeforeUnload)
+        );
+
+        window.addEventListener('popstate', handlePopState);
+        this.cleanupFunctions.push(() => 
+            window.removeEventListener('popstate', handlePopState)
+        );
+    }
+
+    cleanup() {
+        this.stopTournamentPolling();
+        this.cleanupFunctions.forEach(fn => fn());
+        this.cleanupFunctions = [];
+    }
+
+    async startTournamentPolling() {
+        let oldData = null;
+        
+        this.pollingInterval = setInterval(async () => {
+            try {
+                const data = await this.loadEnd();
+                
+                if (oldData && JSON.stringify(data) !== JSON.stringify(oldData)) {
+                    this.displayTournamentInfo(data);
+                    
+                    if (sessionStorage.getItem('finalDone') || data.winner?.length > 0) {
+                        await this.handleTournamentEnd(data);
+                        return;
+                    }
+                    else if (data.finalists?.length > 0) {
+                        if (await this.verifUserInFinal(data)) {
+                            this.cleanupAndNavigate('/onlinePong/?tournament=true');
+                            return;
+                        }
+                    }
+                    else if (this.verifUserNeedPlay(data)) {
+                        this.cleanupAndNavigate('/onlinePong/?tournament=true');
+                        return;
+                    }
+                }
+                
+                oldData = data;
+            } catch (error) {
+                console.error("Polling error:", error);
+                this.stopTournamentPolling();
+            }
+        }, 1500);
+    }
+
+    stopTournamentPolling() {
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+            this.pollingInterval = null;
+        }
+    }
+
+    async handleTournamentEnd(data) {
+        this.stopTournamentPolling();
+        
+        if (data.winner[0]?.id === user.id) {
+            await this.recordMatch();
+        }
+        
+        this.cleanupSessionStorage();
+        this.cleanupAndNavigate('/home/');
+    }
+
+    cleanupSessionStorage() {
+        ['asWin', 'tournament_code', 'finalDone', 'inFinal'].forEach(key => {
+            sessionStorage.removeItem(key);
+        });
+    }
+
+    cleanupAndNavigate(path) {
+        sessionStorage.setItem('programmaticNavigation', 'true');
+        this.cleanup();
+        router.navigateTo(path);
+    }
+
+    /* Méthodes existantes restructurées */
+    handleBeforeUnload(event) {
         if (sessionStorage.getItem('programmaticNavigation') === 'true') {
             sessionStorage.removeItem('programmaticNavigation');
             return;
@@ -31,7 +141,7 @@ class TournamentGame {
     }
 
     syncForfeit() {
-		ensureValidToken();
+        ensureValidToken();
         const url = `/api/forfeit_tournament/${this.tournamentCode}/`;
         const xhr = new XMLHttpRequest();
         xhr.open('POST', url, false);
@@ -50,243 +160,168 @@ class TournamentGame {
         this.quitTournament();
     }
 
-	async checkLeft(tournamentCode) {
-		try {
-			await ensureValidToken();
-			const response = await fetch(`/api/tournament/${tournamentCode}/check_left/`, {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': getCSRFToken(),
-					'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-				},
-				credentials: 'include',
-			});
-	
-			if (!response.ok) {
-				throw new Error('Failed to check left status');
-			}
-	
-			const data = await response.json();
-			return data.is_left;
-	
-		} catch (error) {
-			console.error('Error checking left status:', error);
-			return false;
-		}
-	}
+    async checkLeft(tournamentCode) {
+        try {
+            await ensureValidToken();
+            const response = await fetch(`/api/tournament/${tournamentCode}/check_left/`, {
+                method: 'GET',
+                headers: this.getAuthHeaders()
+            });
+    
+            if (!response.ok) {
+                throw new Error('Failed to check left status');
+            }
+    
+            const data = await response.json();
+            return data.is_left;
+    
+        } catch (error) {
+            console.error('Error checking left status:', error);
+            return false;
+        }
+    }
 
-	async quitTournament() {
-		
-		if (!this.tournamentCode) {
-			console.error("No tournament code available");
-			router.navigateTo('/home/');
-			return;
-		}
-		sessionStorage.removeItem('asWin');
-		sessionStorage.removeItem('tournament_code');
-		sessionStorage.removeItem('finalDone');
-		sessionStorage.removeItem('inFinal');
-		
-		try {
-			await ensureValidToken();
-			const response = await fetch(`/api/forfeit_tournament/${this.tournamentCode}/`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': getCSRFToken(),
-					'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-				},
-				credentials: 'include',
-			});
-		} catch (error) {
-			console.error("Error in forfeit API call:", error);
-		} finally {
-			sessionStorage.setItem('programmaticNavigation', 'true');
-            router.navigateTo('/home/');
-		}
-	}
+    async quitTournament() {
+        if (!this.tournamentCode) {
+            console.error("No tournament code available");
+            this.cleanupAndNavigate('/home/');
+            return;
+        }
+        
+        try {
+            await ensureValidToken();
+            await fetch(`/api/forfeit_tournament/${this.tournamentCode}/`, {
+                method: 'POST',
+                headers: this.getAuthHeaders()
+            });
+        } catch (error) {
+            console.error("Error in forfeit API call:", error);
+        } finally {
+            this.cleanupSessionStorage();
+            this.cleanupAndNavigate('/home/');
+        }
+    }
 
-	async init() {
-		user = await getUserFromBack();
-		sessionStorage.setItem('tournament_code', this.tournamentCode);
-		let oldData = null;
-		let data = null
-		if (this.checkLeft(this.tournamentCode) == true) {
-			sessionStorage.setItem('programmaticNavigation', 'true');
-			router.navigateTo('/home/');
-		}
-		while (true) {
-			data = await this.loadEnd();
-			await sleep(500);
-			if (oldData && data !== oldData) {
-				this.displayTournamentInfo(data);
-				
-				if (sessionStorage.getItem('finalDone') || data.winner.length > 0) {
-					sessionStorage.removeItem('asWin');
-					sessionStorage.removeItem('inFinal');
-					sessionStorage.removeItem('tournament_code');
-					sessionStorage.removeItem('finalDone');
-					sessionStorage.setItem('programmaticNavigation', 'true');
-					if (data.winner[0].id === user.id) {
-						try {
-							await ensureValidToken();
-							const response = await fetch(`/api/record_match/${this.tournamentCode}/`, {
-								method: 'POST',
-								headers: {
-									'Content-Type': 'application/json',
-									'X-CSRFToken': getCSRFToken(),
-									'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-								},
-								credentials: 'include',
-							});
-						} catch (error) {
-							console.error("Error in record_match API call:", error);
-						}
-					}
-					return;
-				}
-				else if (data.finalists.length > 0) {
-					if (await this.verifUserInFinal(data))
-						break;
-				}
-				else {
-					if (this.verifUserNeedPlay(data)){
-						sessionStorage.setItem('programmaticNavigation', 'true');
-						router.navigateTo(`/onlinePong/?tournament=true`);
-						break;
-					}
-				}
-			}
-			else {
-				oldData = data;
-			}
-			await sleep(1500);
-		}
-	}
+    async loadEnd() {
+        const response = await fetch(`/api/tournament/${this.tournamentCode}/end_players/`, {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load tournament data');
+        }
+        return await response.json();
+    }
 
-	async verifUserInFinal(data) {
-		let isFinalist = false;
-		let canPlay = true;
-		for (const finalist of data.finalists) {
-			if (finalist.id === user.id) {
-				isFinalist = true;
-				break;
-			}
-		}
-		if (isFinalist === false)
-			return false;
-		else if (isFinalist === true) {
-			for (const match of data.matches) {
-				if (match.is_final)
-					continue;
-				if (match.winner == null && match.score == null) {
-					canPlay = false;
-					break;
-				}
-			}
-		}
-		if (canPlay) {
-			sessionStorage.setItem('inFinal', true);
-			sessionStorage.setItem('programmaticNavigation', 'true');
-			router.navigateTo(`/onlinePong/?tournament=true`);
-			return true;
-		}
-		return false;
-	}
+    async verifUserInFinal(data) {
+        const isFinalist = data.finalists.some(finalist => finalist.id === user.id);
+        if (!isFinalist) return false;
 
-	verifUserNeedPlay(data) {
-		return data.matches.some(match => {
-			if (match.winner === null) {
-				return match.player1.id === user.id || match.player2.id === user.id;
-			}
-			return false;
-		});
-	}
+        const canPlay = data.matches.every(match => {
+            if (match.is_final) return true;
+            return match.winner != null || match.score != null;
+        });
 
-	async loadEnd() {
-		try {
-			await ensureValidToken();
-			const response = await fetch(`/api/tournament/${this.tournamentCode}/end_players/`, {
-				headers: {
-					'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
-				}
-			});
-			
-			if (!response.ok) {
-				throw new Error('Failed to load tournament data');
-			}
-			const data = await response.json();
-			return data;
-		} catch (error) {
-			this.displayError('Error loading tournament data');
-			console.error('Error:', error);
-		}
-	}
+        if (canPlay) {
+            sessionStorage.setItem('inFinal', 'true');
+            return true;
+        }
+        return false;
+    }
 
-	populatePlayers(data) {
-		const playersList = document.getElementById('players-list');
-		const finalistsList = document.getElementById('finalists-list');
-		const winnerList = document.getElementById('winner-list');
-	
-		playersList.innerHTML = '';
-		finalistsList.innerHTML = '';
-		winnerList.innerHTML = '';
-	
-		data.players.forEach(player => {
-			const li = document.createElement('li');
-			li.textContent = player.username; 
-			playersList.appendChild(li);
-		});
-	
-		
-		data.finalists.forEach(finalist => {
-			const li = document.createElement('li');
-			li.textContent = finalist.username;
-			finalistsList.appendChild(li);
-		});
-	
-		
-		data.winner.forEach(winner => {
-			const li = document.createElement('li');
-			li.textContent = winner.username;
-			winnerList.appendChild(li);
-		});
-	}
+    verifUserNeedPlay(data) {
+        return data.matches.some(match => {
+            return match.winner === null && 
+                  (match.player1.id === user.id || match.player2.id === user.id);
+        });
+    }
 
-	displayTournamentInfo(data) {
-		
-		document.getElementById('tournamentCode').textContent = 
-			`Tournament Code: ${data.tournament_code}`;
+    async recordMatch() {
+        try {
+            await ensureValidToken();
+            await fetch(`/api/record_match/${this.tournamentCode}/`, {
+                method: 'POST',
+                headers: this.getAuthHeaders()
+            });
+        } catch (error) {
+            console.error("Error in record_match API call:", error);
+        }
+    }
 
-		if (data.players.length >= 4) {
+    populatePlayers(data) {
+        const populateList = (selector, items) => {
+            const list = document.getElementById(selector);
+            if (list) {
+                list.innerHTML = items.map(item => 
+                    `<li>${item.username}</li>`
+                ).join('');
+            }
+        };
+
+        populateList('players-list', data.players);
+        populateList('finalists-list', data.finalists);
+        populateList('winner-list', data.winner);
+    }
+
+    displayTournamentInfo(data) {
+        document.getElementById('tournamentCode').textContent = 
+            `Tournament Code: ${data.tournament_code}`;
+
+        if (data.players.length >= 4) {
             document.getElementById('player1').textContent = data.matches[0].player1.pseudo;
             document.getElementById('player2').textContent = data.matches[0].player2.pseudo;
             document.getElementById('player3').textContent = data.matches[1].player1.pseudo;
             document.getElementById('player4').textContent = data.matches[1].player2.pseudo;
-        } else {
-            console.error("Not enough players");
         }
-		if (data.finalists.length >= 2)
-		{
-			document.getElementById('winner1').textContent = data.matches[0].winner.pseudo;
-			document.getElementById('winner2').textContent = data.matches[1].winner.pseudo;
-		}
-		if (data.winner.length >= 1)
-		{
-				document.getElementById('finalwinner1').textContent = data.matches[2].winner.pseudo;
-		}
-	}
 
-	displayError(message) {
-		const container = document.querySelector('.tournament-container');
-		container.innerHTML = `
-			<div class="error-message">
-				<p>${message}</p>
-			</div>
-		`;
-	}
+        if (data.finalists.length >= 2) {
+            document.getElementById('winner1').textContent = data.matches[0].winner.pseudo;
+            document.getElementById('winner2').textContent = data.matches[1].winner.pseudo;
+        }
+
+        if (data.winner.length >= 1) {
+            document.getElementById('finalwinner1').textContent = data.matches[2].winner.pseudo;
+        }
+    }
+
+    displayError(message) {
+        const container = document.querySelector('.tournament-container');
+        if (container) {
+            container.innerHTML = `
+                <div class="error-message">
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+    }
+
+    getAuthHeaders(contentType = 'application/json') {
+        const headers = {
+            'X-CSRFToken': getCSRFToken(),
+            'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+        };
+
+        if (contentType) {
+            headers['Content-Type'] = contentType;
+        }
+
+        return headers;
+    }
 }
 
+// Interface pour le SPA
+let tournamentGame;
 
-new TournamentGame();
+export async function init() {
+    tournamentGame = new TournamentGame();
+    await tournamentGame.init();
+}
+
+export async function cleanup() {
+    if (tournamentGame) {
+        tournamentGame.cleanup();
+        tournamentGame = null;
+    }
+}
