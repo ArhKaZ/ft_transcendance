@@ -1,7 +1,29 @@
 import { router } from '../router.js';
 
+let cleanupFunctions = [];
+
 export async function init() {
-    handle42OAuthCallback();
+    if (window.location.pathname === '/oauth_callback/') {
+        handle42OAuthCallback();
+    }
+
+    const oauthButton = document.getElementById('oauth-button');
+    if (oauthButton) {
+        const handleOAuthClick = (e) => {
+            e.preventDefault();
+            redirectTo42OAuth();
+        };
+        
+        oauthButton.addEventListener('click', handleOAuthClick);
+        cleanupFunctions.push(() => {
+            oauthButton.removeEventListener('click', handleOAuthClick);
+        });
+    }
+
+    return () => {
+        cleanupFunctions.forEach(fn => fn());
+        cleanupFunctions = [];
+    };
 }
 
 export function redirectTo42OAuth()
