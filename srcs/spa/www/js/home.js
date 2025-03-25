@@ -174,5 +174,8 @@ export async function init() {
 		});
 	}
 
-	return () => cleanupFunctions.forEach(fn => fn());
+	return () => {
+        cleanupFunctions.forEach(fn => fn());
+        cleanupFunctions = [];
+    };
 }

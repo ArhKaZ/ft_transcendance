@@ -2,21 +2,35 @@ import { getCSRFToken } from '/js/utils.js';
 import { ensureValidToken } from '/js/utils.js';
 import { router } from '../router.js';
 
+let cleanupFunctions = [];
 
 export async function init() {
-	var loginbtn = document.getElementById('login-button');
+    const loginbtn = document.getElementById('login-button');
+    const returnButton = document.getElementById('return-button');
 
-	if (loginbtn) {
-		loginbtn.addEventListener('click', async function (event) {
-			event.preventDefault();
-			await loginUser();
-		});
-	}
+    const handleLogin = async (event) => {
+        event.preventDefault();
+        await loginUser();
+    };
 
-	document.getElementById('return-button').addEventListener('click', () => {
-		router.navigateTo('/home/');
-	});
+    const handleReturn = () => {
+        router.navigateTo('/home/');
+    };
 
+    if (loginbtn) {
+        loginbtn.addEventListener('click', handleLogin);
+        cleanupFunctions.push(() => loginbtn.removeEventListener('click', handleLogin));
+    }
+
+    if (returnButton) {
+        returnButton.addEventListener('click', handleReturn);
+        cleanupFunctions.push(() => returnButton.removeEventListener('click', handleReturn));
+    }
+
+    return () => {
+        cleanupFunctions.forEach(fn => fn());
+        cleanupFunctions = [];
+    };
 }
 
 export async function loginUser() {
