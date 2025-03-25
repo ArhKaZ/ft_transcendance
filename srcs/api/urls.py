@@ -14,6 +14,7 @@ urlpatterns = [
     path('remove_friend/', views.remove_friend),
 	path('get_friends/', views.get_friends),
 	path('get_pending_friends/', views.get_pending_friends),
+    path('get_pending_friends_another/<str:userName>/', views.get_pending_friends_another),
 	path('join_tournament/', views.join_tournament),
 	path('token/refresh/', views.refresh_token),
 	path('create_tournament/', views.create_tournament),

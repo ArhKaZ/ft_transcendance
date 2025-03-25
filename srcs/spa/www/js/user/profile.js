@@ -84,13 +84,13 @@ async function isUserFriend(userName) {
 async function isFriendRequestPending(userName) {
 	try {
 		await ensureValidToken();
-		const response = await fetch('/api/get_pending_friends/', {
+		const response = await fetch(`/api/get_pending_friends_another/${userName}/`, {
 			method: 'GET',
 			headers: {
 				'Content-type': 'application/json',
 				'X-CSRFToken': getCSRFToken(),
 				'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-			}
+			},
 		});
 
 		if (!response.ok) {
@@ -101,13 +101,13 @@ async function isFriendRequestPending(userName) {
 		const data = await response.json();
 		console.debug(data);
 		if (!Array.isArray(data)) {
-			console.error("Incorrect format for pending firends:", data);
+			console.error("Incorrect format for pending friends:", data);
 			return false;
 		}
 
 		const currentUser = sessionStorage.getItem('username');
 		
-		return data.some(request => request.sender === currentUser && request.receiver === userName);
+		return data.some(user => user.username === currentUser);
 	} catch (error) {
 		console.error("Failed to fetch pending friend requests", error);
 		return false;
@@ -149,7 +149,7 @@ async function fetch_user() {
 		document.getElementById('user-wins').textContent = data.wins;
 		document.getElementById('user-looses').textContent = data.looses;
 		
-		updateFriendButton(userName);
+		await updateFriendButton(userName);
 
 		const wins = parseInt(data.wins, 10) || 0;
 		const looses = parseInt(data.looses, 10) || 0;
@@ -226,10 +226,6 @@ function addListener(button, data) {
 
 async function removeFriend(userName) {
 	const removeFriendBtn = document.getElementById('remove-friend-btn');
-
-	removeFriendBtn.style.display = 'none';
-	removeFriendBtn.onclick = null;
-
 	try {
 		await ensureValidToken();
 		const response = await fetch('/api/remove_friend/', {
@@ -243,8 +239,9 @@ async function removeFriend(userName) {
 		});
 
 		if (response.ok) {
-			// sessionStorage.removeItem(`friendRequest_${userName}`, "pending");
-			// window.location.reload();
+			removeFriendBtn.style.display = 'none';
+			removeFriendBtn.onclick = null;
+			await updateFriendButton(userName);
 			return;
 		} else {
 			const data = await response.json();
@@ -257,12 +254,6 @@ async function removeFriend(userName) {
 
 async function addFriend(userName) {
 	const addFriendBtn = document.getElementById('add-friend-btn');
-
-	addFriendBtn.src = "/css/ico/friend_pending_ico.png";
-	addFriendBtn.classList.add("disabled");
-	addFriendBtn.onclick = null;
-
-	// sessionStorage.setItem(`friendRequest_${userName}`, "pending");
 
 	try {
 		await ensureValidToken();
@@ -277,7 +268,7 @@ async function addFriend(userName) {
 		});
 
 		if (response.ok) {
-			// window.location.reload();
+			await updateFriendButton(userName);
 			return;
 		} else {
 			const data = await response.json();
@@ -297,8 +288,6 @@ async function updateFriendButton(userName) {
 		return;
 	}
 
-	// const wasPending = sessionStorage.getItem(`friendRequest_${userName}`) === "pending";
-
 	const isFriend = await isUserFriend(userName);
 	const isPending = await isFriendRequestPending(userName);
 	console.debug(isPending);
@@ -307,7 +296,6 @@ async function updateFriendButton(userName) {
 		removeFriendBtn.style.display = 'block';
 		removeFriendBtn.onclick = () => removeFriend(userName);
 	}
-	// if (wasPending || isFriend || isPending) {
 	if (isFriend || isPending) {
 		addFriendBtn.src = isFriend ? "/css/ico/friend_added_ico.png" : "/css/ico/friend_pending_ico.png";
 		addFriendBtn.classList.add("disabled");
