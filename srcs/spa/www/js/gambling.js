@@ -7,11 +7,26 @@ const token1 = document.getElementById('token1');
 const token2 = document.getElementById('token2');
 const token3 = document.getElementById('token3');
 
-token1.addEventListener('click', () => handleTokenClick(1));
-token2.addEventListener('click', () => handleTokenClick(2));
-token3.addEventListener('click', () => handleTokenClick(3));
+token1.addEventListener('click', async () => handleTokenClick(1));
+token2.addEventListener('click', async () => handleTokenClick(2));
+token3.addEventListener('click', async () => handleTokenClick(3));
 
-function handleTokenClick(tokenNumber) {
+function resetTokens() {
+    isTokenClicked = false;
+    
+    // Réactiver tous les tokens
+    [token1, token2, token3].forEach(token => {
+        token.style.pointerEvents = 'auto';
+        const tokenElement = token.querySelector('.token');
+        tokenElement.classList.remove('flipped');
+    });
+}
+
+// Ajoutez l'écouteur d'événement pour le bouton Reset
+document.getElementById('reset-button').addEventListener('click', resetTokens);
+
+
+async function handleTokenClick(tokenNumber) {
     if (isTokenClicked) return;
     isTokenClicked = true;
     
@@ -30,9 +45,25 @@ function handleTokenClick(tokenNumber) {
         
         // Show modal after all tokens have flipped (add 1 second for animation)
         setTimeout(() => showBadgeModal(tokenNumber), 1000);
-    }, 3000);
+    }, 1500);
 
-    returnToken(tokenNumber);
+    await returnToken(tokenNumber);
+    const badgeName = document.getElementById(`imgtokenback${tokenNumber}`).alt;
+    await ensureValidToken();
+    const response2 = await fetch('/api/add_badge/', {
+        method: 'POST',
+        headers: {
+            'Content-type': 'application/json',
+            'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+        },
+        body: JSON.stringify({
+            'badge_name': badgeName
+        })
+    });
+    if (response2.ok) {
+        console.log('Badge added to user');
+    }
+    
 }   
 
 function flipToken(tokenNumber) {
@@ -46,7 +77,7 @@ function flipToken(tokenNumber) {
     });
 }
 
-async function showBadgeModal(tokenNumber) {
+function showBadgeModal(tokenNumber) {
     const badgeImage = document.getElementById(`imgtokenback${tokenNumber}`).src;
     const badgeName = document.getElementById(`imgtokenback${tokenNumber}`).alt;
     
@@ -110,21 +141,6 @@ async function showBadgeModal(tokenNumber) {
     modal.appendChild(modalContent);
     
     document.body.appendChild(modal);
-
-    await ensureValidToken();
-    const response2 = await fetch('/api/add_badge/', {
-        method: 'POST',
-        headers: {
-            'Content-type': 'application/json',
-            'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-        },
-        body: JSON.stringify({
-            'badge_name': badgeName
-        })
-    });
-    if (response2.ok) {
-        console.log('Badge added to user');
-    }
 }
 
 async function returnToken(token_number) {

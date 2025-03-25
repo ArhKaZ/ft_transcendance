@@ -940,10 +940,18 @@ def change_active_badge(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated]) #liste les 3 badges actifs sur le profil
-def list_active_badge(request):
-	user = request.user
-	actives_badges = Badge.objects.filter(name__in=user.active_badge)
-	active_badge_data = BadgeSerializer(actives_badges, many=True).data
-	return Response({"actives_badges": active_badge_data}, status=status.HTTP_200_OK)
+def list_active_badge(request, username=None):
+	try:
+		# Si username est fourni, on récupère les badges de cet utilisateur
+		if username:
+			user = MyUser.objects.get(username=username)
+		else:
+			user = request.user
+
+		actives_badges = Badge.objects.filter(name__in=user.active_badge)
+		active_badge_data = BadgeSerializer(actives_badges, many=True).data
+		return Response({"actives_badges": active_badge_data}, status=status.HTTP_200_OK)
+	except MyUser.DoesNotExist:
+		return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
