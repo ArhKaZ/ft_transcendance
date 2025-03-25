@@ -6,163 +6,203 @@ import { displayWhenLoad } from "./game/waitingRoom.js";
 import { getUserFromBack } from '/js/utils.js';
 import { router } from '../router.js';
 
-let oldHeight = null;
-let gameStarted = false;
-let currentGame = null;
-let currentCountdown = null;
-let gameIsCancel = false;
+let cleanupFunctions = [];
+let gameState = {
+    oldHeight: null,
+    gameStarted: false,
+    currentGame: null,
+    currentCountdown: null,
+    gameIsCancel: false
+};
 
-const handleResize = () => resizeCanvasGame();
+export async function init() {
+    // Initialisation des éléments et handlers
+    const returnButton = document.getElementById('return-button');
+    const readyButton = document.getElementById('button-ready');
 
-function returnBack() {
-    gameIsCancel = true;
-    if (currentGame && currentGame.isStart)
-        currentGame.stop();
-    window.removeEventListener('resize', handleResize);
-    document.getElementById('return-button').removeEventListener('click', returnBack);
-    document.getElementById('button-ready').removeEventListener('click', startCountdown);
-    router.navigateTo('/pong/');
-}
-
-async function init() {
-    document.getElementById('return-button').addEventListener('click', () => {
-        returnBack();
-    });
-    const user = await getUserFromBack();
-    if (!user.username)
-        return;
-    displayWhenLoad(user);
-    currentGame = await initGame(user);
-    currentCountdown = new CountdownAnimation('countdownCanvas');
-    window.addEventListener('resize', handleResize);
-    document.getElementById('button-ready').addEventListener('click', async () => {
-        gameStarted = true;
+    // Gestion des événements
+    const handleReturn = () => returnBack();
+    const handleReadyClick = async () => {
+        gameState.gameStarted = true;
         await startCountdown();
-    })
-}
+    };
 
-async function startCountdown() {
-    currentGame.displayCanvas();
-    for (let i = 3; i > 0; i--) {
-        await currentCountdown.displayNumber(i);
-        await sleep(1000);
+    // Récupération utilisateur et initialisation jeu
+    try {
+        const user = await getUserFromBack();
+        if (!user.username) {
+            handleErrors({ message: "User not authenticated" });
+            return;
+        }
+
+        displayWhenLoad(user);
+        gameState.currentGame = await initGame(user);
+        gameState.currentCountdown = new CountdownAnimation('countdownCanvas');
+
+        // Ajout des listeners
+        window.addEventListener('resize', handleResize);
+        returnButton.addEventListener('click', handleReturn);
+        readyButton.addEventListener('click', handleReadyClick);
+
+        // Enregistrement des cleanups
+        cleanupFunctions.push(
+            () => window.removeEventListener('resize', handleResize),
+            () => returnButton.removeEventListener('click', handleReturn),
+            () => readyButton.removeEventListener('click', handleReadyClick)
+        );
+    } catch (error) {
+        console.error("Initialization error:", error);
+        handleErrors({ message: "Initialization failed" });
     }
-    resizeCanvasGame();
-    currentCountdown.stopDisplay();
-    if (!gameIsCancel)
-        await currentGame.start();
+
+    return () => {
+        cleanupFunctions.forEach(fn => fn());
+        cleanupFunctions = [];
+        returnBack(); // Nettoyage supplémentaire
+    };
 }
 
+// Fonctions du jeu
 async function initGame(user) {
     const canvas = document.getElementById('gameCanvas');
-    oldHeight = canvas.height;
+    gameState.oldHeight = canvas.height;
     const [P1, P2] = createPlayers(user);
     return new Game(canvas, P1, P2);
 }
 
 function createPlayers(data) {
-    const p1_id = 1;
-    const p2_id = 2;
-    const p1_name = data.username;
-    const p2_name = data.username + '(1)';
-    const p1_avatar = data.avatar;
-    const p2_avatar = data.avatar;
-
-    const P1 = new Player(p1_id, p1_name, p1_avatar);
-    const P2 = new Player(p2_id, p2_name, p2_avatar);
-    return [P1, P2];
+    return [
+        new Player(1, data.username, data.avatar),
+        new Player(2, data.username + '(1)', data.avatar)
+    ];
 }
 
-function handleErrors(data) {
-    const infoMain = document.getElementById('info-main-player');
-    const hudp1 = document.getElementById('hud-p1');
-    const hudp2 = document.getElementById('hud-p2');
-    const spark = document.getElementById('sparks-container');
-    const canvasContainer = document.getElementById('canvasContainer');
-    const game = document.getElementById('gameCanvas');
-    const countdown = document.getElementById('countdownCanvas');
-    const button = document.getElementById('button-ready');
-    const errorContainer = document.getElementById('error-container');
-    const errorMessage = document.getElementById('error-message');
+async function startCountdown() {
+    if (!gameState.currentGame) return;
 
-    if (!infoMain.classList.contains('hidden'))
-        infoMain.classList.add('hidden');
-    if (!hudp1.classList.contains('hidden'))
-        hudp1.classList.add('hidden');
-    if (!hudp2.classList.contains('hidden'))
-        hudp2.classList.add('hidden');
-    if (!spark.classList.contains('hidden'))
-        spark.classList.add('hidden');
-    if (!canvasContainer.classList.contains('hidden'))
-        canvasContainer.classList.add('hidden');
-    if (!game.classList.contains('hidden'))
-        game.classList.add('hidden');
-    if (!countdown.classList.contains('hidden'))
-    {
-        if (currentCountdown)
-            currentCountdown.stopDisplay();
-        countdown.classList.add('hidden');
+    gameState.currentGame.displayCanvas();
+    
+    try {
+        for (let i = 3; i > 0; i--) {
+            await gameState.currentCountdown.displayNumber(i);
+            await sleep(1000);
+        }
+        
+        resizeCanvasGame();
+        gameState.currentCountdown.stopDisplay();
+        
+        if (!gameState.gameIsCancel) {
+            await gameState.currentGame.start();
+        }
+    } catch (error) {
+        console.error("Countdown error:", error);
+        handleErrors({ message: "Game start failed" });
     }
-    if (!button.classList.contains('hidden'))
-        button.classList.add('hidden');
-    errorContainer.classList.remove('hidden');
-    errorMessage.innerText += data.message;
+}
+
+function returnBack() {
+    gameState.gameIsCancel = true;
+    
+    if (gameState.currentGame?.isStart) {
+        gameState.currentGame.stop();
+    }
+    
+    if (gameState.currentCountdown) {
+        gameState.currentCountdown.stopDisplay();
+    }
+    
+    router.navigateTo('/pong/');
+}
+
+function handleResize() {
+    resizeCanvasGame();
 }
 
 function resizeCanvasGame() {
-    const canvasCount = document.getElementById('countdownCanvas');
     const canvas = document.getElementById('gameCanvas');
-    let oldCoorNormBall;
+    const canvasCount = document.getElementById('countdownCanvas');
+    
+    if (!canvas || !canvasCount) return;
 
-    if (currentGame) {
-        oldCoorNormBall = getCoorBall(canvas);
-    }
+    let oldCoorNormBall = gameState.currentGame ? getCoorBall(canvas) : null;
+
+    // Redimensionnement
     canvas.width = window.innerWidth * 0.70;
     canvas.height = window.innerHeight * 0.80;
-    canvasCount.width = window.innerWidth * 0.70;
-    canvasCount.height = window.innerHeight * 0.80;
-    
+    canvasCount.width = canvas.width;
+    canvasCount.height = canvas.height;
+
+    // Mise à l'échelle
     const ctx = canvas.getContext('2d');
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     const scale = Math.min(canvas.width / canvas.offsetWidth, canvas.height / canvas.offsetHeight);
     ctx.scale(scale, scale);
 
-    if (!gameStarted || !currentGame) return;
-    
-    updatePaddleDimensions(currentGame, canvas);
-    
-    currentGame.ball.size = Math.min(canvas.width, canvas.height) * 0.01;
-    currentGame.ball.x = oldCoorNormBall[0] * canvas.width / 100;
-    currentGame.ball.y = oldCoorNormBall[1] * canvas.height / 100;
-    oldHeight = canvas.height;
+    if (!gameState.gameStarted || !gameState.currentGame) return;
 
-    currentGame.P1.draw(currentGame.context, currentGame.colorP1);
-    currentGame.P2.draw(currentGame.context, currentGame.colorP2);
-    currentGame.ball.draw(currentGame.context);
+    // Mise à jour des éléments du jeu
+    updateGameElements(canvas, oldCoorNormBall);
+    gameState.oldHeight = canvas.height;
+}
+
+function updateGameElements(canvas, oldCoorNormBall) {
+    const game = gameState.currentGame;
+
+    // Mise à jour des paddles
+    updatePaddleDimensions(game, canvas);
+
+    // Mise à jour de la balle
+    game.ball.size = Math.min(canvas.width, canvas.height) * 0.01;
+    game.ball.x = oldCoorNormBall[0] * canvas.width / 100;
+    game.ball.y = oldCoorNormBall[1] * canvas.height / 100;
+
+    // Redessiner les éléments
+    game.P1.draw(game.context, game.colorP1);
+    game.P2.draw(game.context, game.colorP2);
+    game.ball.draw(game.context);
 }
 
 function updatePaddleDimensions(game, canvas) {
     const paddleWidth = canvas.width * 0.01;
     const paddleHeight = canvas.height * 0.15;
 
-    game.P1.paddle.width = paddleWidth;
-    game.P1.paddle.height = paddleHeight;
-    game.P2.paddle.width = paddleWidth;
-    game.P2.paddle.height = paddleHeight;
+    [game.P1, game.P2].forEach(player => {
+        player.paddle.width = paddleWidth;
+        player.paddle.height = paddleHeight;
+    });
 
     game.P1.paddle.x = canvas.width * 0.01;
     game.P2.paddle.x = canvas.width - (canvas.width * 0.01 + game.P2.paddle.width);
 
-    game.P1.paddle.y = (game.P1.paddle.y / oldHeight) * canvas.height;
-    game.P2.paddle.y = (game.P2.paddle.y / oldHeight) * canvas.height;
+    game.P1.paddle.y = (game.P1.paddle.y / gameState.oldHeight) * canvas.height;
+    game.P2.paddle.y = (game.P2.paddle.y / gameState.oldHeight) * canvas.height;
 }
 
 function getCoorBall(canvas) {
-    const oldX = currentGame.ball.x;
-    const oldY = currentGame.ball.y;
-    let normX = oldX / canvas.width * 100;
-    let normY = oldY / canvas.height * 100;
-    return [normX, normY];
+    const ball = gameState.currentGame.ball;
+    return [
+        ball.x / canvas.width * 100,
+        ball.y / canvas.height * 100
+    ];
 }
 
-init();
+function handleErrors(data) {
+    const elementsToHide = [
+        'info-main-player', 'hud-p1', 'hud-p2',
+        'sparks-container', 'canvasContainer',
+        'gameCanvas', 'countdownCanvas', 'button-ready'
+    ];
+
+    elementsToHide.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.classList.contains('hidden')) {
+            el.classList.add('hidden');
+        }
+    });
+
+    const errorContainer = document.getElementById('error-container');
+    const errorMessage = document.getElementById('error-message');
+    
+    if (errorContainer) errorContainer.classList.remove('hidden');
+    if (errorMessage) errorMessage.textContent = data.message;
+}

@@ -97,7 +97,7 @@ function returnBack() {
 	router.navigateTo('/game/');
 }
 
-async function init() {
+export async function init() { // juste rajoute export mais je suis pas sur que ca suffise
 	document.getElementById('return-button').addEventListener('click', () => {
 		returnBack();
 	});

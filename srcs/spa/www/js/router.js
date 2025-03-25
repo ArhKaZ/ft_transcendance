@@ -177,16 +177,16 @@ class Router {
     },
   
     // User Routes
-    '/logged/': {
-      html: '/html/user/logged.html',
-      css: '/css/logged.css',
-      js: '/js/logged.js'
-    },
-    '/user/edit/': {
-      html: '/html/user/edit.html',
-      css: '/css/edit.css',
-      js: '/js/edit.js'
-    },
+    // '/logged/': {
+    //   html: '/html/user/logged.html',
+    //   css: '/css/logged.css',
+    //   js: '/js/logged.js'
+    // },
+    // '/user/edit/': {
+    //   html: '/html/user/edit.html',
+    //   css: '/css/edit.css',
+    //   js: '/js/edit.js'
+    // },
     '/user/edit_user/': {
       html: '/html/user/edit_user.html',
       css: '/css/edit_user.css',
