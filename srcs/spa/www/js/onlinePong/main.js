@@ -77,8 +77,19 @@ async function getInfoFinale(user) {
 }
 
 function returnBack() {
-	cleanKeyboardControls();
-	router.navigateTo('/pong/');
+	if (inTournament) {
+		document.getElementById('modal-quit').style.display = 'flex';
+		document.getElementById('modal-btn-yes').addEventListener('click', () => {
+			cleanKeyboardControls();
+			router.navigateTo('/home/');
+		});
+		document.getElementById('modal-btn-no').addEventListener('click', () => {
+			document.getElementById('modal-quit').style.display = 'none';
+		});
+	} else {
+		cleanKeyboardControls();
+		router.navigateTo('/pong/');
+	}
 }
 
 async function init() {

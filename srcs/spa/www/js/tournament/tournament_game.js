@@ -140,12 +140,12 @@ class TournamentGame {
 			sessionStorage.setItem('programmaticNavigation', 'true');
 			router.navigateTo('/home/');
 		}
-		while (true) {
+		// while (true) {
 			data = await this.loadEnd();
 			await sleep(500);
 			this.canvasTournament(data);
 			this.displayTournamentInfo(data);
-			if (oldData && data !== oldData) {
+			// if (oldData && data !== oldData) {
 				this.displayTournamentInfo(data);
 				if (sessionStorage.getItem('finalDone') || data.winner.length > 0) {
 					console.log('end of tournament');
@@ -174,20 +174,21 @@ class TournamentGame {
 				}
 				else if (data.finalists.length > 0) {
 					if (await this.verifUserInFinal(data))
-						break;
+						return;
+						// break;
 				}
 				else {
 					if (this.verifUserNeedPlay(data)){
-						console.log('need to play');
 						sessionStorage.setItem('programmaticNavigation', 'true');
 						router.navigateTo(`/onlinePong/?tournament=true`);
-						break;
+						return;
+						// break;
 					}
 				}
-			}
+			// }
 			oldData = data;
 			await sleep(1500);
-		}
+		// }
 	}
 
 	async verifUserInFinal(data) {
