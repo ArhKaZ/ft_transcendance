@@ -902,7 +902,7 @@ def oauth(request):
         print(f"Error: {e}")
         return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@api_view(['POST'])
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def spend_ticket(request):
     user = request.user
@@ -953,7 +953,7 @@ def add_badge(request):
     return Response({"message": f"Badge '{badge_name}' added successfully!", "badge_list": user.badge_list}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated]) # Renvoie tous les badges possedes par l'utilisateur
 def	list_badge(request):
     user = request.user
     badges = Badge.objects.filter(name__in=user.badge_list)
@@ -961,7 +961,7 @@ def	list_badge(request):
     return Response({"badges": badge_data}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated]) # Change le badge actif pour le profil
 def change_active_badge(request):
     user = request.user
     old_badge_name = request.data.get("old_badge_name")
@@ -993,11 +993,19 @@ def change_active_badge(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def list_active_badge(request):
-    user = request.user
-    actives_badges = Badge.objects.filter(name__in=user.active_badge)
-    active_badge_data = BadgeSerializer(actives_badges, many=True).data
-    return Response({"actives_badges": active_badge_data}, status=status.HTTP_200_OK)
+@permission_classes([IsAuthenticated]) #liste les 3 badges actifs sur le profil
+def list_active_badge(request, username=None):
+	try:
+		# Si username est fourni, on récupère les badges de cet utilisateur
+		if username:
+			user = MyUser.objects.get(username=username)
+		else:
+			user = request.user
+
+		actives_badges = Badge.objects.filter(name__in=user.active_badge)
+		active_badge_data = BadgeSerializer(actives_badges, many=True).data
+		return Response({"actives_badges": active_badge_data}, status=status.HTTP_200_OK)
+	except MyUser.DoesNotExist:
+		return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
 

@@ -171,6 +171,8 @@ async function fetch_user() {
 				joinButton(data);
 			}
 		}
+		setupBadgeModal(data.username);
+		fetchActiveBadges();
 		
 	} catch (error) {
 		console.error("API call failed", error);
@@ -406,3 +408,182 @@ document.getElementById('return-button').addEventListener('click', () => {
 fetch_user();
 fetchHistory();
 
+let selectedBadgeSlot = null;
+
+async function fetchAndDisplayBadges(currentBadgeAlt) {
+  try {
+    await ensureValidToken();
+    const response = await fetch('/api/list_badge/', {
+      method: 'GET',
+      headers: {
+        'Content-type': 'application/json',
+        'X-CSRFToken': getCSRFToken(),
+        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+      }
+    });
+
+    if (!response.ok) {
+      console.error("Error while fetching badges");
+      return;
+    }
+
+    const data = await response.json();
+    displayBadgesInModal(data.badges, currentBadgeAlt);
+  } catch (error) {
+    console.error("Failed fetching badges", error);
+  }
+}
+
+function displayBadgesInModal(badges, currentBadgeAlt) {
+	const badgeCollection = document.getElementById('badge-collection');
+	badgeCollection.innerHTML = '';
+  
+	if (badges.length === 0) {
+	  badgeCollection.innerHTML = `
+      <div class="no-badges-message">
+        <h3>No badges yet!</h3>
+      </div>
+    `;
+	  return;
+	}
+  
+	badges.forEach(badge => {
+	  const badgeItem = document.createElement('div');
+	  badgeItem.className = 'badge-item';
+	  badgeItem.innerHTML = `
+		<img src="${badge.image}" alt="${badge.name}" title="${badge.description}">
+		<p>${badge.name}</p>
+	  `;
+	  badgeItem.addEventListener('click', () => selectBadgeForSlot(badge, currentBadgeAlt));
+	  badgeCollection.appendChild(badgeItem);
+	});
+  }
+
+function selectBadgeForSlot(badge, currentBadgeAlt) {
+	if (!selectedBadgeSlot) return;
+	// Enregistrer le badge actif
+	updateActiveBadge(selectedBadgeSlot.dataset.slotIndex, badge.name, currentBadgeAlt);
+
+	// Fermer le modal
+	document.getElementById('badge-modal').style.display = 'none';
+	selectedBadgeSlot = null;
+}
+
+async function updateActiveBadge(slotIndex, badgeName, currentBadgeAlt) {
+  try {
+    await ensureValidToken();
+    const response = await fetch('/api/change_active_badge/', {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json',
+        'X-CSRFToken': getCSRFToken(),
+        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+      },
+      body: JSON.stringify({
+        old_badge_name: currentBadgeAlt,
+        new_badge_name: badgeName
+      })
+    });
+
+    if (!response.ok) {
+      console.error("Error while updating active badge");
+      return;
+    }
+
+    fetchActiveBadges();
+  } catch (error) {
+    console.error("Failed updating active badge", error);
+  }
+}
+
+async function fetchActiveBadges() {
+  try {
+	const pathSegments = window.location.pathname.split('/');
+    const userName = pathSegments[3];
+
+    await ensureValidToken();
+    const response = await fetch(`/api/list_active_badge/${userName}/`, {
+      method: 'GET',
+      headers: {
+        'Content-type': 'application/json',
+        'X-CSRFToken': getCSRFToken(),
+        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+      }
+    });
+
+    if (!response.ok) {
+      console.error("Error while fetching active badges");
+      return;
+    }
+
+    const data = await response.json();
+    updateDisplayedActiveBadges(data.actives_badges);
+  } catch (error) {
+    console.error("Failed fetching active badges", error);
+  }
+}
+
+function updateDisplayedActiveBadges(activeBadges) {
+	const badgeButtons = document.querySelectorAll('.profile-badge');
+	
+	// // Réinitialiser tous les badges
+	badgeButtons.forEach(button => {
+	  const badgeImg = button.querySelector('img');
+	  badgeImg.src = '/css/ico/badge_placeholder.png';
+	  badgeImg.alt = 'Badge placeholder';
+	});
+  
+	// Mettre à jour seulement les badges actifs
+	activeBadges.forEach((badge, index) => {
+        if (index < badgeButtons.length) {
+            const badgeImg = badgeButtons[index].querySelector('img');
+            // Vérifier si l'image est en base64 ou une URL
+            if (badge.image.startsWith('data:image')) {
+                badgeImg.src = badge.image;
+            } else {
+                // Si c'est un chemin relatif, s'assurer qu'il est correct
+                badgeImg.src = badge.image.startsWith('/') ? badge.image : `/${badge.image}`;
+            }
+            badgeImg.alt = badge.name;
+        }
+    });
+  }
+
+function setupBadgeModal(username) {
+  const modal = document.getElementById('badge-modal');
+  const closeBtn = document.querySelector('.close');
+  const badgeButtons = document.querySelectorAll('.profile-badge');
+
+  // Gestion du clic sur les boutons de badge
+  if (username === sessionStorage.getItem('username')) {
+	badgeButtons.forEach((button, index) => {
+		button.dataset.slotIndex = index;
+		button.addEventListener('click', () => {
+			selectedBadgeSlot = button;
+			const badgeImg = button.querySelector('img');
+			const currentBadgeAlt = badgeImg.alt;
+			fetchAndDisplayBadges(currentBadgeAlt);
+			modal.style.display = 'block';
+			});
+		});
+  	} else {
+		// Désactiver le clic sur les badges pour les autres utilisateurs
+		badgeButtons.forEach(button => {
+		  button.style.cursor = 'default';
+		  button.onclick = null;
+		});
+	}
+  // Fermer le modal quand on clique sur x
+  closeBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+    selectedBadgeSlot = null;
+  });
+
+  // Fermer le modal quand on clique en dehors
+  window.addEventListener('click', (event) => {
+    if (event.target === modal) {
+      modal.style.display = 'none';
+      selectedBadgeSlot = null;
+    }
+  });
+}
