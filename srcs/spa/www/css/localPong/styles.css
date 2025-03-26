@@ -499,7 +499,7 @@ body::before {
     width: 90%;
     height: 20%;
     text-align: center;
-    font-size: 2em;
+    font-size: 1em;
     color: white;
     font-family: "Press Start 2P";
     overflow: hidden;
@@ -514,7 +514,7 @@ body::before {
     height: 8%;
     animation: swing 4s linear infinite;
     top: 12%;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 @keyframes swing {

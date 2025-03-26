@@ -112,6 +112,7 @@ class Game {
         document.getElementById('p2-hud-name').textContent = this.P2.name;
         document.getElementById('hud-p1').classList.remove('hidden');
         document.getElementById('hud-p2').classList.remove('hidden');
+        this.ball.reset();
         this.drawBorders(this.context, this.canvas);
         this.P1.draw(this.context, this.colorP1);
         this.P2.draw(this.context, this.colorP2);

@@ -13,7 +13,7 @@ class IA {
 			this.canvas.height / 32,
 		];
 		this.reactionTime = {
-			0: 900,
+			0: 1000,
 			1: 600,
 			2: 400
 		}

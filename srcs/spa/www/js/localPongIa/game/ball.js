@@ -3,14 +3,13 @@ class Ball {
     constructor(canvas) {
         this.canvas = canvas;
         this.size = Math.min(canvas.width, canvas.height) * 0.01;
-        this.ballSpeed = 4;
-        this.reset();
+        this.ballSpeed = 6;
         this.oldPositions = [];
     }
 
     async reset(asScore) {
         this.oldPositions = [];
-        this.ballSpeed = 4;
+        this.ballSpeed = 6;
         this.x = this.canvas.width / 2;
         this.y = this.canvas.height / 2;
 
@@ -57,7 +56,7 @@ class Ball {
         {
             bound[1] = true;
             paddleCollision = true;
-            if (this.ballSpeed < 8){
+            if (this.ballSpeed < 10){
                 this.ballSpeed += 0.4;
             }
         }
