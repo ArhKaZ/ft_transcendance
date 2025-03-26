@@ -44,7 +44,7 @@ document.getElementById('logout-button').addEventListener('click', async () => {
 });
 
 document.getElementById('user-avatar').addEventListener('click', () => {
-    router.navigateTo(`/user/profile/${sessionStorage.getItem('username')}`);
+    router.navigateTo(`/user/profile/${sessionStorage.getItem('username')}/`);
 });
 
 await ensureValidToken();
@@ -114,7 +114,7 @@ searchButton.addEventListener('click', async () => {
     const userName = searchInput.value.trim();
 
     if (userName) {
-        router.navigateTo(`/user/profile/${userName}`);
+        router.navigateTo(`/user/profile/${userName}/`);
     } else {
         searchResults.textContent = 'Please enter a username.';
     }

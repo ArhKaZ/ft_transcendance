@@ -64,7 +64,7 @@ document.getElementById('erase-button').addEventListener('click', async () => {
 			} else {
 				console.error('Error erasing:', response);
 			}
-			window.location.reload();
+			router.navigateTo('/home/');
 		} catch (error) {
 			console.error ('Error', error);
 		}

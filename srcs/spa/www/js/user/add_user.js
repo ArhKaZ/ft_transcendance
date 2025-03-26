@@ -67,7 +67,7 @@ document.getElementById('return-button').addEventListener('click', () => {
 
 document.getElementById('avatar').addEventListener('change', function() {
     const fileName = this.files[0] ? this.files[0].name : "No file chosen";
-    document.getElementById('file-chosen').textContent = fileName;
+    document.getElementById('file-chosen').textContent = `[${fileName}]`;
 });
 
 function displayMessage(message, type) {

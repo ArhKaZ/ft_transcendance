@@ -5,7 +5,6 @@ body {
 	color: white;
 	font-family: 'Press Start 2P', cursive;
 	text-align: center;
-	padding-top: 50px;
 	display:flex;
 	align-items: center;
 	justify-content: space-evenly;
@@ -124,18 +123,25 @@ input[type="file"] {
 	color: white;
 }
 
-#erase-button {
+#erase-container {
 	position: fixed;
 	bottom: 20px;
 	left: 20px;
-	background: none;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+}
+
+#erase-container button {
 	border: none;
+	background: none;
 	cursor: pointer;
 }
 
 #erase-button img {
-	width: 150px;
-	height: 150px;
+	width: 100px;
+	height: 100px;
 	transition: transform 0.2s ease-in-out;
 }
 
@@ -183,7 +189,7 @@ input[type="file"] {
 
 .top-page span{
 	font-size: 14px;
-	margin-bottom: 10%;
+	margin-bottom: 6%;
 }
 
 .content-page {
@@ -198,10 +204,10 @@ input[type="file"] {
 	padding-top: 10vh;
 }
 
-#btn-update {
+.btn-container {
 	margin-top: 10%;
-	padding-left: 15%;
-	padding-right: 15%;
-	font-size: 25px;
+	display: flex;
+	justify-content: center;
+	gap: 40px;
+	align-items: center;
 }
-

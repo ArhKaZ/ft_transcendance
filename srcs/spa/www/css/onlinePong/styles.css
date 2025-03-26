@@ -120,7 +120,7 @@ body::before {
 .info span {
     font-size: 1rem;
     overflow: hidden;
-    text-overflow: ellipsis;
+    text-overflow: clip;
     white-space: nowrap;
     max-width: 80%;
 }
@@ -273,7 +273,7 @@ body::before {
 
 .player-name {
     overflow: hidden;
-    text-overflow: ellipsis;
+    text-overflow: clip;
     white-space: nowrap;
     max-width: 80%;
     font-size: 2rem;
@@ -536,7 +536,7 @@ body::before {
     color: white;
     font-family: "Press Start 2P";
     overflow: hidden;
-    text-overflow: ellipsis;
+    text-overflow: clip;
     white-space: nowrap;
     max-width: 90%;
 }

@@ -164,7 +164,7 @@ async function addFriend() {
         });
 
         if (response.ok) {
-            window.location.reload();
+            await updateFriendStatus(friendName);
         } else {
             
             const contentType = response.headers.get("content-type");
@@ -236,7 +236,6 @@ async function fetchPendingFriend() {
                 friendName.classList.add('friend-name');
                 friendName.textContent = friend.username;
             
-                
                 const acceptButton = document.createElement('button');
                 acceptButton.textContent = "Accept";
                 acceptButton.classList.add('accept-button');
@@ -288,7 +287,8 @@ async function sendFriendRequestToPendingUser(username) {
         });
 
         if (response.ok) {
-            window.location.reload(); 
+            router.navigateTo('/user/friend/');
+            await updateFriendStatus(username);
         } else {
             const contentType = response.headers.get("content-type");
             if (contentType && contentType.indexOf("application/json") !== -1) {

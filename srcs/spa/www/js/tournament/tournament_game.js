@@ -13,22 +13,21 @@ class TournamentGame {
 		this.quitButton = document.getElementById('quit-button');
 		this.messageDiv = document.getElementById('messageDiv');
 		document.getElementById('quit-button').addEventListener('click', () => this.quitTournament());
-		// window.addEventListener('beforeunload', this.handleBeforeUnload.bind(this));
         window.addEventListener('popstate', this.handlePopState.bind(this));
 		this.tournamentConfig = {
 			rounds: [
-				{ // Round 1
+				{
 					matches: [
 						{ participants: ['Joueur 1', 'Joueur 2'], position: { x: 0.1, y: 0.3 }, nextMatch: 0 },
 						{ participants: ['Joueur 3', 'Joueur 4'], position: { x: 0.1, y: 0.7 }, nextMatch: 0 }
 					]
 				},
-				{ // Finale
+				{
 					matches: [
 						{ participants: ['Vainqueur 1', 'Vainqueur 2'], position: { x: 0.5, y: 0.5 }, nextMatch: null }
 					]
 				},
-				{ // Gagnant
+				{
 					matches: [
 						{ participants: ['Champion'], position: { x: 0.9, y: 0.6 }, nextMatch: null }
 					]
@@ -145,7 +144,7 @@ class TournamentGame {
 			await sleep(500);
 			this.canvasTournament(data);
 			this.displayTournamentInfo(data);
-			// if (oldData && data !== oldData) {
+			if (oldData && data !== oldData) {
 				this.displayTournamentInfo(data);
 				if (sessionStorage.getItem('finalDone') || data.winner.length > 0) {
 					console.log('end of tournament');
@@ -185,7 +184,7 @@ class TournamentGame {
 						// break;
 					}
 				}
-			// }
+			}
 			oldData = data;
 			await sleep(1500);
 		// }
@@ -251,38 +250,7 @@ class TournamentGame {
 		}
 	}
 
-	// populatePlayers(data) {
-	// 	const playersList = document.getElementById('players-list');
-	// 	const finalistsList = document.getElementById('finalists-list');
-	// 	const winnerList = document.getElementById('winner-list');
-	
-	// 	playersList.innerHTML = '';
-	// 	finalistsList.innerHTML = '';
-	// 	winnerList.innerHTML = '';
-	
-	// 	data.players.forEach(player => {
-	// 		const li = document.createElement('li');
-	// 		li.textContent = player.username; 
-	// 		playersList.appendChild(li);
-	// 	});
-	
-		
-	// 	data.finalists.forEach(finalist => {
-	// 		const li = document.createElement('li');
-	// 		li.textContent = finalist.username;
-	// 		finalistsList.appendChild(li);
-	// 	});
-	
-		
-	// 	data.winner.forEach(winner => {
-	// 		const li = document.createElement('li');
-	// 		li.textContent = winner.username;
-	// 		winnerList.appendChild(li);
-	// 	});
-	// }
-
 	displayTournamentInfo(data) {
-		console.debug(data);
 		if (data.players.length >= 4) {
             document.getElementById('round0match0p0').textContent = data.matches[0].player1.pseudo;
             document.getElementById('round0match0p1').textContent = data.matches[0].player2.pseudo;
@@ -350,14 +318,12 @@ class TournamentGame {
             this.roundsMidpoints[roundIndex] = [];
             
             round.matches.forEach((match, matchIndex) => {
-                // Création des éléments
                 match.participants.forEach((participant, pIndex) => {
                     const el = document.createElement('div');
                     el.className = 'participant';
                     el.textContent = participant;
 					el.id = `round${roundIndex}match${matchIndex}p${pIndex}`;
                     
-                    // Positionnement horizontal
                     const x = match.position.x * canvas.width;
                     const y = match.position.y * canvas.height  + (pIndex === 0 ? -40 : 40);
                     
@@ -366,7 +332,6 @@ class TournamentGame {
                     container.appendChild(el);
                 });
 
-                // Calcul du midpoint
                 const midpoint = {
                     x: match.position.x * canvas.width,
                     y: match.position.y * canvas.height
@@ -381,7 +346,6 @@ class TournamentGame {
 		ctx.strokeStyle = '#ffffff';
 		ctx.lineWidth = 2;
 	
-		// Coordonnées des matches (en proportion)
 		const round1Match1 = { 
 			x: this.tournamentConfig.rounds[0].matches[0].position.x * canvas.width, 
 			y: this.tournamentConfig.rounds[0].matches[0].position.y * canvas.height 
@@ -399,25 +363,21 @@ class TournamentGame {
 			y: this.tournamentConfig.rounds[2].matches[0].position.y * canvas.height 
 		};
 	
-		// 1. Lignes verticales entre participants
-		// Match 1 Round 1
 		this.drawLine(ctx, 
 			{ x: round1Match1.x, y: round1Match1.y - 40 },
 			{ x: round1Match1.x, y: round1Match1.y + 40 }
 		);
-		// Match 2 Round 1
+		
 		this.drawLine(ctx, 
 			{ x: round1Match2.x, y: round1Match2.y - 40 },
 			{ x: round1Match2.x, y: round1Match2.y + 40 }
 		);
-		// Finale
+		
 		this.drawLine(ctx, 
 			{ x: finalMatch.x, y: finalMatch.y - 40 },
 			{ x: finalMatch.x, y: finalMatch.y + 40 }
 		);
 	
-		// 2. Connexions entre rounds
-		// Round 1 Match 1 -> Finale
 		this.drawLine(ctx, round1Match1, { x: (round1Match1.x + finalMatch.x)/2, y: round1Match1.y });
 		this.drawLine(ctx, 
 			{ x: (round1Match1.x + finalMatch.x)/2, y: round1Match1.y },
@@ -428,7 +388,6 @@ class TournamentGame {
 			finalMatch
 		);
 	
-		// Round 1 Match 2 -> Finale
 		this.drawLine(ctx, round1Match2, { x: (round1Match2.x + finalMatch.x)/2, y: round1Match2.y });
 		this.drawLine(ctx, 
 			{ x: (round1Match2.x + finalMatch.x)/2, y: round1Match2.y },
@@ -438,8 +397,6 @@ class TournamentGame {
 			{ x: (round1Match2.x + finalMatch.x)/2, y: finalMatch.y },
 			finalMatch
 		);
-	
-		// 3. Finale -> Gagnant (ligne directe)
 		
 		this.drawLine(ctx, finalMatch, { x: winner.x, y: winner.y - 40});
 	}
