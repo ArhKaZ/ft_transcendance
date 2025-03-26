@@ -1,9 +1,19 @@
 import { router } from '../router.js';
+import { getCSRFToken } from '/js/utils.js';
 
-export function redirectTo42OAuth()
+export async function redirectTo42OAuth()
 {
+    const response = await fetch('/api/get_env_address/', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+    });
+    const data = await response.json();
+    const address = data.address;
     const clientId = 'u-s4t2ud-c3aad960cd36ac0f5ca04a7d2780e4d8f1dbc27481baec5b5cb571eceb694a81';
-    const redirectUri = encodeURIComponent('https://127.0.0.1:8443/oauth_callback/');
+    const redirectUri = encodeURIComponent(`${address}/oauth_callback/`);
     const scope = 'public';
     const state = generateRandomString();
     const responseType = 'code';

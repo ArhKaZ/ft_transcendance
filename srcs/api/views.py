@@ -793,13 +793,19 @@ def get_user_history(request, userName):
     except MyUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_https_address_env(request):
+    return Response({"address": os.getenv('HTTPS_ADDRESS')})
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def oauth(request):
     try:
         code = request.data.get('code')
         state = request.data.get('state')
-        redirect_uri = "https://127.0.0.1:8443/oauth_callback/"
+        https_address = os.getenv("HTTPS_ADDRESS")
+        redirect_uri = f"{https_address}/oauth_callback/"
         if not code:
             return Response({"error": "Authorization code required"}, status=status.HTTP_400_BAD_REQUEST)
         client_id = os.getenv("OAUTH42_UID")

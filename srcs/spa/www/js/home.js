@@ -129,6 +129,6 @@ searchInput.addEventListener('keypress', (e) => {
 if (oauthbtn) {
 	oauthbtn.addEventListener('click', async function (event) {
 		event.preventDefault();
-		redirectTo42OAuth();
+		await redirectTo42OAuth();
 	});
 }
