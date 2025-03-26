@@ -136,6 +136,8 @@ async function api_get_profile(userName) {
 async function fetch_user() {
 	const pathSegments = window.location.pathname.split('/');
 	const userName = pathSegments[3];
+	const currentUser = sessionStorage.getItem('username');
+    const isOwnProfile = userName === currentUser;
 	try {
 		await ensureValidToken();
 		const response = await api_get_profile(userName);		
@@ -147,6 +149,13 @@ async function fetch_user() {
 		document.getElementById('user-avatar').src = data.avatar || '/avatars/default.png';
 		document.getElementById('user-wins').textContent = data.wins;
 		document.getElementById('user-looses').textContent = data.looses;
+
+		const avatarContainer = document.querySelector('.avatar-container');
+        if (!isOwnProfile) {
+            avatarContainer.classList.add('not-mine');
+        } else {
+            avatarContainer.classList.remove('not-mine');
+        }
 		
 		if (data.username === sessionStorage.getItem('username')) {
 			const modifBtn = document.getElementById('modif-btn');
@@ -525,12 +534,21 @@ async function fetchActiveBadges() {
 
 function updateDisplayedActiveBadges(activeBadges) {
 	const badgeButtons = document.querySelectorAll('.profile-badge');
+	const pathSegments = window.location.pathname.split('/');
+    const userName = pathSegments[3];
+    const currentUser = sessionStorage.getItem('username');
+    const isOwnProfile = userName === currentUser;
 	
 	// // Réinitialiser tous les badges
 	badgeButtons.forEach(button => {
 	  const badgeImg = button.querySelector('img');
 	  badgeImg.src = '/css/ico/badge_placeholder.png';
 	  badgeImg.alt = 'Badge placeholder';
+	  if (!isOwnProfile) {
+		button.classList.add('not-mine');
+	} else {
+		button.classList.remove('not-mine');
+	}
 	});
   
 	// Mettre à jour seulement les badges actifs

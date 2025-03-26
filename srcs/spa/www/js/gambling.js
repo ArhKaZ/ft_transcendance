@@ -1,15 +1,43 @@
 import { ensureValidToken } from '/js/utils.js';
 import { router } from './router.js';
+import { getUserFromBack } from './utils.js';
+import { getCSRFToken } from './utils.js';
 
 let isTokenClicked = false;
+
+updateTicketCount();
 
 const token1 = document.getElementById('token1');
 const token2 = document.getElementById('token2');
 const token3 = document.getElementById('token3');
+document.getElementById('reset-button').addEventListener('click', resetTokens);
 
 token1.addEventListener('click', async () => handleTokenClick(1));
 token2.addEventListener('click', async () => handleTokenClick(2));
 token3.addEventListener('click', async () => handleTokenClick(3));
+
+function updateButtonStates(ticketCount) {
+    const buttons = [token1, token2, token3];
+    buttons.forEach(button => {
+        button.disabled = ticketCount <= 0;
+    });
+}
+
+async function updateTicketCount() {
+    try {
+        await ensureValidToken();
+        const user = await getUserFromBack();
+        if (!user.username)
+            return;
+        const ticketCount = user.tickets || 0;
+        document.getElementById('ticket-count').textContent = `You currently have ${ticketCount} ${ticketCount === 1 ? 'ticket' : 'tickets'}`;
+        updateButtonStates(ticketCount);
+    } catch (error) {
+        console.error('Error fetching ticket count:', error);
+        document.getElementById('ticket-count').textContent = 'Could not load ticket count';
+        updateButtonStates(0);
+    }
+}
 
 function resetTokens() {
     isTokenClicked = false;
@@ -22,12 +50,12 @@ function resetTokens() {
     });
 }
 
-// Ajoutez l'écouteur d'événement pour le bouton Reset
-document.getElementById('reset-button').addEventListener('click', resetTokens);
 
 
 async function handleTokenClick(tokenNumber) {
-    if (isTokenClicked) return;
+    updateTicketCount();
+    const tokenButton = document.getElementById(`token${tokenNumber}`);
+    if (isTokenClicked || tokenButton.disabled) return;
     isTokenClicked = true;
     
     // Disable all tokens
@@ -42,31 +70,46 @@ async function handleTokenClick(tokenNumber) {
     const otherTokens = [1, 2, 3].filter(num => num !== tokenNumber);
     setTimeout(() => {
         otherTokens.forEach(num => flipToken(num));
-        
-        // Show modal after all tokens have flipped (add 1 second for animation)
-        setTimeout(() => showBadgeModal(tokenNumber), 1000);
     }, 1500);
 
-    await returnToken(tokenNumber);
-    const badgeName = document.getElementById(`imgtokenback${tokenNumber}`).alt;
-    await ensureValidToken();
-    const response2 = await fetch('/api/add_badge/', {
-        method: 'POST',
-        headers: {
-            'Content-type': 'application/json',
-            'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-        },
-        body: JSON.stringify({
-            'badge_name': badgeName
-        })
-    });
-    if (response2.ok) {
-        console.log('Badge added to user');
+    try {
+        await returnToken(tokenNumber);
+        const badgeName = document.getElementById(`imgtokenback${tokenNumber}`).alt;
+        await ensureValidToken();
+        
+        const response2 = await fetch('/api/add_badge/', {
+            method: 'POST',
+            headers: {
+                'Content-type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+            },
+            body: JSON.stringify({
+                'badge_name': badgeName
+            })
+        });
+
+        const result = await response2.json();
+        
+        // Show modal after all tokens have flipped (add 1 second for animation)
+        setTimeout(() => {
+            if (response2.ok) {
+                showBadgeModal(tokenNumber, true, result.message);
+            } else {
+                showBadgeModal(tokenNumber, false, result.error || 'An error occurred');
+            }
+        }, 2500);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        setTimeout(() => {
+            showBadgeModal(tokenNumber, false, 'An error occurred while processing your request');
+        }, 2500);
     }
-    
-}   
+}
 
 function flipToken(tokenNumber) {
+    updateTicketCount();
     const token = document.getElementById(`token${tokenNumber}`).querySelector('.token');
     token.classList.add('flipped');
     token.animate([
@@ -77,7 +120,7 @@ function flipToken(tokenNumber) {
     });
 }
 
-function showBadgeModal(tokenNumber) {
+function showBadgeModal(tokenNumber, isSuccess, message) {
     const badgeImage = document.getElementById(`imgtokenback${tokenNumber}`).src;
     const badgeName = document.getElementById(`imgtokenback${tokenNumber}`).alt;
     
@@ -102,30 +145,32 @@ function showBadgeModal(tokenNumber) {
     modalContent.style.maxWidth = '500px';
     
     const title = document.createElement('h2');
-    title.textContent = 'Congratulations!';
-    title.style.color = 'white';
+    title.textContent = isSuccess ? 'Congratulations!' : 'Oops!';
+    title.style.color = isSuccess ? 'white' : '#ff5555';
     title.style.fontFamily = '"Press Start 2P", cursive';
     title.style.marginBottom = '1rem';
     
     const image = document.createElement('img');
-    image.src = badgeImage;
-    image.style.width = '200px';
-    image.style.height = '200px';
-    image.style.objectFit = 'cover';
-    image.style.marginBottom = '1rem';
+    if (isSuccess) {
+        image.src = badgeImage;
+        image.style.width = '200px';
+        image.style.height = '200px';
+        image.style.objectFit = 'cover';
+        image.style.marginBottom = '1rem';
+    }
     
-    const message = document.createElement('p');
-    message.textContent = `You have won the ${badgeName} badge!`;
-    message.style.color = 'white';
-    message.style.fontFamily = '"Press Start 2P", cursive';
-    message.style.marginBottom = '1.5rem';
+    const messageElement = document.createElement('p');
+    messageElement.textContent = isSuccess ? `You won the ${badgeName} badge !` : message;
+    messageElement.style.color = isSuccess ? 'white' : '#ff5555';
+    messageElement.style.fontFamily = '"Press Start 2P", cursive';
+    messageElement.style.marginBottom = '1.5rem';
     
     const closeButton = document.createElement('button');
     closeButton.textContent = 'OK';
     closeButton.style.backgroundColor = 'transparent';
-    closeButton.style.border = '4px solid white';
+    closeButton.style.border = '4px solid ' + (isSuccess ? 'white' : '#ff5555');
     closeButton.style.padding = '10px 20px';
-    closeButton.style.color = 'white';
+    closeButton.style.color = isSuccess ? 'white' : '#ff5555';
     closeButton.style.fontSize = '18px';
     closeButton.style.cursor = 'pointer';
     closeButton.style.fontFamily = '"Press Start 2P", cursive';
@@ -135,8 +180,8 @@ function showBadgeModal(tokenNumber) {
     });
     
     modalContent.appendChild(title);
-    modalContent.appendChild(image);
-    modalContent.appendChild(message);
+    if (isSuccess) modalContent.appendChild(image);
+    modalContent.appendChild(messageElement);
     modalContent.appendChild(closeButton);
     modal.appendChild(modalContent);
     
@@ -150,6 +195,7 @@ async function returnToken(token_number) {
             method: 'GET',
             headers: {
                 'Content-type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
                 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
             }
         });
@@ -170,4 +216,17 @@ async function returnToken(token_number) {
 
 document.getElementById('return-button').addEventListener('click', () => {
     router.navigateTo("/home/");
+});
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await updateTicketCount();
+    token1.addEventListener('click', async () => {
+        if (!token1.disabled) await handleTokenClick(1);
+    });
+    token2.addEventListener('click', async () => {
+        if (!token2.disabled) await handleTokenClick(2);
+    });
+    token3.addEventListener('click', async () => {
+        if (!token3.disabled) await handleTokenClick(3);
+    });
 });
