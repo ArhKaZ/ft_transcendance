@@ -851,14 +851,12 @@ def oauth(request):
 @permission_classes([IsAuthenticated])
 def spend_ticket(request):
 	user = request.user
-	user.tickets = 1
 
 	if user.spend_ticket():
 		badges = Badge.objects.order_by('?')[:3]
 		badge_names = [badge.name for badge in badges]
 		user.drawn_badges = badge_names
 		user.need_badge = True
-		user.tickets -= 1
 		user.save()
 		return Response({
 			"success": True,
@@ -887,7 +885,7 @@ def add_badge(request):
 		return Response({"error": "This badge doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
 
 	if (user.need_badge == False):
-		return Response({"error": "Need to spend a ticket to get a badge"}, status=status.HTTP_400_BAD_REQUEST)
+		return Response({"error": "You must have a ticket to gamble"}, status=status.HTTP_400_BAD_REQUEST)
 
 	user.need_badge = False
 

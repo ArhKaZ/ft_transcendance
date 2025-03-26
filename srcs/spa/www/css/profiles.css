@@ -366,3 +366,16 @@ button {
     text-align: center;
     width: 100%;
 }
+
+.profile-badge.not-mine:hover {
+    border-color: white !important;
+    transform: none !important;
+    cursor: default !important;
+}
+
+.avatar-container.not-mine #user-avatar:hover {
+    transform: none !important;
+    filter: none !important;
+    cursor: default !important;
+    border-color: white !important;
+}

@@ -108,3 +108,13 @@
     text-decoration: none;
     margin: 0 5px;
 }
+
+.gambling-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.gambling-button:disabled:hover {
+    transform: none !important;
+}
