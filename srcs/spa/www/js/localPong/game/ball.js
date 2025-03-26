@@ -9,6 +9,7 @@ class Ball {
     }
 
     async reset(asScore) {
+        this.oldPositions = [];
         this.ballSpeed = 4;
         this.x = this.canvas.width / 2;
         this.y = this.canvas.height / 2;
@@ -100,12 +101,6 @@ class Ball {
 
     getPos() {
         return this.x, this.y;
-    }
-
-    setInMiddle(canvas) {
-        this.oldPositions = [];
-        this.x = 50 * canvas.width / 100;
-        this.y = 50 * canvas.height / 100;
     }
 
     draw(context) {

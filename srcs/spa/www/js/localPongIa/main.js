@@ -50,7 +50,9 @@ function checkAndLaunch() {
         currentGame.IA.assignLevel(currentLevel);
         startCountdown();
     } else {
-        alert('You need to choose a IA Level');
+        const modalLvl = document.getElementById('modal-level')
+        modalLvl.style.display = 'flex';
+        document.getElementById('modal-btn-ok').onclick = () => modalLvl.style.display = 'none';
     }
 }
 

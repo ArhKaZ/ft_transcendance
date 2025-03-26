@@ -99,7 +99,7 @@ class TournamentManager {
         
         if (data.deleted) {
             setTimeout(() => {
-                window.location.reload();
+                router.navigateTo('/tournament/');
             }, 0);
         }
     }

@@ -6,6 +6,7 @@ class IA {
 		this.newPosition = -1;
 		this.target = -1;
 		this.randPos = -1;
+		this.impactPoint = null;
 		this.errorRange = [
 			this.canvas.height / 8,
 			this.canvas.height / 16,

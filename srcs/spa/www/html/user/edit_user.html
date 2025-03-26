@@ -31,9 +31,12 @@
 				<label for="password">New password</label>
 				<input type="password" id="password" name="password">
 			</div>
-			<button id="erase-button" type="button">
-				<img src="../../css/ico/earse.png" alt="Erase" width="30" height="30">
-			</button>
+			<div id="erase-container">
+				<span>Erase Profile</span>
+				<button id="erase-button" type="button">
+					<img src="../../css/ico/earse.png" alt="Erase" width="30" height="30">
+				</button>
+			</div>
 			<div>
 				<label for="description">Description</label>
 				<textarea id="description" name="description"></textarea>
@@ -45,14 +48,11 @@
 				<input type="file" id="avatar" name="avatar" accept="image/*">
 				<span id="file-chosen">[None]</span>
 			</div>
-			
-			
-			<button id="btn-update" type="submit">Update</button>
+			<div class="btn-container">
+				<button type="button" id="return-button">Return</button>
+				<button id="btn-update" type="submit">Update</button>
+			</div>
 		</form>
-		<div class="bottom-buttons">
-			<button type="button" id="return-button">Return</button>        
-		</div>
-		
 		<div id="message"></div>
 	</div>
 	<script type="module" src="/js/user/edit_user.js"></script>
