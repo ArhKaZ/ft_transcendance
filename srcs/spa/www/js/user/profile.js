@@ -263,6 +263,7 @@ async function removeFriend(userName) {
 		} else {
 			const data = await response.json();
 			displayMessage(data.error, 'error');
+			await updateFriendButton(userName);
 			console.error("Error while trying to remove a friend :", data.error || response.status);
 		}
 	} catch (error) {
@@ -301,7 +302,7 @@ async function addFriend(userName) {
 async function updateFriendButton(userName) {
 	const addFriendBtn = document.getElementById('add-friend-btn');
 	const currentUser = sessionStorage.getItem('username');
-	const removeFriendBtn = document.getElementById('remove-friend-btn')
+	const removeFriendBtn = document.getElementById('remove-friend-btn');
 	if (currentUser === userName) {
 		addFriendBtn.style.display = 'none';
 		return;
@@ -320,6 +321,7 @@ async function updateFriendButton(userName) {
 		addFriendBtn.classList.add("disabled");
 		addFriendBtn.onclick = null;
 	} else {
+		removeFriendBtn.style.display = 'none';
 		addFriendBtn.src = "/css/ico/add_friend_ico.png";
 		addFriendBtn.classList.remove("disabled");
 		addFriendBtn.onclick = () => addFriend(userName);
