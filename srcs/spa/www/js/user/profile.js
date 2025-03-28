@@ -262,10 +262,12 @@ async function removeFriend(userName) {
 			return;
 		} else {
 			const data = await response.json();
+			displayMessage(data.error, 'error');
 			console.error("Error while trying to remove a friend :", data.error || response.status);
 		}
 	} catch (error) {
-		console.error("Failed remove a friend", error);
+		displayMessage('A network error occurred.', 'error');
+		console.error("Failed to remove a friend", error);
 	}
 }
 
@@ -604,4 +606,14 @@ function setupBadgeModal(username) {
       selectedBadgeSlot = null;
     }
   });
+}
+
+function displayMessage(message, type) {
+	const messageDiv = document.getElementById('message');
+	if (messageDiv) {
+		messageDiv.innerHTML = message;
+		messageDiv.style.color = type === 'error' ? 'red' : 'green';
+	} else {
+		console.error('Message div not found');
+	}
 }
