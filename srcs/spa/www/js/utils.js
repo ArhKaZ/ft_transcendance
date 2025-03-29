@@ -53,10 +53,6 @@ export async function getUserFromBack() {
 }
 
 export async function ensureValidToken() {
-    await checkTokenExpiry();
-}
-
-async function checkTokenExpiry() {
     const accessExpiry = sessionStorage.getItem('access_expires');
     const refreshToken = sessionStorage.getItem('refresh_token');
     if (!accessExpiry || !refreshToken) {

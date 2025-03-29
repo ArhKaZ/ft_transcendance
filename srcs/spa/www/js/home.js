@@ -12,6 +12,10 @@ export async function init() {
 	const searchResults = document.getElementById('search-results');
 	const searchContainer = document.querySelector('.search-container');
 	const friendSearchContainer = document.querySelector('.friend-search-container');
+	// if (!logoutButton || !userAvatar || !bottomBtns) {
+    //     console.warn('Essential elements not found in home page');
+    //     return;
+    // }
 	var oauthbtn = document.getElementById('oauth-button');
 
 

@@ -28,11 +28,12 @@ class Router {
 		}
 
 		// Auth check for protected routes
-		//   if (!this.publicPaths.includes(path) && !(await this.isAuthenticated())) {
-		//     this.navigateTo('/user/login/');
-		//     return;
-		//   }
-		await ensureValidToken();
+		if (!this.publicPaths.includes(path) && !(await this.isAuthenticated())) {
+			console.log("going to home");
+			this.navigateTo('/home/');
+			return;
+		}
+		// await ensureValidToken();
 
 		// Load route assets
 		await this.loadRoute(route);
@@ -41,7 +42,7 @@ class Router {
 	async loadRoute(route) {
 		// 1. Fetch HTML
 		const html = await fetch(route.html).then(res => res.text());
-
+	
 		// 2. Load new CSS and wait for them
 		const newStyles = [];
 		if (route.css) {
@@ -58,14 +59,17 @@ class Router {
 				});
 			}));
 		}
-
+	
 		// 3. Clear old assets (styles) and update with new styles
 		this.clearAssets();
 		this.currentAssets.styles = newStyles;
-
+	
 		// 4. Set HTML after CSS is loaded
 		this.rootElement.innerHTML = html;
-
+	
+		// Wait for the next tick to ensure DOM is ready
+		await new Promise(resolve => setTimeout(resolve, 0));
+	
 		// 5. Load JS using dynamic imports and cache
 		if (route.js) {
 			const scripts = Array.isArray(route.js) ? route.js : [route.js];
@@ -107,16 +111,16 @@ class Router {
 		return this.routes[path] || this.routes['/404/'];
 	}
 
-	// async isAuthenticated() {
-	// 	try {
-	// 		const response = await fetch('/api/auth/check', {
-	// 			headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
-	// 		});
-	// 		return response.ok;
-	// 	} catch (error) {
-	// 		return false;
-	// 	}
-	// }
+	async isAuthenticated() {
+		try {
+			const response = await fetch('/api/auth/check', {
+				headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+			});
+			return response.ok;
+		} catch (error) {
+			return false;
+		}
+	}
 
 	initLinks() {
 		document.addEventListener('click', (e) => {
