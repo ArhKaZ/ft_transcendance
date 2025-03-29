@@ -218,7 +218,7 @@ class Router {
     // Profile Route
     '/user/profile/:userName': {
       html: '/html/user/profile.html',
-      css: '/css/profile.css',
+      css: '/css/profiles.css',
       js: '/js/user/profile.js'
     },
   
