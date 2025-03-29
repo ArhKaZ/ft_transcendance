@@ -36,47 +36,55 @@ class Router {
     }
   
     async loadRoute(route) {
-      // 1. Clear old assets (only styles now, scripts are managed via cache)
-      this.clearAssets();
-    
-      // 2. Load HTML
-      const html = await fetch(route.html).then(res => res.text());
-      this.rootElement.innerHTML = html;
-    
-      // 3. Load CSS (array support)
-      if (route.css) {
-        const cssFiles = Array.isArray(route.css) ? route.css : [route.css];
-        cssFiles.forEach(href => {
-          const link = document.createElement('link');
-          link.rel = 'stylesheet';
-          link.href = href;
-          document.head.appendChild(link);
-          this.currentAssets.styles.push(link);
-        });
-      }
-    
-      // 4. Load JS using dynamic imports and cache
-      if (route.js) {
-        const scripts = Array.isArray(route.js) ? route.js : [route.js];
-        for (const src of scripts) {
-          try {
-            let modulePromise;
-            if (!this.scriptCache.has(src)) {
-              modulePromise = import(src);
-              this.scriptCache.set(src, modulePromise);
-            } else {
-              modulePromise = this.scriptCache.get(src);
-            }
-            const module = await modulePromise;
-            if (typeof module.init === 'function') {
-              await module.init(); // Execute init function every time
-            }
-          } catch (error) {
-            console.error(`Error loading script: ${src}`, error);
-          }
-        }
-      }
-    }
+		// 1. Fetch HTML
+		const html = await fetch(route.html).then(res => res.text());
+	  
+		// 2. Load new CSS and wait for them
+		const newStyles = [];
+		if (route.css) {
+		  const cssFiles = Array.isArray(route.css) ? route.css : [route.css];
+		  await Promise.all(cssFiles.map(href => {
+			return new Promise((resolve, reject) => {
+			  const link = document.createElement('link');
+			  link.rel = 'stylesheet';
+			  link.href = href;
+			  link.onload = resolve;
+			  link.onerror = reject;
+			  document.head.appendChild(link);
+			  newStyles.push(link);
+			});
+		  }));
+		}
+	  
+		// 3. Clear old assets (styles) and update with new styles
+		this.clearAssets();
+		this.currentAssets.styles = newStyles;
+	  
+		// 4. Set HTML after CSS is loaded
+		this.rootElement.innerHTML = html;
+	  
+		// 5. Load JS using dynamic imports and cache
+		if (route.js) {
+		  const scripts = Array.isArray(route.js) ? route.js : [route.js];
+		  for (const src of scripts) {
+			try {
+			  let modulePromise;
+			  if (!this.scriptCache.has(src)) {
+				modulePromise = import(src);
+				this.scriptCache.set(src, modulePromise);
+			  } else {
+				modulePromise = this.scriptCache.get(src);
+			  }
+			  const module = await modulePromise;
+			  if (typeof module.init === 'function') {
+				await module.init();
+			  }
+			} catch (error) {
+			  console.error(`Error loading script: ${src}`, error);
+			}
+		  }
+		}
+	  }
   
     clearAssets() {
       // Only clear styles; scripts are managed by the cache
