@@ -8,16 +8,20 @@ class ProfileManager {
     }
 
     async init() {
-        try {
-            this.userName = this.getUserNameFromURL();
-            this.setupEventListeners();
-            await this.loadProfileData();
-            await this.loadHistory();
-        } catch (error) {
-            console.error("Profile initialization failed:", error);
-            router.navigateTo('/user_not_found/');
-        }
-    }
+		try {
+			this.userName = this.getUserNameFromURL();
+			this.setupEventListeners();
+			await this.loadProfileData();
+			await this.loadHistory();
+		} catch (error) {
+			if (error.message === 'USER_NOT_FOUND') {
+				router.navigateTo('/user_not_found/');
+			} else {
+				console.error("Profile initialization failed:", error);
+				router.navigateTo('/user_not_found/');
+			}
+		}
+	}
 
     cleanup() {
         this.cleanupFunctions.forEach(fn => fn());
@@ -46,22 +50,23 @@ class ProfileManager {
     }
 
     async loadProfileData() {
-        try {
-            const response = await this.apiGetProfile();
-			if (!response.ok)
+		const response = await this.apiGetProfile();
+		if (!response.ok) {
+			if (response.status === 404) {
+				throw new Error('USER_NOT_FOUND');
+			} else {
 				throw new Error('Failed to load profile data');
-            const data = await response.json();
-            
-            this.updateProfileUI(data);
-            await this.updateFriendButton(data.username);
-            
-            if (await this.isUserFriend(data.username)) {
-                this.handleGameStatus(data);
-            }
-        } catch (error) {
-            throw new Error('Failed to load profile data');
-        }
-    }
+			}
+		}
+		const data = await response.json();
+		
+		this.updateProfileUI(data);
+		await this.updateFriendButton(data.username);
+		
+		if (await this.isUserFriend(data.username)) {
+			this.handleGameStatus(data);
+		}
+	}
 
     async apiGetProfile() {
         await ensureValidToken();
