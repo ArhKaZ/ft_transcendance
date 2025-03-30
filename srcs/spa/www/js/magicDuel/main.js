@@ -262,14 +262,14 @@ async function handleCountdown(countdown) {
 }
 
 function handleGameFinish(data) {
-	let checkAnim = setInterval(() => {
+    let checkAnim = setInterval(() => {
         if (asFinishedAnim) {
-			clearInterval(checkAnim);
-			clearEventAndSocket();
-			// window.removeEventListener('beforeunload', handleQuitGame);
-			setTimeout(() => {
-				currentGame.displayWinner(data.player_id);
-			}, 3000);
+            clearInterval(checkAnim);
+            window.removeEventListener('beforeunload', handleQuitGame);
+            setTimeout(() => {
+                currentGame.displayWinner(data.player_id);
+                clearEventAndSocket(); // Moved inside after displayWinner
+            }, 3000);
         }
     }, 10);
 }
