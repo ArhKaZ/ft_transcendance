@@ -48,6 +48,8 @@ class ProfileManager {
     async loadProfileData() {
         try {
             const response = await this.apiGetProfile();
+			if (!response.ok)
+				throw new Error('Failed to load profile data');
             const data = await response.json();
             
             this.updateProfileUI(data);

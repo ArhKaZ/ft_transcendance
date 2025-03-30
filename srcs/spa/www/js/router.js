@@ -242,6 +242,7 @@ const routes = {
 	'/user_not_found/': {
 		html: '/html/user_not_found.html',
 		css: '/css/user_not_found.css',
+		js: '/js/not_found.js',
 		isPublic: true
 	},
 	'/404/': {
