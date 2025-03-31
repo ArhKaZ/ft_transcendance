@@ -15,7 +15,7 @@ class TournamentGame {
             this.setupElements();
             this.setupEventListeners();
             
-            user = await getUserFromBack();
+            this.user = await getUserFromBack();
             sessionStorage.setItem('tournament_code', this.tournamentCode);
 
             if (await this.checkLeft(this.tournamentCode)) {
@@ -65,38 +65,52 @@ class TournamentGame {
     }
 
     async startTournamentPolling() {
-        let oldData = null;
-        
-        this.pollingInterval = setInterval(async () => {
-            try {
-                const data = await this.loadEnd();
-                
-                if (oldData && JSON.stringify(data) !== JSON.stringify(oldData)) {
-                    this.displayTournamentInfo(data);
-                    
-                    if (sessionStorage.getItem('finalDone') || data.winner?.length > 0) {
-                        await this.handleTournamentEnd(data);
-                        return;
-                    }
-                    else if (data.finalists?.length > 0) {
-                        if (await this.verifUserInFinal(data)) {
-                            this.cleanupAndNavigate('/onlinePong/?tournament=true');
-                            return;
-                        }
-                    }
-                    else if (this.verifUserNeedPlay(data)) {
-                        this.cleanupAndNavigate('/onlinePong/?tournament=true');
-                        return;
-                    }
-                }
-                
-                oldData = data;
-            } catch (error) {
-                console.error("Polling error:", error);
-                this.stopTournamentPolling();
-            }
-        }, 1500);
-    }
+		let oldData = null;
+		
+		// Add deep equality check function
+		const isDataDifferent = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
+		
+		this.pollingInterval = setInterval(async () => {
+			try {
+				const data = await this.loadEnd();
+				console.log("Polling Data:", data); // Debug log
+				
+				// Check if data has changed
+				if (!oldData || isDataDifferent(data, oldData)) {
+					console.log("Data changed, processing...");
+					this.displayTournamentInfo(data);
+					
+					// Check for tournament end
+					if (sessionStorage.getItem('finalDone') || data.winner?.length > 0) {
+						console.log("Tournament ended, handling...");
+						await this.handleTournamentEnd(data);
+						return;
+					}
+					// Check if user is in the final and ready
+					else if (data.finalists?.length > 0) {
+						console.log("Checking finals...");
+						const inFinal = await this.verifUserInFinal(data);
+						if (inFinal) {
+							console.log("Navigating to final game...");
+							this.cleanupAndNavigate('/onlinePong/?tournament=true');
+							return;
+						}
+					}
+					// Check if user needs to play a regular match
+					else if (this.verifUserNeedPlay(data)) {
+						console.log("User needs to play, navigating...");
+						this.cleanupAndNavigate('/onlinePong/?tournament=true');
+						return;
+					}
+				}
+				
+				oldData = data;
+			} catch (error) {
+				console.error("Polling error:", error);
+				this.stopTournamentPolling();
+			}
+		}, 3000); // Increased interval to 3 seconds
+	}
 
     stopTournamentPolling() {
         if (this.pollingInterval) {
@@ -108,7 +122,7 @@ class TournamentGame {
     async handleTournamentEnd(data) {
         this.stopTournamentPolling();
         
-        if (data.winner[0]?.id === user.id) {
+        if (data.winner[0]?.id === this.user.id) {
             await this.recordMatch();
         }
         
@@ -216,7 +230,7 @@ class TournamentGame {
     }
 
     async verifUserInFinal(data) {
-        const isFinalist = data.finalists.some(finalist => finalist.id === user.id);
+        const isFinalist = data.finalists.some(finalist => finalist.id === this.user.id);
         if (!isFinalist) return false;
 
         const canPlay = data.matches.every(match => {
@@ -234,7 +248,7 @@ class TournamentGame {
     verifUserNeedPlay(data) {
         return data.matches.some(match => {
             return match.winner === null && 
-                  (match.player1.id === user.id || match.player2.id === user.id);
+                  (match.player1.id === this.user.id || match.player2.id === this.user.id);
         });
     }
 
