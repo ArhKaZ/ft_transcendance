@@ -106,7 +106,7 @@ class TournamentGame {
 						return;
 					}
 					// Check if user is in the final and ready
-					else if (data.finalists?.length > 0) {
+					if (data.finalists?.length > 0) {
 						console.log("Checking finals...");
 						const inFinal = await this.verifUserInFinal(data);
 						if (inFinal) {
@@ -148,7 +148,7 @@ class TournamentGame {
         }
         
         this.cleanupSessionStorage();
-        this.cleanupAndNavigate('/home/');
+        // this.cleanupAndNavigate('/home/');
     }
 
     cleanupSessionStorage(fullCleanup = false) {
