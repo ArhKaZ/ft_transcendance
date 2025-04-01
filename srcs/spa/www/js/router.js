@@ -194,7 +194,7 @@ const routes = {
 	'/onlinePong/': {
 		html: '/html/game/pong/onlinePong/index.html',
 		css: '/css/onlinePong/styles.css',
-		js: '/js/onlinePong/main.js'
+		js: ['/js/onlinePong/main.js', '/js/onlinePong/game/player.js']
 	},
 	'/localPong/': {
 		html: '/html/game/pong/localPong/index.html',
