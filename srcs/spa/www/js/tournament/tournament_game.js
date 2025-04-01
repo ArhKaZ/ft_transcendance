@@ -8,6 +8,13 @@ class TournamentGame {
         this.currentPlayer = null;
         this.pollingInterval = null;
         this.cleanupFunctions = [];
+		if (!this.tournamentCode) {
+            console.error("No tournament code in URL");
+            this.cleanupAndNavigate('/home/');
+            return;
+        }
+        sessionStorage.setItem('tournament_code', this.tournamentCode);
+        console.log(sessionStorage.getItem('tournament_code'));
     }
 
     async init() {
@@ -58,7 +65,7 @@ class TournamentGame {
         );
     }
 
-    cleanup() {
+    async cleanup() {
         this.stopTournamentPolling();
         this.cleanupFunctions.forEach(fn => fn());
         this.cleanupFunctions = [];
@@ -67,11 +74,23 @@ class TournamentGame {
     async startTournamentPolling() {
 		let oldData = null;
 		
+		// Helper function to check if we're still on the tournament page
+		const isOnTournamentPage = () => {
+			return window.location.pathname.includes('/tournament/game/');
+		};
+	
 		// Add deep equality check function
 		const isDataDifferent = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
 		
 		this.pollingInterval = setInterval(async () => {
+			console.log("polling");
 			try {
+				// Stop polling if not on the tournament page
+				if (!isOnTournamentPage()) {
+					this.stopTournamentPolling();
+					return;
+				}
+	
 				const data = await this.loadEnd();
 				console.log("Polling Data:", data); // Debug log
 				
@@ -92,6 +111,7 @@ class TournamentGame {
 						const inFinal = await this.verifUserInFinal(data);
 						if (inFinal) {
 							console.log("Navigating to final game...");
+							this.stopTournamentPolling();
 							this.cleanupAndNavigate('/onlinePong/?tournament=true');
 							return;
 						}
@@ -99,6 +119,7 @@ class TournamentGame {
 					// Check if user needs to play a regular match
 					else if (this.verifUserNeedPlay(data)) {
 						console.log("User needs to play, navigating...");
+						this.stopTournamentPolling();
 						this.cleanupAndNavigate('/onlinePong/?tournament=true');
 						return;
 					}
@@ -130,15 +151,20 @@ class TournamentGame {
         this.cleanupAndNavigate('/home/');
     }
 
-    cleanupSessionStorage() {
-        ['asWin', 'tournament_code', 'finalDone', 'inFinal'].forEach(key => {
-            sessionStorage.removeItem(key);
-        });
+    cleanupSessionStorage(fullCleanup = false) {
+        // Only clear these if doing full cleanup
+        if (fullCleanup) {
+            sessionStorage.removeItem('tournament_code');
+            sessionStorage.removeItem('finalDone');
+            sessionStorage.removeItem('inFinal');
+        }
+        // Always clear these temporary flags
+        sessionStorage.removeItem('programmaticNavigation');
     }
 
-    cleanupAndNavigate(path) {
-        sessionStorage.setItem('programmaticNavigation', 'true');
-        this.cleanup();
+    cleanupAndNavigate(path, isQuitting = false) {
+        this.stopTournamentPolling();
+        this.cleanupSessionStorage(isQuitting); // Pass the quit flag
         router.navigateTo(path);
     }
 
@@ -196,23 +222,15 @@ class TournamentGame {
     }
 
     async quitTournament() {
-        if (!this.tournamentCode) {
-            console.error("No tournament code available");
-            this.cleanupAndNavigate('/home/');
-            return;
-        }
-        
+        // Explicit quit action - full cleanup
         try {
             await ensureValidToken();
             await fetch(`/api/forfeit_tournament/${this.tournamentCode}/`, {
                 method: 'POST',
                 headers: this.getAuthHeaders()
             });
-        } catch (error) {
-            console.error("Error in forfeit API call:", error);
         } finally {
-            this.cleanupSessionStorage();
-            this.cleanupAndNavigate('/home/');
+            this.cleanupAndNavigate('/home/', true); // Trigger full cleanup
         }
     }
 

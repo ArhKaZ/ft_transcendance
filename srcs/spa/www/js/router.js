@@ -39,8 +39,28 @@ class Router {
 		await this.loadRoute(route);
 	}
 
+	async cleanupPreviousRoute() {
+		// Call cleanup functions from modules if they exist
+		if (typeof cleanup === 'function') {
+			console.log("cleaning");
+			await cleanup();
+		}
+		
+		// Clear any remaining intervals (safety net)
+		const highestIntervalId = setTimeout(() => {}, 0);
+		for (let i = 1; i < highestIntervalId; i++) {
+			clearInterval(i);
+			clearTimeout(i);
+		}
+	}
+
 	async loadRoute(route) {
 		// 1. Fetch HTML
+		// if (window.currentModule?.cleanup) {
+		// 	console.log("cleanup, no polling ?");
+		// 	await window.currentModule.cleanup();
+		// }
+		await this.cleanupPreviousRoute();
 		const html = await fetch(route.html).then(res => res.text());
 	
 		// 2. Load new CSS and wait for them

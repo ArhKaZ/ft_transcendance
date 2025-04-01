@@ -107,61 +107,68 @@ export async function init() { // ici j'ai juste ajoute un export, je suis pas s
 }
 
 function setupWebSocket(user, infos) {
-	currentPlayerId = user.id;
-	if (!inTournament)
-		currentPseudo = user.username;
-	else 
-		currentPseudo = user.pseudo;
-	const id = user.id.toString();
-	const currentUrl = window.location.host;
-	const socket = new WebSocket(`wss://${currentUrl}/ws/onlinePong/${id}/`);
-	
-	beforeUnloadHandler = () => {
-        if (socket && socket.readyState === WebSocket.OPEN) {
+    currentPlayerId = user.id;
+    currentPseudo = inTournament ? user.pseudo : user.username;
+    const currentUrl = window.location.host;
+    const socket = new WebSocket(`wss://${currentUrl}/ws/onlinePong/${currentPlayerId}/`);
+
+    beforeUnloadHandler = () => {
+        if (socket?.readyState === WebSocket.OPEN) {
             socket.close();
         }
     };
 
-	socket.onopen = () => {
-		window.addEventListener('beforeunload', beforeUnloadHandler);
-		
-		if (inTournament && infos) {
-			let objToSend = {
-				action: 'tournament',
-				player_id: user.id,
-				player_name: currentPseudo,
-				player_avatar: user.avatar,
-				create: infos.create,
-				is_final_match: inFinal,
-				tournament_code: sessionStorage.getItem('tournament_code'),
-				... (infos.create && {
-					opponent: {
-						id: infos.opp_id,
-						name: infos.opp_name,
-						avatar: infos.opp_avatar,
-					}
-				})
-			}
-			sendToBack(objToSend);
-		} else {
-			sendToBack({
-				action: 'search', 
-				player_id: user.id, 
-				player_name: currentPseudo, 
-				player_avatar: user.avatar,
-			});
-		}
-	};
+    const sendInitialData = () => {
+        if (inTournament && infos) {
+            const objToSend = {
+                action: 'tournament',
+                player_id: user.id,
+                player_name: currentPseudo,
+                player_avatar: user.avatar,
+                create: infos.create,
+                is_final_match: inFinal,
+                tournament_code: sessionStorage.getItem('tournament_code'),
+                ...(infos.create && {
+                    opponent: {
+                        id: infos.opp_id,
+                        name: infos.opp_name,
+                        avatar: infos.opp_avatar,
+                    }
+                })
+            };
+            sendToBack(objToSend);
+        } else {
+            sendToBack({
+                action: 'search',
+                player_id: user.id,
+                player_name: currentPseudo,
+                player_avatar: user.avatar,
+            });
+        }
+    };
 
-	socket.onmessage = async (e) => {
-		await handleWebSocketMessage(e);
-	};
+    socket.onopen = () => {
+        window.addEventListener('beforeunload', beforeUnloadHandler);
+        
+        // Ensure WebSocket is truly ready before sending
+        if (socket.readyState === WebSocket.OPEN) {
+            sendInitialData();
+        } else {
+            socket.addEventListener('open', () => {
+                sendInitialData();
+            }, { once: true });
+        }
+    };
 
-	socket.onerror = (error) => console.error("WebSocket error:", error.type);
+    socket.onmessage = async (e) => {
+        await handleWebSocketMessage(e);
+    };
 
-	window.addEventListener("resize", handleResize());
+    socket.onerror = (error) => console.error("WebSocket error:", error);
 
-	return socket;
+    window.addEventListener("resize", handleResize);
+
+    return socket;
 }
 
 
@@ -188,6 +195,7 @@ function setupKeyboardControls(playerId) {
 function cleanKeyboardControls() {
 	if (socket && socket.readyState === WebSocket.OPEN) {
         socket.close();
+		socket = null;
     }
 
 	if (beforeUnloadHandler) {
@@ -263,6 +271,7 @@ async function handleWebSocketMessage(e) {
 
 				if (inTournament) {
 					setTimeout(() => {
+						console.log("1");
 						router.navigateTo(`/tournament/game/${sessionStorage.getItem('tournament_code')}`)
 					}, 2000);
 				}
@@ -300,10 +309,12 @@ async function handleWebSocketMessage(e) {
 		
 		case 'no_opp':
 			if (inTournament && inFinal) {
+				console.log("2");
 				router.navigateTo(`/tournament/game/${sessionStorage.getItem('tournament_code')}/`);
 				break;
 			}
 			else if (inTournament) {
+				console.log("3");
 				router.navigateTo(`/tournament/game/${sessionStorage.getItem('tournament_code')}/`);
 				break;
 			}
@@ -388,17 +399,43 @@ function handleErrors(data) {
 
 	if (inTournament) {
 		buttonError.innerText = "Back to Tournament"
+		console.log("4");
 		buttonError.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
 	}
 }
 
 function handlePlayerInfo(data) {
-	currentGameId = data.game_id;
-	creationGameDisplay(data, currentGame);
-	sendToBack({action: 'findGame', game_id: currentGameId})
-	document.getElementById('button-ready').addEventListener('click', () => {
-		sendToBack({action: 'ready', game_id: currentGameId})
-	})
+    currentGameId = data.game_id;
+    
+    // Get canvas with null check
+    const canvas = document.getElementById('gameCanvas');
+    if (!canvas) {
+        console.error('Canvas element not found');
+        return;
+    }
+
+    // Initialize game with proper error handling
+    try {
+        const [P1, P2] = createPlayers(data);
+        currentGame = new Game(canvas, P1, P2);
+    } catch (error) {
+        console.error('Game initialization failed:', error);
+        handleErrors({ message: 'Failed to initialize game' });
+        return;
+    }
+
+    // Proceed with game display
+    creationGameDisplay(data, currentGame);
+    
+    // Setup game ready button with null check
+    const readyButton = document.getElementById('button-ready');
+    if (readyButton) {
+        readyButton.addEventListener('click', () => {
+            sendToBack({ action: 'ready', game_id: currentGameId });
+        });
+    }
+    
+    sendToBack({ action: 'findGame', game_id: currentGameId });
 }
 
 async function handleGameStart(data) {
@@ -465,6 +502,7 @@ function handleGameFinish(game, winningId, opponentName = null) {
         btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
         btnBack.innerText = "Back to Tournament";
         setTimeout(() => {
+			console.log("5");
             router.navigateTo(`/tournament/game/${sessionStorage.getItem('tournament_code')}/`);
         }, 3000);
     }
