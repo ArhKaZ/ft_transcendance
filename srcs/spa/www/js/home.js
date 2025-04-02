@@ -129,7 +129,7 @@ export async function init() {
 		if (userName) {
 			router.navigateTo(`/user/profile/${userName}`);
 		} else {
-			searchResults.textContent = 'Please enter a username.';
+			displayMessage('Please enter a username.', 'error');
 		}
 	};
 
@@ -167,4 +167,10 @@ export async function init() {
         cleanupFunctions.forEach(fn => fn());
         cleanupFunctions = [];
     };
+}
+
+function displayMessage(message, type) {
+    const messageDiv = document.getElementById('message');
+    messageDiv.innerHTML = message;
+    messageDiv.style.color = type === 'error' ? 'red' : 'green';
 }
