@@ -36,26 +36,35 @@ class Router {
     }
   
     async loadRoute(route) {
-      // 1. Clear old assets (only styles now, scripts are managed via cache)
-      this.clearAssets();
-    
-      // 2. Load HTML
-      const html = await fetch(route.html).then(res => res.text());
-      this.rootElement.innerHTML = html;
-    
-      // 3. Load CSS (array support)
+      // 1. Load new CSS and await its loading
+      const newStyles = [];
       if (route.css) {
         const cssFiles = Array.isArray(route.css) ? route.css : [route.css];
-        cssFiles.forEach(href => {
-          const link = document.createElement('link');
-          link.rel = 'stylesheet';
-          link.href = href;
-          document.head.appendChild(link);
-          this.currentAssets.styles.push(link);
+        const cssPromises = cssFiles.map(href => {
+          return new Promise((resolve, reject) => {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = href;
+            document.head.appendChild(link);
+            newStyles.push(link);
+            link.onload = resolve;
+            link.onerror = reject;
+          });
         });
+        await Promise.all(cssPromises);
       }
     
-      // 4. Load JS using dynamic imports and cache
+      // 2. Fetch HTML content
+      const html = await fetch(route.html).then(res => res.text());
+    
+      // 3. Clear old assets (styles) and set new ones
+      this.clearAssets();
+      this.currentAssets.styles = newStyles;
+    
+      // 4. Insert the new HTML (now CSS is loaded)
+      this.rootElement.innerHTML = html;
+    
+      // 5. Load JS modules
       if (route.js) {
         const scripts = Array.isArray(route.js) ? route.js : [route.js];
         for (const src of scripts) {
@@ -69,7 +78,7 @@ class Router {
             }
             const module = await modulePromise;
             if (typeof module.init === 'function') {
-              await module.init(); // Execute init function every time
+              await module.init();
             }
           } catch (error) {
             console.error(`Error loading script: ${src}`, error);
