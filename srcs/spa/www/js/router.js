@@ -150,6 +150,11 @@ class Router {
       css: '/css/global.css',
       js: '/js/game.js'
     },
+    '/gambling/' :{
+      html: '/html/gambling.html',
+      css: ['/css/global.css', '/css/gambling.css'],
+      js: '/js/gambling.js'
+    },
     '/pong/': {
       html: '/html/game/pong/pong.html',
       css: '/css/pong.css',
@@ -185,7 +190,7 @@ class Router {
     // '/user/edit/': {
     //   html: '/html/user/edit.html',
     //   css: '/css/edit.css',
-    //   js: '/js/edit.js'
+    //   js: '/js/edit.js''/css/pong.css
     // },
     '/user/edit_user/': {
       html: '/html/user/edit_user.html',
