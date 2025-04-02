@@ -3,11 +3,28 @@ import { router } from '../router.js';
 
 let cleanupFunctions = [];
 
+const handleAddFriend = async (friend) => {
+    await addFriend(friend.username);
+    cleanupFunctions.push(() => addFriendButton.removeEventListener('click', handleAddFriend));
+};
+
 export async function init() {
+    try {
+        await Promise.all([
+            loadFriendsList(),
+            loadPendingFriends()
+        ]);
+        
+        // Gestion des erreurs stockées en session
+        displayStoredErrorMessages();
+    } catch (error) {
+        console.error("Initialization error:", error);
+        displayError("Failed to load friends data");
+    }
+
     // Initialisation des éléments
     const logoutButton = document.getElementById('logout-button');
     const returnButton = document.getElementById('return-button');
-    const addFriendButton = document.getElementById('add-friend-button');
     const friendsList = document.getElementById('friends-list');
     const pendingList = document.getElementById('pending-list');
 
@@ -20,10 +37,6 @@ export async function init() {
         window.history.back();
     };
 
-    const handleAddFriend = async () => {
-        await addFriend();
-    };
-
     // Ajout des listeners
     if (logoutButton) {
         logoutButton.addEventListener('click', handleLogout);
@@ -33,25 +46,6 @@ export async function init() {
     if (returnButton) {
         returnButton.addEventListener('click', handleReturn);
         cleanupFunctions.push(() => returnButton.removeEventListener('click', handleReturn));
-    }
-
-    if (addFriendButton) {
-        addFriendButton.addEventListener('click', handleAddFriend);
-        cleanupFunctions.push(() => addFriendButton.removeEventListener('click', handleAddFriend));
-    }
-
-    // Chargement des données
-    try {
-        await Promise.all([
-            loadFriendsList(),
-            loadPendingFriends()
-        ]);
-        
-        // Gestion des erreurs stockées en session
-        displayStoredErrorMessages();
-    } catch (error) {
-        console.error("Initialization error:", error);
-        displayError("Failed to load friends data");
     }
 
     return () => {
@@ -193,17 +187,14 @@ function createFriendCard(friend) {
 
 function createPendingFriendCard(friend) {
     const card = createFriendCard(friend);
-    
-    // Accept button
+
     const acceptButton = document.createElement('button');
     acceptButton.textContent = "Accept";
     acceptButton.classList.add('accept-button');
-    
-    acceptButton.addEventListener('click', (e) => {
+    acceptButton.addEventListener('click',async (e) => {
         e.stopPropagation();
-        acceptFriendRequest(friend.username);
+        handleAddFriend(friend)
     });
-
     card.appendChild(acceptButton);
     return card;
 }
@@ -237,117 +228,116 @@ function updateStatusIndicators(username, isOnline) {
     });
 }
 
-// Fonctions d'actions
-async function addFriend() {
-    const friendName = document.getElementById('friend_name').value.trim();
-    if (!friendName) return;
+// // Fonctions d'actions
+// async function addFriend() {
+//     const friendName = document.getElementById('friend_name').value.trim();
+//     console.log('addFriend', friendName);
+//     if (!friendName) return;
 
-    try {
-        const response = await fetch('/api/add_friend/', {
-            method: 'POST',
-            headers: createAuthHeaders('application/json'),
-            body: JSON.stringify({ friend_name: friendName })
-        });
+//     try {
+//         const response = await fetch('/api/add_friend/', {
+//             method: 'POST',
+//             headers: createAuthHeaders('application/json'),
+//             body: JSON.stringify({ friend_name: friendName })
+//         });
 
-        if (response.ok) {
-            await updateFriendStatus(friendName);
-        } else {
-            const error = await parseResponseError(response);
-            displayAddFriendError(error);
-        }
-    } catch (error) {
-        displayAddFriendError(error.message);
-    }
-}
+//         if (response.ok) {
+//             console.log('ok');
+//             await updateFriendStatus(friendName);
+//         } else {
+//             const error = await parseResponseError(response);
+//             displayAddFriendError(error);
+//         }
+//     } catch (error) {
+//         displayAddFriendError(error.message);
+//     }
+// }
 
-async function acceptFriendRequest(username) {
-    try {
-        await ensureValidToken();
-        const response = await fetch('/api/get_pending_friends/', {
-            method: 'GET',
-            headers: {
-                'Content-type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-            }
-        });
-        if (response.ok) {
-            const data = await response.json();
+// async function acceptFriendRequest(username) {
+//     try {
+//         await ensureValidToken();
+//         const response = await fetch('/api/get_pending_friends/', {
+//             method: 'GET',
+//             headers: {
+//                 'Content-type': 'application/json',
+//                 'X-CSRFToken': getCSRFToken(),
+//                 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+//             }
+//         });
+//         if (response.ok) {
+//             const data = await response.json();
+//             let pendingmsg = document.getElementById('pending-msg');
+//             if (!pendingmsg) {
+//                 pendingmsg = document.createElement('h2');
+//                 pendingmsg.id = 'pending-msg';
+//                 const pendingList = document.getElementById('pending-list');
+//                 pendingList.parentNode.insertBefore(pendingmsg, pendingList);
+//             }
             
             
-            let pendingmsg = document.getElementById('pending-msg');
-            if (!pendingmsg) {
-                pendingmsg = document.createElement('h2');
-                pendingmsg.id = 'pending-msg';
-                const pendingList = document.getElementById('pending-list');
-                pendingList.parentNode.insertBefore(pendingmsg, pendingList);
-            }
+//             pendingmsg.innerText = data.length > 0 ? "Pending Friend Requests" : "No pending friend requests";
             
             
-            pendingmsg.innerText = data.length > 0 ? "Pending Friend Requests" : "No pending friend requests";
+//             const pendingList = document.getElementById('pending-list');
+//             pendingList.innerHTML = '';
             
             
-            const pendingList = document.getElementById('pending-list');
-            pendingList.innerHTML = '';
-            
-            
-            data.forEach(friend => {
-                const friendCard = document.createElement('div');
-                friendCard.classList.add('friend-card');
+//             data.forEach(friend => {
+//                 const friendCard = document.createElement('div');
+//                 friendCard.classList.add('friend-card');
             
                 
-                friendCard.addEventListener('click', () => {
-                    router.navigateTo(`/user/profile/${friend.username}/`);
-                });
+//                 friendCard.addEventListener('click', () => {
+//                     router.navigateTo(`/user/profile/${friend.username}/`);
+//                 });
             
-                const avatar = document.createElement('img');
-                avatar.src = friend.avatar || '/avatars/default.png';
-                avatar.alt = 'Avatar';
-                avatar.classList.add('friend-avatar');
+//                 const avatar = document.createElement('img');
+//                 avatar.src = friend.avatar || '/avatars/default.png';
+//                 avatar.alt = 'Avatar';
+//                 avatar.classList.add('friend-avatar');
             
-                const friendInfo = document.createElement('div');
-                friendInfo.classList.add('friend-info');
+//                 const friendInfo = document.createElement('div');
+//                 friendInfo.classList.add('friend-info');
             
-                const friendName = document.createElement('span');
-                friendName.classList.add('friend-name');
-                friendName.textContent = friend.username;
+//                 const friendName = document.createElement('span');
+//                 friendName.classList.add('friend-name');
+//                 friendName.textContent = friend.username;
             
-                const acceptButton = document.createElement('button');
-                acceptButton.textContent = "Accept";
-                acceptButton.classList.add('accept-button');
-                acceptButton.addEventListener('click', (event) => {
-                    event.stopPropagation(); 
-                    sendFriendRequestToPendingUser(friend.username);
-                });
-            
-                
-                const statusIndicator = document.createElement('div');
-                statusIndicator.classList.add('status-indicator');
-                statusIndicator.classList.add('offline');
-                statusIndicator.dataset.username = friend.username;
+//                 const acceptButton = document.createElement('button');
+//                 acceptButton.textContent = "Accept";
+//                 acceptButton.classList.add('accept-button');
+//                 acceptButton.addEventListener('click', (event) => {
+//                     event.stopPropagation(); 
+//                     sendFriendRequestToPendingUser(friend.username);
+//                 });
             
                 
-                friendInfo.appendChild(friendName);
-                friendCard.appendChild(avatar);
-                friendCard.appendChild(friendInfo);
-                friendCard.appendChild(acceptButton);
-                friendCard.appendChild(statusIndicator);
-                pendingList.appendChild(friendCard);
+//                 const statusIndicator = document.createElement('div');
+//                 statusIndicator.classList.add('status-indicator');
+//                 statusIndicator.classList.add('offline');
+//                 statusIndicator.dataset.username = friend.username;
             
                 
-                updateFriendStatus(friend.username);
-            });
+//                 friendInfo.appendChild(friendName);
+//                 friendCard.appendChild(avatar);
+//                 friendCard.appendChild(friendInfo);
+//                 friendCard.appendChild(acceptButton);
+//                 friendCard.appendChild(statusIndicator);
+//                 pendingList.appendChild(friendCard);
             
-        } else {
-            console.error("Error while fetching pending friendlist :", response.status);
-        }
-    } catch (error) {
-        console.error("fetchPendingFriends call failed", error);
-    }
-}
+                
+//                 updateFriendStatus(friend.username);
+//             });
+            
+//         } else {
+//             console.error("Error while fetching pending friendlist :", response.status);
+//         }
+//     } catch (error) {
+//         console.error("fetchPendingFriends call failed", error);
+//     }
+// }
 
-
-async function sendFriendRequestToPendingUser(username) {
+async function addFriend(username) {
     try {
         await ensureValidToken();
         const response = await fetch('/api/add_friend/', {
