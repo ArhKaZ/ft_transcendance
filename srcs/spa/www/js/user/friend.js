@@ -34,7 +34,7 @@ export async function init() {
     };
 
     const handleReturn = () => {
-        window.history.back();
+        router.navigateTo('/home/');
     };
 
     // Ajout des listeners
@@ -347,8 +347,8 @@ async function addFriend(username) {
         });
 
         if (response.ok) {
-            router.navigateTo('/user/friend/');
             await updateFriendStatus(username);
+            router.navigateTo('/user/friend/');
         } else {
             const error = await parseResponseError(response);
             displayAddFriendError(error);
