@@ -444,5 +444,5 @@ function resizeCanvas() {
 	}
 }
 
-init();
+// init();
 

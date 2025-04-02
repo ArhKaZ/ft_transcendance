@@ -14,6 +14,7 @@ class Game {
         this.P2.paddle = new Paddle(this.canvas, 2);
         this.IA = new IA(this.canvas);
         this.ball = new Ball(this.canvas);
+        this.ball.reset(); 
         this.score = [0, 0];
         this.scoreP1Element = document.getElementById('p1-score');
         this.scoreP2Element = document.getElementById('p2-score');
