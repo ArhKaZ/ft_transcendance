@@ -157,7 +157,7 @@ class Router {
     },
     '/pong/': {
       html: '/html/game/pong/pong.html',
-      css: '/css/pong.css',
+      css: '/css/global.css',
       js: '/js/pong.js'
     },
     '/onlinePong/': {
@@ -194,7 +194,7 @@ class Router {
     // },
     '/user/edit_user/': {
       html: '/html/user/edit_user.html',
-      css: '/css/edit_user.css',
+      css: ['/css/useredit.css', '/css/global.css'],
       js: '/js/user/edit_user.js'
     },
     '/user/history/': {
@@ -223,7 +223,7 @@ class Router {
     // Profile Route
     '/user/profile/:userName': {
       html: '/html/user/profile.html',
-      css: '/css/profile.css',
+      css: '/css/profiles.css',
       js: '/js/user/profile.js'
     },
   

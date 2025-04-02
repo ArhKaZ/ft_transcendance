@@ -5,16 +5,40 @@ import { getCSRFToken } from './utils.js';
 
 let isTokenClicked = false;
 
-updateTicketCount();
+// let cleanupFunctions = [];
 
-const token1 = document.getElementById('token1');
-const token2 = document.getElementById('token2');
-const token3 = document.getElementById('token3');
-document.getElementById('reset-button').addEventListener('click', resetTokens);
+//peut etre mettre les event listener dans un garbage collector
 
-token1.addEventListener('click', async () => handleTokenClick(1));
-token2.addEventListener('click', async () => handleTokenClick(2));
-token3.addEventListener('click', async () => handleTokenClick(3));
+export async function init() {
+    updateTicketCount();
+    const token1 = document.getElementById('token1');
+    const token2 = document.getElementById('token2');
+    const token3 = document.getElementById('token3');
+    document.getElementById('reset-button').addEventListener('click', resetTokens);
+    
+    token1.addEventListener('click', async () => handleTokenClick(1));
+    token2.addEventListener('click', async () => handleTokenClick(2));
+    token3.addEventListener('click', async () => handleTokenClick(3));
+    document.getElementById('return-button').addEventListener('click', () => {
+        router.navigateTo("/home/");
+    });
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+        await updateTicketCount();
+        token1.addEventListener('click', async () => {
+            if (!token1.disabled) await handleTokenClick(1);
+        });
+        token2.addEventListener('click', async () => {
+            if (!token2.disabled) await handleTokenClick(2);
+        });
+        token3.addEventListener('click', async () => {
+            if (!token3.disabled) await handleTokenClick(3);
+        });
+    });
+}
+
+// updateTicketCount();
+
 
 function updateButtonStates(ticketCount) {
     const buttons = [token1, token2, token3];
@@ -214,19 +238,19 @@ async function returnToken(token_number) {
     }
 }
 
-document.getElementById('return-button').addEventListener('click', () => {
-    router.navigateTo("/home/");
-});
+// document.getElementById('return-button').addEventListener('click', () => {
+//     router.navigateTo("/home/");
+// });
 
-document.addEventListener('DOMContentLoaded', async () => {
-    await updateTicketCount();
-    token1.addEventListener('click', async () => {
-        if (!token1.disabled) await handleTokenClick(1);
-    });
-    token2.addEventListener('click', async () => {
-        if (!token2.disabled) await handleTokenClick(2);
-    });
-    token3.addEventListener('click', async () => {
-        if (!token3.disabled) await handleTokenClick(3);
-    });
-});
+// document.addEventListener('DOMContentLoaded', async () => {
+//     await updateTicketCount();
+//     token1.addEventListener('click', async () => {
+//         if (!token1.disabled) await handleTokenClick(1);
+//     });
+//     token2.addEventListener('click', async () => {
+//         if (!token2.disabled) await handleTokenClick(2);
+//     });
+//     token3.addEventListener('click', async () => {
+//         if (!token3.disabled) await handleTokenClick(3);
+//     });
+// });
