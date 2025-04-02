@@ -35,6 +35,10 @@ export async function init() {
     currentLevel = 0;
     asSelectedLevel = false;
     gameIsCancel = false;
+    const popstateHandler = () => {
+        returnBack();
+    };
+    window.addEventListener('popstate', popstateHandler);
     document.getElementById('return-button').addEventListener('click', () => {
         returnBack();
     });
