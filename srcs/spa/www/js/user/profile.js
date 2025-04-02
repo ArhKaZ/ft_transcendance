@@ -2,52 +2,73 @@ import { getCSRFToken } from '../utils.js';
 import { ensureValidToken } from '/js/utils.js';
 import { router } from '../router.js';
 
-const goToPong = async (username) => {
-	const response = await api_get_profile(username);		
-	const data = await response.json();
-	console.debug(data);
-	if (data.game_mode === 'Pong' && data.is_waiting_for_game)
-		router.navigateTo('/onlinePong/');
-	else if (!data.game_mode || !data.is_waiting_for_game){
-		const action = document.getElementById('action-container');
-		const profileHeader = document.getElementById('profile-header');
-		action.style.display = 'none';
-		let error = document.createElement('span');
-		error.innerText = "Friend no more joinable";
-		error.style.color = 'Red';
-		profileHeader.appendChild(error);
-	}
-}
+let selectedBadgeSlot = null;
 
-const goToMD = async (username) => {
-	const response = await api_get_profile(username);	
-	const data = await response.json();
-	if (data.game_mode === 'MagicDuel' && data.is_waiting_for_game)
-		router.navigateTo('/magicDuel/');
-	else if (!data.game_mode || !data.is_waiting_for_game){
-		const action = document.getElementById('action-container');
-		const profileHeader = document.getElementById('profile-header');
-		action.style.display = 'none';
-		let error = document.createElement('span');
-		error.innerText = "Friend no more joinable";
-		error.style.color = 'Red';
-		profileHeader.appendChild(error);
+
+
+export async function init() {
+	const goToPong = async (username) => {
+		const response = await api_get_profile(username);		
+		const data = await response.json();
+		console.debug(data);
+		if (data.game_mode === 'Pong' && data.is_waiting_for_game)
+			router.navigateTo('/onlinePong/');
+		else if (!data.game_mode || !data.is_waiting_for_game){
+			const action = document.getElementById('action-container');
+			const profileHeader = document.getElementById('profile-header');
+			action.style.display = 'none';
+			let error = document.createElement('span');
+			error.innerText = "Friend no more joinable";
+			error.style.color = 'Red';
+			profileHeader.appendChild(error);
+		}
 	}
-}
-const goToTournament = async (username) => {
-	const response = await api_get_profile(username);		
-	const data = await response.json();
-	if (data.code_current_tournament && !data.tournament_start)
-		router.navigateTo('/tournament/');
-	else if (!data.is_in_tournament || data.tournament_start){
-		const action = document.getElementById('action-container');
-		const profileHeader = document.getElementById('profile-header');
-		action.style.display = 'none';
-		let error = document.createElement('span');
-		error.innerText = "Friend no more joinable";
-		error.style.color = 'Red';
-		profileHeader.appendChild(error);
+	
+	const goToMD = async (username) => {
+		const response = await api_get_profile(username);	
+		const data = await response.json();
+		if (data.game_mode === 'MagicDuel' && data.is_waiting_for_game)
+			router.navigateTo('/magicDuel/');
+		else if (!data.game_mode || !data.is_waiting_for_game){
+			const action = document.getElementById('action-container');
+			const profileHeader = document.getElementById('profile-header');
+			action.style.display = 'none';
+			let error = document.createElement('span');
+			error.innerText = "Friend no more joinable";
+			error.style.color = 'Red';
+			profileHeader.appendChild(error);
+		}
 	}
+	const goToTournament = async (username) => {
+		const response = await api_get_profile(username);		
+		const data = await response.json();
+		if (data.code_current_tournament && !data.tournament_start)
+			router.navigateTo('/tournament/');
+		else if (!data.is_in_tournament || data.tournament_start){
+			const action = document.getElementById('action-container');
+			const profileHeader = document.getElementById('profile-header');
+			action.style.display = 'none';
+			let error = document.createElement('span');
+			error.innerText = "Friend no more joinable";
+			error.style.color = 'Red';
+			profileHeader.appendChild(error);
+		}
+	}
+	document.querySelectorAll('.image-button').forEach(button => {
+		button.addEventListener('click', () => {
+			// Add your click handling logic here
+			console.log('Button clicked:', button.querySelector('img').alt);
+		});
+	});
+	
+	document.getElementById('return-button').addEventListener('click', () => {
+		window.history.back();
+	});
+	
+	
+	fetch_user();
+	fetchHistory();
+
 }
 
 async function isUserFriend(userName) {
@@ -406,22 +427,22 @@ async function fetchHistory() {
 	}
 }
 
-document.querySelectorAll('.image-button').forEach(button => {
-    button.addEventListener('click', () => {
-        // Add your click handling logic here
-        console.log('Button clicked:', button.querySelector('img').alt);
-    });
-});
+// document.querySelectorAll('.image-button').forEach(button => {
+//     button.addEventListener('click', () => {
+//         // Add your click handling logic here
+//         console.log('Button clicked:', button.querySelector('img').alt);
+//     });
+// });
 
-document.getElementById('return-button').addEventListener('click', () => {
-	window.history.back();
-});
+// document.getElementById('return-button').addEventListener('click', () => {
+// 	window.history.back();
+// });
 
 
-fetch_user();
-fetchHistory();
+// fetch_user();
+// fetchHistory();
 
-let selectedBadgeSlot = null;
+// let selectedBadgeSlot = null;
 
 async function fetchAndDisplayBadges(currentBadgeAlt) {
   try {
