@@ -37,9 +37,6 @@ export async function init() {
     });
 }
 
-// updateTicketCount();
-
-
 function updateButtonStates(ticketCount) {
     const buttons = [token1, token2, token3];
     buttons.forEach(button => {
@@ -66,7 +63,6 @@ async function updateTicketCount() {
 function resetTokens() {
     isTokenClicked = false;
     
-    // Réactiver tous les tokens
     [token1, token2, token3].forEach(token => {
         token.style.pointerEvents = 'auto';
         const tokenElement = token.querySelector('.token');
@@ -82,15 +78,10 @@ async function handleTokenClick(tokenNumber) {
     if (isTokenClicked || tokenButton.disabled) return;
     isTokenClicked = true;
     
-    // Disable all tokens
     [token1, token2, token3].forEach(token => {
         token.style.pointerEvents = 'none';
     });
-
-    // Flip the clicked token immediately
     flipToken(tokenNumber);
-
-    // Flip the other tokens after 3 seconds
     const otherTokens = [1, 2, 3].filter(num => num !== tokenNumber);
     setTimeout(() => {
         otherTokens.forEach(num => flipToken(num));
@@ -114,8 +105,6 @@ async function handleTokenClick(tokenNumber) {
         });
 
         const result = await response2.json();
-        
-        // Show modal after all tokens have flipped (add 1 second for animation)
         setTimeout(() => {
             if (response2.ok) {
                 showBadgeModal(tokenNumber, true, result.message);
@@ -147,9 +136,8 @@ function flipToken(tokenNumber) {
 function showBadgeModal(tokenNumber, isSuccess, message) {
     const badgeImage = document.getElementById(`imgtokenback${tokenNumber}`).src;
     const badgeName = document.getElementById(`imgtokenback${tokenNumber}`).alt;
-    
-    // Create modal elements
     const modal = document.createElement('div');
+
     modal.style.position = 'fixed';
     modal.style.top = '0';
     modal.style.left = '0';
@@ -225,7 +213,6 @@ async function returnToken(token_number) {
         });
         const data = await response.json();
         if (data.success) {
-            console.log(`Remaining tickets: ${data.remaining_tickets}`);
             data.badges.forEach((badge, index) => {
                 const tokenNumber = index + 1;
                 const imgElement = document.getElementById(`imgtokenback${tokenNumber}`);   
@@ -237,20 +224,3 @@ async function returnToken(token_number) {
         console.error('Error: ' + error);
     }
 }
-
-// document.getElementById('return-button').addEventListener('click', () => {
-//     router.navigateTo("/home/");
-// });
-
-// document.addEventListener('DOMContentLoaded', async () => {
-//     await updateTicketCount();
-//     token1.addEventListener('click', async () => {
-//         if (!token1.disabled) await handleTokenClick(1);
-//     });
-//     token2.addEventListener('click', async () => {
-//         if (!token2.disabled) await handleTokenClick(2);
-//     });
-//     token3.addEventListener('click', async () => {
-//         if (!token3.disabled) await handleTokenClick(3);
-//     });
-// });
