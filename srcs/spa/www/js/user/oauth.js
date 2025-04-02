@@ -1,6 +1,32 @@
 import { router } from '../router.js';
 import { getCSRFToken } from '/js/utils.js';
 
+let cleanupFunctions = [];
+
+export async function init() {
+    if (window.location.pathname === '/oauth_callback/') {
+        handle42OAuthCallback();
+    }
+
+    const oauthButton = document.getElementById('oauth-button');
+    if (oauthButton) {
+        const handleOAuthClick = (e) => {
+            e.preventDefault();
+            redirectTo42OAuth();
+        };
+        
+        oauthButton.addEventListener('click', handleOAuthClick);
+        cleanupFunctions.push(() => {
+            oauthButton.removeEventListener('click', handleOAuthClick);
+        });
+    }
+
+    return () => {
+        cleanupFunctions.forEach(fn => fn());
+        cleanupFunctions = [];
+    };
+}
+
 export async function redirectTo42OAuth()
 {
     const response = await fetch('/api/get_env_address/', {
@@ -45,6 +71,7 @@ export function handle42OAuthCallback()
         router.navigateTo('/home/');
     }
 }
+
 
 function generateRandomString(length = 32)
 {

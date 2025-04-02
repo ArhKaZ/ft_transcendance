@@ -1,86 +1,122 @@
-import { getCSRFToken } from '/js/utils.js';
-import { ensureValidToken } from '/js/utils.js';
+import { getCSRFToken, ensureValidToken } from '/js/utils.js';
 import { router } from './router.js';
 
+let cleanupFunctions = [];
 
-document.getElementById('logout-button').addEventListener('click', async () => {
+export async function init() {
+    // 1. Récupération des éléments DOM
+    const elements = {
+        logoutButton: document.getElementById('logout-button'),
+        returnButton: document.getElementById('return-button'),
+        userAvatar: document.getElementById('user-avatar'),
+        bottomBtns: document.getElementById('bottom-buttons'),
+        welcomeMsg: document.getElementById('welcome-msg'),
+        avatarImg: document.getElementById('user-avatar'),
+        lps: document.getElementById('lps'),
+        tournamentBtn: document.getElementById('tournament-button')
+        // Ajouter d'autres éléments ici au besoin
+    };
+
+    // 2. Définition des handlers
+    const handleLogout = async () => {
+        try {
+            await ensureValidToken();
+            const response = await fetch('/api/logout/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                    'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                },
+                credentials: 'include',
+            });
+
+            if (response.ok) {
+                sessionStorage.clear();
+                router.navigateTo('/home/');
+            } else {
+                console.error('Logout failed:', await response.json());
+            }
+        } catch (error) {
+            console.error('Network error during logout:', error);
+            router.navigateTo('/home/');
+        }
+    };
+
+    const handleReturnClick = () => router.navigateTo("/game/");
+    const handleAvatarClick = () => router.navigateTo("/user/edit_user/");
+
+    // 3. Ajout des event listeners avec cleanup
+    if (elements.logoutButton) {
+        elements.logoutButton.addEventListener('click', handleLogout);
+        cleanupFunctions.push(() => elements.logoutButton.removeEventListener('click', handleLogout));
+    }
+
+    if (elements.returnButton) {
+        elements.returnButton.addEventListener('click', handleReturnClick);
+        cleanupFunctions.push(() => elements.returnButton.removeEventListener('click', handleReturnClick));
+    }
+
+    if (elements.userAvatar) {
+        elements.userAvatar.addEventListener('click', handleAvatarClick);
+        cleanupFunctions.push(() => elements.userAvatar.removeEventListener('click', handleAvatarClick));
+    }
+
+    // 4. Chargement des données utilisateur
     try {
         await ensureValidToken();
-        const response = await fetch('/api/logout/', {
-            method: 'POST',
+        const response = await fetch('/api/get-my-info/', {
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
             },
             credentials: 'include',
         });
 
         if (response.ok) {
-            
-            sessionStorage.removeItem('access_token');
-            sessionStorage.removeItem('refresh_token');
-            sessionStorage.removeItem('access_expires');
-            sessionStorage.removeItem('refresh_expires');
-            sessionStorage.clear();
-            
-            
-            router.navigateTo('/home/');
+            const userData = await response.json();
+            updateUIForAuthenticatedUser(elements, userData);
         } else {
-            console.error('Logout failed:', await response.json());
+            updateUIForUnauthenticatedUser(elements);
+            console.error('Error while fetching user info:', response);
         }
     } catch (error) {
-        console.error('Network error during logout:', error);
-        router.navigateTo('/home/');
+        updateUIForUnauthenticatedUser(elements);
+        console.error('Network error:', error);
     }
-});
 
-document.getElementById('return-button').addEventListener('click', () => {
-    router.navigateTo("/game/");
-});
+    // 5. Fonction de cleanup
+    return () => {
+        cleanupFunctions.forEach(fn => fn());
+        cleanupFunctions = [];
+    };
+}
 
-document.getElementById('user-avatar').addEventListener('click', () => {
-    router.navigateTo("/user/edit_user/");
-});
+// Fonctions helper
+function updateUIForAuthenticatedUser(elements, userData) {
+    if (elements.welcomeMsg) elements.welcomeMsg.textContent = `Welcome, ${userData.username}`;
+    if (elements.avatarImg) {
+        elements.avatarImg.src = userData.avatar;
+        elements.avatarImg.alt = 'avatar';
+    }
+    if (elements.lps) elements.lps.textContent = `Points: ${userData.ligue_points}`;
+    if (elements.bottomBtns) elements.bottomBtns.style.display = 'flex';
+}
 
-await ensureValidToken();
-const response = await fetch('/api/get-my-info/', {
-	method: 'GET',
-	headers: {
-		'Content-Type': 'application/json',
-		'X-CSRFToken': getCSRFToken(),
-		'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-	},
-	credentials: 'include',
-});
+function updateUIForUnauthenticatedUser(elements) {
+    const elementsToHide = [
+        'bottom-buttons', 'logout-button', 'user-avatar',
+        'tournament-button', 'localbtn', 'pongbtn',
+        'historybtn', 'editbtn', 'pixelbtn', 'friendsbtn'
+    ];
 
-if (response.ok) {
-	const data = await response.json();
+    elementsToHide.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
 
-	const bottomBtns = document.getElementById('bottom-buttons');
-
-	const welcomemsg = document.getElementById('welcome-msg');
-	const avatarImg = document.getElementById('user-avatar');
-	avatarImg.src = data.avatar;
-	avatarImg.alt = 'avatar';
-	const lps = document.getElementById('lps');
-	lps.innerText += data.ligue_points;
-} else {
-	const bottomBtns = document.getElementById('bottom-buttons')
-	const logoutbtn = document.getElementById('logout-button');
-	const avatarImg = document.getElementById('user-avatar');
-    const tournamentbtn = document.getElementById('tournament-button');
-
-	bottomBtns.style.display = 'none';
-	localbtn.style.display = 'none';
-    userInfo.style.display = 'none';
-	pongbtn.style.display = 'none';
-	historybtn.style.display = 'none';
-	logoutbtn.style.display = 'none';
-	editbtn.style.display = 'none';
-	pixelbtn.style.display = 'none';
-	friendsbtn.style.display = 'none';
-	avatarImg.style.display = 'none';
-	
-	console.error('Error while fetching informations :', response);
+    const userInfo = document.querySelector('.user-info');
+    if (userInfo) userInfo.style.display = 'none';
 }

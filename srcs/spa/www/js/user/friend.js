@@ -1,190 +1,266 @@
-import { getCSRFToken } from '/js/utils.js';
-import { ensureValidToken } from '/js/utils.js';
+import { getCSRFToken, ensureValidToken } from '/js/utils.js';
 import { router } from '../router.js';
 
-const divFriends = document.getElementById("Friends");
+let cleanupFunctions = [];
 
+export async function init() {
+    // Initialisation des éléments
+    const logoutButton = document.getElementById('logout-button');
+    const returnButton = document.getElementById('return-button');
+    const addFriendButton = document.getElementById('add-friend-button');
+    const friendsList = document.getElementById('friends-list');
+    const pendingList = document.getElementById('pending-list');
 
-document.getElementById('logout-button').addEventListener('click', async () => {
-    try {
-        await ensureValidToken();
-        const response = await fetch('/api/logout/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
-            },
-            credentials: 'include',
-        });
+    // Handlers d'événements
+    const handleLogout = async () => {
+        await performLogout();
+    };
 
-        if (response.ok) {
-            sessionStorage.removeItem('access_token');
-            sessionStorage.removeItem('refresh_token');
-            sessionStorage.removeItem('access_expires');
-            sessionStorage.removeItem('refresh_expires');
-            sessionStorage.clear();
-            
-            router.navigateTo('/home/');
-        } else {
-            console.error('Logout failed:', await response.json());
-        }
-    } catch (error) {
-        console.error('Network error during logout:', error);
-        router.navigateTo('/home/');
+    const handleReturn = () => {
+        window.history.back();
+    };
+
+    const handleAddFriend = async () => {
+        await addFriend();
+    };
+
+    // Ajout des listeners
+    if (logoutButton) {
+        logoutButton.addEventListener('click', handleLogout);
+        cleanupFunctions.push(() => logoutButton.removeEventListener('click', handleLogout));
     }
-});
 
-document.getElementById('return-button').addEventListener('click', () => {
-    window.history.back();
-});
+    if (returnButton) {
+        returnButton.addEventListener('click', handleReturn);
+        cleanupFunctions.push(() => returnButton.removeEventListener('click', handleReturn));
+    }
 
-async function fetchFriends() {
+    if (addFriendButton) {
+        addFriendButton.addEventListener('click', handleAddFriend);
+        cleanupFunctions.push(() => addFriendButton.removeEventListener('click', handleAddFriend));
+    }
+
+    // Chargement des données
     try {
-        await ensureValidToken();
+        await Promise.all([
+            loadFriendsList(),
+            loadPendingFriends()
+        ]);
+        
+        // Gestion des erreurs stockées en session
+        displayStoredErrorMessages();
+    } catch (error) {
+        console.error("Initialization error:", error);
+        displayError("Failed to load friends data");
+    }
+
+    return () => {
+        cleanupFunctions.forEach(fn => fn());
+        cleanupFunctions = [];
+    };
+}
+
+// Fonctions de gestion des amis
+async function loadFriendsList() {
+    try {
         const response = await fetch('/api/get_friends/', {
             method: 'GET',
-            headers: {
-                'Content-type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-            }
+            headers: createAuthHeaders()
         });
 
         if (response.ok) {
             const data = await response.json();
-            const friendsList = document.getElementById('friends-list');
-            friendsList.innerHTML = '';
-
-            data.forEach(friend => {
-                const friendCard = document.createElement('div');
-                friendCard.classList.add('friend-card');
-
-                friendCard.addEventListener('click', () => {
-                    router.navigateTo(`/user/profile/${friend.username}/`);
-                });
-
-                const avatar = document.createElement('img');
-                avatar.src = friend.avatar || '/avatars/default.png';
-                avatar.alt = 'Avatar';
-                avatar.classList.add('friend-avatar');
-
-                const friendInfo = document.createElement('div');
-                friendInfo.classList.add('friend-info');
-
-                const friendName = document.createElement('span');
-                friendName.classList.add('friend-name');
-                friendName.textContent = friend.username;
-
-
-                const statusIndicator = document.createElement('div');
-                statusIndicator.classList.add('status-indicator');
-                statusIndicator.classList.add('offline');
-                
-
-                statusIndicator.dataset.username = friend.username;
-
-                let game_mode = null;
-                if (friend.game_mode || friend.is_in_tournament) {
-                    game_mode = document.createElement('span');
-                    game_mode.classList.add('friend-game-mode');
-                    if (friend.game_mode) {
-                        if (friend.is_waiting_for_game)
-                            game_mode.textContent = 'wait for';
-                        else
-                            game_mode.textContent = 'in';
-                        game_mode.textContent += ` ${friend.game_mode}`;
-                    }
-                    else {
-                        game_mode.textContent = 'in Tournament';
-                    }
-                }
-
-                friendInfo.appendChild(friendName);
-                friendCard.appendChild(avatar);
-                if (game_mode)
-                    friendInfo.appendChild(game_mode);
-                friendCard.appendChild(friendInfo);
-                friendCard.appendChild(statusIndicator);
-                friendsList.appendChild(friendCard);
-                
-                updateFriendStatus(friend.username);
-            });
-
+            renderFriendsList(data);
+            updateAllFriendsStatus(data);
         } else {
-            console.error("Error while trying to fetch friendlist :", response.status);
+            throw new Error(`HTTP error: ${response.status}`);
         }
     } catch (error) {
-        console.error("fetchFriends call failed", error);
+        console.error("Friends list load failed:", error);
+        throw error;
     }
 }
 
+function renderFriendsList(friends) {
+    const friendsList = document.getElementById('friends-list');
+    if (!friendsList) return;
+
+    friendsList.innerHTML = '';
+
+    friends.forEach(friend => {
+        const friendCard = createFriendCard(friend);
+        friendsList.appendChild(friendCard);
+    });
+}
+
+async function loadPendingFriends() {
+    try {
+        const response = await fetch('/api/get_pending_friends/', {
+            method: 'GET',
+            headers: createAuthHeaders()
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            renderPendingFriends(data);
+            updateAllFriendsStatus(data);
+        } else {
+            throw new Error(`HTTP error: ${response.status}`);
+        }
+    } catch (error) {
+        console.error("Pending friends load failed:", error);
+        throw error;
+    }
+}
+
+function renderPendingFriends(pendingFriends) {
+    const pendingList = document.getElementById('pending-list');
+    const pendingMsg = document.getElementById('pending-msg');
+    
+    if (!pendingList) return;
+
+    pendingList.innerHTML = '';
+
+    if (!pendingMsg) {
+        const newPendingMsg = document.createElement('h2');
+        newPendingMsg.id = 'pending-msg';
+        pendingList.parentNode.insertBefore(newPendingMsg, pendingList);
+    }
+
+    const pendingMsgElement = document.getElementById('pending-msg');
+    pendingMsgElement.textContent = pendingFriends.length > 0 
+        ? "Pending Friend Requests" 
+        : "No pending friend requests";
+
+    pendingFriends.forEach(friend => {
+        const friendCard = createPendingFriendCard(friend);
+        pendingList.appendChild(friendCard);
+    });
+}
+
+function createFriendCard(friend) {
+    const card = document.createElement('div');
+    card.classList.add('friend-card');
+
+    card.addEventListener('click', () => {
+        router.navigateTo(`/user/profile/${friend.username}/`);
+    });
+
+    // Avatar
+    const avatar = document.createElement('img');
+    avatar.src = friend.avatar || '/avatars/default.png';
+    avatar.alt = 'Avatar';
+    avatar.classList.add('friend-avatar');
+
+    // Info
+    const info = document.createElement('div');
+    info.classList.add('friend-info');
+
+    const name = document.createElement('span');
+    name.classList.add('friend-name');
+    name.textContent = friend.username;
+
+    info.appendChild(name);
+
+    // Game status
+    if (friend.game_mode || friend.is_in_tournament) {
+        const gameStatus = document.createElement('span');
+        gameStatus.classList.add('friend-game-mode');
+        
+        if (friend.game_mode) {
+            gameStatus.textContent = friend.is_waiting_for_game 
+                ? 'wait for' 
+                : 'in';
+            gameStatus.textContent += ` ${friend.game_mode}`;
+        } else {
+            gameStatus.textContent = 'in Tournament';
+        }
+        
+        info.appendChild(gameStatus);
+    }
+
+    // Status indicator
+    const status = document.createElement('div');
+    status.classList.add('status-indicator', 'offline');
+    status.dataset.username = friend.username;
+
+    card.appendChild(avatar);
+    card.appendChild(info);
+    card.appendChild(status);
+
+    return card;
+}
+
+function createPendingFriendCard(friend) {
+    const card = createFriendCard(friend);
+    
+    // Accept button
+    const acceptButton = document.createElement('button');
+    acceptButton.textContent = "Accept";
+    acceptButton.classList.add('accept-button');
+    
+    acceptButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        acceptFriendRequest(friend.username);
+    });
+
+    card.appendChild(acceptButton);
+    return card;
+}
+
+async function updateAllFriendsStatus(friends) {
+    const uniqueUsernames = [...new Set(friends.map(f => f.username))];
+    await Promise.all(uniqueUsernames.map(username => updateFriendStatus(username)));
+}
 
 async function updateFriendStatus(username) {
     try {
-        await ensureValidToken();
         const response = await fetch(`/api/check-online/${username}/`, {
             method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
-            }
+            headers: createAuthHeaders()
         });
         
         if (response.ok) {
             const data = await response.json();
-            const isOnline = data.is_online;            
-            const statusIndicators = document.querySelectorAll(`.status-indicator[data-username="${username}"]`);
-            
-            statusIndicators.forEach(indicator => {
-                indicator.classList.remove('online', 'offline');
-                indicator.classList.add(isOnline ? 'online' : 'offline');
-            });
+            updateStatusIndicators(username, data.is_online);
         }
     } catch (error) {
-        console.error('Error checking user status:', error);
+        console.error('Status check failed:', error);
     }
 }
 
-const addmsg = document.getElementById('add-friend-msg');
+function updateStatusIndicators(username, isOnline) {
+    const indicators = document.querySelectorAll(`.status-indicator[data-username="${username}"]`);
+    indicators.forEach(indicator => {
+        indicator.classList.remove('online', 'offline');
+        indicator.classList.add(isOnline ? 'online' : 'offline');
+    });
+}
 
+// Fonctions d'actions
 async function addFriend() {
-    const friendName = document.getElementById('friend_name').value;
+    const friendName = document.getElementById('friend_name').value.trim();
+    if (!friendName) return;
+
     try {
-        await ensureValidToken();
         const response = await fetch('/api/add_friend/', {
             method: 'POST',
-            headers: {
-                'Content-type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-            },
-            body: JSON.stringify({
-                'friend_name': friendName,
-            })
+            headers: createAuthHeaders('application/json'),
+            body: JSON.stringify({ friend_name: friendName })
         });
 
         if (response.ok) {
             await updateFriendStatus(friendName);
         } else {
-            
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                const data = await response.json();
-                const errorMessage = data.error || `Error while adding a friend: ${response.status}`;
-                displayAddFriendError(errorMessage);
-            } else {
-                
-                const textResponse = await response.text();
-                displayAddFriendError(`Server returned an invalid response. Status: ${response.status}`);
-                console.error("Non-JSON response:", textResponse.substring(0, 100)); 
-            }
+            const error = await parseResponseError(response);
+            displayAddFriendError(error);
         }
     } catch (error) {
-        displayAddFriendError(`Error while adding a friend: ${error.message}`);
+        displayAddFriendError(error.message);
     }
 }
 
-async function fetchPendingFriend() {
+async function acceptFriendRequest(username) {
     try {
         await ensureValidToken();
         const response = await fetch('/api/get_pending_friends/', {
@@ -276,54 +352,99 @@ async function sendFriendRequestToPendingUser(username) {
         await ensureValidToken();
         const response = await fetch('/api/add_friend/', {
             method: 'POST',
-            headers: {
-                'Content-type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
-                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-            },
-            body: JSON.stringify({
-                'friend_name': username,  
-            })
+            headers: createAuthHeaders('application/json'),
+            body: JSON.stringify({ friend_name: username })
         });
 
         if (response.ok) {
             router.navigateTo('/user/friend/');
             await updateFriendStatus(username);
         } else {
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                const data = await response.json();
-                displayAddFriendError(data.error || `Error sending friend request: ${response.status}`);
-            } else {
-                const textResponse = await response.text();
-                displayAddFriendError(`Server returned an invalid response. Status: ${response.status}`);
-                console.error("Non-JSON response:", textResponse.substring(0, 100));
-            }
+            const error = await parseResponseError(response);
+            displayAddFriendError(error);
         }
     } catch (error) {
-        displayAddFriendError(`Error sending friend request: ${error.message}`);
-        console.error("Friend request sending failed", error);
+        displayAddFriendError(error.message);
     }
+}
+
+async function performLogout() {
+    try {
+        const response = await fetch('/api/logout/', {
+            method: 'POST',
+            headers: createAuthHeaders('application/json'),
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            clearSessionStorage();
+            router.navigateTo('/home/');
+        } else {
+            const error = await response.json();
+            console.error('Logout failed:', error);
+            displayError('Logout failed');
+        }
+    } catch (error) {
+        console.error('Logout error:', error);
+        router.navigateTo('/home/');
+    }
+}
+
+// Fonctions utilitaires
+function createAuthHeaders(contentType = null) {
+    const headers = {
+        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+        'X-CSRFToken': getCSRFToken()
+    };
+    
+    if (contentType) {
+        headers['Content-type'] = contentType;
+    }
+    
+    return headers;
+}
+
+async function parseResponseError(response) {
+    try {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            const data = await response.json();
+            return data.error || `Error: ${response.status}`;
+        }
+        return `Error: ${response.status}`;
+    } catch (error) {
+        return `Failed to parse error response`;
+    }
+}
+
+function clearSessionStorage() {
+    ['access_token', 'refresh_token', 'access_expires', 'refresh_expires'].forEach(key => {
+        sessionStorage.removeItem(key);
+    });
+    sessionStorage.removeItem('friend_error_msg');
 }
 
 function displayAddFriendError(message) {
-    const addmsg = document.getElementById('add-friend-msg');
-    addmsg.innerText = message;
-    addmsg.style.display = "block";
-    addmsg.style.color = "red";
+    const errorElement = document.getElementById('add-friend-msg');
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = "block";
+        errorElement.style.color = "red";
+    }
 }
 
-fetchPendingFriend();
-fetchFriends();
+function displayError(message) {
+    const errorElement = document.getElementById('error-message');
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = "block";
+    }
+}
 
-window.addEventListener('DOMContentLoaded', () => {
-    const addmsg = document.getElementById('add-friend-msg');
+function displayStoredErrorMessages() {
     const errorMsg = sessionStorage.getItem('friend_error_msg');
-
-    if (errorMsg && addmsg) {
-        addmsg.innerText = errorMsg;
-        addmsg.style.display = "block";
-        addmsg.style.color = "red";
+    if (errorMsg) {
+        displayAddFriendError(errorMsg);
         sessionStorage.removeItem('friend_error_msg');
     }
-});
+}

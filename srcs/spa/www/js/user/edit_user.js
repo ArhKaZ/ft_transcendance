@@ -1,105 +1,218 @@
 import { ensureValidToken } from '/js/utils.js';
 import { router } from '../router.js';
 
-document.getElementById('userForm').addEventListener('submit', async function(event) {
-	event.preventDefault();
+let cleanupFunctions = [];
 
-	const formData = new FormData(this);
+export async function init() {
+    // Initialisation des éléments
+    const userForm = document.getElementById('userForm');
+    const eraseButton = document.getElementById('erase-button');
+    const avatarInput = document.getElementById('avatar');
+    const returnButton = document.getElementById('return-button');
+    const modalErase = document.getElementById('modal-erase');
+    const modalBtnYes = document.getElementById('modal-btn-yes');
+    const modalBtnNo = document.getElementById('modal-btn-no');
 
-	try {
-		await ensureValidToken();
-		const response = await fetch('/api/edit_user_api/', {
-			method: 'PATCH',
-			headers: {
-				'Authorization' : `Bearer ${sessionStorage.getItem('access_token')}`,
-			},
-			body: formData,
-		});
+    // Handlers d'événements
+    const handleFormSubmit = async (event) => {
+        event.preventDefault();
+        await handleUserUpdate(event.target);
+    };
 
-		const data = await response.json();
+// 		const data = await response.json();
 		
-		if (response.ok) {
-			displayMessage(data.message, 'success');
-			setTimeout(() => router.navigateTo('/home/'), 1400);
-		} else {
-			let errorMessage = 'An error occurred';
-			if (data.error) {
-				const cleanError = data.error
-					.replace('[ErrorDetail(string=\'', '')
-					.replace('\', code=\'invalid\')]', '')
-				errorMessage = `Error: ${cleanError}`;
-			} else {
-			errorMessage = `Error:<br>${data.error}`;
-		}
-		displayMessage(errorMessage, 'error');
-		}
-	} catch (error) {
-		displayMessage('A network error occurred.', 'error');
-		console.error('Error details:', error);
-	}
-});
+// 		if (response.ok) {
+// 			displayMessage(data.message, 'success');
+// 			setTimeout(() => router.navigateTo('/home/'), 1400);
+// 		} else {
+// 			let errorMessage = 'An error occurred';
+// 			if (data.error) {
+// 				const cleanError = data.error
+// 					.replace('[ErrorDetail(string=\'', '')
+// 					.replace('\', code=\'invalid\')]', '')
+// 				errorMessage = `Error: ${cleanError}`;
+// 			} else {
+// 			errorMessage = `Error:<br>${data.error}`;
+// 		}
+// 		displayMessage(errorMessage, 'error');
+// 		}
+// 	} catch (error) {
+// 		displayMessage('A network error occurred.', 'error');
+// 		console.error('Error details:', error);
+// 	}
+// });
+    const handleEraseClick = () => {
+        modalErase.style.display = 'flex';
+    };
 
+    const handleModalYesClick = async () => {
+        await handleAccountErase();
+        modalErase.style.display = 'none';
+    };
 
-document.getElementById('erase-button').addEventListener('click', async () => {
-	document.getElementById('modal-erase').style.display = 'flex';
-	document.getElementById('modal-btn-yes').addEventListener('click', async () => {
-		try {
-			await ensureValidToken();
-			const response = await fetch('/api/erase/', {
-				method: 'PATCH',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-				},
-				credentials: 'include',
-			});
-			sessionStorage.removeItem('access_token');
-			sessionStorage.removeItem('refresh_token');
-			sessionStorage.removeItem('access_expires');
-			sessionStorage.removeItem('refresh_expires');
-			sessionStorage.removeItem('username');
-			sessionStorage.removeItem('is_oauth');
+// document.getElementById('erase-button').addEventListener('click', async () => {
+// 	document.getElementById('modal-erase').style.display = 'flex';
+// 	document.getElementById('modal-btn-yes').addEventListener('click', async () => {
+// 		try {
+// 			await ensureValidToken();
+// 			const response = await fetch('/api/erase/', {
+// 				method: 'PATCH',
+// 				headers: {
+// 					'Content-Type': 'application/json',
+// 					'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+// 				},
+// 				credentials: 'include',
+// 			});
+// 			sessionStorage.removeItem('access_token');
+// 			sessionStorage.removeItem('refresh_token');
+// 			sessionStorage.removeItem('access_expires');
+// 			sessionStorage.removeItem('refresh_expires');
+// 			sessionStorage.removeItem('username');
+// 			sessionStorage.removeItem('is_oauth');
 
-			if (response.ok) {
-			} else {
-				console.error('Error erasing:', response);
-			}
-			router.navigateTo('/home/');
-		} catch (error) {
-			console.error ('Error', error);
-		}
-	});
+// 			if (response.ok) {
+// 			} else {
+// 				console.error('Error erasing:', response);
+// 			}
+// 			router.navigateTo('/home/');
+// 		} catch (error) {
+// 			console.error ('Error', error);
+// 		}
+// 	});
+    const handleModalNoClick = () => {
+        modalErase.style.display = 'none';
+    };
 
-	document.getElementById('modal-btn-no').addEventListener('click', () => {
-		document.getElementById('modal-erase').style.display = 'none';
-	});
-});
+    const handleAvatarChange = () => {
+        const fileName = avatarInput.files[0]?.name || "No file chosen";
+        document.getElementById('file-chosen').textContent = `[${fileName}]`;
+    };
 
-document.getElementById('avatar').addEventListener('change', function() {
-	const fileName = this.files[0] ? this.files[0].name : "No file chosen";
-	document.getElementById('file-chosen').textContent = `[${fileName}]`;
-});
+    const handleReturnClick = () => {
+        router.navigateTo('/home/');
+    };
 
-document.getElementById('return-button').addEventListener('click', () => {
-    router.navigateTo('/home/');
-});
+    // Ajout des listeners
+    if (userForm) {
+        userForm.addEventListener('submit', handleFormSubmit);
+        cleanupFunctions.push(() => userForm.removeEventListener('submit', handleFormSubmit));
+    }
+
+    if (eraseButton) {
+        eraseButton.addEventListener('click', handleEraseClick);
+        cleanupFunctions.push(() => eraseButton.removeEventListener('click', handleEraseClick));
+    }
+
+    if (modalBtnYes) {
+        modalBtnYes.addEventListener('click', handleModalYesClick);
+        cleanupFunctions.push(() => modalBtnYes.removeEventListener('click', handleModalYesClick));
+    }
+
+    if (modalBtnNo) {
+        modalBtnNo.addEventListener('click', handleModalNoClick);
+        cleanupFunctions.push(() => modalBtnNo.removeEventListener('click', handleModalNoClick));
+    }
+
+    if (avatarInput) {
+        avatarInput.addEventListener('change', handleAvatarChange);
+        cleanupFunctions.push(() => avatarInput.removeEventListener('change', handleAvatarChange));
+    }
+
+    if (returnButton) {
+        returnButton.addEventListener('click', handleReturnClick);
+        cleanupFunctions.push(() => returnButton.removeEventListener('click', handleReturnClick));
+    }
+
+    // Configuration initiale
+    handleOAuthRestrictions();
+
+    return () => {
+        cleanupFunctions.forEach(fn => fn());
+        cleanupFunctions = [];
+    };
+}
+
+// Fonctions de gestion métier
+async function handleUserUpdate(form) {
+    const formData = new FormData(form);
+
+    try {
+        await ensureValidToken();
+        const response = await fetch('/api/edit_user_api/', {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+            },
+            body: formData,
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            displayMessage(data.message, 'success');
+            setTimeout(() => router.navigateTo('/home/'), 2000);
+        } else {
+            handleUpdateError(data);
+        }
+    } catch (error) {
+        displayMessage('A network error occurred.', 'error');
+        console.error('Error details:', error);
+    }
+}
+
+async function handleAccountErase() {
+    try {
+        await ensureValidToken();
+        const response = await fetch('/api/erase/', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+            },
+            credentials: 'include',
+        });
+
+        sessionStorage.removeItem('access_token');
+        
+        if (!response.ok) {
+            console.error('Error erasing:', response);
+        }
+        window.location.reload();
+    } catch (error) {
+        console.error('Error during account erase:', error);
+    }
+}
+
+function handleUpdateError(data) {
+    let errorMessage = 'An error occurred';
+    
+    if (data.error) {
+        const cleanError = data.error
+            .replace('[ErrorDetail(string=\'', '')
+            .replace('\', code=\'invalid\')]', '');
+        errorMessage = `Error: ${cleanError}`;
+    } else {
+        errorMessage = `Error:<br>${data.error}`;
+    }
+    
+    displayMessage(errorMessage, 'error');
+}
+
+function handleOAuthRestrictions() {
+    if (sessionStorage.getItem('is_oauth') === 'true') {
+        ['pseudo-container', 'password-container', 'avatar-container'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.style.display = 'none';
+        });
+    }
+}
 
 function displayMessage(message, type) {
-	const messageDiv = document.getElementById('message');
-	if (messageDiv) {
-		messageDiv.innerHTML = message;
-		messageDiv.style.color = type === 'error' ? 'red' : 'green';
-	} else {
-		console.error('Message div not found');
-	}
+    const messageDiv = document.getElementById('message');
+    if (messageDiv) {
+        messageDiv.innerHTML = message;
+        messageDiv.style.color = type === 'error' ? 'red' : 'green';
+    } else {
+        console.error('Message div not found');
+    }
 }
-
-function noDisplayOAuth() {
-	if (sessionStorage.getItem('is_oauth') === 'true') {
-		document.getElementById('pseudo-container').style.display = 'none';
-		document.getElementById('password-container').style.display = 'none';
-		document.getElementById('avatar-container').style.display = 'none';
-	}
-}
-
-noDisplayOAuth();

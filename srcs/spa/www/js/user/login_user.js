@@ -2,18 +2,36 @@ import { getCSRFToken } from '/js/utils.js';
 import { ensureValidToken } from '/js/utils.js';
 import { router } from '../router.js';
 
-var loginbtn = document.getElementById('login-button');
+let cleanupFunctions = [];
 
-if (loginbtn) {
-	loginbtn.addEventListener('click', async function (event) {
-		event.preventDefault();
-		await loginUser();
-	});
+export async function init() {
+    const loginbtn = document.getElementById('login-button');
+    const returnButton = document.getElementById('return-button');
+
+    const handleLogin = async (event) => {
+        event.preventDefault();
+        await loginUser();
+    };
+
+    const handleReturn = () => {
+        router.navigateTo('/home/');
+    };
+
+    if (loginbtn) {
+        loginbtn.addEventListener('click', handleLogin);
+        cleanupFunctions.push(() => loginbtn.removeEventListener('click', handleLogin));
+    }
+
+    if (returnButton) {
+        returnButton.addEventListener('click', handleReturn);
+        cleanupFunctions.push(() => returnButton.removeEventListener('click', handleReturn));
+    }
+
+    return () => {
+        cleanupFunctions.forEach(fn => fn());
+        cleanupFunctions = [];
+    };
 }
-
-document.getElementById('return-button').addEventListener('click', () => {
-    router.navigateTo('/home/');
-});
 
 export async function loginUser() {
 	const form = document.getElementById('userForm');
@@ -24,7 +42,7 @@ export async function loginUser() {
 
 	try {
 		const response = await fetch('/api/login/', {
-			method: 'POST', 
+			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': getCSRFToken(),
@@ -40,9 +58,9 @@ export async function loginUser() {
 			const data = await response.json();
 			console.log(data);
 			sessionStorage.setItem('access_token', data.access_token);
-    		sessionStorage.setItem('refresh_token', data.refresh_token);
-    		sessionStorage.setItem('access_expires', data.access_expires);
-    		sessionStorage.setItem('refresh_expires', data.refresh_expires);
+			sessionStorage.setItem('refresh_token', data.refresh_token);
+			sessionStorage.setItem('access_expires', data.access_expires);
+			sessionStorage.setItem('refresh_expires', data.refresh_expires);
 			sessionStorage.setItem('username', username);
 			sessionStorage.setItem('is_oauth', false);
 			messageDiv.innerHTML = '<span style="color: green;">Login successful. Redirecting...</span>';
@@ -59,4 +77,3 @@ export async function loginUser() {
 		console.error('Error during login request:', error);
 	};
 }
-

@@ -92,7 +92,7 @@ function returnBack() {
 	}
 }
 
-async function init() {
+export async function init() { // ici j'ai juste ajoute un export, je suis pas sur que ca suffise on verra bien
 	document.getElementById('return-button').addEventListener('click', () => {
 		returnBack();
 	});
