@@ -44,7 +44,7 @@ export async function init() {
     };
 
     const handleReturnClick = () => router.navigateTo("/game/");
-    const handleAvatarClick = () => router.navigateTo("/user/edit_user/");
+    const handleAvatarClick = () =>  router.navigateTo(`/user/profile/${sessionStorage.getItem('username')}/`);
 
     // 3. Ajout des event listeners avec cleanup
     if (elements.logoutButton) {

@@ -42,7 +42,7 @@ export async function init() {
         }
     };
 
-    const handleAvatarClick = () => router.navigateTo("/user/edit_user/");
+    const handleAvatarClick = () => router.navigateTo(`/user/profile/${sessionStorage.getItem('username')}/`);
     const handleReturnClick = () => router.navigateTo("/home/");
 
     // Ajout des listeners avec cleanup
