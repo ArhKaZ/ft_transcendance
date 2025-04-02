@@ -132,6 +132,11 @@ function setupWebSocket(user) {
 	const currentUrl = window.location.host;
 	const socket = new WebSocket(`wss://${currentUrl}/ws/magicDuel/${id}/`);
 	
+	const popstateHandler = () => {
+        clearEventAndSocket();
+    };
+    window.addEventListener('popstate', popstateHandler);
+
 	socket.onopen = () => {
 		currentInverval = setInterval(() => sendSearch(user), 2000);
 	}
@@ -444,5 +449,5 @@ function resizeCanvas() {
 	}
 }
 
-init();
+// init();
 

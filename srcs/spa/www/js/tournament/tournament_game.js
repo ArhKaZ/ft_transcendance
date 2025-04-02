@@ -41,7 +41,6 @@ class TournamentGame {
             this.setupElements();
             this.setupEventListeners();
 
-            user = await getUserFromBack();
             sessionStorage.setItem('tournament_code', this.tournamentCode);
 
             if (await this.checkLeft(this.tournamentCode)) {
@@ -505,26 +504,26 @@ class TournamentGame {
         populateList('winner-list', data.winner);
     }
 
-    displayTournamentInfo(data) {
-        document.getElementById('tournamentCode').textContent =
-            `Tournament Code: ${data.tournament_code}`;
+    // displayTournamentInfo(data) {
+    //     document.getElementById('tournamentCode').textContent =
+    //         `Tournament Code: ${data.tournament_code}`;
 
-        if (data.players.length >= 4) {
-            document.getElementById('player1').textContent = data.matches[0].player1.pseudo;
-            document.getElementById('player2').textContent = data.matches[0].player2.pseudo;
-            document.getElementById('player3').textContent = data.matches[1].player1.pseudo;
-            document.getElementById('player4').textContent = data.matches[1].player2.pseudo;
-        }
+    //     if (data.players.length >= 4) {
+    //         document.getElementById('player1').textContent = data.matches[0].player1.pseudo;
+    //         document.getElementById('player2').textContent = data.matches[0].player2.pseudo;
+    //         document.getElementById('player3').textContent = data.matches[1].player1.pseudo;
+    //         document.getElementById('player4').textContent = data.matches[1].player2.pseudo;
+    //     }
 
-        if (data.finalists.length >= 2) {
-            document.getElementById('winner1').textContent = data.matches[0].winner.pseudo;
-            document.getElementById('winner2').textContent = data.matches[1].winner.pseudo;
-        }
+    //     if (data.finalists.length >= 2) {
+    //         document.getElementById('winner1').textContent = data.matches[0].winner.pseudo;
+    //         document.getElementById('winner2').textContent = data.matches[1].winner.pseudo;
+    //     }
 
-        if (data.winner.length >= 1) {
-            document.getElementById('finalwinner1').textContent = data.matches[2].winner.pseudo;
-        }
-    }
+    //     if (data.winner.length >= 1) {
+    //         document.getElementById('finalwinner1').textContent = data.matches[2].winner.pseudo;
+    //     }
+    // }
 
     displayError(message) {
         const container = document.querySelector('.tournament-container');
