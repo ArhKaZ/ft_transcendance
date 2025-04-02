@@ -4,7 +4,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 50vh;
+    min-height: 40vh;
     gap: 2rem;
 }
 
@@ -64,6 +64,7 @@
     flex-direction: column;
     gap: 2rem;
     height: 20%;
+    margin-top: 5%;
 }
 
 .gambling-info span {
