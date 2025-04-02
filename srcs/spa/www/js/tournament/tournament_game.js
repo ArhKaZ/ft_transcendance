@@ -32,7 +32,7 @@ class TournamentGame {
                 }
             ]
         };
-
+        this.justLoaded = true;
         this.roundsMidpoints = [];
     }
 
@@ -91,12 +91,14 @@ class TournamentGame {
 
     async startTournamentPolling() {
         let oldData = null;
-
+        const user = await getUserFromBack();
         this.pollingInterval = setInterval(async () => {
             try {
                 const data = await this.loadEnd();
-
-                if (oldData && JSON.stringify(data) !== JSON.stringify(oldData)) {
+                this.canvasTournament(data);
+                this.displayTournamentInfo(data);
+                if (this.justLoaded || (oldData && JSON.stringify(data) !== JSON.stringify(oldData))) {
+                    this.justLoaded = false;
                     this.displayTournamentInfo(data);
 
                     if (sessionStorage.getItem('finalDone') || data.winner?.length > 0) {
@@ -104,18 +106,18 @@ class TournamentGame {
                         return;
                     }
                     else if (data.finalists?.length > 0) {
-                        if (await this.verifUserInFinal(data)) {
+                        if (await this.verifUserInFinal(data, user)) {
                             this.cleanupAndNavigate('/onlinePong/?tournament=true');
                             return;
                         }
                     }
-                    else if (this.verifUserNeedPlay(data)) {
+                    else if (await this.verifUserNeedPlay(data, user)) {
                         this.cleanupAndNavigate('/onlinePong/?tournament=true');
                         return;
                     }
                 }
-
                 oldData = data;
+                console.debug(oldData);
             } catch (error) {
                 console.error("Polling error:", error);
                 this.stopTournamentPolling();
@@ -300,26 +302,20 @@ class TournamentGame {
         return await response.json();
     }
 
-    async verifUserInFinal(data) {
+    verifUserInFinal(data, user) {
         const isFinalist = data.finalists.some(finalist => finalist.id === user.id);
-        if (!isFinalist) return false;
-
-        if (canPlay) {
-            sessionStorage.setItem('inFinal', 'true');
-            return true;
-        }
-        return false;
+        if (!isFinalist) 
+            return false;
+        sessionStorage.setItem('inFinal', 'true');
+        return true;
     }
 
-    // verifUserNeedPlay(data) {
-    // 	return data.matches.some(match => {
-    // 		if (match.winner === null) {
-    // 			console.log('need to play');
-    // 			return match.player1.id === user.id || match.player2.id === user.id;
-    // 		}
-    // 		return false;
-    // 	});
-    // }
+    verifUserNeedPlay(data, user) {
+        return data.matches.some(match => {
+            return match.winner === null &&
+                  (match.player1.id === user.id || match.player2.id === user.id);
+        });
+    }
 
     displayTournamentInfo(data) {
         if (data.players.length >= 4) {
@@ -468,13 +464,6 @@ class TournamentGame {
         );
 
         this.drawLine(ctx, finalMatch, { x: winner.x, y: winner.y - 40 });
-    }
-
-    verifUserNeedPlay(data) {
-        return data.matches.some(match => {
-            return match.winner === null &&
-                  (match.player1.id === user.id || match.player2.id === user.id);
-        });
     }
 
     async recordMatch() {
