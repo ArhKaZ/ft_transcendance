@@ -1,9 +1,11 @@
+import { ensureValidToken, getCSRFToken } from '/js/utils.js';
+
 class Router {
     constructor(routes) {
       this.routes = routes;
       this.rootElement = document.getElementById('app');
       this.currentAssets = { scripts: [], styles: [] };
-      this.publicPaths = ['/home/', '/user/login/', '/user/add/', '/oauth_callback/'];
+      this.publicPaths = ['/home/', '/user/login/', '/user/add/', '/oauth_callback/', '/404/'];
       this.scriptCache = new Map();
       window.addEventListener('popstate', this.handleLocation.bind(this));
       this.initLinks();
@@ -25,7 +27,6 @@ class Router {
         return;
       }
   
-      // Auth check for protected routes
       if (!this.publicPaths.includes(path) && !(await this.isAuthenticated())) {
         this.navigateTo('/user/login/');
         return;
@@ -105,14 +106,19 @@ class Router {
     }
   
     async isAuthenticated() {
-      try {
-        const response = await fetch('/api/auth/check', {
-          headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+      await ensureValidToken();
+        const response = await fetch('/api/get-my-info/', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+            'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+          },
+          credentials: 'include',
         });
-        return response.ok;
-      } catch (error) {
-        return false;
-      }
+      if (response.ok)
+        return true;
+      return false;
     }
   
     initLinks() {
@@ -240,11 +246,12 @@ class Router {
     '/user_not_found/': {
       html: '/html/user_not_found.html',
       css: '/css/user_not_found.css',
-      isPublic: true
+      js: '/js/not_found.js',
     },
     '/404/': {
       html: '/html/not_found.html',
-      css: '/css/not_found.css',
+      css: '/css/user_not_found.css',
+      js: '/js/not_found.js',
       isPublic: true
     }
   };
