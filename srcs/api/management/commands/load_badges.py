@@ -32,7 +32,7 @@ class Command(BaseCommand):
                     char_name = ' '.join([word.capitalize() for word in char_name.split()])
                     
                     # Handle special characters
-                    char_name = char_name.replace('&', '&').replace('-', '-')  # Preserve existing symbols
+                    char_name = char_name.replace('&', '&').replace('-', '-')  # Preserve existing symbols 
                     
                     with open(os.path.join(badge_dir, filename), 'rb') as f:
                         Badge.objects.update_or_create(
