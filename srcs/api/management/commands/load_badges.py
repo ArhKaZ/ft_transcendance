@@ -12,10 +12,39 @@ class Command(BaseCommand):
         # Manual name mapping for special cases
         name_overrides = {
             'B_&_K': 'Banjo & Kazooie',
-            'P_&_M': 'Piranha Plant & M',  # Adjust as needed
+            'P_&_M': 'Pyra/Mythra',
             'G&W': 'Mr. Game & Watch',
-            'mk': 'Meta Knight',
-            '_Olimar': 'Olimar'  # Fix leading underscore
+            'Mk': 'Meta Knight',
+            'Bayo': 'Bayonetta',
+            'Captain': 'Captain Falcon',
+            'Bowser_J': 'Bowser Jr.',
+            'D_Pit': 'Dark Pit',
+            'DDK': 'Diddy Kong',
+            'DK': 'Donkey Kong',
+            'Dr_Mario': 'Dr. Mario',
+            'Duck_Hunt': 'Duck Hunt Duo',
+            'Felin': 'Incineroar',
+            'Ganon': 'Ganondorf',
+            'Heros': 'Hero',
+            'Ices': 'Ice Climbers',
+            'King_DDD': 'King Dedede',
+            'King_K': 'King K. Rool',
+            'Link_Adult': 'Link',
+            'Link_C': 'Toon Link',
+            'Link_E': 'Young Link',
+            'LittleMac': 'Little Mac',
+            'Marie': 'Isabelle',
+            'mario': 'Mario',
+            'Pac_Man': 'Pacman',
+            'PT': 'Pokemon Trainer',
+            'Plant': 'Piranha Plant',
+            'Puff': 'Jigglypuff',
+            'ROB': 'R.O.B.',
+            'Rosa_Luma': 'Rosalina & Luma',
+            'Samus_S': 'Dark Samus',
+            'Sephi': 'Sephiroth',
+            'Wii_Fit': 'Wii Fit Trainer',
+            'ZSS': 'Zero Suit Samus',
         }
 
         for filename in os.listdir(badge_dir):
