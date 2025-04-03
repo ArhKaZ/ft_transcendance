@@ -90,7 +90,7 @@ export async function init() {
 		avatarImg.src = data.avatar;
 		avatarImg.alt = 'avatar';
 		const lps = document.getElementById('lps');
-		lps.innerText += data.ligue_points;
+		lps.innerText = "League Points: " + data.ligue_points;
 		const friendSearchContainer = document.querySelector('.friend-search-container');
 
 	} else {
