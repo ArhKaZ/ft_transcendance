@@ -8,10 +8,17 @@ class TournamentGame {
         this.currentPlayer;
         this.pollingInterval = null;
         this.cleanupFunctions = [];
-        this.quitButton = document.getElementById('quit-button');
-        this.messageDiv = document.getElementById('messageDiv');
-        document.getElementById('quit-button').addEventListener('click', () => this.quitTournament());
-        window.addEventListener('popstate', this.handlePopState.bind(this));
+		if (!this.tournamentCode) {
+            console.error("No tournament code in URL");
+            this.cleanupAndNavigate('/home/');
+            return;
+        }
+        sessionStorage.setItem('tournament_code', this.tournamentCode);
+        this.user = null;
+        // this.quitButton = document.getElementById('quit-button');
+        // this.messageDiv = document.getElementById('messageDiv');
+        // document.getElementById('quit-button').addEventListener('click', () => this.quitTournament());
+        // window.addEventListener('popstate', this.handlePopState.bind(this));
         this.tournamentConfig = {
             rounds: [
                 {
@@ -32,23 +39,22 @@ class TournamentGame {
                 }
             ]
         };
-
         this.roundsMidpoints = [];
     }
 
     async init() {
         try {
+            this.user = await getUserFromBack();
             this.setupElements();
             this.setupEventListeners();
 
-            user = await getUserFromBack();
             sessionStorage.setItem('tournament_code', this.tournamentCode);
 
             if (await this.checkLeft(this.tournamentCode)) {
                 this.cleanupAndNavigate('/home/');
                 return;
             }
-
+            console.log('init startPolling');
             await this.startTournamentPolling();
         } catch (error) {
             console.error("Initialization error:", error);
@@ -91,41 +97,75 @@ class TournamentGame {
     }
 
     async startTournamentPolling() {
-        let oldData = null;
-
-        this.pollingInterval = setInterval(async () => {
-            try {
-                const data = await this.loadEnd();
-
-                if (oldData && JSON.stringify(data) !== JSON.stringify(oldData)) {
-                    this.displayTournamentInfo(data);
-
-                    if (sessionStorage.getItem('finalDone') || data.winner?.length > 0) {
-                        await this.handleTournamentEnd(data);
-                        return;
-                    }
-                    else if (data.finalists?.length > 0) {
-                        if (await this.verifUserInFinal(data)) {
-                            this.cleanupAndNavigate('/onlinePong/?tournament=true');
-                            return;
-                        }
-                    }
-                    else if (this.verifUserNeedPlay(data)) {
-                        this.cleanupAndNavigate('/onlinePong/?tournament=true');
-                        return;
-                    }
-                }
-
-                oldData = data;
-            } catch (error) {
-                console.error("Polling error:", error);
-                this.stopTournamentPolling();
-            }
-        }, 1500);
-    }
+		let oldData = null;
+		const user = await getUserFromBack();
+		// Helper function to check if we're still on the tournament page
+		const isOnTournamentPage = () => {
+			return window.location.pathname.includes('/tournament/game/');
+		};
+	
+		// Add deep equality check function
+		const isDataDifferent = (a, b) => { 
+            console.debug('both :', JSON.stringify(a), JSON.stringify(b));
+            return (JSON.stringify(a) !== JSON.stringify(b));
+        }
+		
+		this.pollingInterval = setInterval(async () => {
+			console.log("polling");
+			try {
+				// Stop polling if not on the tournament page
+				if (!isOnTournamentPage()) {
+					this.stopTournamentPolling();
+					return;
+				}
+	
+				const data = await this.tournamentPlayers();
+				console.log("Polling Data:", data); // Debug log
+				
+				// Check if data has changed
+				if (!oldData || isDataDifferent(data, oldData)) {
+					console.log("Data changed, processing...");
+                    this.canvasTournament();
+					this.displayTournamentInfo(data);
+					
+					// Check for tournament end
+					if (sessionStorage.getItem('finalDone') || data.winner?.length > 0) {
+						console.log("Tournament ended, handling...");
+						await this.handleTournamentEnd(data, user);
+						return;
+					}
+					// Check if user is in the final and ready
+					if (data.finalists?.length > 0) {
+						console.log("Checking finals...");
+						const inFinal = this.verifUserInFinal(data);
+                        console.log('inFinal', inFinal);
+						if (inFinal) {
+							console.log("Navigating to final game...");
+							this.stopTournamentPolling();
+							this.cleanupAndNavigate('/onlinePong/?tournament=true');
+							return;
+						}
+					}
+					// Check if user needs to play a regular match
+					else if (this.verifUserNeedPlay(data)) {
+						console.log("User needs to play, navigating...");
+						this.stopTournamentPolling();
+						this.cleanupAndNavigate('/onlinePong/?tournament=true');
+						return;
+					}
+				}
+				
+				oldData = data;
+			} catch (error) {
+				console.error("Polling error:", error);
+				this.stopTournamentPolling();
+			}
+		}, 3000); // Increased interval to 3 seconds
+	}
 
     stopTournamentPolling() {
         if (this.pollingInterval) {
+            console.log('clear Interval');
             clearInterval(this.pollingInterval);
             this.pollingInterval = null;
         }
@@ -133,13 +173,13 @@ class TournamentGame {
 
     async handleTournamentEnd(data) {
         this.stopTournamentPolling();
-
-        if (data.winner[0]?.id === user.id) {
+        
+        if (data.winner[0]?.id === this.user.id) {
             await this.recordMatch();
         }
-
+        
         this.cleanupSessionStorage();
-        this.cleanupAndNavigate('/home/');
+        // this.cleanupAndNavigate('/home/');
     }
 
     cleanupSessionStorage() {
@@ -208,102 +248,48 @@ class TournamentGame {
     }
 
     async quitTournament() {
-        if (!this.tournamentCode) {
-            console.error("No tournament code available");
-            this.cleanupAndNavigate('/home/');
-            return;
-        }
-
+        // Explicit quit action - full cleanup
         try {
             await ensureValidToken();
             await fetch(`/api/forfeit_tournament/${this.tournamentCode}/`, {
                 method: 'POST',
                 headers: this.getAuthHeaders()
             });
-        } catch (error) {
-            console.error("Error in forfeit API call:", error);
         } finally {
-            this.cleanupSessionStorage();
-            this.cleanupAndNavigate('/home/');
+            this.cleanupAndNavigate('/home/', true); // Trigger full cleanup
         }
     }
 
-    // async init() {
-    // 	user = await getUserFromBack();
-    // 	sessionStorage.setItem('tournament_code', this.tournamentCode);
-    // 	let oldData = null;
-    // 	let data = null
-    // 	if (this.checkLeft(this.tournamentCode) == true) {
-    // 		sessionStorage.setItem('programmaticNavigation', 'true');
-    // 		router.navigateTo('/home/');
-    // 	}
-    // 	// while (true) {
-    // 		data = await this.loadEnd();
-    // 		await sleep(500);
-    // 		this.canvasTournament(data);
-    // 		this.displayTournamentInfo(data);
-    // 		if (oldData && data !== oldData) {
-    // 			this.displayTournamentInfo(data);
-    // 			if (sessionStorage.getItem('finalDone') || data.winner.length > 0) {
-    // 				console.log('end of tournament');
-    // 				sessionStorage.removeItem('asWin');
-    // 				sessionStorage.removeItem('inFinal');
-    // 				sessionStorage.removeItem('tournament_code');
-    // 				sessionStorage.removeItem('finalDone');
-    // 				sessionStorage.setItem('programmaticNavigation', 'true');
-    // 				if (data.winner[0].id === user.id) {
-    // 					try {
-    // 						await ensureValidToken();
-    // 						const response = await fetch(`/api/record_match/${this.tournamentCode}/`, {
-    // 							method: 'POST',
-    // 							headers: {
-    // 								'Content-Type': 'application/json',
-    // 								'X-CSRFToken': getCSRFToken(),
-    // 								'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-    // 							},
-    // 							credentials: 'include',
-    // 						});
-    // 					} catch (error) {
-    // 						console.error("Error in record_match API call:", error);
-    // 					}
-    // 				}
-    // 				return;
-    // 			}
-    // 			else if (data.finalists.length > 0) {
-    // 				if (await this.verifUserInFinal(data))
-    // 					return;
-    // 					// break;
-    // 			}
-    // 			else {
-    // 				if (this.verifUserNeedPlay(data)){
-    // 					sessionStorage.setItem('programmaticNavigation', 'true');
-    // 					router.navigateTo(`/onlinePong/?tournament=true`);
-    // 					return;
-    // 					// break;
-    // 				}
-    // 			}
-    // 		}
-    // 		oldData = data;
-    // 		await sleep(1500);
-    // 	// }
-    // }
+    async tournamentPlayers() {
+        try {
+            await ensureValidToken();
+            const response = await fetch(`/api/tournament/${this.tournamentCode}/tournament_players/`, {
+                method: 'GET',
+                headers: this.getAuthHeaders()
+            });
 
-    async loadEnd() {
-        const response = await fetch(`/api/tournament/${this.tournamentCode}/end_players/`, {
-            headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+        
+            if (!response.ok) {
+                throw new Error('Failed to load tournament data');
             }
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to load tournament data');
+            return await response.json();
+        } catch (error) {
+            console.error('error : ', error);
         }
-        return await response.json();
     }
 
-    async verifUserInFinal(data) {
-        const isFinalist = data.finalists.some(finalist => finalist.id === user.id);
-        if (!isFinalist) return false;
+    verifUserInFinal(data) {
+        const isFinalist = data.finalists.some(finalist => finalist.id === this.user.id);
+        console.log('isFinaliste', isFinalist);
+        if (!isFinalist) { 
+            return false;
+        }
+
+        const canPlay = data.matches.every(match => {
+            if (match.is_final) return true;
+            return match.winner != null || match.score != null;
+        });
+        console.log('can Play', canPlay);
 
         if (canPlay) {
             sessionStorage.setItem('inFinal', 'true');
@@ -312,15 +298,12 @@ class TournamentGame {
         return false;
     }
 
-    // verifUserNeedPlay(data) {
-    // 	return data.matches.some(match => {
-    // 		if (match.winner === null) {
-    // 			console.log('need to play');
-    // 			return match.player1.id === user.id || match.player2.id === user.id;
-    // 		}
-    // 		return false;
-    // 	});
-    // }
+    verifUserNeedPlay(data) {
+        return data.matches.some(match => {
+            return match.winner === null &&
+                  (match.player1.id === this.user.id || match.player2.id === this.user.id);
+        });
+    }
 
     displayTournamentInfo(data) {
         if (data.players.length >= 4) {
@@ -471,13 +454,6 @@ class TournamentGame {
         this.drawLine(ctx, finalMatch, { x: winner.x, y: winner.y - 40 });
     }
 
-    verifUserNeedPlay(data) {
-        return data.matches.some(match => {
-            return match.winner === null &&
-                  (match.player1.id === user.id || match.player2.id === user.id);
-        });
-    }
-
     async recordMatch() {
         try {
             await ensureValidToken();
@@ -487,42 +463,6 @@ class TournamentGame {
             });
         } catch (error) {
             console.error("Error in record_match API call:", error);
-        }
-    }
-
-    populatePlayers(data) {
-        const populateList = (selector, items) => {
-            const list = document.getElementById(selector);
-            if (list) {
-                list.innerHTML = items.map(item =>
-                    `<li>${item.username}</li>`
-                ).join('');
-            }
-        };
-
-        populateList('players-list', data.players);
-        populateList('finalists-list', data.finalists);
-        populateList('winner-list', data.winner);
-    }
-
-    displayTournamentInfo(data) {
-        document.getElementById('tournamentCode').textContent =
-            `Tournament Code: ${data.tournament_code}`;
-
-        if (data.players.length >= 4) {
-            document.getElementById('player1').textContent = data.matches[0].player1.pseudo;
-            document.getElementById('player2').textContent = data.matches[0].player2.pseudo;
-            document.getElementById('player3').textContent = data.matches[1].player1.pseudo;
-            document.getElementById('player4').textContent = data.matches[1].player2.pseudo;
-        }
-
-        if (data.finalists.length >= 2) {
-            document.getElementById('winner1').textContent = data.matches[0].winner.pseudo;
-            document.getElementById('winner2').textContent = data.matches[1].winner.pseudo;
-        }
-
-        if (data.winner.length >= 1) {
-            document.getElementById('finalwinner1').textContent = data.matches[2].winner.pseudo;
         }
     }
 

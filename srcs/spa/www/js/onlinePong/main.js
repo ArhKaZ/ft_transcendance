@@ -2,7 +2,7 @@ import { getCSRFToken, sleep } from '/js/utils.js';
 import Game from "./game/game.js";
 import Player from "./game/player.js";
 import CountdownAnimation from "../countdownAnimation.js";
-import {creationGameDisplay, updatePlayerStatus, displayWhenLoad } from "./game/waitingRoom.js";
+import { creationGameDisplay, updatePlayerStatus, displayWhenLoad } from "./game/waitingRoom.js";
 import { getUserFromBack, ensureValidToken } from '/js/utils.js';
 import { router } from '../router.js';
 
@@ -50,7 +50,7 @@ async function getInfoMatchTournament(user) {
 		const data = await response.json();
 		return data;
 	} catch (error) {
-		handleErrors({message: `You need to be logged before playing ${error}`});
+		handleErrors({ message: `You need to be logged before playing ${error}` });
 	}
 }
 
@@ -72,7 +72,7 @@ async function getInfoFinale(user) {
 		const data = await response.json();
 		return data;
 	} catch (error) {
-		handleErrors({message: 'You need to be logged before playing'});
+		handleErrors({ message: 'You need to be logged before playing' });
 	}
 }
 
@@ -93,6 +93,21 @@ function returnBack() {
 }
 
 export async function init() { // ici j'ai juste ajoute un export, je suis pas sur que ca suffise on verra bien
+	socket = null;
+	oldHeight = null;
+	gameStarted = false;
+	currentPlayerId = null;
+	currentGame = null;
+	currentCountdown = null;
+	currentGameId = null;
+	inTournament = false;
+	inFinal = false;
+	pressKey = false;
+	is_finished = false;
+	keyUpHandler = null;
+	keyDownHandler = null;
+	currentPseudo = null;
+	beforeUnloadHandler = null;
 	document.getElementById('return-button').addEventListener('click', () => {
 		returnBack();
 	});
@@ -113,7 +128,7 @@ export async function init() { // ici j'ai juste ajoute un export, je suis pas s
 	}
 
 	displayWhenLoad(user, inTournament);
-	
+
 	socket = setupWebSocket(user, infos);
 }
 
@@ -121,21 +136,21 @@ function setupWebSocket(user, infos) {
 	currentPlayerId = user.id;
 	if (!inTournament)
 		currentPseudo = user.username;
-	else 
+	else
 		currentPseudo = user.pseudo;
 	const id = user.id.toString();
 	const currentUrl = window.location.host;
 	const socket = new WebSocket(`wss://${currentUrl}/ws/onlinePong/${id}/`);
-	
+
 	beforeUnloadHandler = () => {
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            socket.close();
-        }
-    };
+		if (socket && socket.readyState === WebSocket.OPEN) {
+			socket.close();
+		}
+	};
 
 	socket.onopen = () => {
 		window.addEventListener('beforeunload', beforeUnloadHandler);
-		
+
 		if (inTournament && infos) {
 			let objToSend = {
 				action: 'tournament',
@@ -156,9 +171,9 @@ function setupWebSocket(user, infos) {
 			sendToBack(objToSend);
 		} else {
 			sendToBack({
-				action: 'search', 
-				player_id: user.id, 
-				player_name: currentPseudo, 
+				action: 'search',
+				player_id: user.id,
+				player_name: currentPseudo,
 				player_avatar: user.avatar,
 			});
 		}
@@ -177,52 +192,52 @@ function setupWebSocket(user, infos) {
 
 
 function setupKeyboardControls(playerId) {
-    keyDownHandler = (event) => {
-        const direction = event.key === 'ArrowUp' ? 'up' : event.key === 'ArrowDown' ? 'down' : null;
-        if (direction && !pressKey) {
-            pressKey = true;
-            sendToBack({ action: 'move', instruction: 'start', direction, player_id: playerId});
-        }
-    };
+	keyDownHandler = (event) => {
+		const direction = event.key === 'ArrowUp' ? 'up' : event.key === 'ArrowDown' ? 'down' : null;
+		if (direction && !pressKey) {
+			pressKey = true;
+			sendToBack({ action: 'move', instruction: 'start', direction, player_id: playerId });
+		}
+	};
 
-    keyUpHandler = (event) => {
-        if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-            sendToBack({ action: 'move', instruction: 'stop', player_id: playerId});
-            pressKey = false;
-        }
-    };
+	keyUpHandler = (event) => {
+		if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+			sendToBack({ action: 'move', instruction: 'stop', player_id: playerId });
+			pressKey = false;
+		}
+	};
 
-    window.addEventListener('keydown',keyDownHandler);
-    window.addEventListener('keyup',keyUpHandler);
+	window.addEventListener('keydown', keyDownHandler);
+	window.addEventListener('keyup', keyUpHandler);
 }
 
 function cleanKeyboardControls() {
 	if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.close();
-    }
+		socket.close();
+	}
 
 	if (beforeUnloadHandler) {
-        window.removeEventListener('beforeunload', beforeUnloadHandler);
-        beforeUnloadHandler = null; 
-    }
+		window.removeEventListener('beforeunload', beforeUnloadHandler);
+		beforeUnloadHandler = null;
+	}
 	const rButton = document.getElementById('button-ready');
 	if (!rButton.classList.contains('hidden'))
 		rButton.removeEventListener('click', sendToBack);
 	window.removeEventListener("resize", handleResize);
 	document.getElementById('return-button').removeEventListener('click', returnBack);
-    window.removeEventListener('keydown', keyDownHandler);
-    window.removeEventListener('keyup', keyUpHandler);
-    keyDownHandler = null;
-    keyUpHandler = null;
-    socket = null;
-    oldHeight = null;
-    gameStarted = false;
-    currentPlayerId = null;
-    currentGame = null;
-    currentCountdown = null;
-    currentGameId = null;
-    pressKey = false;
-    is_finished = false;
+	window.removeEventListener('keydown', keyDownHandler);
+	window.removeEventListener('keyup', keyUpHandler);
+	keyDownHandler = null;
+	keyUpHandler = null;
+	socket = null;
+	oldHeight = null;
+	gameStarted = false;
+	currentPlayerId = null;
+	currentGame = null;
+	currentCountdown = null;
+	currentGameId = null;
+	pressKey = false;
+	is_finished = false;
 }
 
 async function initGame(data) {
@@ -247,7 +262,7 @@ function createPlayers(data) {
 
 async function handleWebSocketMessage(e) {
 	const data = JSON.parse(e.data);
-	switch(data.type) {
+	switch (data.type) {
 		case 'players_info':
 			handlePlayerInfo(data);
 			break;
@@ -264,11 +279,11 @@ async function handleWebSocketMessage(e) {
 			currentGame.updateScores(data);
 			break;
 
-        case 'game_finish':
-            is_finished = true;
+		case 'game_finish':
+			is_finished = true;
 			if (currentGame) {
-            	currentGame.stop();
-            	handleGameFinish(currentGame, data.winning_session);
+				currentGame.stop();
+				handleGameFinish(currentGame, data.winning_session);
 			} else {
 				handleGameFinish(null, data.winning_session);
 
@@ -278,8 +293,8 @@ async function handleWebSocketMessage(e) {
 					}, 2000);
 				}
 			}
-            gameStarted = false;
-            break;
+			gameStarted = false;
+			break;
 
 		case 'game_start':
 			await handleGameStart(data);
@@ -295,7 +310,7 @@ async function handleWebSocketMessage(e) {
 
 		case 'error':
 			handleErrors(data);
-			break; 
+			break;
 
 		case 'waiting_tournament':
 			await handleWaiting(data);
@@ -308,7 +323,7 @@ async function handleWebSocketMessage(e) {
 		case 'player_movement_stop':
 			handlePlayerStopMove(data);
 			break;
-		
+
 		case 'no_opp':
 			if (inTournament && inFinal) {
 				router.navigateTo(`/tournament/game/${sessionStorage.getItem('tournament_code')}/`);
@@ -337,8 +352,8 @@ async function handleWaiting(data) {
 	await sleep(100);
 	sendToBack({
 		action: 'tournament',
-		player_id: data.player_id, 
-		player_name: data.player_name, 
+		player_id: data.player_id,
+		player_name: data.player_name,
 		player_avatar: data.player_avatar,
 		opponent: data.opponent || null,
 		create: data.create || false,
@@ -352,7 +367,7 @@ function handleErrors(data) {
 	}
 	if (is_finished) return;
 	const errorContainer = document.getElementById('error-container');
-	
+
 	if (errorContainer && !errorContainer.classList.contains('hidden'))
 		return;
 
@@ -385,8 +400,7 @@ function handleErrors(data) {
 		canvasContainer.classList.add('hidden');
 	if (!game.classList.contains('hidden'))
 		game.classList.add('hidden');
-	if (!countdown.classList.contains('hidden'))
-	{
+	if (!countdown.classList.contains('hidden')) {
 		if (currentCountdown)
 			currentCountdown.stopDisplay();
 		countdown.classList.add('hidden');
@@ -406,9 +420,9 @@ function handleErrors(data) {
 function handlePlayerInfo(data) {
 	currentGameId = data.game_id;
 	creationGameDisplay(data, currentGame);
-	sendToBack({action: 'findGame', game_id: currentGameId})
+	sendToBack({ action: 'findGame', game_id: currentGameId })
 	document.getElementById('button-ready').addEventListener('click', () => {
-		sendToBack({action: 'ready', game_id: currentGameId})
+		sendToBack({ action: 'ready', game_id: currentGameId })
 	})
 }
 
@@ -442,44 +456,44 @@ async function handleCountdown(countdown) {
 
 function handleGameFinish(game, winningId, opponentName = null) {
 	cleanKeyboardControls();
-    const btnBack = document.getElementById('button-home-end');
-    if (!game) {
-        const endContainer = document.getElementById('end-container');
-        const endMessage = document.getElementById('end-message');
-        const waitingRoom = document.getElementById('waitingContainer');
-        
-        if (waitingRoom && !waitingRoom.classList.contains('hidden')) {
-            waitingRoom.classList.add('hidden');
-        }
-        
-        if (endContainer && endContainer.classList.contains('hidden')) {
-            endContainer.classList.remove('hidden');
-        }
-        
-        if (endMessage) {
-            endMessage.innerText = "You have been declared the winner as you are the only player connected!";
-        }
-    } else {
-        if (opponentName === null)
-            if (game && game.P1 && game.P2)
-                opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
-        
-        setTimeout(() => {
-            game.displayWinner(winningId);
-        }, 500);
-    }
-    
-    if (inTournament) {
-        if (inFinal)
-            sessionStorage.setItem('finalDone', true);
-        btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
-        btnBack.innerText = "Back to Tournament";
-        setTimeout(() => {
-            router.navigateTo(`/tournament/game/${sessionStorage.getItem('tournament_code')}/`);
-        }, 3000);
-    }
-    else
-        btnBack.innerText = "Back to Home";
+	const btnBack = document.getElementById('button-home-end');
+	if (!game) {
+		const endContainer = document.getElementById('end-container');
+		const endMessage = document.getElementById('end-message');
+		const waitingRoom = document.getElementById('waitingContainer');
+
+		if (waitingRoom && !waitingRoom.classList.contains('hidden')) {
+			waitingRoom.classList.add('hidden');
+		}
+
+		if (endContainer && endContainer.classList.contains('hidden')) {
+			endContainer.classList.remove('hidden');
+		}
+
+		if (endMessage) {
+			endMessage.innerText = "You have been declared the winner as you are the only player connected!";
+		}
+	} else {
+		if (opponentName === null)
+			if (game && game.P1 && game.P2)
+				opponentName = currentPlayerId === parseInt(game.P1.id) ? game.P2.name : game.P1.name;
+
+		setTimeout(() => {
+			game.displayWinner(winningId);
+		}, 500);
+	}
+
+	if (inTournament) {
+		if (inFinal)
+			sessionStorage.setItem('finalDone', true);
+		btnBack.href = `/tournament/game/${sessionStorage.getItem('tournament_code')}/`;
+		btnBack.innerText = "Back to Tournament";
+		setTimeout(() => {
+			router.navigateTo(`/tournament/game/${sessionStorage.getItem('tournament_code')}/`);
+		}, 3000);
+	}
+	else
+		btnBack.innerText = "Back to Home";
 }
 
 
@@ -491,14 +505,14 @@ function resizeCanvasGame() {
 	canvas.height = window.innerHeight * 0.80;
 	canvasCount.width = window.innerWidth * 0.70;
 	canvasCount.height = window.innerHeight * 0.80;
-	
+
 	const ctx = canvas.getContext('2d');
 	ctx.setTransform(1, 0, 0, 1, 0, 0);
 	const scale = Math.min(canvas.width / canvas.offsetWidth, canvas.height / canvas.offsetHeight);
 	ctx.scale(scale, scale);
 
 	if (!gameStarted || !currentGame) return;
-	
+
 	updatePaddleDimensions(currentGame, canvas);
 	currentGame.ball.size = Math.min(canvas.width, canvas.height) * 0.01;
 
@@ -524,4 +538,4 @@ function updatePaddleDimensions(game, canvas) {
 	game.P2.paddle.y = (game.P2.paddle.y / oldHeight) * canvas.height;
 }
 
-init();
+// init();

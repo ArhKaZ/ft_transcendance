@@ -741,7 +741,7 @@ def check_left(request, tournament_code):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_end_players(request, tournament_code):
+def get_tournament_players(request, tournament_code):
 	try:
 		tournament = Tournament.objects.get(code=tournament_code)
 
