@@ -12,6 +12,12 @@ class TournamentManager {
     }
 
     async init() {
+
+        const popstateHandler = () => {
+            this.quitTournament(true);
+        };
+        window.addEventListener('popstate', popstateHandler);
+
         this.setupUIElements();
         this.setupEventListeners();
         this.checkExistingTournament();
@@ -35,7 +41,9 @@ class TournamentManager {
         const handleQuit = () => this.quitTournament(false);
         const handleJoin = (e) => this.joinTournament(e);
         const handleHistoryPop = (event) => this.handleHistoryNavigation(event);
-        const handleReturn = () => this.handleReturnNavigation();
+        // const handleReturn = () => this.handleReturnNavigation();
+        const handleReturn = () => this.quitTournament(true);
+
 
         // Ajout des listeners
         if (this.createButton) {
@@ -59,10 +67,10 @@ class TournamentManager {
             );
         }
 
-        window.addEventListener('popstate', handleHistoryPop);
-        this.cleanupFunctions.push(() => 
-            window.removeEventListener('popstate', handleHistoryPop)
-        );
+        // window.addEventListener('popstate', handleHistoryPop);
+        // this.cleanupFunctions.push(() => 
+        //     window.removeEventListener('popstate', handleHistoryPop)
+        // );
 
         const returnButton = document.getElementById('return-button');
         if (returnButton) {
@@ -358,4 +366,9 @@ if (document.readyState === 'loading') {
 }
 
 // Export pour les tests si nécessaire
-export { TournamentManager };
+// export { TournamentManager };
+
+export async function init() {
+    tournamentManager = new TournamentManager();
+    await tournamentManager.init();
+}
