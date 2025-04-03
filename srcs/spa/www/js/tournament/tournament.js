@@ -256,6 +256,7 @@ class TournamentManager {
                 }
 
                 if (data.is_full) {
+                    clearInterval(this.pollInterval);
                     sessionStorage.removeItem('current_tournament');
                     router.navigateTo(`/tournament/game/${this.currentTournamentCode}/`);
                 } else {
