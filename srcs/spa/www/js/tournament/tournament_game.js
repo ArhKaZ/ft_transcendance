@@ -189,18 +189,12 @@ class TournamentGame {
     }
 
     cleanupAndNavigate(path) {
-        sessionStorage.setItem('programmaticNavigation', 'true');
         this.cleanup();
         router.navigateTo(path);
     }
 
     /* Méthodes existantes restructurées */ 
     handleBeforeUnload(event) {
-        if (sessionStorage.getItem('programmaticNavigation') === 'true') {
-            sessionStorage.removeItem('programmaticNavigation');
-            return;
-        }
-
         event.preventDefault();
         event.returnValue = '';
         this.syncForfeit();
