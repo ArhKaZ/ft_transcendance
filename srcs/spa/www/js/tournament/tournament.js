@@ -113,7 +113,11 @@ class TournamentManager {
     }
 
     async quitTournament(leave) {
-        if (!this.currentTournamentCode) return;
+        if (!this.currentTournamentCode){
+            console.log("return without being in a tournament");
+            router.navigateTo('/home/');
+            return ;
+        }
 
         try {
             await ensureValidToken();
