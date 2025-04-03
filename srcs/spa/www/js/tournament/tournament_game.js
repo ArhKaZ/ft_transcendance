@@ -119,7 +119,7 @@ class TournamentGame {
 					return;
 				}
 	
-				const data = await this.loadEnd();
+				const data = await this.tournamentPlayers();
 				console.log("Polling Data:", data); // Debug log
 				
 				// Check if data has changed
@@ -260,16 +260,22 @@ class TournamentGame {
         }
     }
 
-    async loadEnd() {
-        const response = await fetch(`/api/tournament/${this.tournamentCode}/tournament_players/`, {
-            method: 'GET',
-            headers: this.getAuthHeaders()
-        });
+    async tournamentPlayers() {
+        try {
+            await ensureValidToken();
+            const response = await fetch(`/api/tournament/${this.tournamentCode}/tournament_players/`, {
+                method: 'GET',
+                headers: this.getAuthHeaders()
+            });
 
-        if (!response.ok) {
-            throw new Error('Failed to load tournament data');
+        
+            if (!response.ok) {
+                throw new Error('Failed to load tournament data');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('error : ', error);
         }
-        return await response.json();
     }
 
     verifUserInFinal(data) {
