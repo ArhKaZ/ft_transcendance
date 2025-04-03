@@ -8,7 +8,7 @@ class TournamentManager {
         this.currentTournamentCode = null;
         this.pollInterval = null;
 
-        this.init();
+        // this.init();
     }
 
     async init() {
@@ -40,7 +40,7 @@ class TournamentManager {
         const handleCreate = () => this.createTournament();
         const handleQuit = () => this.quitTournament(false);
         const handleJoin = (e) => this.joinTournament(e);
-        const handleHistoryPop = (event) => this.handleHistoryNavigation(event);
+        // const handleHistoryPop = (event) => this.handleHistoryNavigation(event);
         // const handleReturn = () => this.handleReturnNavigation();
         const handleReturn = () => this.quitTournament(true);
 
@@ -147,9 +147,9 @@ class TournamentManager {
         this.cleanupTournamentState();
         this.displayMessage(data.message, 'success');
         
-        // if (data.deleted) {
-        //     setTimeout(() => window.location.reload(), 0);
-        // }
+        if (data.deleted) {
+            setTimeout(() => router.navigateTo('/tournament/'), 0); //peut etre faut pas garder ca
+        }
     }
 
     cleanupTournamentState() {
@@ -355,15 +355,15 @@ class TournamentManager {
 // Initialisation
 let tournamentManager;
 
-function initializeTournamentManager() {
-    tournamentManager = new TournamentManager();
-}
+// function initializeTournamentManager() {
+//     tournamentManager = new TournamentManager();
+// }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeTournamentManager);
-} else {
-    initializeTournamentManager();
-}
+// if (document.readyState === 'loading') {
+//     document.addEventListener('DOMContentLoaded', initializeTournamentManager);
+// } else {
+//     initializeTournamentManager();
+// }
 
 // Export pour les tests si nécessaire
 // export { TournamentManager };
