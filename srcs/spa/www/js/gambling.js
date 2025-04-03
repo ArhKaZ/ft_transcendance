@@ -20,6 +20,7 @@ export async function init() {
     token2.addEventListener('click', async () => handleTokenClick(2));
     token3.addEventListener('click', async () => handleTokenClick(3));
     document.getElementById('return-button').addEventListener('click', () => {
+        resetTokens();
         router.navigateTo("/home/");
     });
     
@@ -35,12 +36,19 @@ export async function init() {
             if (!token3.disabled) await handleTokenClick(3);
         });
     });
+    const popstateHandler = () => {
+        resetTokens();
+    };
+    window.addEventListener('popstate', popstateHandler);
 }
 
 function updateButtonStates(ticketCount) {
     const buttons = [token1, token2, token3];
     buttons.forEach(button => {
         button.disabled = ticketCount <= 0;
+        setTimeout(() => {
+            button.unavailable = ticketCount <= 0;
+        }, 2500);
     });
 }
 
@@ -111,8 +119,7 @@ async function handleTokenClick(tokenNumber) {
             } else {
                 showBadgeModal(tokenNumber, false, result.error || 'An error occurred');
             }
-        }, 2500);
-        
+        }, 2500);        
     } catch (error) {
         console.error('Error:', error);
         setTimeout(() => {
