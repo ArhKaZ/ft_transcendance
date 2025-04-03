@@ -154,7 +154,7 @@ class TournamentGame {
         router.navigateTo(path);
     }
 
-    /* Méthodes existantes restructurées */
+    /* Méthodes existantes restructurées */ 
     handleBeforeUnload(event) {
         if (sessionStorage.getItem('programmaticNavigation') === 'true') {
             sessionStorage.removeItem('programmaticNavigation');
