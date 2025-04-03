@@ -101,7 +101,7 @@ function updateUIForAuthenticatedUser(elements, userData) {
         elements.avatarImg.src = userData.avatar;
         elements.avatarImg.alt = 'avatar';
     }
-    if (elements.lps) elements.lps.textContent = `Points: ${userData.ligue_points}`;
+    if (elements.lps) elements.lps.textContent = `League Points: ${userData.ligue_points}`;
     if (elements.bottomBtns) elements.bottomBtns.style.display = 'flex';
 }
 
