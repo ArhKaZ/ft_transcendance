@@ -146,7 +146,6 @@ class Tournament(models.Model):
 		super().save(*args, **kwargs)
 
 	def add_player(self, user):
-		
 		if self.players.count() >= 4:
 			raise ValidationError("Tournament is full.")
 		self.players.add(user)

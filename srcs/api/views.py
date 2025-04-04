@@ -482,7 +482,8 @@ def join_tournament(request):
 
 		if tournament.started:
 			return Response({'error': 'Tournament has already started'}, status=status.HTTP_400_BAD_REQUEST)
-
+		if tournament.is_recorded:
+			return Response({'error': 'Tournament is already finished'}, status=status.HTTP_400_BAD_REQUEST)
 		try:
 			tournament.add_player(request.user)
 			user = MyUser.objects.get(id=request.user.id)
