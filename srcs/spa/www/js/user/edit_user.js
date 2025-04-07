@@ -13,34 +13,11 @@ export async function init() {
     const modalBtnYes = document.getElementById('modal-btn-yes');
     const modalBtnNo = document.getElementById('modal-btn-no');
 
-    // Handlers d'événements
     const handleFormSubmit = async (event) => {
         event.preventDefault();
         await handleUserUpdate(event.target);
     };
 
-// 		const data = await response.json();
-		
-// 		if (response.ok) {
-// 			displayMessage(data.message, 'success');
-// 			setTimeout(() => router.navigateTo('/home/'), 1400);
-// 		} else {
-// 			let errorMessage = 'An error occurred';
-// 			if (data.error) {
-// 				const cleanError = data.error
-// 					.replace('[ErrorDetail(string=\'', '')
-// 					.replace('\', code=\'invalid\')]', '')
-// 				errorMessage = `Error: ${cleanError}`;
-// 			} else {
-// 			errorMessage = `Error:<br>${data.error}`;
-// 		}
-// 		displayMessage(errorMessage, 'error');
-// 		}
-// 	} catch (error) {
-// 		displayMessage('A network error occurred.', 'error');
-// 		console.error('Error details:', error);
-// 	}
-// });
     const handleEraseClick = () => {
         modalErase.style.display = 'flex';
     };
@@ -50,35 +27,6 @@ export async function init() {
         modalErase.style.display = 'none';
     };
 
-// document.getElementById('erase-button').addEventListener('click', async () => {
-// 	document.getElementById('modal-erase').style.display = 'flex';
-// 	document.getElementById('modal-btn-yes').addEventListener('click', async () => {
-// 		try {
-// 			await ensureValidToken();
-// 			const response = await fetch('/api/erase/', {
-// 				method: 'PATCH',
-// 				headers: {
-// 					'Content-Type': 'application/json',
-// 					'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
-// 				},
-// 				credentials: 'include',
-// 			});
-// 			sessionStorage.removeItem('access_token');
-// 			sessionStorage.removeItem('refresh_token');
-// 			sessionStorage.removeItem('access_expires');
-// 			sessionStorage.removeItem('refresh_expires');
-// 			sessionStorage.removeItem('username');
-// 			sessionStorage.removeItem('is_oauth');
-
-// 			if (response.ok) {
-// 			} else {
-// 				console.error('Error erasing:', response);
-// 			}
-// 			router.navigateTo('/home/');
-// 		} catch (error) {
-// 			console.error ('Error', error);
-// 		}
-// 	});
     const handleModalNoClick = () => {
         modalErase.style.display = 'none';
     };
@@ -123,7 +71,6 @@ export async function init() {
         cleanupFunctions.push(() => returnButton.removeEventListener('click', handleReturnClick));
     }
 
-    // Configuration initiale
     handleOAuthRestrictions();
 
     return () => {
@@ -200,7 +147,7 @@ function handleUpdateError(data) {
 
 function handleOAuthRestrictions() {
     if (sessionStorage.getItem('is_oauth') === 'true') {
-        ['pseudo-container', 'password-container', 'avatar-container'].forEach(id => {
+        ['password-container', 'avatar-container'].forEach(id => {
             const element = document.getElementById(id);
             if (element) element.style.display = 'none';
         });

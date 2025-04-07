@@ -87,7 +87,7 @@ function clearEventAndSocket() {
     if (btnBook) btnBook.removeEventListener("click", () => handleOpenBook());
     if (returnButton) returnButton.removeEventListener('click', () => returnBack());
 	const rButton = document.getElementById('button-ready');
-	if (!rButton.classList.contains('hidden'))
+	if (rButton && !rButton.classList.contains('hidden'))
 		rButton.removeEventListener('click', sendToBack);
 	currentGame = null;
 }

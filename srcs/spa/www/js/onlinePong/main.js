@@ -21,6 +21,7 @@ let keyUpHandler = null;
 let keyDownHandler = null;
 let currentPseudo = null;
 let beforeUnloadHandler = null;
+let gameIsCancel = false;
 
 const handleResize = () => resizeCanvasGame();
 
@@ -92,7 +93,7 @@ function returnBack() {
 	}
 }
 
-export async function init() { // ici j'ai juste ajoute un export, je suis pas sur que ca suffise on verra bien
+export async function init() {
 	socket = null;
 	oldHeight = null;
 	gameStarted = false;
@@ -108,9 +109,17 @@ export async function init() { // ici j'ai juste ajoute un export, je suis pas s
 	keyDownHandler = null;
 	currentPseudo = null;
 	beforeUnloadHandler = null;
+	gameIsCancel = false;
 	document.getElementById('return-button').addEventListener('click', () => {
 		returnBack();
 	});
+	const popstateHandler = () => {
+        if (gameStarted) {
+            gameIsCancel = true;
+            returnBack();
+        }
+    };
+	window.addEventListener('popstate', popstateHandler);
 	const user = await getUserFromBack();
 	const urlParams = new URLSearchParams(window.location.search);
 	let infos = null;
@@ -142,14 +151,7 @@ function setupWebSocket(user, infos) {
 	const currentUrl = window.location.host;
 	const socket = new WebSocket(`wss://${currentUrl}/ws/onlinePong/${id}/`);
 
-	beforeUnloadHandler = () => {
-		if (socket && socket.readyState === WebSocket.OPEN) {
-			socket.close();
-		}
-	};
-
 	socket.onopen = () => {
-		window.addEventListener('beforeunload', beforeUnloadHandler);
 
 		if (inTournament && infos) {
 			let objToSend = {
@@ -216,10 +218,6 @@ function cleanKeyboardControls() {
 		socket.close();
 	}
 
-	if (beforeUnloadHandler) {
-		window.removeEventListener('beforeunload', beforeUnloadHandler);
-		beforeUnloadHandler = null;
-	}
 	const rButton = document.getElementById('button-ready');
 	if (!rButton.classList.contains('hidden'))
 		rButton.removeEventListener('click', sendToBack);

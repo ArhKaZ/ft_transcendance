@@ -57,7 +57,10 @@ class Game {
 
 
     async loop() {
-        if (!this.isStart) return;
+        if (!this.isStart) {
+            console.log('return in loop');
+            return;
+        }
 
         this.update();
         this.drawGame();
