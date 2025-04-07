@@ -87,6 +87,7 @@ export async function init() {
     }
 
     return () => {
+        console.log("return cleanup");
         cleanupFunctions.forEach(fn => fn());
         cleanupFunctions = [];
     };

@@ -1,9 +1,14 @@
 import { loginUser } from "./login_user.js";
 import { router } from '../router.js';
+import { boolUserLog } from "../utils.js";
 
 let cleanupFunctions = [];
 
 export async function init() {
+    if (await boolUserLog() === true) {
+		router.navigateTo('/home/');
+		return ;
+	}
     const userForm = document.getElementById('userForm');
     const returnButton = document.getElementById('return-button');
     const avatarInput = document.getElementById('avatar');

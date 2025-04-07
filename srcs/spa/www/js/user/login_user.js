@@ -1,10 +1,15 @@
 import { getCSRFToken } from '/js/utils.js';
 import { ensureValidToken } from '/js/utils.js';
 import { router } from '../router.js';
+import { boolUserLog } from "../utils.js";
 
 let cleanupFunctions = [];
 
 export async function init() {
+	if (await boolUserLog() === true) {
+		router.navigateTo('/home/');
+		return ;
+	}
     const loginbtn = document.getElementById('login-button');
     const returnButton = document.getElementById('return-button');
 
@@ -56,7 +61,6 @@ export async function loginUser() {
 
 		if (response.ok) {
 			const data = await response.json();
-			console.log(data);
 			sessionStorage.setItem('access_token', data.access_token);
 			sessionStorage.setItem('refresh_token', data.refresh_token);
 			sessionStorage.setItem('access_expires', data.access_expires);

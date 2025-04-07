@@ -52,6 +52,27 @@ export async function getUserFromBack() {
     }
 }
 
+export async function boolUserLog() {
+    try {
+        const response = await fetch('/api/get-my-info/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+            },
+            credentials: 'include',
+        });
+        if (!response.ok) {
+            return false;
+        }
+        return true;
+    } catch (error) {
+        handleErrors({message: 'You need to be logged before playing'});
+        return false;
+    }
+}
+
 export async function ensureValidToken() {
     await checkTokenExpiry();
 }
@@ -91,8 +112,13 @@ async function checkTokenExpiry() {
     }
 }
 
+
 function redirectToLogin() {
     if (window.location.pathname !== '/home/') {
+        sessionStorage.removeItem('username');
         router.navigateTo('/home/');
+    }
+    else {
+        sessionStorage.removeItem('username');
     }
 }

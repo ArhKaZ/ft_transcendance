@@ -34,6 +34,7 @@ export async function init() {
 				sessionStorage.removeItem('refresh_token');
 				sessionStorage.removeItem('access_expires');
 				sessionStorage.removeItem('refresh_expires');
+				sessionStorage.removeItem('username');
 				sessionStorage.clear();
 
 				router.navigateTo('/home/');
@@ -164,6 +165,7 @@ export async function init() {
 	}
 
 	return () => {
+		console.log("cleanup of home");
         cleanupFunctions.forEach(fn => fn());
         cleanupFunctions = [];
     };
