@@ -1,11 +1,14 @@
 import { getCSRFToken } from '/js/utils.js';
 import { ensureValidToken } from '/js/utils.js';
 import { router } from '../router.js';
+import { boolUserLog } from "../utils.js";
 
 let cleanupFunctions = [];
 
 export async function init() {
-	if (sessionStorage.username) {
+	console.log("login");
+	if (await boolUserLog() === true) {
+        console.log("return");
 		router.navigateTo('/home/');
 		return ;
 	}

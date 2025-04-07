@@ -1,13 +1,17 @@
 import { loginUser } from "./login_user.js";
 import { router } from '../router.js';
+import { boolUserLog } from "../utils.js";
 
 let cleanupFunctions = [];
 
 export async function init() {
-    if (sessionStorage.username) {
+    console.log("add");
+    if (await boolUserLog() === true) {
+        console.log("return");
 		router.navigateTo('/home/');
 		return ;
 	}
+    console.log("add after");
     const userForm = document.getElementById('userForm');
     const returnButton = document.getElementById('return-button');
     const avatarInput = document.getElementById('avatar');
