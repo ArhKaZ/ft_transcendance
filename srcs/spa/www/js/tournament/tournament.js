@@ -142,6 +142,8 @@ class TournamentManager {
     handleQuitSuccess(data) {
         this.cleanupTournamentState();
         this.displayMessage(data.message, 'success');
+
+        router.replaceTo('/tournament/');
     }
 
     cleanupTournamentState() {
