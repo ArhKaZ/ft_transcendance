@@ -64,14 +64,11 @@ export async function boolUserLog() {
             credentials: 'include',
         });
         if (!response.ok) {
-            console.log("false");
             return false;
         }
-        console.log("true");
         return true;
     } catch (error) {
         handleErrors({message: 'You need to be logged before playing'});
-        console.log("false");
         return false;
     }
 }

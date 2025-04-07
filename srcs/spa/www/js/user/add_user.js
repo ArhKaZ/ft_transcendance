@@ -5,13 +5,10 @@ import { boolUserLog } from "../utils.js";
 let cleanupFunctions = [];
 
 export async function init() {
-    console.log("add");
     if (await boolUserLog() === true) {
-        console.log("return");
 		router.navigateTo('/home/');
 		return ;
 	}
-    console.log("add after");
     const userForm = document.getElementById('userForm');
     const returnButton = document.getElementById('return-button');
     const avatarInput = document.getElementById('avatar');

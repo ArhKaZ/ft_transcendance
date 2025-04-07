@@ -6,9 +6,7 @@ import { boolUserLog } from "../utils.js";
 let cleanupFunctions = [];
 
 export async function init() {
-	console.log("login");
 	if (await boolUserLog() === true) {
-        console.log("return");
 		router.navigateTo('/home/');
 		return ;
 	}
@@ -63,7 +61,6 @@ export async function loginUser() {
 
 		if (response.ok) {
 			const data = await response.json();
-			console.log(data);
 			sessionStorage.setItem('access_token', data.access_token);
 			sessionStorage.setItem('refresh_token', data.refresh_token);
 			sessionStorage.setItem('access_expires', data.access_expires);
