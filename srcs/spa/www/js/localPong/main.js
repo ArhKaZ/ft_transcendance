@@ -16,18 +16,14 @@ let gameState = {
 };
 
 export async function init() {
-    // Initialisation des éléments et handlers
     const returnButton = document.getElementById('return-button');
     const readyButton = document.getElementById('button-ready');
-
-    // Gestion des événements
     const handleReturn = () => returnBack();
     const handleReadyClick = async () => {
         gameState.gameStarted = true;
         await startCountdown();
     };
 
-    // Récupération utilisateur et initialisation jeu
     try {
         const user = await getUserFromBack();
         if (!user.username) {
@@ -37,14 +33,13 @@ export async function init() {
 
         displayWhenLoad(user);
         gameState.currentGame = await initGame(user);
+        console.debug(gameState);
         gameState.currentCountdown = new CountdownAnimation('countdownCanvas');
 
-        // Ajout des listeners
         window.addEventListener('resize', handleResize);
         returnButton.addEventListener('click', handleReturn);
         readyButton.addEventListener('click', handleReadyClick);
 
-        // Enregistrement des cleanups
         cleanupFunctions.push(
             () => window.removeEventListener('resize', handleResize),
             () => returnButton.removeEventListener('click', handleReturn),
@@ -58,11 +53,18 @@ export async function init() {
     return () => {
         cleanupFunctions.forEach(fn => fn());
         cleanupFunctions = [];
-        returnBack(); // Nettoyage supplémentaire
+        returnBack();
     };
 }
 
-// Fonctions du jeu
+function resetGameState() {
+    gameState.oldHeight = null;
+    gameState.gameStarted = false;
+    gameState.currentCountdown = null;
+    gameState.currentGame = null;
+    gameState.gameIsCancel = false;
+}
+
 async function initGame(user) {
     const canvas = document.getElementById('gameCanvas');
     gameState.oldHeight = canvas.height;
@@ -111,6 +113,7 @@ function returnBack() {
         gameState.currentCountdown.stopDisplay();
     }
     
+    resetGameState();
     router.navigateTo('/pong/');
 }
 
@@ -126,37 +129,28 @@ function resizeCanvasGame() {
 
     let oldCoorNormBall = gameState.currentGame ? getCoorBall(canvas) : null;
 
-    // Redimensionnement
     canvas.width = window.innerWidth * 0.70;
     canvas.height = window.innerHeight * 0.80;
     canvasCount.width = canvas.width;
     canvasCount.height = canvas.height;
 
-    // Mise à l'échelle
     const ctx = canvas.getContext('2d');
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     const scale = Math.min(canvas.width / canvas.offsetWidth, canvas.height / canvas.offsetHeight);
     ctx.scale(scale, scale);
 
     if (!gameState.gameStarted || !gameState.currentGame) return;
-
-    // Mise à jour des éléments du jeu
     updateGameElements(canvas, oldCoorNormBall);
     gameState.oldHeight = canvas.height;
 }
 
 function updateGameElements(canvas, oldCoorNormBall) {
     const game = gameState.currentGame;
-
-    // Mise à jour des paddles
     updatePaddleDimensions(game, canvas);
-
-    // Mise à jour de la balle
     game.ball.size = Math.min(canvas.width, canvas.height) * 0.01;
     game.ball.x = oldCoorNormBall[0] * canvas.width / 100;
     game.ball.y = oldCoorNormBall[1] * canvas.height / 100;
 
-    // Redessiner les éléments
     game.P1.draw(game.context, game.colorP1);
     game.P2.draw(game.context, game.colorP2);
     game.ball.draw(game.context);
