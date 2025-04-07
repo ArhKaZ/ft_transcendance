@@ -36,10 +36,11 @@ export async function init() {
             if (!token3.disabled) await handleTokenClick(3);
         });
     });
-    const popstateHandler = () => {
-        resetTokens();
+    return () => {
+        if (window.location.pathname === '/gambling/') {
+            resetTokens();
+        }
     };
-    window.addEventListener('popstate', popstateHandler);
 }
 
 function updateButtonStates(ticketCount) {
