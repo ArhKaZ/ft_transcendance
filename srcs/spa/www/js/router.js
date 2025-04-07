@@ -28,7 +28,7 @@ class Router {
       }
   
       if (!this.publicPaths.includes(path) && !(await this.isAuthenticated())) {
-        this.navigateTo('/user/login/');
+        this.navigateTo('/home/');
         return;
       }
   

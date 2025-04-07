@@ -47,7 +47,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def disconnect(self, close_code):
 		try:
 			await self.stop_game_db()
-			print('disconnect : ', self.monitor_task is not None)
+			print(f'disconnect {self.game} {self.player_id}')
 			if self.game and self.game.status == "IN_PROGRESS" and not await self.game.is_stocked():
 
 				loser = self.game.p1 if self.game.p1.id == self.player_id else self.game.p2
@@ -64,7 +64,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			print(f"Error during disconnect: {e}")
 
 	async def _handle_disconnect(self, close_code):
-		
 		key = 'waiting_wizard_duel_players'
 		current_waiting_players = await sync_to_async(cache.get)(key) or []
 		current_waiting_players = [p for p in current_waiting_players if p['id'] != self.player_id]
@@ -383,6 +382,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		current_user_is_winner = (current_player.id == winner.id)
 
 		if not current_user_is_winner and not p_is_quitting:
+			print('update magic return false')
 			return False
 		winner.wins += 1
 		winner.ligue_points += 15
@@ -405,6 +405,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		
 		winner.save()
 		loser.save()
+		print('update magic return true')
 		return True
 
 	@database_sync_to_async
@@ -433,8 +434,11 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 					loser = self.game.p1 if self.game.p1.life <= 0 else self.game.p2
 					
 					winner_user, loser_user = await self.get_players_users(winner, loser)
+					print('before update')
 					if await self.update_magic_stats_and_history(winner_user, loser_user, False):
+						print('update true condition')
 						await self.game.set_stocked()
+					print('after update')
 					await self.notify_game_end()
 					break
 				await asyncio.sleep(0.5)

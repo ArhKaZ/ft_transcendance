@@ -270,8 +270,6 @@ function handleGameFinish(data) {
 	let checkAnim = setInterval(() => {
         if (asFinishedAnim) {
 			clearInterval(checkAnim);
-			clearEventAndSocket();
-			// window.removeEventListener('beforeunload', handleQuitGame);
 			setTimeout(() => {
 				currentGame.displayWinner(data.player_id);
 			}, 3000);
