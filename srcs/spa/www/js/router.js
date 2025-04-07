@@ -3,6 +3,7 @@ import { ensureValidToken, getCSRFToken } from '/js/utils.js';
 class Router {
     constructor(routes) {
       this.routes = routes;
+      this.currentCleanup = null;
       this.rootElement = document.getElementById('app');
       this.currentAssets = { scripts: [], styles: [] };
       this.publicPaths = ['/home/', '/user/login/', '/user/add/', '/oauth_callback/', '/404/'];
@@ -24,6 +25,10 @@ class Router {
   
     // Private methods
     async handleLocation() {
+      if (this.currentCleanup) {
+        this.currentCleanup(); // Cleanup before navigation
+        this.currentCleanup = null;
+      }
       const path = window.location.pathname;
       const route = this.resolveRoute(path);
   
@@ -75,6 +80,12 @@ class Router {
         const scripts = Array.isArray(route.js) ? route.js : [route.js];
         for (const src of scripts) {
           try {
+            // Execute previous cleanup
+            if (this.currentCleanup) {
+              this.currentCleanup();
+              this.currentCleanup = null;
+            }
+  
             let modulePromise;
             if (!this.scriptCache.has(src)) {
               modulePromise = import(src);
@@ -84,7 +95,8 @@ class Router {
             }
             const module = await modulePromise;
             if (typeof module.init === 'function') {
-              await module.init();
+              const cleanup = await module.init();
+              this.currentCleanup = cleanup; // Store the cleanup function
             }
           } catch (error) {
             console.error(`Error loading script: ${src}`, error);

@@ -95,4 +95,7 @@ function redirectToLogin() {
     if (window.location.pathname !== '/home/') {
         router.navigateTo('/home/');
     }
+    else {
+        console.log("test");
+    }
 }
