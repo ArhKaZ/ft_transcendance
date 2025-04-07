@@ -9,13 +9,22 @@ class TournamentManager {
         this.pollInterval = null;
     }
 
-    async init() {
-        const popstateHandler = () => {
+    async returnPress() {
         if (this.currentTournamentCode) {
             this.justQuit();
             this.stopTournamentPolling();
             this.cleanupTournamentState();
         }
+        window.history.back();
+    }
+
+    async init() {
+        const popstateHandler = () => {
+            if (this.currentTournamentCode) {
+                this.justQuit();
+                this.stopTournamentPolling();
+                this.cleanupTournamentState();
+            }
         };
         window.addEventListener('popstate', popstateHandler);
 
@@ -40,7 +49,7 @@ class TournamentManager {
         const handleCreate = () => this.createTournament();
         const handleQuit = () => this.quitTournament(false);
         const handleJoin = (e) => this.joinTournament(e);
-        const handleReturn = () => this.quitTournament(true);
+        const handleReturn = () => this.returnPress();
 
         if (this.createButton) {
             this.createButton.addEventListener('click', handleCreate);
@@ -92,7 +101,6 @@ class TournamentManager {
 
     async quitTournament(leave) {
         if (!this.currentTournamentCode) return;
-
         try {
             await ensureValidToken();
             const response = await fetch(`/api/quit_tournament/${this.currentTournamentCode}/`, {
