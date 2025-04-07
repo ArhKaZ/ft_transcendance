@@ -91,6 +91,8 @@ class TournamentManager {
     }
 
     async quitTournament(leave) {
+        if (!this.currentTournamentCode) return;
+
         try {
             await ensureValidToken();
             const response = await fetch(`/api/quit_tournament/${this.currentTournamentCode}/`, {
@@ -140,10 +142,6 @@ class TournamentManager {
     handleQuitSuccess(data) {
         this.cleanupTournamentState();
         this.displayMessage(data.message, 'success');
-        
-        if (data.deleted) {
-            setTimeout(() => router.navigateTo('/tournament/'), 0); //peut etre faut pas garder ca
-        }
     }
 
     cleanupTournamentState() {
