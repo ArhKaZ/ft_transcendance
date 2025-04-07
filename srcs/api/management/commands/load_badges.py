@@ -15,6 +15,7 @@ class Command(BaseCommand):
             'P_&_M': 'Pyra/Mythra',
             'G&W': 'Mr. Game & Watch',
             'Mk': 'Meta Knight',
+            'Amphi': 'Greninja',
             'Bayo': 'Bayonetta',
             'Captain': 'Captain Falcon',
             'Bowser_J': 'Bowser Jr.',
