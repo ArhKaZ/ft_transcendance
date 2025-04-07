@@ -7,10 +7,10 @@ import { router } from './router.js';
 let cleanupFunctions = [];
 
 export async function init() {
-	// const popstateHandler = () => {
-	// 	router.handReload('/home/');
-	// };
-	// window.addEventListener('popstate', popstateHandler);
+	const popstateHandler = () => {
+		router.handReload('/home/');
+	};
+	window.addEventListener('popstate', popstateHandler);
 	const searchButton = document.getElementById('search-button');
 	const searchInput = document.getElementById('search-input');
 	const searchResults = document.getElementById('search-results');

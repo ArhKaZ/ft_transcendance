@@ -4,6 +4,10 @@ import { router } from '../router.js';
 let cleanupFunctions = [];
 
 export async function init() {
+    if (sessionStorage.username) {
+		router.navigateTo('/home/');
+		return ;
+	}
     const userForm = document.getElementById('userForm');
     const returnButton = document.getElementById('return-button');
     const avatarInput = document.getElementById('avatar');

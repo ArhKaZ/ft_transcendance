@@ -5,6 +5,10 @@ import { router } from '../router.js';
 let cleanupFunctions = [];
 
 export async function init() {
+	if (sessionStorage.username) {
+		router.navigateTo('/home/');
+		return ;
+	}
     const loginbtn = document.getElementById('login-button');
     const returnButton = document.getElementById('return-button');
 
