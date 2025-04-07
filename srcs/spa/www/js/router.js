@@ -10,6 +10,11 @@ class Router {
       window.addEventListener('popstate', this.handleLocation.bind(this));
       this.initLinks();
     }
+
+    async replaceTo(path) {
+      window.history.replaceState({}, '', path);
+      await this.handleLocation();
+    }
   
     // Public methods
     async navigateTo(path) {

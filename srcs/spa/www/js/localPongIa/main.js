@@ -36,7 +36,9 @@ export async function init() {
     asSelectedLevel = false;
     gameIsCancel = false;
     const popstateHandler = () => {
+        console.log("before condition");
         if (window.location.pathname === '/localPongIa/') {
+            console.log("after condition");
             returnBack();
         }
     };
