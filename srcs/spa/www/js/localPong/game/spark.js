@@ -41,6 +41,8 @@ export function createNeonExplosion(side, ball_y) {
     const explosionCanvas = document.createElement('canvas');
     const gameCanvas = document.getElementById('gameCanvas');
     
+    if (!explosionCanvas || !gameCanvas)
+        return;
     explosionCanvas.style.position = 'absolute';
     explosionCanvas.style.left = gameCanvas.offsetLeft + 'px';
     explosionCanvas.style.top = gameCanvas.offsetTop + 'px';

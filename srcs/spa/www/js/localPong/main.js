@@ -23,7 +23,13 @@ export async function init() {
         gameState.gameStarted = true;
         await startCountdown();
     };
-
+    const popstateHandler = () => {
+        if (gameState.gameStarted) {
+            gameState.gameIsCancel = true;
+            returnBack();
+        }
+    };
+    window.addEventListener('popstate', popstateHandler);
     try {
         const user = await getUserFromBack();
         if (!user.username) {
@@ -83,9 +89,10 @@ async function startCountdown() {
     if (!gameState.currentGame) return;
 
     gameState.currentGame.displayCanvas();
-    
     try {
         for (let i = 3; i > 0; i--) {
+            if (!gameState.currentCountdown)
+                return;
             await gameState.currentCountdown.displayNumber(i);
             await sleep(1000);
         }
@@ -112,7 +119,6 @@ function returnBack() {
     if (gameState.currentCountdown) {
         gameState.currentCountdown.stopDisplay();
     }
-    
     resetGameState();
     router.navigateTo('/pong/');
 }
