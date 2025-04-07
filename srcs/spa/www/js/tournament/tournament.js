@@ -7,14 +7,15 @@ class TournamentManager {
         this.cleanupFunctions = [];
         this.currentTournamentCode = null;
         this.pollInterval = null;
-
-        // this.init();
     }
 
     async init() {
-
         const popstateHandler = () => {
-            this.quitTournament(true);
+        if (this.currentTournamentCode) {
+            this.justQuit();
+            this.stopTournamentPolling();
+            this.cleanupTournamentState();
+        }
         };
         window.addEventListener('popstate', popstateHandler);
 
@@ -36,16 +37,11 @@ class TournamentManager {
     }
 
     setupEventListeners() {
-        // Gestion des événements
         const handleCreate = () => this.createTournament();
         const handleQuit = () => this.quitTournament(false);
         const handleJoin = (e) => this.joinTournament(e);
-        // const handleHistoryPop = (event) => this.handleHistoryNavigation(event);
-        // const handleReturn = () => this.handleReturnNavigation();
         const handleReturn = () => this.quitTournament(true);
 
-
-        // Ajout des listeners
         if (this.createButton) {
             this.createButton.addEventListener('click', handleCreate);
             this.cleanupFunctions.push(() => 
@@ -65,12 +61,7 @@ class TournamentManager {
             this.cleanupFunctions.push(() => 
                 this.userForm.removeEventListener('submit', handleJoin)
             );
-        }
-
-        // window.addEventListener('popstate', handleHistoryPop);
-        // this.cleanupFunctions.push(() => 
-        //     window.removeEventListener('popstate', handleHistoryPop)
-        // );
+        };
 
         const returnButton = document.getElementById('return-button');
         if (returnButton) {
@@ -79,8 +70,6 @@ class TournamentManager {
                 returnButton.removeEventListener('click', handleReturn)
             );
         }
-
-        window.history.pushState({}, '', window.location.href);
     }
 
     cleanup() {
@@ -89,17 +78,6 @@ class TournamentManager {
         this.cleanupFunctions = [];
     }
 
-    /* Méthodes existantes restructurées */
-    handleHistoryNavigation(event) {
-        if (this.currentTournamentCode) {   
-            event.preventDefault();
-            if (confirm('Do you want to quit the current tournament?')) {
-                this.quitTournament(true);
-            } else {
-                window.history.pushState({}, '', window.location.href);
-            }
-        }
-    }
 
     handleReturnNavigation() {
         if (this.currentTournamentCode) {
@@ -113,11 +91,7 @@ class TournamentManager {
     }
 
     async quitTournament(leave) {
-        if (!this.currentTournamentCode){
-            console.log("return without being in a tournament");
-            router.navigateTo('/home/');
-            return ;
-        }
+        if (!this.currentTournamentCode) return;
 
         try {
             await ensureValidToken();
@@ -138,6 +112,24 @@ class TournamentManager {
         }
     }
 
+    justQuit() {
+        try {
+            ensureValidToken();
+            const response =  fetch(`/api/quit_tournament/${this.currentTournamentCode}/`, {
+                method: 'POST',
+                headers: this.getAuthHeaders()
+            });
+
+            const data =  response.json();
+
+            if (!response.ok) {
+                this.displayMessage(data.error, 'error');
+            }
+        } catch (error) {
+            this.displayMessage('Error quitting tournament', 'error');
+        }
+    }
+
     handleLeaveSuccess(data) {
         this.cleanupTournamentState();
         this.displayMessage(data.message, 'success');
@@ -150,10 +142,6 @@ class TournamentManager {
     handleQuitSuccess(data) {
         this.cleanupTournamentState();
         this.displayMessage(data.message, 'success');
-        
-        if (data.deleted) {
-            setTimeout(() => router.navigateTo('/tournament/'), 0); //peut etre faut pas garder ca
-        }
     }
 
     cleanupTournamentState() {
@@ -288,7 +276,7 @@ class TournamentManager {
         this.pollInterval = setInterval(() => this.checkTournamentStatus(), 5000);
     }
 
-    stopTournamentPolling() {
+    async stopTournamentPolling() {
         if (this.pollInterval) {
             clearInterval(this.pollInterval);
             this.pollInterval = null;
@@ -357,21 +345,7 @@ class TournamentManager {
     }
 }
 
-// Initialisation
 let tournamentManager;
-
-// function initializeTournamentManager() {
-//     tournamentManager = new TournamentManager();
-// }
-
-// if (document.readyState === 'loading') {
-//     document.addEventListener('DOMContentLoaded', initializeTournamentManager);
-// } else {
-//     initializeTournamentManager();
-// }
-
-// Export pour les tests si nécessaire
-// export { TournamentManager };
 
 export async function init() {
     tournamentManager = new TournamentManager();
