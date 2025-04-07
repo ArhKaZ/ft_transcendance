@@ -11,7 +11,7 @@ class Router {
       this.initLinks();
     }
 
-    async replaceTo(path) {
+    async handReload(path) {
       window.history.replaceState({}, '', path);
       await this.handleLocation();
     }

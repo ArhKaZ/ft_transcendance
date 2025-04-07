@@ -151,7 +151,7 @@ class TournamentManager {
         this.cleanupTournamentState();
         this.displayMessage(data.message, 'success');
 
-        router.replaceTo('/tournament/');
+        router.handReload('/tournament/');
     }
 
     cleanupTournamentState() {
