@@ -1,14 +1,13 @@
 import { router } from './router.js';
 
-export function init () {
-    const popstateHandler = () => {
-        if (window.location.pathname === "/user_not_found/") {
-            router.handReload("/home/");
-        }
-        return ;
-    };
-	window.addEventListener('popstate', popstateHandler);
+export function init() {
     document.getElementById('return-button').addEventListener('click', () => {
         router.navigateTo("/home/");
     });
+    
+    return () => {
+        document.getElementById('return-button').removeEventListener('click', () => {
+            router.navigateTo("/home/");
+        });
+    };
 }
