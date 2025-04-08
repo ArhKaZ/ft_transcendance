@@ -158,7 +158,6 @@ async function startCountdown() {
     gameState.currentCountdown.stopDisplay();
     if (!gameState.gameIsCancel) {
         await gameState.currentGame.start();
-        console.log(gameState.gameIsCancel);
     }
 }
 

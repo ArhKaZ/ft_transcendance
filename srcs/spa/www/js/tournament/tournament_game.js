@@ -54,7 +54,6 @@ class TournamentGame {
                 this.cleanupAndNavigate('/home/');
                 return;
             }
-            console.log('init startPolling');
             await this.startTournamentPolling();
         } catch (error) {
             console.error("Initialization error:", error);
@@ -111,7 +110,6 @@ class TournamentGame {
         }
 		
 		this.pollingInterval = setInterval(async () => {
-			console.log("polling");
 			try {
 				// Stop polling if not on the tournament page
 				if (!isOnTournamentPage()) {
@@ -120,27 +118,21 @@ class TournamentGame {
 				}
 	
 				const data = await this.tournamentPlayers();
-				console.log("Polling Data:", data); // Debug log
 				
 				// Check if data has changed
 				if (!oldData || isDataDifferent(data, oldData)) {
-					console.log("Data changed, processing...");
                     this.canvasTournament();
 					this.displayTournamentInfo(data);
 					
 					// Check for tournament end
 					if (sessionStorage.getItem('finalDone') || data.winner?.length > 0) {
-						console.log("Tournament ended, handling...");
 						await this.handleTournamentEnd(data, user);
 						return;
 					}
 					// Check if user is in the final and ready
 					if (data.finalists?.length > 0) {
-						console.log("Checking finals...");
 						const inFinal = this.verifUserInFinal(data);
-                        console.log('inFinal', inFinal);
 						if (inFinal) {
-							console.log("Navigating to final game...");
 							this.stopTournamentPolling();
 							this.cleanupAndNavigate('/onlinePong/?tournament=true');
 							return;
@@ -148,7 +140,6 @@ class TournamentGame {
 					}
 					// Check if user needs to play a regular match
 					else if (this.verifUserNeedPlay(data)) {
-						console.log("User needs to play, navigating...");
 						this.stopTournamentPolling();
 						this.cleanupAndNavigate('/onlinePong/?tournament=true');
 						return;
@@ -165,7 +156,6 @@ class TournamentGame {
 
     stopTournamentPolling() {
         if (this.pollingInterval) {
-            console.log('clear Interval');
             clearInterval(this.pollingInterval);
             this.pollingInterval = null;
         }
@@ -179,7 +169,6 @@ class TournamentGame {
         }
         
         this.cleanupSessionStorage();
-        // this.cleanupAndNavigate('/home/');
     }
 
     cleanupSessionStorage() {
@@ -274,7 +263,6 @@ class TournamentGame {
 
     verifUserInFinal(data) {
         const isFinalist = data.finalists.some(finalist => finalist.id === this.user.id);
-        console.log('isFinaliste', isFinalist);
         if (!isFinalist) { 
             return false;
         }
@@ -283,7 +271,6 @@ class TournamentGame {
             if (match.is_final) return true;
             return match.winner != null || match.score != null;
         });
-        console.log('can Play', canPlay);
 
         if (canPlay) {
             sessionStorage.setItem('inFinal', 'true');

@@ -4,7 +4,6 @@ import { router } from './router.js';
 let cleanupFunctions = [];
 
 export async function init() {
-    // Récupération des éléments DOM
     const elements = {
         logoutButton: document.getElementById('logout-button'),
         userAvatar: document.getElementById('user-avatar'),
@@ -13,10 +12,8 @@ export async function init() {
         welcomeMsg: document.getElementById('welcome-msg'),
         avatarImg: document.getElementById('user-avatar'),
         lps: document.getElementById('lps'),
-        // Ajoutez d'autres éléments si nécessaire
     };
 
-    // Handlers d'événements
     const handleLogout = async () => {
         try {
             await ensureValidToken();
@@ -45,7 +42,6 @@ export async function init() {
     const handleAvatarClick = () => router.navigateTo(`/user/profile/${sessionStorage.getItem('username')}/`);
     const handleReturnClick = () => router.navigateTo("/home/");
 
-    // Ajout des listeners avec cleanup
     if (elements.logoutButton) {
         elements.logoutButton.addEventListener('click', handleLogout);
         cleanupFunctions.push(() => elements.logoutButton.removeEventListener('click', handleLogout));
@@ -61,7 +57,6 @@ export async function init() {
         cleanupFunctions.push(() => elements.returnButton.removeEventListener('click', handleReturnClick));
     }
 
-    // Chargement des données utilisateur
     try {
         await ensureValidToken();
         const response = await fetch('/api/get-my-info/', {
@@ -87,16 +82,13 @@ export async function init() {
     }
 
     return () => {
-        console.log("return cleanup");
         cleanupFunctions.forEach(fn => fn());
         cleanupFunctions = [];
     };
 }
 
-// Fonction helper pour mettre à jour l'interface
 function updateUserInterface(elements, userData, isAuthenticated) {
     if (isAuthenticated && userData) {
-        // Affichage mode connecté
         if (elements.welcomeMsg) elements.welcomeMsg.textContent = `Welcome, ${userData.username}`;
         if (elements.avatarImg) {
             elements.avatarImg.src = userData.avatar;
@@ -105,7 +97,6 @@ function updateUserInterface(elements, userData, isAuthenticated) {
         if (elements.lps) elements.lps.textContent = `League Points: ${userData.ligue_points}`;
         if (elements.bottomBtns) elements.bottomBtns.style.display = 'flex';
     } else {
-        // Affichage mode déconnecté
         const elementsToHide = [
             'bottom-buttons', 'logout-button', 'user-avatar',
             'localbtn', 'pongbtn', 'historybtn',
