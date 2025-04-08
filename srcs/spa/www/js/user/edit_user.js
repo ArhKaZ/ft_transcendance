@@ -4,7 +4,6 @@ import { router } from '../router.js';
 let cleanupFunctions = [];
 
 export async function init() {
-    // Initialisation des éléments
     const userForm = document.getElementById('userForm');
     const eraseButton = document.getElementById('erase-button');
     const avatarInput = document.getElementById('avatar');
@@ -40,7 +39,6 @@ export async function init() {
         router.navigateTo('/home/');
     };
 
-    // Ajout des listeners
     if (userForm) {
         userForm.addEventListener('submit', handleFormSubmit);
         cleanupFunctions.push(() => userForm.removeEventListener('submit', handleFormSubmit));
@@ -79,7 +77,6 @@ export async function init() {
     };
 }
 
-// Fonctions de gestion métier
 async function handleUserUpdate(form) {
     const formData = new FormData(form);
 

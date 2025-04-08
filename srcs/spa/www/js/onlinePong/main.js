@@ -535,5 +535,3 @@ function updatePaddleDimensions(game, canvas) {
 	game.P1.paddle.y = (game.P1.paddle.y / oldHeight) * canvas.height;
 	game.P2.paddle.y = (game.P2.paddle.y / oldHeight) * canvas.height;
 }
-
-// init();

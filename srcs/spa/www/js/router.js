@@ -87,7 +87,7 @@ class Router {
             const module = await modulePromise;
             if (typeof module.init === 'function') {
               const cleanup = await module.init();
-              this.currentCleanup = cleanup; // Store the cleanup function
+              this.currentCleanup = cleanup;
             }
           } catch (error) {
             console.error(`Error loading script: ${src}`, error);
@@ -214,7 +214,6 @@ class Router {
       js: '/js/user/friend.js'
     },
   
-    // Tournament Routes
     '/tournament/': {
       html: '/html/tournament/tournament.html',
       css: '/css/tournament.css',
@@ -226,14 +225,12 @@ class Router {
       js: '/js/tournament/tournament_game.js'
     },
   
-    // Profile Route
     '/user/profile/:userName': {
       html: '/html/user/profile.html',
       css: '/css/profiles.css',
       js: '/js/user/profile.js'
     },
   
-    // Error Routes
     '/user_not_found/': {
       html: '/html/user_not_found.html',
       css: '/css/user_not_found.css',
@@ -249,4 +246,4 @@ class Router {
   
   
   export const router = new Router(routes);
-  router.handleLocation(); // Initial load
+  router.handleLocation();

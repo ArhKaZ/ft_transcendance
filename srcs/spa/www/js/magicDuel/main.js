@@ -97,7 +97,7 @@ function returnBack() {
 	router.navigateTo('/game/');
 }
 
-export async function init() { // juste rajoute export mais je suis pas sur que ca suffise
+export async function init() {
 	document.getElementById('return-button').addEventListener('click', () => {
 		returnBack();
 	});
@@ -446,6 +446,3 @@ function resizeCanvas() {
 		currentGame.P2.updatePos(gameCanvas, currentGame.plat);
 	}
 }
-
-// init();
-

@@ -278,5 +278,3 @@ function getCoorBall(canvas) {
     let normY = oldY / canvas.height * 100;
     return [normX, normY];
 }
-
-// init();
