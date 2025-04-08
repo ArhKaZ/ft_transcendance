@@ -39,7 +39,6 @@ REST_FRAMEWORK = {
 }
 
 MIDDLEWARE = [
-    'backend.middleware.OAuthCSRFExemptMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
