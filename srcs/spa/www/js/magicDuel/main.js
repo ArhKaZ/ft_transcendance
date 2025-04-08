@@ -54,7 +54,6 @@ function handleOpenBook() {
 
 function sendToBack(data) {
 	if (socket?.readyState === WebSocket.OPEN) {
-		console.debug('send : ', data);
 		socket.send(JSON.stringify(data));
 	} else {
 		console.error("Websocket not ready");
@@ -319,7 +318,6 @@ function handleErrors(data) {
 		buttonGuide.classList.add('hidden');
 
 	errorContainer.classList.remove('hidden');
-	console.debug(data);
 	errorMessage.innerHTML += data.message;
 	if (data.type === 'error' || data.game_status === 'WAITING' || data.lose_lp === false)
 		lpMessage.classList.add('hidden');

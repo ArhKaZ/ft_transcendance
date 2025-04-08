@@ -120,7 +120,6 @@ class TournamentGame {
 				const data = await this.tournamentPlayers();
 				
 				if (!oldData || isDataDifferent(data, oldData)) {
-                    console.debug(data);
                     this.canvasTournament();
 					this.displayTournamentInfo(data);
 					

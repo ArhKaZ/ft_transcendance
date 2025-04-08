@@ -30,7 +30,7 @@ export async function init() {
     };
 
     const handleReturn = () => {
-        router.navigateTo('/home/');
+        window.history.back();
     };
 
     if (logoutButton) {

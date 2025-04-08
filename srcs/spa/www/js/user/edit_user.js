@@ -36,7 +36,7 @@ export async function init() {
     };
 
     const handleReturnClick = () => {
-        router.navigateTo('/home/');
+        window.history.back();
     };
 
     if (userForm) {

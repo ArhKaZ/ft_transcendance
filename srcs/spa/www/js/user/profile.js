@@ -8,7 +8,6 @@ let selectedBadgeSlot = null;
 const goToPong = async (username) => {
 	const response = await api_get_profile(username);		
 	const data = await response.json();
-	console.debug(data);
 	if (data.game_mode === 'Pong' && data.is_waiting_for_game)
 		router.navigateTo('/onlinePong/');
 	else if (!data.game_mode || !data.is_waiting_for_game){
@@ -55,20 +54,12 @@ const goToTournament = async (username) => {
 }
 
 export async function init() {
-	document.querySelectorAll('.image-button').forEach(button => {
-		button.addEventListener('click', () => {
-			console.log('Button clicked:', button.querySelector('img').alt);
-		});
-	});
-	
 	document.getElementById('return-button').addEventListener('click', () => {
 		window.history.back();
 	});
 	
-	
 	fetch_user();
 	fetchHistory();
-
 }
 
 async function isUserFriend(userName) {
@@ -120,7 +111,6 @@ async function isFriendRequestPending(userName) {
 		}
 
 		const data = await response.json();
-		console.debug(data);
 		if (!Array.isArray(data)) {
 			console.error("Incorrect format for pending friends:", data);
 			return false;
@@ -134,7 +124,6 @@ async function isFriendRequestPending(userName) {
 		return false;
 	}
 }
-
 
 async function api_get_profile(userName) {
 	const response = await fetch(`/api/user/profile/${userName}/`, {
@@ -331,7 +320,6 @@ async function updateFriendButton(userName) {
 
 	const isFriend = await isUserFriend(userName);
 	const isPending = await isFriendRequestPending(userName);
-	console.debug(isPending);
 
 	if (isFriend) {
 		removeFriendBtn.style.display = 'block';

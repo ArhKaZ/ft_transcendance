@@ -31,7 +31,6 @@ function creationGameDisplay(data, game) {
     const p2JoinedElement = document.getElementById('p2-joined-animation');
     const p2Avatar = document.getElementById('p2-avatar');
     const p2AvatarImg = document.getElementById('p2-avatar-img');
-    console.debug(data);
     
     p1Element.innerText = data.player1_name || 'None';
     p1Element.classList.toggle('hidden', !data.player1_name);

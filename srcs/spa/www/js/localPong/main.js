@@ -39,7 +39,6 @@ export async function init() {
 
         displayWhenLoad(user);
         gameState.currentGame = await initGame(user);
-        console.debug(gameState);
         gameState.currentCountdown = new CountdownAnimation('countdownCanvas');
 
         window.addEventListener('resize', handleResize);
