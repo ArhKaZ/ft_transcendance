@@ -5,7 +5,6 @@ let cleanupFunctions = [];
 
 const handleAddFriend = async (friend) => {
     await addFriend(friend.username);
-    cleanupFunctions.push(() => addFriendButton.removeEventListener('click', handleAddFriend));
 };
 
 export async function init() {
@@ -82,7 +81,7 @@ function renderFriendsList(friends) {
     friendsList.innerHTML = '';
 
     friends.forEach(friend => {
-        const friendCard = createFriendCard(friend);
+        const friendCard = createFriendCard(friend, false);
         friendsList.appendChild(friendCard);
     });
 }
@@ -132,7 +131,7 @@ function renderPendingFriends(pendingFriends) {
     });
 }
 
-function createFriendCard(friend) {
+function createFriendCard(friend, pending) {
     const card = document.createElement('div');
     card.classList.add('friend-card');
 
@@ -157,7 +156,7 @@ function createFriendCard(friend) {
     info.appendChild(name);
 
     // Game status
-    if (friend.game_mode || friend.is_in_tournament) {
+    if (!pending && (friend.game_mode || friend.is_in_tournament)) {
         const gameStatus = document.createElement('span');
         gameStatus.classList.add('friend-game-mode');
         
@@ -186,7 +185,7 @@ function createFriendCard(friend) {
 }
 
 function createPendingFriendCard(friend) {
-    const card = createFriendCard(friend);
+    const card = createFriendCard(friend, true);
 
     const acceptButton = document.createElement('button');
     acceptButton.textContent = "Accept";
