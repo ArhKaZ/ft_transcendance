@@ -816,7 +816,7 @@ def get_https_address_env(request):
 def oauth(request):
 	try:
 		code = request.data.get('code')
-		state = request.data.get('state')
+		# state = request.data.get('state')
 		https_address = os.getenv("HTTPS_ADDRESS")
 		redirect_uri = f"{https_address}/oauth_callback/"
 		if not code:
@@ -834,7 +834,7 @@ def oauth(request):
 				'client_secret': client_secret,
 				'code': code,
 				'redirect_uri': redirect_uri,
-				'state': state
+				# 'state': state
 			}
 		)
 		token_response.raise_for_status()

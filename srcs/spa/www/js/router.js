@@ -159,6 +159,7 @@ class Router {
     },
     '/oauth_callback/': {
       html: '/html/user/oauth_callback.html',
+      css: '/css/oauth.css',
       js: '/js/user/oauth.js',
       isPublic: true
     },
