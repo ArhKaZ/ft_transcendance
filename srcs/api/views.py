@@ -170,8 +170,6 @@ def get_history(request):
 def get_my_info(request):
 	user = request.user
 	serializer = UserInfoSerializer(user)
-	print(Badge.objects.count())
-
 	if user:
 		user_data = serializer.data
 		if user.avatar:

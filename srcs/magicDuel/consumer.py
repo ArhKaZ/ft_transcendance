@@ -382,7 +382,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		current_user_is_winner = (current_player.id == winner.id)
 
 		if not current_user_is_winner and not p_is_quitting:
-			print('update magic return false')
 			return False
 		winner.wins += 1
 		winner.ligue_points += 15
@@ -405,7 +404,6 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 		
 		winner.save()
 		loser.save()
-		print('update magic return true')
 		return True
 
 	@database_sync_to_async
@@ -434,11 +432,8 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 					loser = self.game.p1 if self.game.p1.life <= 0 else self.game.p2
 					
 					winner_user, loser_user = await self.get_players_users(winner, loser)
-					print('before update')
 					if await self.update_magic_stats_and_history(winner_user, loser_user, False):
-						print('update true condition')
 						await self.game.set_stocked()
-					print('after update')
 					await self.notify_game_end()
 					break
 				await asyncio.sleep(0.5)
