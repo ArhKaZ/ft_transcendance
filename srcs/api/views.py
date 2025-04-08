@@ -738,12 +738,21 @@ def check_left(request, tournament_code):
 			status=status.HTTP_500_INTERNAL_SERVER_ERROR
 		)
 
+def is_solo_in_tournament(tournament):
+	print(f'left count of tour {tournament.left.count()}')
+	if tournament.left.count() == 3:
+		return True
+	return False
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_tournament_players(request, tournament_code):
 	try:
 		tournament = Tournament.objects.get(code=tournament_code)
 
+		is_solo_in = is_solo_in_tournament(tournament=tournament)
+		if is_solo_in and not tournament.winner.exists:
+			tournament.add_winner(request.user)
 		match_serializer = TournamentMatchSerializer(tournament.all_matches.all(), many=True)
 		players_serializer = UserInfoSerializer(tournament.players.all(), many=True)
 		finalists_serializer = UserInfoSerializer(tournament.finalist.all(), many=True)
@@ -754,11 +763,16 @@ def get_tournament_players(request, tournament_code):
 			'matches': match_serializer.data,
 			'players': players_serializer.data,
 			'finalists': finalists_serializer.data,
-			'winner': winner_serializer.data
+			'winner': winner_serializer.data,
+			'is_solo': is_solo_in,
 		})
 	except Tournament.DoesNotExist:
 		return Response({
 			'error': 'Tournament not found'
+		}, status=status.HTTP_404_NOT_FOUND)
+	except ValidationError as e:
+		return Response({
+			'error': f'Error: {e}'
 		}, status=status.HTTP_404_NOT_FOUND)
 
 

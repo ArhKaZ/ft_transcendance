@@ -63,8 +63,16 @@ class TournamentGame {
     }
 
     setupEventListeners() {
-        const handleQuit = () => this.quitTournament();
-        const handleBeforeUnload = (event) => this.handleBeforeUnload(event);
+        const handleQuit = () => {
+            document.getElementById('modal-quit').style.display = 'flex';
+            document.getElementById('modal-btn-yes').addEventListener('click', () => {
+                this.quitTournament();
+            });
+            document.getElementById('modal-btn-no').addEventListener('click', () => {
+                document.getElementById('modal-quit').style.display = 'none';
+            });
+            }
+        const handleBeforeUnload = async (event) => this.handleBeforeUnload(event);
         const handlePopState = (event) => this.handlePopState(event);
 
         if (this.quitButton) {
@@ -99,7 +107,6 @@ class TournamentGame {
 		};
 	
 		const isDataDifferent = (a, b) => { 
-            console.debug('both :', JSON.stringify(a), JSON.stringify(b));
             return (JSON.stringify(a) !== JSON.stringify(b));
         }
 		
@@ -113,6 +120,7 @@ class TournamentGame {
 				const data = await this.tournamentPlayers();
 				
 				if (!oldData || isDataDifferent(data, oldData)) {
+                    console.debug(data);
                     this.canvasTournament();
 					this.displayTournamentInfo(data);
 					
@@ -171,24 +179,21 @@ class TournamentGame {
         router.navigateTo(path);
     }
 
-    handleBeforeUnload(event) {
+    async handleBeforeUnload(event) {
         event.preventDefault();
         event.returnValue = '';
-        this.syncForfeit();
+        await this.syncForfeit();
     }
 
-    syncForfeit() {
-        ensureValidToken();
-        const url = `/api/forfeit_tournament/${this.tournamentCode}/`;
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', url, false);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.setRequestHeader('X-CSRFToken', getCSRFToken());
-        xhr.setRequestHeader('Authorization', `Bearer ${sessionStorage.getItem('access_token')}`);
+    async syncForfeit() {
         try {
-            xhr.send(JSON.stringify({}));
-        } catch (e) {
-            console.error('Forfeit request failed during unload:', e);
+            await ensureValidToken();
+            await fetch(`/api/forfeit_tournament/${this.tournamentCode}/`, {
+                method: 'POST',
+                headers: this.getAuthHeaders()
+            });
+        } catch (error) {
+            console.error('Forfeit request failed during unload:', error);
         }
     }
 
@@ -223,9 +228,11 @@ class TournamentGame {
             await ensureValidToken();
             await fetch(`/api/forfeit_tournament/${this.tournamentCode}/`, {
                 method: 'POST',
-                headers: this.getAuthHeaders()
+                headers: this.getAuthHeaders(),
+                credentials: 'include',
             });
         } finally {
+            sessionStorage.removeItem('tournament_code');
             this.cleanupAndNavigate('/home/', true);
         }
     }
@@ -236,7 +243,8 @@ class TournamentGame {
             const response = await fetch(`/api/tournament/${this.tournamentCode}/tournament_players/`, {
                 method: 'GET',
                 headers: this.getAuthHeaders()
-            });
+            })
+            ;
 
         
             if (!response.ok) {
@@ -287,7 +295,7 @@ class TournamentGame {
             document.getElementById('round1match0p1').textContent = data.matches[1].winner.pseudo;
         }
         if (data.winner.length >= 1) {
-            document.getElementById('round2match0p0').textContent = data.matches[2].winner.pseudo;
+            document.getElementById('round2match0p0').textContent = data.winner[0].pseudo;
         }
     }
 

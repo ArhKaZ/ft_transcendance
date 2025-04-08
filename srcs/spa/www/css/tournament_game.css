@@ -211,3 +211,44 @@ body::before {
   text-align: center;
   align-items: center;
 }
+
+.modal {
+	display: none;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-evenly;
+    z-index: 10;
+    width: 300px;
+    height: 200px;
+}
+
+.modal-back {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba( 0, 0, 0, .65 )
+}
+
+.modal-container {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	padding: 25px;
+	background: rgba( 0, 0, 0, .75 );
+	transform: translate(-50%, -50%);
+    color: white;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    text-align: center;
+    flex-direction: column;
+    font-family: 'Press Start 2P', cursive;
+
+}
+
+.modal-container button {
+    font-family: 'Press Start 2P', cursive;
+    max-width: 70%;
+}

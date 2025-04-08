@@ -82,7 +82,7 @@ function returnBack() {
 		document.getElementById('modal-quit').style.display = 'flex';
 		document.getElementById('modal-btn-yes').addEventListener('click', () => {
 			cleanKeyboardControls();
-			router.navigateTo('/home/');
+			router.navigateTo(`/tournament/game/${sessionStorage.getItem('tournament_code')}`);
 		});
 		document.getElementById('modal-btn-no').addEventListener('click', () => {
 			document.getElementById('modal-quit').style.display = 'none';
