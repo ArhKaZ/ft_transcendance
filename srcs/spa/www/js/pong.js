@@ -4,7 +4,6 @@ import { router } from './router.js';
 let cleanupFunctions = [];
 
 export async function init() {
-    // 1. Récupération des éléments DOM
     const elements = {
         logoutButton: document.getElementById('logout-button'),
         returnButton: document.getElementById('return-button'),
@@ -14,10 +13,8 @@ export async function init() {
         avatarImg: document.getElementById('user-avatar'),
         lps: document.getElementById('lps'),
         tournamentBtn: document.getElementById('tournament-button')
-        // Ajouter d'autres éléments ici au besoin
     };
 
-    // 2. Définition des handlers
     const handleLogout = async () => {
         try {
             await ensureValidToken();
@@ -46,7 +43,6 @@ export async function init() {
     const handleReturnClick = () => router.navigateTo("/game/");
     const handleAvatarClick = () =>  router.navigateTo(`/user/profile/${sessionStorage.getItem('username')}/`);
 
-    // 3. Ajout des event listeners avec cleanup
     if (elements.logoutButton) {
         elements.logoutButton.addEventListener('click', handleLogout);
         cleanupFunctions.push(() => elements.logoutButton.removeEventListener('click', handleLogout));
@@ -62,7 +58,6 @@ export async function init() {
         cleanupFunctions.push(() => elements.userAvatar.removeEventListener('click', handleAvatarClick));
     }
 
-    // 4. Chargement des données utilisateur
     try {
         await ensureValidToken();
         const response = await fetch('/api/get-my-info/', {
@@ -87,14 +82,12 @@ export async function init() {
         console.error('Network error:', error);
     }
 
-    // 5. Fonction de cleanup
     return () => {
         cleanupFunctions.forEach(fn => fn());
         cleanupFunctions = [];
     };
 }
 
-// Fonctions helper
 function updateUIForAuthenticatedUser(elements, userData) {
     if (elements.welcomeMsg) elements.welcomeMsg.textContent = `Welcome, ${userData.username}`;
     if (elements.avatarImg) {

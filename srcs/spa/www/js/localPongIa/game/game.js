@@ -58,7 +58,6 @@ class Game {
 
     async loop() {
         if (!this.isStart) {
-            console.log('return in loop');
             return;
         }
 

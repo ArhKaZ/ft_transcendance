@@ -5,10 +5,6 @@ import { getCSRFToken } from './utils.js';
 
 let isTokenClicked = false;
 
-// let cleanupFunctions = [];
-
-//peut etre mettre les event listener dans un garbage collector
-
 export async function init() {
     updateTicketCount();
     const token1 = document.getElementById('token1');

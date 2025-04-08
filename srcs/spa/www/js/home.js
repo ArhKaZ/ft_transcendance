@@ -165,7 +165,6 @@ export async function init() {
 	}
 
 	return () => {
-		console.log("cleanup of home");
         cleanupFunctions.forEach(fn => fn());
         cleanupFunctions = [];
     };

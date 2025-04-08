@@ -17,16 +17,14 @@ class Router {
       await this.handleLocation();
     }
   
-    // Public methods
     async navigateTo(path) {
       window.history.pushState({}, '', path);
       await this.handleLocation();
     }
   
-    // Private methods
     async handleLocation() {
       if (this.currentCleanup) {
-        this.currentCleanup(); // Cleanup before navigation
+        this.currentCleanup();
         this.currentCleanup = null;
       }
       const path = window.location.pathname;
@@ -42,12 +40,10 @@ class Router {
         return;
       }
   
-      // Load route assets
       await this.loadRoute(route);
     }
   
     async loadRoute(route) {
-      // 1. Load new CSS and await its loading
       const newStyles = [];
       if (route.css) {
         const cssFiles = Array.isArray(route.css) ? route.css : [route.css];
@@ -65,22 +61,17 @@ class Router {
         await Promise.all(cssPromises);
       }
     
-      // 2. Fetch HTML content
       const html = await fetch(route.html).then(res => res.text());
     
-      // 3. Clear old assets (styles) and set new ones
       this.clearAssets();
       this.currentAssets.styles = newStyles;
     
-      // 4. Insert the new HTML (now CSS is loaded)
       this.rootElement.innerHTML = html;
     
-      // 5. Load JS modules
       if (route.js) {
         const scripts = Array.isArray(route.js) ? route.js : [route.js];
         for (const src of scripts) {
           try {
-            // Execute previous cleanup
             if (this.currentCleanup) {
               this.currentCleanup();
               this.currentCleanup = null;
@@ -106,13 +97,11 @@ class Router {
     }
   
     clearAssets() {
-      // Only clear styles; scripts are managed by the cache
       this.currentAssets.styles.forEach(style => style.remove());
       this.currentAssets.styles = [];
     }
   
     resolveRoute(path) {
-      // Handle dynamic routes (e.g., :code, :userName)
       if (path.startsWith('/tournament/game/')) {
         return this.routes['/tournament/game/:code'];
       }
@@ -150,7 +139,6 @@ class Router {
   }
   
   const routes = {
-    // ================= PUBLIC ROUTES =================
     '/home/': {
       html: '/html/home.html',
       css: '/css/global.css',
@@ -175,8 +163,6 @@ class Router {
       isPublic: true
     },
   
-    // ================= PROTECTED ROUTES =================
-    // Game Routes
     '/game/': {
       html: '/html/game/game.html',
       css: '/css/global.css',
@@ -212,18 +198,6 @@ class Router {
       css: '/css/magicDuel/styles.css',
       js: '/js/magicDuel/main.js'
     },
-  
-    // User Routes
-    // '/logged/': {
-    //   html: '/html/user/logged.html',
-    //   css: '/css/logged.css',
-    //   js: '/js/logged.js'
-    // },
-    // '/user/edit/': {
-    //   html: '/html/user/edit.html',
-    //   css: '/css/edit.css',
-    //   js: '/js/edit.js''/css/pong.css
-    // },
     '/user/edit_user/': {
       html: '/html/user/edit_user.html',
       css: ['/css/useredit.css', '/css/global.css'],
