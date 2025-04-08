@@ -15,10 +15,6 @@ class TournamentGame {
         }
         sessionStorage.setItem('tournament_code', this.tournamentCode);
         this.user = null;
-        // this.quitButton = document.getElementById('quit-button');
-        // this.messageDiv = document.getElementById('messageDiv');
-        // document.getElementById('quit-button').addEventListener('click', () => this.quitTournament());
-        // window.addEventListener('popstate', this.handlePopState.bind(this));
         this.tournamentConfig = {
             rounds: [
                 {
@@ -67,8 +63,16 @@ class TournamentGame {
     }
 
     setupEventListeners() {
-        const handleQuit = () => this.quitTournament();
-        const handleBeforeUnload = (event) => this.handleBeforeUnload(event);
+        const handleQuit = () => {
+            document.getElementById('modal-quit').style.display = 'flex';
+            document.getElementById('modal-btn-yes').addEventListener('click', () => {
+                this.quitTournament();
+            });
+            document.getElementById('modal-btn-no').addEventListener('click', () => {
+                document.getElementById('modal-quit').style.display = 'none';
+            });
+            }
+        const handleBeforeUnload = async (event) => this.handleBeforeUnload(event);
         const handlePopState = (event) => this.handlePopState(event);
 
         if (this.quitButton) {
@@ -98,20 +102,16 @@ class TournamentGame {
     async startTournamentPolling() {
 		let oldData = null;
 		const user = await getUserFromBack();
-		// Helper function to check if we're still on the tournament page
 		const isOnTournamentPage = () => {
 			return window.location.pathname.includes('/tournament/game/');
 		};
 	
-		// Add deep equality check function
 		const isDataDifferent = (a, b) => { 
-            console.debug('both :', JSON.stringify(a), JSON.stringify(b));
             return (JSON.stringify(a) !== JSON.stringify(b));
         }
 		
 		this.pollingInterval = setInterval(async () => {
 			try {
-				// Stop polling if not on the tournament page
 				if (!isOnTournamentPage()) {
 					this.stopTournamentPolling();
 					return;
@@ -119,17 +119,15 @@ class TournamentGame {
 	
 				const data = await this.tournamentPlayers();
 				
-				// Check if data has changed
 				if (!oldData || isDataDifferent(data, oldData)) {
+                    console.debug(data);
                     this.canvasTournament();
 					this.displayTournamentInfo(data);
 					
-					// Check for tournament end
 					if (sessionStorage.getItem('finalDone') || data.winner?.length > 0) {
 						await this.handleTournamentEnd(data, user);
 						return;
 					}
-					// Check if user is in the final and ready
 					if (data.finalists?.length > 0) {
 						const inFinal = this.verifUserInFinal(data);
 						if (inFinal) {
@@ -138,7 +136,6 @@ class TournamentGame {
 							return;
 						}
 					}
-					// Check if user needs to play a regular match
 					else if (this.verifUserNeedPlay(data)) {
 						this.stopTournamentPolling();
 						this.cleanupAndNavigate('/onlinePong/?tournament=true');
@@ -151,7 +148,7 @@ class TournamentGame {
 				console.error("Polling error:", error);
 				this.stopTournamentPolling();
 			}
-		}, 3000); // Increased interval to 3 seconds
+		}, 3000);
 	}
 
     stopTournamentPolling() {
@@ -183,24 +180,21 @@ class TournamentGame {
     }
 
     /* Méthodes existantes restructurées */ 
-    handleBeforeUnload(event) {
+    async handleBeforeUnload(event) {
         event.preventDefault();
         event.returnValue = '';
-        this.syncForfeit();
+        await this.syncForfeit();
     }
 
-    syncForfeit() {
-        ensureValidToken();
-        const url = `/api/forfeit_tournament/${this.tournamentCode}/`;
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', url, false);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.setRequestHeader('X-CSRFToken', getCSRFToken());
-        xhr.setRequestHeader('Authorization', `Bearer ${sessionStorage.getItem('access_token')}`);
+    async syncForfeit() {
         try {
-            xhr.send(JSON.stringify({}));
-        } catch (e) {
-            console.error('Forfeit request failed during unload:', e);
+            await ensureValidToken();
+            await fetch(`/api/forfeit_tournament/${this.tournamentCode}/`, {
+                method: 'POST',
+                headers: this.getAuthHeaders()
+            });
+        } catch (error) {
+            console.error('Forfeit request failed during unload:', error);
         }
     }
 
@@ -236,9 +230,11 @@ class TournamentGame {
             await ensureValidToken();
             await fetch(`/api/forfeit_tournament/${this.tournamentCode}/`, {
                 method: 'POST',
-                headers: this.getAuthHeaders()
+                headers: this.getAuthHeaders(),
+                credentials: 'include',
             });
         } finally {
+            sessionStorage.removeItem('tournament_code');
             this.cleanupAndNavigate('/home/', true); // Trigger full cleanup
         }
     }
@@ -249,7 +245,8 @@ class TournamentGame {
             const response = await fetch(`/api/tournament/${this.tournamentCode}/tournament_players/`, {
                 method: 'GET',
                 headers: this.getAuthHeaders()
-            });
+            })
+            ;
 
         
             if (!response.ok) {
@@ -300,7 +297,7 @@ class TournamentGame {
             document.getElementById('round1match0p1').textContent = data.matches[1].winner.pseudo;
         }
         if (data.winner.length >= 1) {
-            document.getElementById('round2match0p0').textContent = data.matches[2].winner.pseudo;
+            document.getElementById('round2match0p0').textContent = data.winner[0].pseudo;
         }
     }
 
