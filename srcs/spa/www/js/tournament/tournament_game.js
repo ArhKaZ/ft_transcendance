@@ -15,10 +15,6 @@ class TournamentGame {
         }
         sessionStorage.setItem('tournament_code', this.tournamentCode);
         this.user = null;
-        // this.quitButton = document.getElementById('quit-button');
-        // this.messageDiv = document.getElementById('messageDiv');
-        // document.getElementById('quit-button').addEventListener('click', () => this.quitTournament());
-        // window.addEventListener('popstate', this.handlePopState.bind(this));
         this.tournamentConfig = {
             rounds: [
                 {
@@ -98,12 +94,10 @@ class TournamentGame {
     async startTournamentPolling() {
 		let oldData = null;
 		const user = await getUserFromBack();
-		// Helper function to check if we're still on the tournament page
 		const isOnTournamentPage = () => {
 			return window.location.pathname.includes('/tournament/game/');
 		};
 	
-		// Add deep equality check function
 		const isDataDifferent = (a, b) => { 
             console.debug('both :', JSON.stringify(a), JSON.stringify(b));
             return (JSON.stringify(a) !== JSON.stringify(b));
@@ -111,7 +105,6 @@ class TournamentGame {
 		
 		this.pollingInterval = setInterval(async () => {
 			try {
-				// Stop polling if not on the tournament page
 				if (!isOnTournamentPage()) {
 					this.stopTournamentPolling();
 					return;
@@ -119,17 +112,14 @@ class TournamentGame {
 	
 				const data = await this.tournamentPlayers();
 				
-				// Check if data has changed
 				if (!oldData || isDataDifferent(data, oldData)) {
                     this.canvasTournament();
 					this.displayTournamentInfo(data);
 					
-					// Check for tournament end
 					if (sessionStorage.getItem('finalDone') || data.winner?.length > 0) {
 						await this.handleTournamentEnd(data, user);
 						return;
 					}
-					// Check if user is in the final and ready
 					if (data.finalists?.length > 0) {
 						const inFinal = this.verifUserInFinal(data);
 						if (inFinal) {
@@ -138,7 +128,6 @@ class TournamentGame {
 							return;
 						}
 					}
-					// Check if user needs to play a regular match
 					else if (this.verifUserNeedPlay(data)) {
 						this.stopTournamentPolling();
 						this.cleanupAndNavigate('/onlinePong/?tournament=true');
@@ -151,7 +140,7 @@ class TournamentGame {
 				console.error("Polling error:", error);
 				this.stopTournamentPolling();
 			}
-		}, 3000); // Increased interval to 3 seconds
+		}, 3000);
 	}
 
     stopTournamentPolling() {
@@ -182,7 +171,6 @@ class TournamentGame {
         router.navigateTo(path);
     }
 
-    /* Méthodes existantes restructurées */ 
     handleBeforeUnload(event) {
         event.preventDefault();
         event.returnValue = '';
@@ -231,7 +219,6 @@ class TournamentGame {
     }
 
     async quitTournament() {
-        // Explicit quit action - full cleanup
         try {
             await ensureValidToken();
             await fetch(`/api/forfeit_tournament/${this.tournamentCode}/`, {
@@ -239,7 +226,7 @@ class TournamentGame {
                 headers: this.getAuthHeaders()
             });
         } finally {
-            this.cleanupAndNavigate('/home/', true); // Trigger full cleanup
+            this.cleanupAndNavigate('/home/', true);
         }
     }
 
@@ -472,7 +459,6 @@ class TournamentGame {
     }
 }
 
-// Interface pour le SPA
 let tournamentGame;
 
 export async function init() {

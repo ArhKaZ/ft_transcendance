@@ -478,10 +478,8 @@ function displayBadgesInModal(badges, currentBadgeAlt) {
 
 function selectBadgeForSlot(badge, currentBadgeAlt) {
 	if (!selectedBadgeSlot) return;
-	// Enregistrer le badge actif
 	updateActiveBadge(selectedBadgeSlot.dataset.slotIndex, badge.name, currentBadgeAlt);
 
-	// Fermer le modal
 	document.getElementById('badge-modal').style.display = 'none';
 	selectedBadgeSlot = null;
 }
@@ -547,7 +545,6 @@ function updateDisplayedActiveBadges(activeBadges) {
     const currentUser = sessionStorage.getItem('username');
     const isOwnProfile = userName === currentUser;
 	
-	// // Réinitialiser tous les badges
 	badgeButtons.forEach(button => {
 	  const badgeImg = button.querySelector('img');
 	  badgeImg.src = '/css/ico/badge_placeholder.png';
@@ -559,15 +556,12 @@ function updateDisplayedActiveBadges(activeBadges) {
 	}
 	});
   
-	// Mettre à jour seulement les badges actifs
 	activeBadges.forEach((badge, index) => {
         if (index < badgeButtons.length) {
             const badgeImg = badgeButtons[index].querySelector('img');
-            // Vérifier si l'image est en base64 ou une URL
             if (badge.image.startsWith('data:image')) {
                 badgeImg.src = badge.image;
             } else {
-                // Si c'est un chemin relatif, s'assurer qu'il est correct
                 badgeImg.src = badge.image.startsWith('/') ? badge.image : `/${badge.image}`;
             }
             badgeImg.alt = badge.name;
@@ -580,7 +574,6 @@ function setupBadgeModal(username) {
   const closeBtn = document.querySelector('.close');
   const badgeButtons = document.querySelectorAll('.profile-badge');
 
-  // Gestion du clic sur les boutons de badge
   if (username === sessionStorage.getItem('username')) {
 	badgeButtons.forEach((button, index) => {
 		button.dataset.slotIndex = index;
@@ -593,19 +586,16 @@ function setupBadgeModal(username) {
 			});
 		});
   	} else {
-		// Désactiver le clic sur les badges pour les autres utilisateurs
 		badgeButtons.forEach(button => {
 		  button.style.cursor = 'default';
 		  button.onclick = null;
 		});
 	}
-  // Fermer le modal quand on clique sur x
   closeBtn.addEventListener('click', () => {
     modal.style.display = 'none';
     selectedBadgeSlot = null;
   });
 
-  // Fermer le modal quand on clique en dehors
   window.addEventListener('click', (event) => {
     if (event.target === modal) {
       modal.style.display = 'none';

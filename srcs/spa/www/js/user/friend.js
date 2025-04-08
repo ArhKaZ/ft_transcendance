@@ -15,20 +15,17 @@ export async function init() {
             loadPendingFriends()
         ]);
         
-        // Gestion des erreurs stockées en session
         displayStoredErrorMessages();
     } catch (error) {
         console.error("Initialization error:", error);
         displayError("Failed to load friends data");
     }
 
-    // Initialisation des éléments
     const logoutButton = document.getElementById('logout-button');
     const returnButton = document.getElementById('return-button');
     const friendsList = document.getElementById('friends-list');
     const pendingList = document.getElementById('pending-list');
 
-    // Handlers d'événements
     const handleLogout = async () => {
         await performLogout();
     };
@@ -37,7 +34,6 @@ export async function init() {
         router.navigateTo('/home/');
     };
 
-    // Ajout des listeners
     if (logoutButton) {
         logoutButton.addEventListener('click', handleLogout);
         cleanupFunctions.push(() => logoutButton.removeEventListener('click', handleLogout));
@@ -54,7 +50,6 @@ export async function init() {
     };
 }
 
-// Fonctions de gestion des amis
 async function loadFriendsList() {
     try {
         const response = await fetch('/api/get_friends/', {
@@ -140,13 +135,11 @@ function createFriendCard(friend) {
         router.navigateTo(`/user/profile/${friend.username}/`);
     });
 
-    // Avatar
     const avatar = document.createElement('img');
     avatar.src = friend.avatar || '/avatars/default.png';
     avatar.alt = 'Avatar';
     avatar.classList.add('friend-avatar');
 
-    // Info
     const info = document.createElement('div');
     info.classList.add('friend-info');
 
@@ -156,7 +149,6 @@ function createFriendCard(friend) {
 
     info.appendChild(name);
 
-    // Game status
     if (friend.game_mode || friend.is_in_tournament) {
         const gameStatus = document.createElement('span');
         gameStatus.classList.add('friend-game-mode');
@@ -173,7 +165,6 @@ function createFriendCard(friend) {
         info.appendChild(gameStatus);
     }
 
-    // Status indicator
     const status = document.createElement('div');
     status.classList.add('status-indicator', 'offline');
     status.dataset.username = friend.username;
@@ -271,7 +262,6 @@ async function performLogout() {
     }
 }
 
-// Fonctions utilitaires
 function createAuthHeaders(contentType = null) {
     const headers = {
         'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,

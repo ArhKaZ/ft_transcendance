@@ -4,18 +4,15 @@ import { router } from '../router.js';
 let cleanupFunctions = [];
 
 export async function init() {
-    // Initialisation des éléments
     const returnButton = document.getElementById('return-button');
     const logoutButton = document.getElementById('logout-button');
     const historyDiv = document.getElementById('history');
 
-    // Handlers d'événements
     const handleReturnClick = () => router.navigateTo('/home/');
     const handleLogout = async () => {
         await performLogout();
     };
 
-    // Ajout des listeners
     if (returnButton) {
         returnButton.addEventListener('click', handleReturnClick);
         cleanupFunctions.push(() => returnButton.removeEventListener('click', handleReturnClick));
@@ -26,7 +23,6 @@ export async function init() {
         cleanupFunctions.push(() => logoutButton.removeEventListener('click', handleLogout));
     }
 
-    // Chargement de l'historique
     try {
         await loadHistory();
     } catch (error) {
@@ -40,7 +36,6 @@ export async function init() {
     };
 }
 
-// Fonctions métier
 async function loadHistory() {
     try {
         await ensureValidToken();
@@ -73,11 +68,9 @@ function renderHistory(historyData) {
         return;
     }
 
-    // Création du tableau
     const table = document.createElement('table');
     table.className = 'history-table';
 
-    // En-tête du tableau
     const thead = document.createElement('thead');
     thead.innerHTML = `
         <tr>
@@ -89,7 +82,6 @@ function renderHistory(historyData) {
     `;
     table.appendChild(thead);
 
-    // Corps du tableau
     const tbody = document.createElement('tbody');
     sortedData.forEach(item => {
         const row = document.createElement('tr');
@@ -110,7 +102,6 @@ function renderHistory(historyData) {
 
     table.appendChild(tbody);
 
-    // Mise à jour du DOM
     historyDiv.innerHTML = '';
     historyDiv.appendChild(table);
 }
