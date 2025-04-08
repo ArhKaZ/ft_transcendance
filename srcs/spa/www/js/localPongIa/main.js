@@ -69,15 +69,6 @@ export async function init() {
     listenerLevelButtons();
     window.addEventListener('resize', handleResize);
     readyButton.addEventListener('click', handleReadyClick);
-    cleanupFunctions.push(
-        () => window.removeEventListener('resize', handleResize),
-        () => readyButton.removeEventListener('click', handleReadyClick),
-    );
-    return () => {
-        cleanupFunctions.forEach(fn => fn());
-        cleanupFunctions = [];
-        returnBack();
-    }
 }
 
 function checkAndLaunch() {

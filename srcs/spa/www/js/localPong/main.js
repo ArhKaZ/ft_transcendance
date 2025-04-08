@@ -45,22 +45,10 @@ export async function init() {
         window.addEventListener('resize', handleResize);
         returnButton.addEventListener('click', handleReturn);
         readyButton.addEventListener('click', handleReadyClick);
-
-        cleanupFunctions.push(
-            () => window.removeEventListener('resize', handleResize),
-            () => returnButton.removeEventListener('click', handleReturn),
-            () => readyButton.removeEventListener('click', handleReadyClick)
-        );
     } catch (error) {
         console.error("Initialization error:", error);
         handleErrors({ message: "Initialization failed" });
     }
-
-    return () => {
-        cleanupFunctions.forEach(fn => fn());
-        cleanupFunctions = [];
-        returnBack();
-    };
 }
 
 function resetGameState() {
