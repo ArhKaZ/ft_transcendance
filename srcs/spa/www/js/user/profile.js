@@ -67,7 +67,6 @@ export async function init() {
 	
 	
 	fetch_user();
-	fetchHistory();
 
 }
 
@@ -203,10 +202,12 @@ async function fetch_user() {
 		}
 		setupBadgeModal(data.username);
 		fetchActiveBadges();
+		fetchHistory();
 		
 	} catch (error) {
 		console.error("API call failed", error);
-		router.navigateTo('/user_not_found/');
+		router.handReload('/user_not_found/');
+		return ;
 	}
 }
 
