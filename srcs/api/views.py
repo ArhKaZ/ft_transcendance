@@ -959,7 +959,7 @@ def add_badge(request):
 	return Response({"message": f"Badge '{badge_name}' added successfully!", "badge_list": user.badge_list}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated]) # Renvoie tous les badges possedes par l'utilisateur
+@permission_classes([IsAuthenticated])
 def	list_badge(request):
 	user = request.user
 	badges = Badge.objects.filter(name__in=user.badge_list)
@@ -967,7 +967,7 @@ def	list_badge(request):
 	return Response({"badges": badge_data}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated]) # Change le badge actif pour le profil
+@permission_classes([IsAuthenticated])
 def change_active_badge(request):
 	user = request.user
 	old_badge_name = request.data.get("old_badge_name")
@@ -999,10 +999,9 @@ def change_active_badge(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated]) #liste les 3 badges actifs sur le profil
+@permission_classes([IsAuthenticated])
 def list_active_badge(request, username=None):
 	try:
-		# Si username est fourni, on récupère les badges de cet utilisateur
 		if username:
 			user = MyUser.objects.get(username=username)
 		else:
