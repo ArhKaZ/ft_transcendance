@@ -85,6 +85,9 @@ class MyUser(AbstractUser):
 			return True
 		return False
 	
+	def game_mode_is_none(self):
+		return self.game_mode is None
+	
 class MatchHistory(models.Model):
 	user = models.ForeignKey('MyUser', on_delete=models.CASCADE, related_name="matches")
 	opponent_name = models.CharField(max_length=100)

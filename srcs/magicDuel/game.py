@@ -19,20 +19,20 @@ class Game:
 
 	def to_dict(self):
 		return {
-			'id': self.game_id,
-			'p1_id': self.p1.id,
-			'p2_id': self.p2.id,
-			'p1_username': self.p1.username,
-			'p2_username': self.p2.username,
-			'p1_avatar': self.p1.avatar,
-			'p2_avatar': self.p2.avatar,
-			'p1_ready' : self.p1.ready,
-			'p2_ready' : self.p2.ready,
-			'p1_ligue_points': self.p1.ligue_points,
-			'p2_ligue_points': self.p2.ligue_points,
-			'status': self.status,
-			'group_name': self.group_name,
-			'stocked': self.stocked,
+			'id': getattr(self, 'game_id', None),
+			'p1_id': getattr(getattr(self, 'p1', None), 'id', None),
+			'p2_id': getattr(getattr(self, 'p2', None), 'id', None),
+			'p1_username': getattr(getattr(self, 'p1', None), 'username', None),
+			'p2_username': getattr(getattr(self, 'p2', None), 'username', None),
+			'p1_avatar': getattr(getattr(self, 'p1', None), 'avatar', None),
+			'p2_avatar': getattr(getattr(self, 'p2', None), 'avatar', None),
+			'p1_ready': getattr(getattr(self, 'p1', None), 'ready', None),
+			'p2_ready': getattr(getattr(self, 'p2', None), 'ready', None),
+			'p1_ligue_points': getattr(getattr(self, 'p1', None), 'ligue_points', None),
+			'p2_ligue_points': getattr(getattr(self, 'p2', None), 'ligue_points', None),
+			'status': getattr(self, 'status', None),
+			'group_name': getattr(self, 'group_name', None),
+			'stocked': getattr(self, 'stocked', None),
 		}
 
 	def get_game_id(self):
