@@ -4,11 +4,14 @@ function displayWhenLoad(player, tournament) {
     const nameElement = document.getElementById('mp-username');
     const avatarImg = document.getElementById('mp-avatar-img');
 
+    if (!nameElement || !avatarImg)
+        return -1;
     if (!tournament)
         nameElement.innerText = player.username;
     else
         nameElement.innerText = player.pseudo;
     avatarImg.src = player.avatar;
+    return 0;
 }
 
 function creationGameDisplay(data, game) {

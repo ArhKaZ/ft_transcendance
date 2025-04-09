@@ -49,8 +49,9 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 	async def disconnect(self, close_code):
 		try:
 			is_first_disco = True
-			if await self.user_game_mode_is_none(self.players_id[0]) or await self.user_game_mode_is_none(self.players_id[1]):
-				is_first_disco = False
+			if self.players_id[0] != -1 and self.players_id[1] != -1:
+				if await self.user_game_mode_is_none(self.players_id[0]) or await self.user_game_mode_is_none(self.players_id[1]):
+					is_first_disco = False
 			await self.stop_game_db()
 			print(f'disconnect {self.player_id}')
 			if self.game and self.game.status == "IN_PROGRESS" and not await self.game.is_stocked():

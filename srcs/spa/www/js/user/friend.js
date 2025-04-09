@@ -229,7 +229,7 @@ async function addFriend(username) {
 
         if (response.ok) {
             await updateFriendStatus(username);
-            router.navigateTo('/user/friend/');
+            router.handReload('/user/friend/');
         } else {
             const error = await parseResponseError(response);
             displayAddFriendError(error);

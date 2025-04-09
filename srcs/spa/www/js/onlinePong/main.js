@@ -136,7 +136,8 @@ export async function init() {
 			handleGameFinish(currentGame, currentPlayerId);
 	}
 
-	displayWhenLoad(user, inTournament);
+	if (displayWhenLoad(user, inTournament) == -1)
+		return;
 
 	socket = setupWebSocket(user, infos);
 }

@@ -217,9 +217,7 @@ body::before {
 	flex-direction: column;
 	align-items: center;
 	justify-content: space-evenly;
-    z-index: 10;
-    width: 300px;
-    height: 200px;
+  z-index: 10;
 }
 
 .modal-back {
@@ -238,17 +236,22 @@ body::before {
 	padding: 25px;
 	background: rgba( 0, 0, 0, .75 );
 	transform: translate(-50%, -50%);
-    color: white;
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-    text-align: center;
-    flex-direction: column;
-    font-family: 'Press Start 2P', cursive;
-
+  color: white;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  text-align: center;
+  flex-direction: column;
+  font-family: 'Press Start 2P', cursive;
 }
 
 .modal-container button {
-    font-family: 'Press Start 2P', cursive;
-    max-width: 70%;
+  font-family: 'Press Start 2P', cursive;
+  max-width: 70%;
+}
+
+.main-page {
+  padding: 0;
+  margin: 0;
+  z-index: 8;
 }
