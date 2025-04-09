@@ -63,7 +63,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 					winner = self.players_id[0] if self.players_id[0] == self.player_id else self.players_id[1]
 				print(f"loser: {loser} winner {winner} p_id current {self.player_id}")
 				winner_user, loser_user = await self.get_players_users(winner, loser)
-				if await self.update_magic_stats_and_history(winner_user, loser_user, True):
+				if await self.update_magic_stats_and_history(winner_user, loser_user):
 					await self.game.set_stocked()
 			await asyncio.wait_for(self._handle_disconnect(close_code), timeout=5)
 		except asyncio.TimeoutError:
@@ -254,7 +254,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 						
 						if winner and loser and not await current_game.is_stocked():
 							winner_user, loser_user = await self.get_players_users(winner, loser)
-							await self.update_magic_stats_and_history(winner_user, loser_user, True)
+							await self.update_magic_stats_and_history(winner_user, loser_user)
 							await current_game.set_stocked()
 						
 						message = {
@@ -395,7 +395,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 				await self.cleanup()
 
 	@database_sync_to_async
-	def update_magic_stats_and_history(self, winner, loser, p_is_quitting):
+	def update_magic_stats_and_history(self, winner, loser):
 		from api.models import MatchHistory
 		if self.is_host == False:
 			return
@@ -450,7 +450,7 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 					loser = self.players_id[0] if self.game.p1.life <= 0 else self.players_id[1]
 					
 					winner_user, loser_user = await self.get_players_users(winner, loser)
-					if await self.update_magic_stats_and_history(winner_user, loser_user, False):
+					if await self.update_magic_stats_and_history(winner_user, loser_user):
 						await self.game.set_stocked()
 					await self.notify_game_end()
 					break
@@ -573,10 +573,10 @@ class MagicDuelConsumer(AsyncWebsocketConsumer):
 			await self.notify_player_no_play(ret)
 			self.game.status = 'CANCELLED'
 			if ret['p_id'] != None and ret['p2_id'] == None:
-				winner_user, loser_user = await self.get_players_users(self.game.p2, self.game.p1)
+				winner_user, loser_user = await self.get_players_users(self.game.p2.id, self.game.p1.id)
 				await self.update_magic_stats_and_history(winner_user, loser_user)
 			elif ret['p2_id'] != None and ret['p_id'] == None:
-				winner_user, loser_user = await self.get_players_users(self.game.p1, self.game.p2)
+				winner_user, loser_user = await self.get_players_users(self.game.p1.id, self.game.p2.id)
 				await self.update_magic_stats_and_history(winner_user, loser_user)
 			await self.cleanup_round()
 			await self.cleanup()

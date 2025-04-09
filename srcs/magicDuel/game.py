@@ -139,7 +139,7 @@ class Game:
 		elif self.p1.nb_round_no_play >= 4:
 			return {"p_id": self.p1.id, "p2_id": None, "p_name": self.p1.username, "p2_name": None}
 		elif self.p2.nb_round_no_play >= 4:
-			return {"p_id": self.p1.id, "p2_id": None, "p_name": self.p1.username, "p2_name": None}
+			return {"p_id": None, "p2_id": self.p2.id, "p_name": None, "p2_name": self.p2.username}
 		return None
 	
 	async def is_stocked(self):

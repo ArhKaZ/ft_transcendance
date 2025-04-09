@@ -330,13 +330,15 @@ function handleGameCancel(data) {
 }
 
 function handleNoPlay(data) {
-	if (!data.p2_id) {
-		if (currentPlayerId === data.p_id) {
+	if (!data.p_id || !data.p2_id) {
+		const name = data.p_id ? data.p_name : data.p2_name;
+		const id = data.p_id ? data.p_id : data.p2_id;
+		if (currentPlayerId === id) {
 			data.message = " You have not played since for 4 rounds";
 			let errorLp = document.getElementById('error-lp');
 			errorLp.innerText = "You lose 15 LP";
 		} else {
-			data.message = ` Player ${data.p_name} have not played since 4 rounds`;
+			data.message = ` Player ${name} have not played since 4 rounds`;
 			let errorLp = document.getElementById('error-lp');
 			errorLp.innerText = "You win 15 LP";
 		}
