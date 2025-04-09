@@ -64,14 +64,22 @@ class TournamentGame {
 
     setupEventListeners() {
         const handleQuit = () => {
-            document.getElementById('modal-quit').style.display = 'flex';
-            document.getElementById('modal-btn-yes').addEventListener('click', () => {
-                this.quitTournament();
-            });
-            document.getElementById('modal-btn-no').addEventListener('click', () => {
-                document.getElementById('modal-quit').style.display = 'none';
-            });
+            const modal = document.getElementById('modal-quit');
+            if (modal) {
+                modal.style.display = 'flex';
+                
+                document.getElementById('modal-btn-yes').removeEventListener('click', this.quitTournament);
+                document.getElementById('modal-btn-no').removeEventListener('click', this.closeModal);
+                
+                document.getElementById('modal-btn-yes').addEventListener('click', () => {
+                    this.quitTournament();
+                    this.closeModal();
+                });
+                document.getElementById('modal-btn-no').addEventListener('click', () => {
+                    this.closeModal();
+                });
             }
+        }
         const handleBeforeUnload = async (event) => this.handleBeforeUnload(event);
         const handlePopState = (event) => this.handlePopState(event);
 
@@ -93,6 +101,13 @@ class TournamentGame {
         );
     }
 
+    closeModal() {
+        const modal = document.getElementById('modal-quit');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+    
     cleanup() {
         this.stopTournamentPolling();
         this.cleanupFunctions.forEach(fn => fn());
